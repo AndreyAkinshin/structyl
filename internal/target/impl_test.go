@@ -684,3 +684,114 @@ func TestExecute_CompositeCommandWithInvalidItem_ReturnsError(t *testing.T) {
 		t.Errorf("error = %q, want to contain 'invalid command list item'", err.Error())
 	}
 }
+
+func TestExtractCommandName(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"golangci-lint run", "golangci-lint"},
+		{"go vet ./...", "go"},
+		{"echo hello world", "echo"},
+		{"npm", "npm"},
+		{"", ""},
+		{"   spaced   command", "spaced"},
+	}
+
+	for _, tc := range tests {
+		result := extractCommandName(tc.input)
+		if result != tc.expected {
+			t.Errorf("extractCommandName(%q) = %q, want %q", tc.input, result, tc.expected)
+		}
+	}
+}
+
+func TestIsCommandAvailable(t *testing.T) {
+	// Test with a command that should always exist
+	if runtime.GOOS == "windows" {
+		if !isCommandAvailable("cmd") {
+			t.Error("isCommandAvailable(cmd) = false, want true on Windows")
+		}
+	} else {
+		if !isCommandAvailable("sh") {
+			t.Error("isCommandAvailable(sh) = false, want true on Unix")
+		}
+	}
+
+	// Test with a command that should not exist
+	if isCommandAvailable("nonexistent-command-xyz-12345") {
+		t.Error("isCommandAvailable(nonexistent-command) = true, want false")
+	}
+
+	// Test shell builtins - should always return true
+	builtins := []string{"exit", "test", "echo", "cd", "pwd", "true", "false"}
+	for _, builtin := range builtins {
+		if !isCommandAvailable(builtin) {
+			t.Errorf("isCommandAvailable(%q) = false, want true for shell builtin", builtin)
+		}
+	}
+}
+
+func TestExecute_UnavailableCommand_SkipsWithWarning(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfg := config.TargetConfig{
+		Type:      "language",
+		Title:     "Test",
+		Directory: ".",
+		Cwd:       ".",
+		Commands: map[string]interface{}{
+			"lint": "nonexistent-tool-xyz-12345 run",
+		},
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("test", cfg, tmpDir, resolver)
+
+	ctx := context.Background()
+	err := target.Execute(ctx, "lint", ExecOptions{})
+
+	// Should NOT return error - it should skip gracefully
+	if err != nil {
+		t.Errorf("Execute() error = %v, want nil for unavailable command (should skip)", err)
+	}
+}
+
+func TestExecute_CompositeWithUnavailableCommand_ContinuesWithOthers(t *testing.T) {
+	tmpDir := t.TempDir()
+	outputFile := filepath.Join(tmpDir, "output.txt")
+
+	cfg := config.TargetConfig{
+		Type:      "language",
+		Title:     "Test",
+		Directory: ".",
+		Cwd:       ".",
+		Commands: map[string]interface{}{
+			"lint":  "nonexistent-tool-xyz-12345 run",
+			"vet":   "echo vet-ran > " + outputFile,
+			"check": []interface{}{"lint", "vet"},
+		},
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("test", cfg, tmpDir, resolver)
+
+	ctx := context.Background()
+	err := target.Execute(ctx, "check", ExecOptions{})
+
+	// Should succeed - lint is skipped, vet runs
+	if err != nil {
+		t.Errorf("Execute() error = %v, want nil", err)
+	}
+
+	// Verify vet ran
+	content, readErr := os.ReadFile(outputFile)
+	if readErr != nil {
+		t.Errorf("failed to read output file: %v", readErr)
+		return
+	}
+
+	if !strings.Contains(string(content), "vet-ran") {
+		t.Errorf("output = %q, want to contain 'vet-ran' (vet should have executed)", string(content))
+	}
+}

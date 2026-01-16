@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 
@@ -146,7 +148,7 @@ func handleCheckMode(w *output.Writer, pinnedVersion string) int {
 	return 0
 }
 
-// performUpgrade updates the pinned version and provides instructions.
+// performUpgrade updates the pinned version and installs it.
 func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string) int {
 	// Resolve "nightly" to actual nightly version
 	if targetVersion == "nightly" {
@@ -173,11 +175,8 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 		return 0
 	}
 
-	// Check if version is installed (for stable versions)
-	var alreadyInstalled bool
-	if !isNightlyVersion(targetVersion) {
-		alreadyInstalled = isVersionInstalled(targetVersion)
-	}
+	// Check if version is installed
+	alreadyInstalled := isVersionInstalled(targetVersion)
 
 	// Write new pinned version
 	if err := writePinnedVersion(root, targetVersion); err != nil {
@@ -194,17 +193,47 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 	} else {
 		w.Println("Upgraded from %s to %s", currentVersion, targetVersion)
 	}
-	w.Println("")
 
-	if isNightlyVersion(targetVersion) {
-		w.Println("Run '.structyl/setup.sh' to install the nightly build.")
-	} else if alreadyInstalled {
+	// Install the version if not already installed
+	if alreadyInstalled {
+		w.Println("")
 		w.Println("Version %s is already installed.", targetVersion)
 	} else {
-		w.Println("Run '.structyl/setup.sh' to install version %s.", targetVersion)
+		w.Println("")
+		w.Println("Installing version %s...", targetVersion)
+		if err := installVersion(targetVersion); err != nil {
+			fmt.Fprintf(os.Stderr, "structyl: error: failed to install version: %v\n", err)
+			w.Println("")
+			w.Println("You can try installing manually with: .structyl/setup.sh")
+			return 1
+		}
+		w.Println("Successfully installed version %s", targetVersion)
 	}
 
 	return 0
+}
+
+// installVersion downloads and installs a specific version of structyl.
+func installVersion(ver string) error {
+	// Use the install script URL
+	installScriptURL := "https://structyl.akinshin.dev/install.sh"
+
+	if runtime.GOOS == "windows" {
+		// On Windows, use PowerShell
+		psCmd := fmt.Sprintf("irm %s | iex", installScriptURL)
+		cmd := exec.Command("powershell", "-Command", psCmd)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Env = append(os.Environ(), "STRUCTYL_VERSION="+ver)
+		return cmd.Run()
+	}
+
+	// On Unix, use curl and sh
+	curlCmd := fmt.Sprintf("curl -fsSL %s | sh -s -- --version %s", installScriptURL, ver)
+	cmd := exec.Command("sh", "-c", curlCmd)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd.Run()
 }
 
 // updateProjectFiles regenerates the install scripts and AGENTS.md in the .structyl directory.

@@ -80,6 +80,8 @@ func Run(args []string) int {
 		return cmdTargets(opts)
 	case "config":
 		return cmdConfig(cmdArgs)
+	case "upgrade":
+		return cmdUpgrade(cmdArgs)
 
 	default:
 		// Unified command handling:
@@ -216,6 +218,7 @@ func printProjectHelp(w *output.Writer, proj *project.Project) {
 	w.HelpSection("Utility Commands:")
 	w.HelpCommand("targets", "List all configured targets", 10)
 	w.HelpCommand("config", "Configuration utilities", 10)
+	w.HelpCommand("upgrade", "Manage pinned CLI version", 10)
 	w.HelpCommand("version", "Show version information", 10)
 
 	printGlobalFlags(w)
@@ -249,6 +252,7 @@ func printGenericHelp(w *output.Writer) {
 	w.HelpSection("Utility Commands:")
 	w.HelpCommand("targets", "List all configured targets", 10)
 	w.HelpCommand("config", "Configuration utilities", 10)
+	w.HelpCommand("upgrade", "Manage pinned CLI version", 10)
 	w.HelpCommand("version", "Show version information", 10)
 
 	printGlobalFlags(w)

@@ -175,6 +175,10 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 		return 1
 	}
 
+	// Regenerate install scripts and AGENTS.md
+	structylDir := filepath.Join(root, project.ConfigDirName)
+	updateProjectFiles(structylDir)
+
 	w.Println("Upgraded from %s to %s", currentVersion, targetVersion)
 	w.Println("")
 
@@ -187,6 +191,27 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 	}
 
 	return 0
+}
+
+// updateProjectFiles regenerates the install scripts and AGENTS.md in the .structyl directory.
+func updateProjectFiles(structylDir string) {
+	// Update setup.sh
+	setupShPath := filepath.Join(structylDir, "setup.sh")
+	if err := os.WriteFile(setupShPath, []byte(SetupScriptSh), 0755); err != nil {
+		fmt.Fprintf(os.Stderr, "structyl: warning: could not update setup.sh: %v\n", err)
+	}
+
+	// Update setup.ps1
+	setupPs1Path := filepath.Join(structylDir, "setup.ps1")
+	if err := os.WriteFile(setupPs1Path, []byte(SetupScriptPs1), 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "structyl: warning: could not update setup.ps1: %v\n", err)
+	}
+
+	// Update AGENTS.md
+	agentsPath := filepath.Join(structylDir, AgentsPromptFileName)
+	if err := os.WriteFile(agentsPath, []byte(AgentsPromptContent), 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "structyl: warning: could not update AGENTS.md: %v\n", err)
+	}
 }
 
 // fetchLatestVersion retrieves the latest stable version from GitHub API.

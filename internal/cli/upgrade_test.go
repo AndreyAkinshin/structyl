@@ -358,6 +358,30 @@ func TestCmdUpgrade_SpecificVersion_Success(t *testing.T) {
 		if ver != "2.0.0" {
 			t.Errorf("pinned version = %q, want %q", ver, "2.0.0")
 		}
+
+		// Verify project files were regenerated
+		structylDir := filepath.Join(root, ".structyl")
+
+		// Check setup.sh exists and is executable
+		setupShPath := filepath.Join(structylDir, "setup.sh")
+		info, err := os.Stat(setupShPath)
+		if err != nil {
+			t.Errorf("setup.sh not found: %v", err)
+		} else if info.Mode()&0100 == 0 {
+			t.Error("setup.sh is not executable")
+		}
+
+		// Check setup.ps1 exists
+		setupPs1Path := filepath.Join(structylDir, "setup.ps1")
+		if _, err := os.Stat(setupPs1Path); err != nil {
+			t.Errorf("setup.ps1 not found: %v", err)
+		}
+
+		// Check AGENTS.md exists
+		agentsPath := filepath.Join(structylDir, "AGENTS.md")
+		if _, err := os.Stat(agentsPath); err != nil {
+			t.Errorf("AGENTS.md not found: %v", err)
+		}
 	})
 }
 

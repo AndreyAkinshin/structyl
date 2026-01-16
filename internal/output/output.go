@@ -76,15 +76,18 @@ func (w *Writer) Warning(format string, args ...interface{}) {
 	}
 }
 
-// TargetStart prints the start of a target command.
+// TargetStart prints the start of a target command with enhanced visibility.
 func (w *Writer) TargetStart(target, command string) {
 	if w.quiet {
 		return
 	}
+	// Empty line for visual separation
+	w.Println("")
+	label := fmt.Sprintf("─── [%s] %s ───", target, command)
 	if w.color {
-		w.Println("\033[1m[%s]\033[0m %s", target, command)
+		w.Println("%s%s%s", bold+cyan, label, reset)
 	} else {
-		w.Println("[%s] %s", target, command)
+		w.Println("%s", label)
 	}
 }
 

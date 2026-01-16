@@ -166,8 +166,8 @@ func TestWriter_TargetStart(t *testing.T) {
 		color  bool
 		expect string
 	}{
-		{"normal without color", false, false, "[rs] build\n"},
-		{"normal with color", false, true, "\033[1m[rs]\033[0m build\n"},
+		{"normal without color", false, false, "\n─── [rs] build ───\n"},
+		{"normal with color", false, true, "\n\033[1m\033[36m─── [rs] build ───\033[0m\n"},
 		{"quiet mode", true, false, ""},
 	}
 

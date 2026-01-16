@@ -6,11 +6,15 @@ import (
 	"os"
 	"strings"
 
+	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/project"
 	"github.com/AndreyAkinshin/structyl/internal/release"
 	"github.com/AndreyAkinshin/structyl/internal/runner"
 	"github.com/AndreyAkinshin/structyl/internal/target"
 )
+
+// out is the shared output writer for CLI commands.
+var out = output.New()
 
 // loadProject loads the project configuration and handles errors uniformly.
 // Returns the project and exit code 0 on success, or nil and exit code 1 on failure.
@@ -77,9 +81,9 @@ func runTargetCommand(t target.Target, cmd string, args []string, opts *GlobalOp
 		Args:   args,
 	}
 
-	fmt.Printf("[%s] %s\n", t.Name(), cmd)
+	out.TargetStart(t.Name(), cmd)
 	if err := t.Execute(ctx, cmd, execOpts); err != nil {
-		fmt.Fprintf(os.Stderr, "[%s] %s failed: %v\n", t.Name(), cmd, err)
+		out.TargetFailed(t.Name(), cmd, err)
 		return 1
 	}
 
@@ -133,9 +137,9 @@ func runCommandOnAllTargets(registry *target.Registry, cmd string, args []string
 			continue
 		}
 
-		fmt.Printf("[%s] %s\n", t.Name(), cmd)
+		out.TargetStart(t.Name(), cmd)
 		if err := t.Execute(ctx, cmd, execOpts); err != nil {
-			fmt.Fprintf(os.Stderr, "[%s] %s failed: %v\n", t.Name(), cmd, err)
+			out.TargetFailed(t.Name(), cmd, err)
 			hasError = true
 			if !opts.ContinueOnError {
 				return 1

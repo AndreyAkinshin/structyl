@@ -113,8 +113,8 @@ See [CI Integration](./ci-integration) for details.
 | `structyl targets` | List configured targets |
 | `structyl release <version>` | Set version and release |
 | `structyl upgrade [version]` | Manage pinned CLI version |
-| `structyl docs generate` | Generate README files |
 | `structyl config validate` | Validate configuration |
+| `structyl completion <shell>` | Generate shell completion (bash, zsh, fish) |
 
 ## Defining Commands
 

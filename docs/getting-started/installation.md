@@ -77,8 +77,39 @@ eval "$(structyl completion zsh)"
 
 ### Fish
 
-```bash
+```fish
+# Add to ~/.config/fish/config.fish
 structyl completion fish | source
+```
+
+### Alias Support
+
+If you use an alias for structyl, you can enable completion for it in two ways:
+
+**Option 1:** Generate completion directly for your alias:
+
+```bash
+# Bash
+eval "$(structyl completion bash --alias=st)"
+
+# Zsh
+eval "$(structyl completion zsh --alias=st)"
+
+# Fish
+structyl completion fish --alias=st | source
+```
+
+**Option 2:** Add completion for the alias after loading the main completion:
+
+```bash
+# Bash - add after the eval
+complete -F _structyl_completions st
+
+# Zsh - add after the eval
+compdef _structyl st
+
+# Fish
+complete -c st -w structyl
 ```
 
 ## Next Steps

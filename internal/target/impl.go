@@ -118,14 +118,14 @@ func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) 
 
 	// Handle command definition by type
 	var cmdStr string
-	switch cmd := cmdDef.(type) {
+	switch cmdVal := cmdDef.(type) {
 	case nil:
 		// nil command means skip
 		return nil
 
 	case []string:
 		// Handle composite commands (list of command names)
-		for _, subCmd := range cmd {
+		for _, subCmd := range cmdVal {
 			if err := t.Execute(ctx, subCmd, opts); err != nil {
 				return err
 			}
@@ -134,7 +134,7 @@ func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) 
 
 	case []interface{}:
 		// Handle []interface{} (JSON unmarshals arrays as []interface{})
-		for _, subCmd := range cmd {
+		for _, subCmd := range cmdVal {
 			subCmdStr, ok := subCmd.(string)
 			if !ok {
 				return fmt.Errorf("invalid command list item: %T", subCmd)
@@ -146,7 +146,7 @@ func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) 
 		return nil
 
 	case string:
-		cmdStr = cmd
+		cmdStr = cmdVal
 
 	default:
 		return fmt.Errorf("invalid command definition type: %T", cmdDef)
@@ -154,6 +154,13 @@ func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) 
 
 	// Interpolate variables
 	cmdStr = t.interpolateVars(cmdStr)
+
+	// Check if the command is available before executing
+	execName := extractCommandName(cmdStr)
+	if execName != "" && !isCommandAvailable(execName) {
+		fmt.Fprintf(os.Stderr, "[%s] %s: %s not found, skipping\n", t.name, cmd, execName)
+		return nil
+	}
 
 	// Append forwarded arguments
 	if len(opts.Args) > 0 {
@@ -232,4 +239,72 @@ func copyMap(m map[string]string) map[string]string {
 		result[k] = v
 	}
 	return result
+}
+
+// extractCommandName extracts the executable name (first word) from a shell command string.
+// For example, "golangci-lint run" returns "golangci-lint".
+func extractCommandName(cmdStr string) string {
+	fields := strings.Fields(cmdStr)
+	if len(fields) == 0 {
+		return ""
+	}
+	return fields[0]
+}
+
+// isCommandAvailable checks if a command is available in PATH.
+// Returns true for shell builtins (which are always available via the shell).
+func isCommandAvailable(cmdName string) bool {
+	// Shell builtins are always available when executed via sh -c
+	if isShellBuiltin(cmdName) {
+		return true
+	}
+	_, err := exec.LookPath(cmdName)
+	return err == nil
+}
+
+// shellBuiltins is the set of common shell builtins that don't exist as
+// external commands in PATH but are always available via sh -c.
+var shellBuiltins = map[string]bool{
+	"exit":   true,
+	"test":   true,
+	"[":      true,
+	"echo":   true,
+	"cd":     true,
+	"pwd":    true,
+	"export": true,
+	"unset":  true,
+	"set":    true,
+	"true":   true,
+	"false":  true,
+	"read":   true,
+	"eval":   true,
+	"exec":   true,
+	"source": true,
+	".":      true,
+	"return": true,
+	"break":  true,
+	"continue": true,
+	"shift":  true,
+	"trap":   true,
+	"wait":   true,
+	"kill":   true,
+	"type":   true,
+	"alias":  true,
+	"unalias": true,
+	"command": true,
+	"builtin": true,
+	"local":  true,
+	"declare": true,
+	"typeset": true,
+	"readonly": true,
+	"getopts": true,
+	"hash":   true,
+	"times":  true,
+	"umask":  true,
+	"ulimit": true,
+}
+
+// isShellBuiltin returns true if the command is a shell builtin.
+func isShellBuiltin(cmdName string) bool {
+	return shellBuiltins[cmdName]
 }

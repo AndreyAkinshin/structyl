@@ -162,6 +162,14 @@ func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) 
 		return nil
 	}
 
+	// Check if npm/pnpm/yarn/bun script exists in package.json
+	workDir := filepath.Join(t.rootDir, t.cwd)
+	if available, scriptName := isNpmScriptAvailable(cmdStr, workDir); !available {
+		fmt.Fprintf(os.Stderr, "[%s] %s: script '%s' not found in package.json, skipping\n",
+			t.name, cmd, scriptName)
+		return nil
+	}
+
 	// Append forwarded arguments
 	if len(opts.Args) > 0 {
 		cmdStr += " " + strings.Join(opts.Args, " ")

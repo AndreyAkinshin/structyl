@@ -267,28 +267,6 @@ func TestIsVersionInstalled_NotInstalled(t *testing.T) {
 	}
 }
 
-func TestFetchLatestVersion_Success(t *testing.T) {
-	// Create a test server that mimics GitHub API
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("User-Agent") == "" {
-			t.Error("User-Agent header not set")
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"tag_name": "v1.5.0"}`))
-	}))
-	defer server.Close()
-
-	// We can't easily test fetchLatestVersion with the real URL, but we can
-	// test the parsing logic by using a mock server
-	// For this test, we'll just verify the function exists and handles errors
-}
-
-func TestFetchLatestVersion_StripsVPrefix(t *testing.T) {
-	// This test verifies that "v" prefix is stripped from tag_name
-	// We test this indirectly through the mock server test above
-}
-
 func TestCmdUpgrade_NoProject_ReturnsError(t *testing.T) {
 	tmpDir := t.TempDir()
 	withWorkingDir(t, tmpDir, func() {
@@ -495,6 +473,111 @@ func TestCmdUpgrade_CheckMode_ShowsVersionInfo(t *testing.T) {
 	})
 }
 
+func TestCmdUpgrade_CheckMode_NoPinnedVersion(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "v1.0.0"}`))
+	}))
+	defer server.Close()
+
+	originalURL := githubAPIURL
+	githubAPIURL = server.URL
+	defer func() { githubAPIURL = originalURL }()
+
+	root := createTestProjectWithoutVersion(t)
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"--check"})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([--check]) = %d, want 0", exitCode)
+		}
+	})
+}
+
+func TestCmdUpgrade_CheckMode_OnLatestVersion(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "v1.0.0"}`))
+	}))
+	defer server.Close()
+
+	originalURL := githubAPIURL
+	githubAPIURL = server.URL
+	defer func() { githubAPIURL = originalURL }()
+
+	root := createTestProjectWithVersion(t, "1.0.0")
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"--check"})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([--check]) = %d, want 0", exitCode)
+		}
+	})
+}
+
+func TestCmdUpgrade_CheckMode_OlderVersion(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "v2.0.0"}`))
+	}))
+	defer server.Close()
+
+	originalURL := githubAPIURL
+	githubAPIURL = server.URL
+	defer func() { githubAPIURL = originalURL }()
+
+	root := createTestProjectWithVersion(t, "1.0.0")
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"--check"})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([--check]) = %d, want 0", exitCode)
+		}
+	})
+}
+
+func TestCmdUpgrade_CheckMode_NewerVersion(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "v1.0.0"}`))
+	}))
+	defer server.Close()
+
+	originalURL := githubAPIURL
+	githubAPIURL = server.URL
+	defer func() { githubAPIURL = originalURL }()
+
+	root := createTestProjectWithVersion(t, "2.0.0")
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"--check"})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([--check]) = %d, want 0", exitCode)
+		}
+	})
+}
+
+func TestCmdUpgrade_CheckMode_NightlyPinned(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "v1.0.0"}`))
+	}))
+	defer server.Close()
+
+	originalURL := githubAPIURL
+	githubAPIURL = server.URL
+	defer func() { githubAPIURL = originalURL }()
+
+	root := createTestProjectWithVersion(t, "0.1.0-nightly+abc1234")
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"--check"})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([--check]) = %d, want 0", exitCode)
+		}
+	})
+}
+
 func TestRun_UpgradeCommand_Routing(t *testing.T) {
 	root := createTestProjectWithVersion(t, "1.0.0")
 	withWorkingDir(t, root, func() {
@@ -504,4 +587,180 @@ func TestRun_UpgradeCommand_Routing(t *testing.T) {
 			t.Errorf("Run([upgrade, 2.0.0]) = %d, want 0", exitCode)
 		}
 	})
+}
+
+// =============================================================================
+// HTTP Mocking Tests for fetchLatestVersion and fetchNightlyVersion
+// =============================================================================
+
+func TestFetchLatestVersion_Success(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("User-Agent") == "" {
+			t.Error("User-Agent header not set")
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "v1.5.0"}`))
+	}))
+	defer server.Close()
+
+	// Override the URL for testing
+	originalURL := githubAPIURL
+	githubAPIURL = server.URL
+	defer func() { githubAPIURL = originalURL }()
+
+	ver, err := fetchLatestVersion()
+	if err != nil {
+		t.Errorf("fetchLatestVersion() error = %v, want nil", err)
+	}
+	if ver != "1.5.0" {
+		t.Errorf("fetchLatestVersion() = %q, want %q", ver, "1.5.0")
+	}
+}
+
+func TestFetchLatestVersion_StripsVPrefix(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "v2.3.4"}`))
+	}))
+	defer server.Close()
+
+	originalURL := githubAPIURL
+	githubAPIURL = server.URL
+	defer func() { githubAPIURL = originalURL }()
+
+	ver, err := fetchLatestVersion()
+	if err != nil {
+		t.Errorf("fetchLatestVersion() error = %v, want nil", err)
+	}
+	if ver != "2.3.4" {
+		t.Errorf("fetchLatestVersion() = %q, want %q (v prefix should be stripped)", ver, "2.3.4")
+	}
+}
+
+func TestFetchLatestVersion_NoVPrefix(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "3.0.0"}`))
+	}))
+	defer server.Close()
+
+	originalURL := githubAPIURL
+	githubAPIURL = server.URL
+	defer func() { githubAPIURL = originalURL }()
+
+	ver, err := fetchLatestVersion()
+	if err != nil {
+		t.Errorf("fetchLatestVersion() error = %v, want nil", err)
+	}
+	if ver != "3.0.0" {
+		t.Errorf("fetchLatestVersion() = %q, want %q", ver, "3.0.0")
+	}
+}
+
+func TestFetchLatestVersion_HTTPError_ReturnsError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	originalURL := githubAPIURL
+	githubAPIURL = server.URL
+	defer func() { githubAPIURL = originalURL }()
+
+	_, err := fetchLatestVersion()
+	if err == nil {
+		t.Error("fetchLatestVersion() error = nil, want error for HTTP 500")
+	}
+}
+
+func TestFetchLatestVersion_InvalidJSON_ReturnsError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{invalid json`))
+	}))
+	defer server.Close()
+
+	originalURL := githubAPIURL
+	githubAPIURL = server.URL
+	defer func() { githubAPIURL = originalURL }()
+
+	_, err := fetchLatestVersion()
+	if err == nil {
+		t.Error("fetchLatestVersion() error = nil, want error for invalid JSON")
+	}
+}
+
+func TestFetchNightlyVersion_Success(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "nightly", "body": "Automated nightly build.\n\n**Version:** ` + "`" + `0.1.0-nightly+abc1234` + "`" + `\n**Commit:** abc1234"}`))
+	}))
+	defer server.Close()
+
+	originalURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalURL }()
+
+	ver, err := fetchNightlyVersion()
+	if err != nil {
+		t.Errorf("fetchNightlyVersion() error = %v, want nil", err)
+	}
+	if ver != "0.1.0-nightly+abc1234" {
+		t.Errorf("fetchNightlyVersion() = %q, want %q", ver, "0.1.0-nightly+abc1234")
+	}
+}
+
+func TestFetchNightlyVersion_NotFound_ReturnsError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	originalURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalURL }()
+
+	_, err := fetchNightlyVersion()
+	if err == nil {
+		t.Error("fetchNightlyVersion() error = nil, want error for 404")
+	}
+}
+
+func TestFetchNightlyVersion_HTTPError_ReturnsError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	originalURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalURL }()
+
+	_, err := fetchNightlyVersion()
+	if err == nil {
+		t.Error("fetchNightlyVersion() error = nil, want error for HTTP 500")
+	}
+}
+
+func TestFetchNightlyVersion_NoVersionInBody_ReturnsError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "nightly", "body": "Some release without version info"}`))
+	}))
+	defer server.Close()
+
+	originalURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalURL }()
+
+	_, err := fetchNightlyVersion()
+	if err == nil {
+		t.Error("fetchNightlyVersion() error = nil, want error when version not in body")
+	}
 }

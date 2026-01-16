@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -419,6 +420,93 @@ func TestFilterTargetsByType_AllMatch_ReturnsAll(t *testing.T) {
 	filtered := filterTargetsByType(targets, target.TypeLanguage)
 	if len(filtered) != 3 {
 		t.Errorf("filterTargetsByType(language) = %d targets, want 3", len(filtered))
+	}
+}
+
+// =============================================================================
+// runTargetCommand Tests
+// =============================================================================
+
+func TestRunTargetCommand_Success_ExecutesCommand(t *testing.T) {
+	var executedCmd string
+	var executedOpts target.ExecOptions
+
+	mock := &mockTarget{
+		name:       "test",
+		title:      "Test Target",
+		targetType: target.TypeLanguage,
+		commands:   map[string]interface{}{"build": "echo building"},
+		execFunc: func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			executedCmd = cmd
+			executedOpts = opts
+			return nil
+		},
+	}
+
+	exitCode := runTargetCommand(mock, "build", []string{"--verbose"}, &GlobalOptions{})
+	if exitCode != 0 {
+		t.Errorf("runTargetCommand() = %d, want 0", exitCode)
+	}
+	if executedCmd != "build" {
+		t.Errorf("executed command = %q, want %q", executedCmd, "build")
+	}
+	if len(executedOpts.Args) != 1 || executedOpts.Args[0] != "--verbose" {
+		t.Errorf("executed args = %v, want [--verbose]", executedOpts.Args)
+	}
+}
+
+func TestRunTargetCommand_CommandNotDefined_ReturnsError(t *testing.T) {
+	mock := &mockTarget{
+		name:       "test",
+		title:      "Test Target",
+		targetType: target.TypeLanguage,
+		commands:   map[string]interface{}{}, // no commands defined
+	}
+
+	exitCode := runTargetCommand(mock, "build", nil, &GlobalOptions{})
+	if exitCode != 1 {
+		t.Errorf("runTargetCommand() = %d, want 1 (command not defined)", exitCode)
+	}
+}
+
+func TestRunTargetCommand_ExecutionError_ReturnsFailed(t *testing.T) {
+	mock := &mockTarget{
+		name:       "test",
+		title:      "Test Target",
+		targetType: target.TypeLanguage,
+		commands:   map[string]interface{}{"build": "echo building"},
+		execFunc: func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			return fmt.Errorf("build failed")
+		},
+	}
+
+	exitCode := runTargetCommand(mock, "build", nil, &GlobalOptions{})
+	if exitCode != 1 {
+		t.Errorf("runTargetCommand() = %d, want 1 (execution failed)", exitCode)
+	}
+}
+
+func TestRunTargetCommand_DockerMode_PassesDockerOption(t *testing.T) {
+	var receivedDocker bool
+
+	mock := &mockTarget{
+		name:       "test",
+		title:      "Test Target",
+		targetType: target.TypeLanguage,
+		commands:   map[string]interface{}{"build": "echo building"},
+		execFunc: func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			receivedDocker = opts.Docker
+			return nil
+		},
+	}
+
+	// Set Docker mode via options
+	exitCode := runTargetCommand(mock, "build", nil, &GlobalOptions{Docker: true})
+	if exitCode != 0 {
+		t.Errorf("runTargetCommand() = %d, want 0", exitCode)
+	}
+	if !receivedDocker {
+		t.Error("Docker option was not passed to Execute")
 	}
 }
 

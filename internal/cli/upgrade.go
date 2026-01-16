@@ -15,10 +15,14 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/version"
 )
 
-const (
+// Default API URLs (variables to allow test overrides)
+var (
 	githubAPIURL        = "https://api.github.com/repos/AndreyAkinshin/structyl/releases/latest"
 	githubNightlyAPIURL = "https://api.github.com/repos/AndreyAkinshin/structyl/releases/tags/nightly"
-	httpTimeout         = 10 * time.Second
+)
+
+const (
+	httpTimeout = 10 * time.Second
 )
 
 // GitHubRelease represents the GitHub API response for a release.

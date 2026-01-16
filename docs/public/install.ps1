@@ -14,7 +14,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 # Configuration
-$GitHubRepo = "akinshin/structyl"
+$GitHubRepo = "AndreyAkinshin/structyl"
 $DefaultInstallDir = "$env:USERPROFILE\.structyl"
 $InstallDir = if ($InstallDir) { $InstallDir } elseif ($env:STRUCTYL_INSTALL_DIR) { $env:STRUCTYL_INSTALL_DIR } else { $DefaultInstallDir }
 $BinDir = "$InstallDir\bin"

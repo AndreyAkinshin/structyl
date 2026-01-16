@@ -45,7 +45,7 @@ error() {
 }
 
 # Configuration
-GITHUB_REPO="akinshin/structyl"
+GITHUB_REPO="AndreyAkinshin/structyl"
 INSTALL_DIR="${STRUCTYL_INSTALL_DIR:-$HOME/.structyl}"
 BIN_DIR="$INSTALL_DIR/bin"
 VERSIONS_DIR="$INSTALL_DIR/versions"

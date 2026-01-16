@@ -111,7 +111,7 @@ This path works on all platforms—Structyl handles the conversion.
 
 Recommendation: Configure Git to handle line endings:
 
-```gitattributes
+```ini
 * text=auto
 *.sh text eol=lf
 ```

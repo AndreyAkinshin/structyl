@@ -253,7 +253,7 @@ New contributors can run the setup script to install the correct version of stru
 
 Recommended `.gitignore`:
 
-```gitignore
+```ini
 # Structyl
 artifacts/
 

@@ -32,7 +32,10 @@ var toolchainMarkers = []ToolchainMarker{
 	{"Package.swift", "swift"},
 	{"CMakeLists.txt", "cmake"},
 	{"Makefile", "make"},
-	// Glob patterns for .NET
+	// .NET indicators (solution/props files often at root, csproj in subdirs)
+	{"*.sln", "dotnet"},
+	{"Directory.Build.props", "dotnet"},
+	{"global.json", "dotnet"},
 	{"*.csproj", "dotnet"},
 	{"*.fsproj", "dotnet"},
 }

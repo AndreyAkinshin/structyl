@@ -82,6 +82,48 @@ func TestDiscoverTargets(t *testing.T) {
 	}
 }
 
+func TestDetectToolchain_DotNetSolution(t *testing.T) {
+	root := t.TempDir()
+
+	// Create cs/ directory with .sln file (common for multi-project C# repos)
+	csDir := filepath.Join(root, "cs")
+	if err := os.MkdirAll(csDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(csDir, "MyProject.sln"), []byte{}, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	toolchain, found := DetectToolchain(csDir)
+	if !found {
+		t.Error("DetectToolchain() should detect .sln file")
+	}
+	if toolchain != "dotnet" {
+		t.Errorf("DetectToolchain() = %q, want %q", toolchain, "dotnet")
+	}
+}
+
+func TestDetectToolchain_DotNetDirectoryBuildProps(t *testing.T) {
+	root := t.TempDir()
+
+	// Create cs/ directory with Directory.Build.props (common for multi-project C# repos)
+	csDir := filepath.Join(root, "cs")
+	if err := os.MkdirAll(csDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(csDir, "Directory.Build.props"), []byte{}, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	toolchain, found := DetectToolchain(csDir)
+	if !found {
+		t.Error("DetectToolchain() should detect Directory.Build.props file")
+	}
+	if toolchain != "dotnet" {
+		t.Errorf("DetectToolchain() = %q, want %q", toolchain, "dotnet")
+	}
+}
+
 func TestValidateTargetDirectory(t *testing.T) {
 	root := t.TempDir()
 

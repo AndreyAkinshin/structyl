@@ -28,6 +28,17 @@ type targetResult struct {
 func printCommandSummary(cmd string, results []targetResult, totalDuration time.Duration) {
 	out.SummaryHeader(cmd + " Summary")
 
+	// Print detailed target listing
+	out.SummarySectionLabel("Targets:")
+	for _, r := range results {
+		var errMsg string
+		if r.err != nil {
+			errMsg = r.err.Error()
+		}
+		out.SummaryAction(r.name, r.success, runner.FormatDuration(r.duration), errMsg)
+	}
+	out.Println("")
+
 	// Count results
 	var passed, failed int
 	var failedNames []string

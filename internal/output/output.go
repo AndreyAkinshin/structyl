@@ -485,6 +485,40 @@ func (w *Writer) Hint(format string, args ...interface{}) {
 	}
 }
 
+// SummaryAction prints an action item with status indicator, name, duration, and optional error.
+// Used for detailed summaries showing individual targets or phases.
+func (w *Writer) SummaryAction(name string, success bool, duration string, errMsg string) {
+	if w.color {
+		if success {
+			w.Print("    %s✓%s %-12s %s%s%s", green, reset, name, dim, duration, reset)
+		} else {
+			w.Print("    %s✗%s %-12s %s%s%s", red, reset, name, dim, duration, reset)
+			if errMsg != "" {
+				w.Print("  %s(%s)%s", dim, errMsg, reset)
+			}
+		}
+	} else {
+		if success {
+			w.Print("    + %-12s %s", name, duration)
+		} else {
+			w.Print("    x %-12s %s", name, duration)
+			if errMsg != "" {
+				w.Print("  (%s)", errMsg)
+			}
+		}
+	}
+	w.Print("\n")
+}
+
+// SummarySectionLabel prints a label for a summary section (e.g., "Targets:" or "Phases:").
+func (w *Writer) SummarySectionLabel(label string) {
+	if w.color {
+		w.Println("  %s%s%s", dim, label, reset)
+	} else {
+		w.Println("  %s", label)
+	}
+}
+
 // colorPlaceholders highlights <placeholder> patterns in text.
 func (w *Writer) colorPlaceholders(text string) string {
 	var result strings.Builder

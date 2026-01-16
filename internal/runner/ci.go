@@ -251,6 +251,17 @@ func copyFile(src, dst string) error {
 func PrintCISummary(result *CIResult, out *output.Writer) {
 	out.SummaryHeader("CI Summary")
 
+	// Print detailed phase listing
+	out.SummarySectionLabel("Phases:")
+	for _, p := range result.PhaseResults {
+		var errMsg string
+		if p.Error != nil {
+			errMsg = p.Error.Error()
+		}
+		out.SummaryAction(p.Name, p.Success, FormatDuration(p.Duration), errMsg)
+	}
+	out.Println("")
+
 	// Phase summary
 	var successPhases, failedPhases []string
 	for _, p := range result.PhaseResults {

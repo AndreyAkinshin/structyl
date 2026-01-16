@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -500,6 +501,15 @@ func TestExecute_WithEnv_SetsEnvironment(t *testing.T) {
 	tmpDir := t.TempDir()
 	outputFile := filepath.Join(tmpDir, "env_output.txt")
 
+	// Use platform-specific command syntax
+	var echoCmd string
+	if runtime.GOOS == "windows" {
+		// PowerShell syntax for environment variables
+		echoCmd = fmt.Sprintf("\"$env:TARGET_VAR $env:OPTS_VAR\" | Out-File -FilePath '%s' -Encoding ASCII", outputFile)
+	} else {
+		echoCmd = "echo $TARGET_VAR $OPTS_VAR > " + outputFile
+	}
+
 	cfg := config.TargetConfig{
 		Type:      "language",
 		Title:     "Test",
@@ -509,7 +519,7 @@ func TestExecute_WithEnv_SetsEnvironment(t *testing.T) {
 			"TARGET_VAR": "target_value",
 		},
 		Commands: map[string]interface{}{
-			"env": "echo $TARGET_VAR $OPTS_VAR > " + outputFile,
+			"env": echoCmd,
 		},
 	}
 
@@ -547,14 +557,25 @@ func TestExecute_CompositeCommand_ExecutesInOrder(t *testing.T) {
 	tmpDir := t.TempDir()
 	outputFile := filepath.Join(tmpDir, "composite.txt")
 
+	// Use platform-specific commands for appending to file
+	var firstCmd, secondCmd string
+	if runtime.GOOS == "windows" {
+		// PowerShell syntax for appending to file with ASCII encoding
+		firstCmd = fmt.Sprintf("'first' | Out-File -FilePath '%s' -Encoding ASCII -Append", outputFile)
+		secondCmd = fmt.Sprintf("'second' | Out-File -FilePath '%s' -Encoding ASCII -Append", outputFile)
+	} else {
+		firstCmd = "echo first >> " + outputFile
+		secondCmd = "echo second >> " + outputFile
+	}
+
 	cfg := config.TargetConfig{
 		Type:      "language",
 		Title:     "Test",
 		Directory: ".",
 		Cwd:       ".",
 		Commands: map[string]interface{}{
-			"first":  "echo first >> " + outputFile,
-			"second": "echo second >> " + outputFile,
+			"first":  firstCmd,
+			"second": secondCmd,
 			"both":   []interface{}{"first", "second"},
 		},
 	}

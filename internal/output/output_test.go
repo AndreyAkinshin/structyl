@@ -47,6 +47,53 @@ func TestWriter_SetQuiet(t *testing.T) {
 	}
 }
 
+func TestWriter_SetVerbose(t *testing.T) {
+	w, _, _ := newTestWriter()
+
+	w.SetVerbose(true)
+	if !w.verbose {
+		t.Error("SetVerbose(true) did not set verbose")
+	}
+	if !w.IsVerbose() {
+		t.Error("IsVerbose() = false after SetVerbose(true)")
+	}
+
+	w.SetVerbose(false)
+	if w.verbose {
+		t.Error("SetVerbose(false) did not unset verbose")
+	}
+	if w.IsVerbose() {
+		t.Error("IsVerbose() = true after SetVerbose(false)")
+	}
+}
+
+func TestWriter_Debug(t *testing.T) {
+	tests := []struct {
+		name    string
+		verbose bool
+		color   bool
+		expect  string
+	}{
+		{"verbose without color", true, false, "[debug] test message\n"},
+		{"verbose with color", true, true, "\033[2m[debug]\033[0m test message\n"},
+		{"not verbose", false, false, ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.verbose = tt.verbose
+			w.color = tt.color
+
+			w.Debug("test %s", "message")
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("Debug() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
 func TestWriter_Print(t *testing.T) {
 	w, stdout, _ := newTestWriter()
 

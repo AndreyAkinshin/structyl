@@ -372,6 +372,98 @@ func TestInterpolateVars_MixedVariables(t *testing.T) {
 	}
 }
 
+func TestResolveCommandVariant(t *testing.T) {
+	cfg := config.TargetConfig{
+		Type:      "language",
+		Title:     "Test",
+		Toolchain: "go",
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("test", cfg, "/project", resolver)
+	impl := target.(*targetImpl)
+
+	tests := []struct {
+		name      string
+		cmd       string
+		verbosity Verbosity
+		expected  string
+	}{
+		{"default verbosity returns original", "test", VerbosityDefault, "test"},
+		{"verbose with variant returns variant", "test", VerbosityVerbose, "test:verbose"},
+		{"quiet without variant returns original", "clean", VerbosityQuiet, "clean"},
+		{"verbose without variant returns original", "clean", VerbosityVerbose, "clean"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := impl.resolveCommandVariant(tt.cmd, tt.verbosity)
+			if result != tt.expected {
+				t.Errorf("resolveCommandVariant(%q, %v) = %q, want %q", tt.cmd, tt.verbosity, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestResolveCommandVariant_WithQuietVariant(t *testing.T) {
+	cfg := config.TargetConfig{
+		Type:  "language",
+		Title: "Test",
+		Commands: map[string]interface{}{
+			"build":       "go build ./...",
+			"build:quiet": "go build -q ./...",
+		},
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("test", cfg, "/project", resolver)
+	impl := target.(*targetImpl)
+
+	// Should resolve to quiet variant when it exists
+	result := impl.resolveCommandVariant("build", VerbosityQuiet)
+	if result != "build:quiet" {
+		t.Errorf("resolveCommandVariant(build, Quiet) = %q, want %q", result, "build:quiet")
+	}
+
+	// Default should return original
+	result = impl.resolveCommandVariant("build", VerbosityDefault)
+	if result != "build" {
+		t.Errorf("resolveCommandVariant(build, Default) = %q, want %q", result, "build")
+	}
+}
+
+func TestExecute_WithVerbosity_ResolvesVariant(t *testing.T) {
+	tmpDir := t.TempDir()
+	outputFile := filepath.Join(tmpDir, "output.txt")
+
+	cfg := config.TargetConfig{
+		Type:      "language",
+		Title:     "Test",
+		Directory: ".",
+		Cwd:       ".",
+		Commands: map[string]interface{}{
+			"test":         "echo normal > " + outputFile,
+			"test:verbose": "echo verbose > " + outputFile,
+		},
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("test", cfg, tmpDir, resolver)
+
+	ctx := context.Background()
+
+	// Execute with verbose - should use test:verbose
+	err := target.Execute(ctx, "test", ExecOptions{Verbosity: VerbosityVerbose})
+	if err != nil {
+		t.Errorf("Execute() error = %v", err)
+	}
+
+	content, _ := os.ReadFile(outputFile)
+	if !strings.Contains(string(content), "verbose") {
+		t.Errorf("output = %q, want to contain 'verbose' (should have used test:verbose)", string(content))
+	}
+}
+
 func TestExecute_UndefinedCommand_ReturnsError(t *testing.T) {
 	cfg := config.TargetConfig{
 		Type:  "language",

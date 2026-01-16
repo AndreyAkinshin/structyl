@@ -19,6 +19,8 @@ func TestParseGlobalFlags(t *testing.T) {
 		wantNoDocker   bool
 		wantContinue   bool
 		wantTargetType string
+		wantQuiet      bool
+		wantVerbose    bool
 		wantRemaining  []string
 		wantErr        bool
 	}{
@@ -43,6 +45,30 @@ func TestParseGlobalFlags(t *testing.T) {
 			name:          "--continue flag",
 			args:          []string{"--continue", "build"},
 			wantContinue:  true,
+			wantRemaining: []string{"build"},
+		},
+		{
+			name:          "-q flag",
+			args:          []string{"-q", "build"},
+			wantQuiet:     true,
+			wantRemaining: []string{"build"},
+		},
+		{
+			name:          "--quiet flag",
+			args:          []string{"--quiet", "build"},
+			wantQuiet:     true,
+			wantRemaining: []string{"build"},
+		},
+		{
+			name:          "-v flag",
+			args:          []string{"-v", "build"},
+			wantVerbose:   true,
+			wantRemaining: []string{"build"},
+		},
+		{
+			name:          "--verbose flag",
+			args:          []string{"--verbose", "build"},
+			wantVerbose:   true,
 			wantRemaining: []string{"build"},
 		},
 		{
@@ -93,6 +119,16 @@ func TestParseGlobalFlags(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "quiet and verbose mutually exclusive",
+			args:    []string{"-q", "-v", "build"},
+			wantErr: true,
+		},
+		{
+			name:    "quiet and verbose long form mutually exclusive",
+			args:    []string{"--quiet", "--verbose", "build"},
+			wantErr: true,
+		},
+		{
 			name:          "empty args",
 			args:          []string{},
 			wantRemaining: nil,
@@ -126,6 +162,12 @@ func TestParseGlobalFlags(t *testing.T) {
 			}
 			if opts.TargetType != tt.wantTargetType {
 				t.Errorf("TargetType = %q, want %q", opts.TargetType, tt.wantTargetType)
+			}
+			if opts.Quiet != tt.wantQuiet {
+				t.Errorf("Quiet = %v, want %v", opts.Quiet, tt.wantQuiet)
+			}
+			if opts.Verbose != tt.wantVerbose {
+				t.Errorf("Verbose = %v, want %v", opts.Verbose, tt.wantVerbose)
 			}
 
 			if len(remaining) != len(tt.wantRemaining) {
@@ -266,6 +308,27 @@ func TestSanitizeProjectName_SpecialCharacters(t *testing.T) {
 			result := sanitizeProjectName(tt.input)
 			if result != tt.expected {
 				t.Errorf("sanitizeProjectName(%q) = %q, want %q", tt.input, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestGetVerbosity(t *testing.T) {
+	tests := []struct {
+		name     string
+		opts     *GlobalOptions
+		expected target.Verbosity
+	}{
+		{"default", &GlobalOptions{}, target.VerbosityDefault},
+		{"quiet", &GlobalOptions{Quiet: true}, target.VerbosityQuiet},
+		{"verbose", &GlobalOptions{Verbose: true}, target.VerbosityVerbose},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := getVerbosity(tt.opts)
+			if result != tt.expected {
+				t.Errorf("getVerbosity() = %v, want %v", result, tt.expected)
 			}
 		})
 	}

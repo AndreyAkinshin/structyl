@@ -495,13 +495,13 @@ func TestCompareOutput_SpecialFloatMismatch(t *testing.T) {
 	}
 
 	// Expected +Infinity, got -Infinity (already tested above, but with int)
-	ok, diff = Compare("Infinity", int(42), opts)
+	ok, _ = Compare("Infinity", int(42), opts)
 	if ok {
 		t.Error("expected Infinity vs int to fail")
 	}
 
 	// Expected -Infinity, got int
-	ok, diff = Compare("-Infinity", int(-42), opts)
+	ok, _ = Compare("-Infinity", int(-42), opts)
 	if ok {
 		t.Error("expected -Infinity vs int to fail")
 	}

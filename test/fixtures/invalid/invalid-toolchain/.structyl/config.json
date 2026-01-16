@@ -1,0 +1,13 @@
+{
+  "project": {
+    "name": "invalid-toolchain-project"
+  },
+  "targets": {
+    "foo": {
+      "type": "language",
+      "title": "Foo",
+      "toolchain": "nonexistent-toolchain",
+      "directory": "."
+    }
+  }
+}

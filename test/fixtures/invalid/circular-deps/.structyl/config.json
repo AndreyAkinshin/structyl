@@ -1,0 +1,21 @@
+{
+  "project": {
+    "name": "circular-deps-project"
+  },
+  "targets": {
+    "a": {
+      "type": "language",
+      "title": "A",
+      "toolchain": "go",
+      "directory": ".",
+      "depends_on": ["b"]
+    },
+    "b": {
+      "type": "language",
+      "title": "B",
+      "toolchain": "go",
+      "directory": ".",
+      "depends_on": ["a"]
+    }
+  }
+}

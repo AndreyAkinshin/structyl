@@ -1,0 +1,17 @@
+{
+  "project": {
+    "name": "docker-project"
+  },
+  "docker": {
+    "compose_file": "docker-compose.yml",
+    "env_var": "STRUCTYL_DOCKER"
+  },
+  "targets": {
+    "go": {
+      "type": "language",
+      "title": "Go",
+      "toolchain": "go",
+      "directory": "."
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "project": {
+    "name": "multi-language-project"
+  },
+  "targets": {
+    "py": {
+      "type": "language",
+      "title": "Python",
+      "toolchain": "python",
+      "directory": "py"
+    },
+    "rs": {
+      "type": "language",
+      "title": "Rust",
+      "toolchain": "cargo",
+      "directory": "rs",
+      "depends_on": ["py"]
+    }
+  }
+}

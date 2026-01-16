@@ -1,5 +1,6 @@
 # Structyl-specific
 .structyl/
+!test/fixtures/**/.structyl/
 artifacts/
 **/.nuget-docker/
 **/.cargo-docker/

@@ -205,12 +205,18 @@ func TestGenerateBashCompletion_ContainsRequiredElements(t *testing.T) {
 		"completion_shells",
 		"--type",
 		"language auxiliary",
+		"awk '{print $1}'", // portable alternative to grep -oP
 	}
 
 	for _, elem := range requiredElements {
 		if !strings.Contains(output, elem) {
 			t.Errorf("generateBashCompletion() missing required element %q", elem)
 		}
+	}
+
+	// Ensure non-portable grep -oP is not used (fails on macOS BSD grep)
+	if strings.Contains(output, "grep -oP") {
+		t.Error("generateBashCompletion() should not use non-portable 'grep -oP'")
 	}
 }
 
@@ -243,12 +249,18 @@ func TestGenerateZshCompletion_ContainsRequiredElements(t *testing.T) {
 		"completion_shells=(",
 		"'init:Initialize a new structyl project'",
 		"'--docker[Run in Docker container]'",
+		"awk '{print $1}'", // portable alternative to grep -oP
 	}
 
 	for _, elem := range requiredElements {
 		if !strings.Contains(output, elem) {
 			t.Errorf("generateZshCompletion() missing required element %q", elem)
 		}
+	}
+
+	// Ensure non-portable grep -oP is not used (fails on macOS BSD grep)
+	if strings.Contains(output, "grep -oP") {
+		t.Error("generateZshCompletion() should not use non-portable 'grep -oP'")
 	}
 }
 

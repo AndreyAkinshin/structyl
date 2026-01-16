@@ -206,7 +206,7 @@ func generateBashCompletion(cmdName string) string {
 
     # Try to get dynamic target names if in a structyl project
     local targets
-    if targets=$(structyl targets 2>/dev/null | grep -oP '^\S+'); then
+    if targets=$(structyl targets 2>/dev/null | awk '{print $1}'); then
         COMPREPLY=($(compgen -W "${targets} ${commands} ${flags}" -- "${cur}"))
     else
         COMPREPLY=($(compgen -W "${commands} ${flags}" -- "${cur}"))
@@ -308,7 +308,7 @@ func generateZshCompletion(cmdName string) string {
 
     # Try to get dynamic targets
     local -a targets
-    if targets=(${(f)"$(structyl targets 2>/dev/null | grep -oP '^\S+')"}); then
+    if targets=(${(f)"$(structyl targets 2>/dev/null | awk '{print $1}')"}); then
         _describe -t targets 'target' targets
     fi
 

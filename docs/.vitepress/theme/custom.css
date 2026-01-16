@@ -1,0 +1,419 @@
+/* Structyl Custom Theme - Matching get site aesthetic */
+
+/* =============================================================================
+   Dark Mode Colors (Primary)
+   ============================================================================= */
+
+:root {
+  /* Brand colors */
+  --vp-c-brand-1: #38bdf8;
+  --vp-c-brand-2: #7dd3fc;
+  --vp-c-brand-3: #0ea5e9;
+  --vp-c-brand-soft: rgba(56, 189, 248, 0.14);
+
+  /* Home hero title gradient */
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(135deg, #38bdf8, #7dd3fc);
+
+  /* Accent colors for buttons and links */
+  --vp-button-brand-bg: #38bdf8;
+  --vp-button-brand-hover-bg: #7dd3fc;
+  --vp-button-brand-active-bg: #0ea5e9;
+}
+
+.dark {
+  /* Background colors from get site */
+  --vp-c-bg: #0f172a;
+  --vp-c-bg-alt: #1e293b;
+  --vp-c-bg-elv: #1e293b;
+  --vp-c-bg-soft: #1e293b;
+
+  /* Border colors */
+  --vp-c-border: #334155;
+  --vp-c-divider: #334155;
+  --vp-c-gutter: #1e293b;
+
+  /* Text colors */
+  --vp-c-text-1: #e2e8f0;
+  --vp-c-text-2: #94a3b8;
+  --vp-c-text-3: #64748b;
+
+  /* Code block colors */
+  --vp-code-block-bg: #0f172a;
+  --vp-code-bg: rgba(15, 23, 42, 0.8);
+
+  /* Sidebar */
+  --vp-sidebar-bg-color: #0f172a;
+
+  /* Nav */
+  --vp-nav-bg-color: rgba(15, 23, 42, 0.8);
+
+  /* Local nav (on mobile) */
+  --vp-local-nav-bg-color: #0f172a;
+
+  /* Carbon ads (if used) */
+  --vp-carbon-ads-bg-color: #1e293b;
+}
+
+/* =============================================================================
+   Light Mode Colors (Complementary)
+   ============================================================================= */
+
+html:not(.dark) {
+  /* Light mode backgrounds */
+  --vp-c-bg: #f8fafc;
+  --vp-c-bg-alt: #f1f5f9;
+  --vp-c-bg-elv: #ffffff;
+  --vp-c-bg-soft: #f1f5f9;
+
+  /* Border colors */
+  --vp-c-border: #e2e8f0;
+  --vp-c-divider: #e2e8f0;
+  --vp-c-gutter: #f1f5f9;
+
+  /* Text colors */
+  --vp-c-text-1: #0f172a;
+  --vp-c-text-2: #475569;
+  --vp-c-text-3: #64748b;
+
+  /* Code block colors */
+  --vp-code-block-bg: #f1f5f9;
+  --vp-code-bg: rgba(241, 245, 249, 0.8);
+
+  /* Sidebar */
+  --vp-sidebar-bg-color: #f8fafc;
+
+  /* Nav */
+  --vp-nav-bg-color: rgba(248, 250, 252, 0.8);
+
+  /* Brand adjustments for light mode */
+  --vp-c-brand-1: #0284c7;
+  --vp-c-brand-2: #0ea5e9;
+  --vp-c-brand-3: #38bdf8;
+
+  --vp-button-brand-bg: #0284c7;
+  --vp-button-brand-hover-bg: #0ea5e9;
+  --vp-button-brand-active-bg: #0369a1;
+}
+
+/* =============================================================================
+   Hero Section Enhancements
+   ============================================================================= */
+
+.VPHero .name {
+  background: linear-gradient(135deg, #38bdf8, #7dd3fc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+html:not(.dark) .VPHero .name {
+  background: linear-gradient(135deg, #0284c7, #38bdf8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Hero tagline */
+.VPHero .tagline {
+  color: var(--vp-c-text-2);
+}
+
+/* =============================================================================
+   Feature Cards Enhancement
+   ============================================================================= */
+
+.VPFeature {
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.VPFeature:hover {
+  transform: translateY(-2px);
+  border-color: var(--vp-c-brand-1);
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.15);
+}
+
+.dark .VPFeature:hover {
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2);
+}
+
+.VPFeature .title {
+  color: var(--vp-c-text-1);
+}
+
+.VPFeature .details {
+  color: var(--vp-c-text-2);
+}
+
+/* =============================================================================
+   Button Enhancements
+   ============================================================================= */
+
+.VPButton.brand {
+  transition: all 0.2s ease;
+}
+
+.VPButton.brand:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.3);
+}
+
+.VPButton.alt {
+  transition: all 0.2s ease;
+}
+
+.VPButton.alt:hover {
+  transform: translateY(-1px);
+}
+
+/* =============================================================================
+   Navigation Enhancements
+   ============================================================================= */
+
+.VPNavBarTitle .title {
+  color: var(--vp-c-text-1);
+  font-weight: 600;
+}
+
+/* Active nav item */
+.VPNavBarMenuLink.active {
+  color: var(--vp-c-brand-1);
+}
+
+/* =============================================================================
+   Sidebar Enhancements
+   ============================================================================= */
+
+.VPSidebarItem.is-active > .item > .link > .text {
+  color: var(--vp-c-brand-1);
+}
+
+/* =============================================================================
+   Code Block Enhancements (for InstallTabs component)
+   ============================================================================= */
+
+.install-code-block {
+  position: relative;
+  background: var(--vp-code-block-bg);
+  border: 1px solid var(--vp-c-border);
+  border-radius: 8px;
+  margin: 1rem 0;
+  overflow: hidden;
+}
+
+.install-code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid var(--vp-c-border);
+}
+
+html:not(.dark) .install-code-header {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.install-code-label {
+  color: var(--vp-c-text-2);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.install-copy-btn {
+  background: transparent;
+  border: 1px solid var(--vp-c-border);
+  color: var(--vp-c-text-2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.install-copy-btn:hover {
+  background: var(--vp-c-border);
+  color: var(--vp-c-text-1);
+}
+
+.install-copy-btn.copied {
+  background: #4ade80;
+  color: #0f172a;
+  border-color: #4ade80;
+}
+
+.install-code-content {
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.install-code-content code {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.9rem;
+  color: var(--vp-c-brand-1);
+  white-space: pre;
+}
+
+/* =============================================================================
+   Install Tabs Component
+   ============================================================================= */
+
+.install-tabs-container {
+  margin: 1.5rem 0;
+}
+
+.install-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--vp-c-border);
+}
+
+.install-tab {
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  border: none;
+  color: var(--vp-c-text-3);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.install-tab:hover {
+  color: var(--vp-c-text-1);
+}
+
+.install-tab.active {
+  color: var(--vp-c-brand-1);
+}
+
+.install-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--vp-c-brand-1);
+}
+
+.install-tab-content {
+  display: none;
+  padding: 1.5rem;
+  background: var(--vp-c-bg-alt);
+  border: 1px solid var(--vp-c-border);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+}
+
+.install-tab-content.active {
+  display: block;
+}
+
+.install-tab-content h2 {
+  font-size: 1.25rem;
+  margin: 1.5rem 0 0.75rem 0;
+  color: var(--vp-c-text-1);
+}
+
+.install-tab-content h2:first-child {
+  margin-top: 0;
+}
+
+.install-tab-content h3 {
+  font-size: 1rem;
+  margin: 1.5rem 0 0.5rem 0;
+  color: var(--vp-c-text-1);
+}
+
+.install-tab-content p {
+  color: var(--vp-c-text-2);
+  margin-bottom: 1rem;
+  line-height: 1.7;
+}
+
+.install-tab-content ul,
+.install-tab-content ol {
+  color: var(--vp-c-text-2);
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.install-tab-content li {
+  margin-bottom: 0.5rem;
+}
+
+.inline-code {
+  background: var(--vp-code-bg);
+  border: 1px solid var(--vp-c-border);
+  border-radius: 4px;
+  padding: 0.125rem 0.375rem;
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.875rem;
+  color: var(--vp-c-brand-1);
+}
+
+/* =============================================================================
+   Section Dividers
+   ============================================================================= */
+
+.install-section {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--vp-c-border);
+}
+
+/* =============================================================================
+   Responsive Adjustments
+   ============================================================================= */
+
+@media (max-width: 640px) {
+  .install-tabs {
+    flex-wrap: wrap;
+  }
+
+  .install-tab {
+    flex: 1;
+    min-width: 100px;
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .install-tab-content {
+    padding: 1rem;
+  }
+
+  .install-code-content {
+    padding: 0.75rem;
+  }
+
+  .install-code-content code {
+    font-size: 0.8rem;
+  }
+}
+
+/* =============================================================================
+   Home Page Quick Install Section
+   ============================================================================= */
+
+.home-quick-install {
+  max-width: 688px;
+  margin: 2rem auto 0;
+  padding: 0 24px;
+}
+
+.home-quick-install h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: var(--vp-c-text-1);
+  text-align: center;
+}
+
+.home-quick-install p {
+  color: var(--vp-c-text-2);
+  text-align: center;
+  margin-bottom: 1rem;
+}

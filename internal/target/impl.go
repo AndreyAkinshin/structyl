@@ -111,7 +111,10 @@ func (t *targetImpl) GetCommand(name string) (interface{}, bool) {
 }
 
 func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) error {
-	cmdDef, ok := t.GetCommand(cmd)
+	// Resolve variant based on verbosity
+	resolvedCmd := t.resolveCommandVariant(cmd, opts.Verbosity)
+
+	cmdDef, ok := t.GetCommand(resolvedCmd)
 	if !ok {
 		return fmt.Errorf("command %q not defined for target %q", cmd, t.name)
 	}
@@ -177,6 +180,34 @@ func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) 
 
 	// Execute the command
 	return t.executeShell(ctx, cmdStr, opts)
+}
+
+// resolveCommandVariant attempts to resolve a verbosity-specific variant of a command.
+// For example, if verbosity is VerbosityVerbose and cmd is "test", it tries "test:verbose" first.
+// Falls back to the original command if no variant exists.
+func (t *targetImpl) resolveCommandVariant(cmd string, v Verbosity) string {
+	if v == VerbosityDefault {
+		return cmd
+	}
+
+	var suffix string
+	switch v {
+	case VerbosityVerbose:
+		suffix = ":verbose"
+	case VerbosityQuiet:
+		suffix = ":quiet"
+	default:
+		return cmd
+	}
+
+	// Try variant first
+	variantCmd := cmd + suffix
+	if _, ok := t.GetCommand(variantCmd); ok {
+		return variantCmd
+	}
+
+	// Fall back to original command
+	return cmd
 }
 
 // interpolateVars replaces ${var} with variable values.

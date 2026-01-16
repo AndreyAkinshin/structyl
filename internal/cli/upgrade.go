@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -15,13 +16,15 @@ import (
 )
 
 const (
-	githubAPIURL = "https://api.github.com/repos/AndreyAkinshin/structyl/releases/latest"
-	httpTimeout  = 10 * time.Second
+	githubAPIURL        = "https://api.github.com/repos/AndreyAkinshin/structyl/releases/latest"
+	githubNightlyAPIURL = "https://api.github.com/repos/AndreyAkinshin/structyl/releases/tags/nightly"
+	httpTimeout         = 10 * time.Second
 )
 
 // GitHubRelease represents the GitHub API response for a release.
 type GitHubRelease struct {
 	TagName string `json:"tag_name"`
+	Body    string `json:"body"`
 }
 
 // upgradeOptions holds parsed upgrade command options.
@@ -135,6 +138,17 @@ func handleCheckMode(w *output.Writer, pinnedVersion string) int {
 
 // performUpgrade updates the pinned version and provides instructions.
 func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string) int {
+	// Resolve "nightly" to actual nightly version
+	if targetVersion == "nightly" {
+		w.Println("Fetching nightly version...")
+		nightlyVer, err := fetchNightlyVersion()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "structyl: error: failed to fetch nightly version: %v\n", err)
+			return 1
+		}
+		targetVersion = nightlyVer
+	}
+
 	// Validate target version (unless nightly)
 	if !isNightlyVersion(targetVersion) {
 		if err := version.Validate(targetVersion); err != nil {
@@ -206,6 +220,58 @@ func fetchLatestVersion() (string, error) {
 	// Strip "v" prefix if present
 	ver := strings.TrimPrefix(release.TagName, "v")
 	return ver, nil
+}
+
+// fetchNightlyVersion retrieves the actual nightly version from the GitHub nightly release.
+// The version is extracted from the release body which contains "**Version:** `X.Y.Z-nightly+SHA`".
+func fetchNightlyVersion() (string, error) {
+	client := &http.Client{Timeout: httpTimeout}
+
+	req, err := http.NewRequest("GET", githubNightlyAPIURL, nil)
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("User-Agent", "structyl-cli")
+	req.Header.Set("Accept", "application/vnd.github.v3+json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return "", fmt.Errorf("no nightly release found")
+	}
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
+	}
+
+	var release GitHubRelease
+	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+		return "", fmt.Errorf("failed to parse GitHub API response: %w", err)
+	}
+
+	// Extract version from release body
+	// Format: **Version:** `X.Y.Z-nightly+SHA`
+	ver := parseNightlyVersionFromBody(release.Body)
+	if ver == "" {
+		return "", fmt.Errorf("could not parse version from nightly release")
+	}
+
+	return ver, nil
+}
+
+// parseNightlyVersionFromBody extracts the version string from the nightly release body.
+func parseNightlyVersionFromBody(body string) string {
+	// Match **Version:** `X.Y.Z-nightly+SHA` pattern
+	re := regexp.MustCompile(`\*\*Version:\*\*\s*` + "`" + `([^` + "`" + `]+)` + "`")
+	matches := re.FindStringSubmatch(body)
+	if len(matches) >= 2 {
+		return matches[1]
+	}
+	return ""
 }
 
 // readPinnedVersion reads the pinned CLI version from .structyl/version.

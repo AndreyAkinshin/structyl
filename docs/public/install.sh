@@ -1,10 +1,10 @@
 #!/bin/sh
 # Structyl CLI Installer
-# https://get.structyl.akinshin.dev
+# https://structyl.akinshin.dev
 #
 # Usage:
-#   curl -fsSL https://get.structyl.akinshin.dev/install.sh | sh
-#   curl -fsSL https://get.structyl.akinshin.dev/install.sh | sh -s -- --version 0.1.0
+#   curl -fsSL https://structyl.akinshin.dev/install.sh | sh
+#   curl -fsSL https://structyl.akinshin.dev/install.sh | sh -s -- --version 0.1.0
 #
 # Environment variables:
 #   STRUCTYL_VERSION - Version to install (default: latest)
@@ -67,8 +67,8 @@ while [ $# -gt 0 ]; do
 Structyl CLI Installer
 
 Usage:
-    curl -fsSL https://get.structyl.akinshin.dev/install.sh | sh
-    curl -fsSL https://get.structyl.akinshin.dev/install.sh | sh -s -- --version 0.1.0
+    curl -fsSL https://structyl.akinshin.dev/install.sh | sh
+    curl -fsSL https://structyl.akinshin.dev/install.sh | sh -s -- --version 0.1.0
 
 Options:
     --version VERSION    Install specific version (default: latest)
@@ -81,16 +81,16 @@ Environment Variables:
 
 Examples:
     # Install latest stable version
-    curl -fsSL https://get.structyl.akinshin.dev/install.sh | sh
+    curl -fsSL https://structyl.akinshin.dev/install.sh | sh
 
     # Install specific version
-    curl -fsSL https://get.structyl.akinshin.dev/install.sh | sh -s -- --version 0.1.0
+    curl -fsSL https://structyl.akinshin.dev/install.sh | sh -s -- --version 0.1.0
 
     # Install nightly build
-    curl -fsSL https://get.structyl.akinshin.dev/install.sh | sh -s -- --version nightly
+    curl -fsSL https://structyl.akinshin.dev/install.sh | sh -s -- --version nightly
 
     # Install to custom directory
-    STRUCTYL_INSTALL_DIR=/opt/structyl curl -fsSL https://get.structyl.akinshin.dev/install.sh | sh
+    STRUCTYL_INSTALL_DIR=/opt/structyl curl -fsSL https://structyl.akinshin.dev/install.sh | sh
 EOF
             exit 0
             ;;
@@ -230,7 +230,7 @@ VERSION=$(resolve_version)
 
 if [ -z "$VERSION" ]; then
     echo "error: No structyl version installed" >&2
-    echo "Install with: curl -fsSL https://get.structyl.akinshin.dev/install.sh | sh" >&2
+    echo "Install with: curl -fsSL https://structyl.akinshin.dev/install.sh | sh" >&2
     exit 1
 fi
 
@@ -238,7 +238,7 @@ BINARY="$STRUCTYL_DIR/versions/$VERSION/structyl"
 
 if [ ! -x "$BINARY" ]; then
     echo "error: structyl $VERSION is not installed" >&2
-    echo "Install with: curl -fsSL https://get.structyl.akinshin.dev/install.sh | sh -s -- --version $VERSION" >&2
+    echo "Install with: curl -fsSL https://structyl.akinshin.dev/install.sh | sh -s -- --version $VERSION" >&2
     exit 1
 fi
 

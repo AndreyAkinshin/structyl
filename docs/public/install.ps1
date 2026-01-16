@@ -1,9 +1,9 @@
 # Structyl CLI Installer for Windows
-# https://get.structyl.akinshin.dev
+# https://structyl.akinshin.dev
 #
 # Usage:
-#   irm https://get.structyl.akinshin.dev/install.ps1 | iex
-#   irm https://get.structyl.akinshin.dev/install.ps1 -OutFile install.ps1; .\install.ps1 -Version 0.1.0
+#   irm https://structyl.akinshin.dev/install.ps1 | iex
+#   irm https://structyl.akinshin.dev/install.ps1 -OutFile install.ps1; .\install.ps1 -Version 0.1.0
 
 [CmdletBinding()]
 param(
@@ -151,7 +151,7 @@ if defined LATEST (
 )
 
 echo error: No structyl version installed >&2
-echo Install with: irm https://get.structyl.akinshin.dev/install.ps1 ^| iex >&2
+echo Install with: irm https://structyl.akinshin.dev/install.ps1 ^| iex >&2
 exit /b 1
 
 :found_version
@@ -162,7 +162,7 @@ set "BINARY=%STRUCTYL_DIR%\versions\%VERSION%\structyl.exe"
 
 if not exist "%BINARY%" (
     echo error: structyl %VERSION% is not installed >&2
-    echo Install with: irm https://get.structyl.akinshin.dev/install.ps1 ^| iex >&2
+    echo Install with: irm https://structyl.akinshin.dev/install.ps1 ^| iex >&2
     exit /b 1
 )
 

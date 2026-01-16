@@ -10,11 +10,14 @@ hero:
     alt: Structyl
   actions:
     - theme: brand
+      text: Install Now
+      link: /getting-started/installation
+    - theme: alt
       text: Get Started
       link: /getting-started/
     - theme: alt
       text: View on GitHub
-      link: https://github.com/akinshin/structyl
+      link: https://github.com/AndreyAkinshin/structyl
 
 features:
   - icon: 🔧
@@ -37,12 +40,27 @@ features:
     details: Builds run in parallel respecting dependency order. Fail-fast or continue modes available.
 ---
 
+<div class="home-quick-install">
+
+## Quick Install
+
+**macOS / Linux:**
+
+```bash
+curl -fsSL https://structyl.akinshin.dev/install.sh | sh
+```
+
+**Windows (PowerShell):**
+
+```powershell
+irm https://structyl.akinshin.dev/install.ps1 | iex
+```
+
+</div>
+
 ## Quick Start
 
 ```bash
-# Install
-go install github.com/akinshin/structyl/cmd/structyl@latest
-
 # Initialize a new project
 structyl init
 

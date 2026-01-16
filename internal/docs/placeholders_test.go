@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/akinshin/structyl/internal/target"
+	"github.com/AndreyAkinshin/structyl/internal/target"
 )
 
 // mockTarget implements target.Target for testing

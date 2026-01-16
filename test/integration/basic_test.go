@@ -7,9 +7,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/akinshin/structyl/internal/config"
-	"github.com/akinshin/structyl/internal/project"
-	"github.com/akinshin/structyl/internal/target"
+	"github.com/AndreyAkinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/project"
+	"github.com/AndreyAkinshin/structyl/internal/target"
 )
 
 var (

@@ -113,7 +113,7 @@ structyl/
 │   ├── commands.md
 │   ├── toolchains.md
 │   └── ...
-├── go.mod                      # Go module (github.com/akinshin/structyl)
+├── go.mod                      # Go module (github.com/AndreyAkinshin/structyl)
 └── go.sum                      # Dependency lock (only yaml.v3)
 ```
 
@@ -445,7 +445,7 @@ go build -o structyl ./cmd/structyl
 go install ./cmd/structyl
 
 # Build with version
-go build -ldflags "-X github.com/akinshin/structyl/internal/cli.Version=1.0.0" -o structyl ./cmd/structyl
+go build -ldflags "-X github.com/AndreyAkinshin/structyl/internal/cli.Version=1.0.0" -o structyl ./cmd/structyl
 ```
 
 ### Lint & Format

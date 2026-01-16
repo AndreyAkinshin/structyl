@@ -4,7 +4,7 @@ package main
 import (
 	"os"
 
-	"github.com/akinshin/structyl/internal/cli"
+	"github.com/AndreyAkinshin/structyl/internal/cli"
 )
 
 func main() {

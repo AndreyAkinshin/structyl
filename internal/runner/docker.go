@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/akinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/config"
 )
 
 // DockerRunner handles command execution in Docker containers.

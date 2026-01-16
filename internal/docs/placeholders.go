@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/akinshin/structyl/internal/target"
+	"github.com/AndreyAkinshin/structyl/internal/target"
 )
 
 // PlaceholderContext provides values for placeholder resolution.

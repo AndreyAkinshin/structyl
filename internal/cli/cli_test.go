@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/akinshin/structyl/internal/target"
+	"github.com/AndreyAkinshin/structyl/internal/target"
 )
 
 func TestParseGlobalFlags(t *testing.T) {

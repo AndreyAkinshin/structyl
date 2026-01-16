@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/akinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/config"
 )
 
 // createTestGitRepo creates a git repo with initial commit for testing.

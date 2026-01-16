@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/akinshin/structyl/internal/target"
+	"github.com/AndreyAkinshin/structyl/internal/target"
 )
 
 // CIOptions configures CI pipeline execution.

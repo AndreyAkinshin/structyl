@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/akinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/config"
 )
 
 func TestPropagate_ValidFiles_UpdatesAll(t *testing.T) {

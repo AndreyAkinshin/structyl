@@ -3,7 +3,7 @@ package toolchain
 import (
 	"testing"
 
-	"github.com/akinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/config"
 )
 
 func TestResolver_ResolveBuiltin(t *testing.T) {

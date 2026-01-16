@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/akinshin/structyl/internal/config"
-	"github.com/akinshin/structyl/internal/toolchain"
+	"github.com/AndreyAkinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
 
 // Registry manages a collection of targets.

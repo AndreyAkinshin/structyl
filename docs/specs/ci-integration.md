@@ -110,7 +110,7 @@ jobs:
           go-version: '1.22'
 
       - name: Install Structyl
-        run: go install github.com/akinshin/structyl/cmd/structyl@latest
+        run: go install github.com/AndreyAkinshin/structyl/cmd/structyl@latest
 
       - name: Run CI build
         run: structyl ci --docker
@@ -130,7 +130,7 @@ build:
   services:
     - docker:dind
   script:
-    - go install github.com/akinshin/structyl/cmd/structyl@latest
+    - go install github.com/AndreyAkinshin/structyl/cmd/structyl@latest
     - structyl ci --docker
   artifacts:
     paths:

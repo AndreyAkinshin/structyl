@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/akinshin/structyl/internal/config"
-	"github.com/akinshin/structyl/internal/version"
+	"github.com/AndreyAkinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/version"
 )
 
 // Options configures release behavior.

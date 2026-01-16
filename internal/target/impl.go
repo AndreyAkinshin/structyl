@@ -11,8 +11,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/akinshin/structyl/internal/config"
-	"github.com/akinshin/structyl/internal/toolchain"
+	"github.com/AndreyAkinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
 
 // varPattern matches ${var} for variable interpolation.

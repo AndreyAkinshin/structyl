@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/akinshin/structyl/internal/config"
-	"github.com/akinshin/structyl/internal/project"
+	"github.com/AndreyAkinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/project"
 )
 
 // SetupScriptSh contains the shell bootstrap script template.
@@ -280,5 +280,5 @@ func printNextSteps() {
 	fmt.Println()
 	fmt.Println("New contributors can run: .structyl/setup.sh (or setup.ps1 on Windows)")
 	fmt.Println()
-	fmt.Println("For more information, see: https://github.com/akinshin/structyl")
+	fmt.Println("For more information, see: https://github.com/AndreyAkinshin/structyl")
 }

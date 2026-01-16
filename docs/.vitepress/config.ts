@@ -12,6 +12,7 @@ export default defineConfig({
     logo: '/logo.svg',
 
     nav: [
+      { text: 'Install', link: '/getting-started/installation' },
       { text: 'Getting Started', link: '/getting-started/' },
       { text: 'Guide', link: '/guide/configuration' },
       { text: 'Reference', link: '/reference/error-codes' },
@@ -83,12 +84,12 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/akinshin/structyl' },
+      { icon: 'github', link: 'https://github.com/AndreyAkinshin/structyl' },
     ],
 
     footer: {
       message: 'Released under the MIT License.',
-      copyright: 'Copyright 2024-present',
+      copyright: 'Copyright © 2026 Andrey Akinshin',
     },
 
     search: {
@@ -96,7 +97,7 @@ export default defineConfig({
     },
 
     editLink: {
-      pattern: 'https://github.com/akinshin/structyl/edit/main/docs/:path',
+      pattern: 'https://github.com/AndreyAkinshin/structyl/edit/main/docs/:path',
       text: 'Edit this page on GitHub',
     },
   },

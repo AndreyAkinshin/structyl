@@ -7,10 +7,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/akinshin/structyl/internal/output"
-	"github.com/akinshin/structyl/internal/project"
-	"github.com/akinshin/structyl/internal/runner"
-	"github.com/akinshin/structyl/internal/target"
+	"github.com/AndreyAkinshin/structyl/internal/output"
+	"github.com/AndreyAkinshin/structyl/internal/project"
+	"github.com/AndreyAkinshin/structyl/internal/runner"
+	"github.com/AndreyAkinshin/structyl/internal/target"
 )
 
 // Version is set at build time.

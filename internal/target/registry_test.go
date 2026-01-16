@@ -3,7 +3,7 @@ package target
 import (
 	"testing"
 
-	"github.com/akinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/config"
 )
 
 func TestNewRegistry(t *testing.T) {

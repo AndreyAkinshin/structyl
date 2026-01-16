@@ -6,10 +6,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/akinshin/structyl/internal/project"
-	"github.com/akinshin/structyl/internal/release"
-	"github.com/akinshin/structyl/internal/runner"
-	"github.com/akinshin/structyl/internal/target"
+	"github.com/AndreyAkinshin/structyl/internal/project"
+	"github.com/AndreyAkinshin/structyl/internal/release"
+	"github.com/AndreyAkinshin/structyl/internal/runner"
+	"github.com/AndreyAkinshin/structyl/internal/target"
 )
 
 // loadProject loads the project configuration and handles errors uniformly.

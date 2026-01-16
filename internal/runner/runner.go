@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/akinshin/structyl/internal/target"
+	"github.com/AndreyAkinshin/structyl/internal/target"
 )
 
 // Runner orchestrates command execution across targets.

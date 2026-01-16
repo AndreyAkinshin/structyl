@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/akinshin/structyl/internal/version"
+	"github.com/AndreyAkinshin/structyl/internal/version"
 )
 
 // Integration tests for version functionality with real fixtures.

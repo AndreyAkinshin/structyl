@@ -1,4 +1,4 @@
-module github.com/akinshin/structyl
+module github.com/AndreyAkinshin/structyl
 
 go 1.22.0
 

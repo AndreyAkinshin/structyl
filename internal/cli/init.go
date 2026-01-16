@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/project"
 )
 
@@ -116,19 +117,19 @@ func cmdInit(args []string) int {
 	// Update or create .gitignore
 	updateGitignore(cwd)
 
-	// Print success message
-	fmt.Printf("Initialized Structyl project: %s\n", projectName)
-	fmt.Println()
+	// Print success message with colors
+	w := output.New()
+	w.Println("")
+	w.Success("Initialized Structyl project: %s", projectName)
 
 	if len(targets) > 0 {
-		fmt.Println("Detected targets:")
+		w.HelpSection("Detected targets:")
 		for name, t := range targets {
-			fmt.Printf("  - %s (%s)\n", name, t.Title)
+			w.Println("  - %s (%s)", name, t.Title)
 		}
-		fmt.Println()
 	}
 
-	printNextSteps()
+	printNextSteps(w)
 
 	return 0
 }
@@ -190,6 +191,9 @@ func detectTargetDirectories(root string) map[string]config.TargetConfig {
 		{"javascript", "js", "JavaScript"},
 		{"ts", "ts", "TypeScript"},
 		{"typescript", "ts", "TypeScript"},
+		{"kt", "kt", "Kotlin"},
+		{"kotlin", "kt", "Kotlin"},
+		{"java", "java", "Java"},
 	}
 
 	entries, err := os.ReadDir(root)
@@ -271,14 +275,15 @@ func updateGitignore(root string) {
 }
 
 // printNextSteps prints helpful guidance after initialization.
-func printNextSteps() {
-	fmt.Println("Next steps:")
-	fmt.Println("  1. Edit .structyl/config.json to configure your targets")
-	fmt.Println("  2. Run 'structyl targets' to list configured targets")
-	fmt.Println("  3. Run 'structyl build' to build all targets")
-	fmt.Println("  4. Run 'structyl test' to run tests")
-	fmt.Println()
-	fmt.Println("New contributors can run: .structyl/setup.sh (or setup.ps1 on Windows)")
-	fmt.Println()
-	fmt.Println("For more information, see: https://github.com/AndreyAkinshin/structyl")
+func printNextSteps(w *output.Writer) {
+	w.HelpSection("Next steps:")
+	w.Println("  1. Edit .structyl/config.json to configure your targets")
+	w.Println("  2. Run 'structyl targets' to list configured targets")
+	w.Println("  3. Run 'structyl build' to build all targets")
+	w.Println("  4. Run 'structyl test' to run tests")
+	w.Println("  5. Ask your LLM agent to read .structyl/AGENTS.md for help")
+	w.Println("")
+	w.Println("New contributors can run: .structyl/setup.sh (or setup.ps1 on Windows)")
+	w.Println("")
+	w.Println("For more information, see: https://structyl.akinshin.dev")
 }

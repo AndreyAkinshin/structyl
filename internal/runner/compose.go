@@ -99,8 +99,9 @@ func generateServiceForTarget(name string, targetCfg config.TargetConfig, docker
 	}
 
 	// Add target directory as working directory if specified
+	// Always use forward slashes for Docker container paths (Linux containers)
 	if targetCfg.Directory != "" {
-		service.WorkingDir = filepath.Join("/workspace", targetCfg.Directory)
+		service.WorkingDir = "/workspace/" + strings.ReplaceAll(targetCfg.Directory, "\\", "/")
 	}
 
 	// Add environment variables from target

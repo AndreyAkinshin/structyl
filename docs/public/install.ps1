@@ -258,8 +258,24 @@ function Main {
             Write-Info "Extracting..."
             Expand-Archive -Path $archivePath -DestinationPath $tempDir -Force
 
+            # For nightly builds, detect the actual version from the binary
+            $tempBinary = Join-Path $tempDir "structyl.exe"
+            if ($isNightly -and (Test-Path $tempBinary)) {
+                $actualVersion = & $tempBinary --version 2>$null | Select-Object -First 1
+                if ($actualVersion -match "^structyl (.+)$") {
+                    $actualVersion = $Matches[1].Trim()
+                    if ($actualVersion -and $actualVersion -ne "dev") {
+                        $Version = $actualVersion
+                        $versionDir = "$VersionsDir\$Version"
+                        $binaryPath = "$versionDir\structyl.exe"
+                        New-Item -ItemType Directory -Force -Path $versionDir | Out-Null
+                        Write-Info "Detected nightly version: $Version"
+                    }
+                }
+            }
+
             # Install binary
-            Move-Item -Path (Join-Path $tempDir "structyl.exe") -Destination $binaryPath -Force
+            Move-Item -Path $tempBinary -Destination $binaryPath -Force
 
             Write-Success "Installed structyl $Version to $versionDir"
         }
@@ -284,7 +300,7 @@ function Main {
             Write-Info "Set $Version as default version"
         }
         else {
-            Write-Info "Keeping existing default version (use 'echo nightly > ~/.structyl/default-version' to change)"
+            Write-Info "Keeping existing default version (use 'Set-Content ~/.structyl/default-version -Value `"$Version`"' to change)"
         }
     }
 

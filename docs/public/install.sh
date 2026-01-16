@@ -374,6 +374,18 @@ main() {
         info "Extracting..."
         tar -xzf "$TMPDIR/$ARCHIVE_NAME" -C "$TMPDIR"
 
+        # For nightly builds, detect the actual version from the binary
+        if [ "$IS_NIGHTLY" = "true" ]; then
+            chmod +x "$TMPDIR/structyl"
+            ACTUAL_VERSION=$("$TMPDIR/structyl" --version 2>/dev/null | head -1 | sed 's/structyl //')
+            if [ -n "$ACTUAL_VERSION" ] && [ "$ACTUAL_VERSION" != "dev" ]; then
+                VERSION="$ACTUAL_VERSION"
+                VERSION_DIR="$VERSIONS_DIR/$VERSION"
+                mkdir -p "$VERSION_DIR"
+                info "Detected nightly version: $VERSION"
+            fi
+        fi
+
         # Install binary
         mv "$TMPDIR/structyl" "$VERSION_DIR/structyl"
         chmod +x "$VERSION_DIR/structyl"
@@ -396,7 +408,7 @@ main() {
             echo "$VERSION" > "$INSTALL_DIR/default-version"
             info "Set $VERSION as default version"
         else
-            info "Keeping existing default version (use 'echo nightly > ~/.structyl/default-version' to change)"
+            info "Keeping existing default version (use 'echo $VERSION > ~/.structyl/default-version' to change)"
         fi
     fi
 

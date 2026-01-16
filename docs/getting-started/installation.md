@@ -22,6 +22,41 @@ sudo mv structyl /usr/local/bin/
 mv structyl ~/bin/
 ```
 
+## Upgrading
+
+### Check for Updates
+
+```bash
+structyl upgrade --check
+```
+
+This shows the current CLI version, pinned project version, and latest available version.
+
+### Upgrade to Latest
+
+```bash
+structyl upgrade
+```
+
+This updates the `.structyl/version` file to the latest stable release. Run the setup script afterward to install:
+
+```bash
+.structyl/setup.sh    # Linux/macOS
+.structyl/setup.ps1   # Windows
+```
+
+### Upgrade to Specific Version
+
+```bash
+structyl upgrade 1.2.3
+```
+
+### Nightly Builds
+
+```bash
+structyl upgrade nightly
+```
+
 ## Shell Completion
 
 Structyl supports shell completion for bash, zsh, and fish.

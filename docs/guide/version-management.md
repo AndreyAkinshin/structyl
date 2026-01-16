@@ -236,6 +236,52 @@ Examples:
 | `replace` | Required | Replacement with `{version}` |
 | `replace_all` | `false` | Replace all matches |
 
+## CLI Version Management
+
+Structyl projects pin a specific CLI version in `.structyl/version`. This ensures all contributors use the same CLI version.
+
+### Check Versions
+
+```bash
+structyl upgrade --check
+```
+
+Output:
+```
+  Current CLI version:  1.2.0
+  Pinned version:       1.1.0
+  Latest stable:        1.2.3
+
+A newer version is available. Run 'structyl upgrade' to update.
+```
+
+### Upgrade to Latest
+
+```bash
+structyl upgrade
+```
+
+This updates `.structyl/version` to the latest stable release.
+
+### Upgrade to Specific Version
+
+```bash
+structyl upgrade 1.2.3
+```
+
+### Nightly Builds
+
+```bash
+structyl upgrade nightly
+```
+
+After upgrading, run the setup script to install the new version:
+
+```bash
+.structyl/setup.sh    # Linux/macOS
+.structyl/setup.ps1   # Windows
+```
+
 ## Next Steps
 
 - [CI Integration](./ci-integration) - Automate releases in CI

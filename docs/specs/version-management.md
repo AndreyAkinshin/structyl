@@ -387,3 +387,89 @@ Exit code `1` if any mismatch found. This is a runtime check of project state (n
 | `files[].pattern` | Required | Regex to match |
 | `files[].replace` | Required | Replacement string |
 | `files[].replace_all` | `false` | Replace all matches (vs. require exactly one) |
+
+## CLI Version Pinning
+
+Each Structyl project pins the CLI version in `.structyl/version`. This ensures reproducible builds across different machines and CI environments.
+
+### Version File
+
+The `.structyl/version` file contains a single line with the pinned CLI version:
+
+```
+1.2.3
+```
+
+This file is created by `structyl init` and should be committed to version control.
+
+### Upgrade Command
+
+```
+Usage: structyl upgrade [version] [--check]
+       structyl upgrade --check
+```
+
+| Command | Description |
+|---------|-------------|
+| `structyl upgrade` | Upgrade to latest stable version |
+| `structyl upgrade <version>` | Upgrade to specific version (e.g., `1.2.3`, `nightly`) |
+| `structyl upgrade --check` | Show current vs latest version without changing |
+
+### Version Types
+
+| Type | Validation | Cache Check | Install Prompt |
+|------|------------|-------------|----------------|
+| Stable (e.g., `1.2.3`) | Semver validation | Check `~/.structyl/versions/` | Only if not installed |
+| Nightly | Skip validation | Skip | Always prompt |
+
+### GitHub API Integration
+
+The `upgrade` command fetches the latest version from:
+
+```
+https://api.github.com/repos/AndreyAkinshin/structyl/releases/latest
+```
+
+Response parsing:
+- Extract `tag_name` field
+- Strip `v` prefix (e.g., `v1.2.3` → `1.2.3`)
+- 10-second HTTP timeout
+- User-Agent header required
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | Runtime error (network failure, file I/O, not in project) |
+| 2 | Usage error (invalid version format, unknown flag) |
+
+### Output Examples
+
+**Upgrade to latest:**
+```
+Upgraded from 1.1.0 to 1.2.3
+
+Run '.structyl/setup.sh' to install version 1.2.3.
+```
+
+**Check mode:**
+```
+  Current CLI version:  1.2.0
+  Pinned version:       1.1.0
+  Latest stable:        1.2.3
+
+A newer version is available. Run 'structyl upgrade' to update.
+```
+
+**Nightly upgrade:**
+```
+Upgraded from 1.1.0 to nightly
+
+Run '.structyl/setup.sh' to install the nightly build.
+```
+
+**Already on version:**
+```
+Already on version 1.2.3
+```

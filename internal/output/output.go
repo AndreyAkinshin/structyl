@@ -10,10 +10,11 @@ import (
 
 // Writer handles CLI output formatting.
 type Writer struct {
-	out   io.Writer
-	err   io.Writer
-	color bool
-	quiet bool
+	out     io.Writer
+	err     io.Writer
+	color   bool
+	quiet   bool
+	verbose bool
 }
 
 // New creates a new Writer with default settings.
@@ -37,6 +38,29 @@ func NewWithWriters(out, err io.Writer, color bool) *Writer {
 // SetQuiet enables or disables quiet mode.
 func (w *Writer) SetQuiet(quiet bool) {
 	w.quiet = quiet
+}
+
+// SetVerbose enables or disables verbose mode.
+func (w *Writer) SetVerbose(verbose bool) {
+	w.verbose = verbose
+}
+
+// IsVerbose returns true if verbose mode is enabled.
+func (w *Writer) IsVerbose() bool {
+	return w.verbose
+}
+
+// Debug prints a debug message (only in verbose mode).
+func (w *Writer) Debug(format string, args ...interface{}) {
+	if !w.verbose {
+		return
+	}
+	msg := fmt.Sprintf(format, args...)
+	if w.color {
+		w.Println("%s[debug]%s %s", dim, reset, msg)
+	} else {
+		w.Println("[debug] %s", msg)
+	}
 }
 
 // Print writes to stdout.

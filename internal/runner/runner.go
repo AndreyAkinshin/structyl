@@ -219,5 +219,5 @@ func combineErrors(errors []error) error {
 	for _, err := range errors {
 		msg += fmt.Sprintf("  - %v\n", err)
 	}
-	return fmt.Errorf(msg)
+	return fmt.Errorf("%s", msg)
 }

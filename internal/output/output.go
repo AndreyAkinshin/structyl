@@ -10,11 +10,10 @@ import (
 
 // Writer handles CLI output formatting.
 type Writer struct {
-	out    io.Writer
-	err    io.Writer
-	color  bool
-	quiet  bool
-	indent int
+	out   io.Writer
+	err   io.Writer
+	color bool
+	quiet bool
 }
 
 // New creates a new Writer with default settings.
@@ -194,14 +193,14 @@ const (
 
 // Semantic color roles for help output.
 const (
-	colorTitle       = bold + cyan      // Main title/brand
-	colorSection     = bold + yellow    // Section headers
-	colorCommand     = bold + cyan      // Commands and subcommands
-	colorPlaceholder = green            // Placeholders like <target>, <ver>
-	colorFlag        = yellow           // Flags like --docker
-	colorDescription = dim              // Help text descriptions
-	colorExample     = cyan             // Example commands
-	colorEnvVar      = yellow           // Environment variables
+	colorTitle       = bold + cyan   // Main title/brand
+	colorSection     = bold + yellow // Section headers
+	colorCommand     = bold + cyan   // Commands and subcommands
+	colorPlaceholder = green         // Placeholders like <target>, <ver>
+	colorFlag        = yellow        // Flags like --docker
+	colorDescription = dim           // Help text descriptions
+	colorExample     = cyan          // Example commands
+	colorEnvVar      = yellow        // Environment variables
 )
 
 // HelpTitle formats the main help title line.

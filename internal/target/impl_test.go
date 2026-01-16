@@ -636,7 +636,7 @@ func TestExecute_ContextCancellation(t *testing.T) {
 	err := target.Execute(ctx, "sleep", ExecOptions{})
 
 	if err == nil {
-		t.Error("Execute() expected error for cancelled context")
+		t.Error("Execute() expected error for canceled context")
 	}
 }
 

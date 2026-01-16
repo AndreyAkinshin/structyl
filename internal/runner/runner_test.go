@@ -367,7 +367,7 @@ func TestRunSequential_ContextCancellation(t *testing.T) {
 		targetType: target.TypeLanguage,
 		execFunc: func(ctx context.Context, cmd string) error {
 			close(started) // Signal that execution has begun
-			<-ctx.Done()   // Block until context is cancelled
+			<-ctx.Done()   // Block until context is canceled
 			return ctx.Err()
 		},
 	}

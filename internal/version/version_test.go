@@ -24,7 +24,6 @@ func TestValidate_Valid(t *testing.T) {
 	}
 
 	for _, v := range tests {
-		v := v // capture loop variable
 		t.Run(v, func(t *testing.T) {
 			t.Parallel()
 			if err := Validate(v); err != nil {
@@ -49,7 +48,6 @@ func TestValidate_Invalid(t *testing.T) {
 	}
 
 	for _, v := range tests {
-		v := v // capture loop variable
 		t.Run(v, func(t *testing.T) {
 			t.Parallel()
 			if err := Validate(v); err == nil {

@@ -161,8 +161,8 @@ func TestListSuites_NoTestsDir(t *testing.T) {
 		t.Fatalf("ListSuites() error = %v", err)
 	}
 
-	if suites != nil && len(suites) != 0 {
-		t.Errorf("expected nil or empty slice, got %v", suites)
+	if len(suites) != 0 {
+		t.Errorf("expected empty slice, got %v", suites)
 	}
 }
 

@@ -9,34 +9,6 @@ import (
 	"github.com/akinshin/structyl/internal/target"
 )
 
-// createMockRegistry creates a test registry with mock targets
-func createMockRegistry(t *testing.T, projectRoot string, targets map[string]*mockTarget) *target.Registry {
-	cfg := &config.Config{
-		Project: config.ProjectConfig{Name: "test"},
-		Targets: make(map[string]config.TargetConfig),
-	}
-
-	for name, mock := range targets {
-		// Create target directory
-		dir := filepath.Join(projectRoot, mock.directory)
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			t.Fatal(err)
-		}
-
-		cfg.Targets[name] = config.TargetConfig{
-			Type:      "language",
-			Title:     mock.title,
-			Directory: mock.directory,
-		}
-	}
-
-	registry, err := target.NewRegistry(cfg, projectRoot)
-	if err != nil {
-		t.Fatalf("failed to create registry: %v", err)
-	}
-	return registry
-}
-
 func TestNewGenerator_ValidInputs_CreatesGenerator(t *testing.T) {
 	t.Parallel()
 	tmpDir := t.TempDir()

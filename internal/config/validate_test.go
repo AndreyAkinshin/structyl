@@ -15,7 +15,6 @@ func TestValidateProjectName_Valid(t *testing.T) {
 		"project1-version2-rc3", // complex multi-segment
 	}
 	for _, name := range tests {
-		name := name // capture loop variable
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 			if err := ValidateProjectName(name); err != nil {
@@ -41,7 +40,6 @@ func TestValidateProjectName_Invalid(t *testing.T) {
 		{"my project", "space"},
 	}
 	for _, tt := range tests {
-		tt := tt // capture loop variable
 		t.Run(tt.desc, func(t *testing.T) {
 			t.Parallel()
 			if err := ValidateProjectName(tt.name); err == nil {

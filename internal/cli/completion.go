@@ -4,27 +4,44 @@ import (
 	"fmt"
 	"os"
 	"strings"
+
+	"github.com/AndreyAkinshin/structyl/internal/output"
 )
 
 // cmdCompletion generates shell completion scripts.
 func cmdCompletion(args []string) int {
-	if len(args) == 0 {
-		fmt.Fprintf(os.Stderr, "structyl completion: shell required (bash, zsh, fish)\n")
-		fmt.Fprintf(os.Stderr, "usage: structyl completion <shell> [--alias=<name>]\n")
-		return 2
-	}
-
-	shell := args[0]
+	shell := ""
 	alias := ""
 
-	// Parse optional --alias flag
-	for _, arg := range args[1:] {
-		if strings.HasPrefix(arg, "--alias=") {
+	// Parse arguments
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		switch {
+		case arg == "-h" || arg == "--help":
+			printCompletionUsage()
+			return 0
+		case strings.HasPrefix(arg, "--alias="):
 			alias = strings.TrimPrefix(arg, "--alias=")
-		} else if arg == "--alias" {
+		case arg == "--alias":
 			fmt.Fprintf(os.Stderr, "structyl completion: --alias requires a value (--alias=<name>)\n")
 			return 2
+		case strings.HasPrefix(arg, "-"):
+			fmt.Fprintf(os.Stderr, "structyl completion: unknown flag: %s\n", arg)
+			printCompletionUsage()
+			return 2
+		default:
+			if shell != "" {
+				fmt.Fprintf(os.Stderr, "structyl completion: unexpected argument: %s\n", arg)
+				return 2
+			}
+			shell = arg
 		}
+	}
+
+	if shell == "" {
+		fmt.Fprintf(os.Stderr, "structyl completion: shell required (bash, zsh, fish)\n")
+		printCompletionUsage()
+		return 2
 	}
 
 	// Use "structyl" as default command name
@@ -46,6 +63,35 @@ func cmdCompletion(args []string) int {
 	}
 
 	return 0
+}
+
+// printCompletionUsage prints the help text for the completion command.
+func printCompletionUsage() {
+	w := output.New()
+
+	w.HelpTitle("structyl completion - generate shell completion scripts")
+
+	w.HelpSection("Usage:")
+	w.HelpUsage("structyl completion <shell> [--alias=<name>]")
+
+	w.HelpSection("Arguments:")
+	w.HelpFlag("<shell>", "Shell type: bash, zsh, or fish", 10)
+
+	w.HelpSection("Options:")
+	w.HelpFlag("--alias=<name>", "Generate completion for command alias", 14)
+	w.HelpFlag("-h, --help", "Show this help", 14)
+
+	w.HelpSection("Examples:")
+	w.HelpExample("structyl completion bash", "Generate bash completion")
+	w.HelpExample("structyl completion zsh", "Generate zsh completion")
+	w.HelpExample("structyl completion fish", "Generate fish completion")
+	w.HelpExample("structyl completion bash --alias=s", "Generate bash completion for alias 's'")
+
+	w.HelpSection("Installation:")
+	w.Println("  Bash:  eval \"$(structyl completion bash)\"")
+	w.Println("  Zsh:   eval \"$(structyl completion zsh)\"")
+	w.Println("  Fish:  structyl completion fish | source")
+	w.Println("")
 }
 
 // builtinCommands returns the list of built-in CLI commands.

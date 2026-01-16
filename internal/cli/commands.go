@@ -16,6 +16,23 @@ import (
 // out is the shared output writer for CLI commands.
 var out = output.New()
 
+// getVerbosity converts GlobalOptions to target.Verbosity.
+func getVerbosity(opts *GlobalOptions) target.Verbosity {
+	if opts.Quiet {
+		return target.VerbosityQuiet
+	}
+	if opts.Verbose {
+		return target.VerbosityVerbose
+	}
+	return target.VerbosityDefault
+}
+
+// applyVerbosityToOutput configures the output writer based on verbosity settings.
+func applyVerbosityToOutput(opts *GlobalOptions) {
+	out.SetQuiet(opts.Quiet)
+	out.SetVerbose(opts.Verbose)
+}
+
 // targetResult tracks the result of running a command on a single target.
 type targetResult struct {
 	name     string
@@ -83,6 +100,8 @@ func loadProject() (*project.Project, int) {
 // The first argument is always the command. If a second argument matches a target name,
 // it runs the command on that target. Otherwise, it runs on all targets that have it.
 func cmdUnified(args []string, opts *GlobalOptions) int {
+	applyVerbosityToOutput(opts)
+
 	if len(args) == 0 {
 		out.ErrorPrefix("usage: structyl <command> [target] [args] or structyl <command> [args]")
 		return 2
@@ -122,6 +141,8 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 
 // runTargetCommand executes a command on a specific target.
 func runTargetCommand(t target.Target, cmd string, args []string, opts *GlobalOptions) int {
+	applyVerbosityToOutput(opts)
+
 	if _, ok := t.GetCommand(cmd); !ok {
 		out.ErrorPrefix("[%s] command %q not defined", t.Name(), cmd)
 		return 1
@@ -129,8 +150,9 @@ func runTargetCommand(t target.Target, cmd string, args []string, opts *GlobalOp
 
 	ctx := context.Background()
 	execOpts := target.ExecOptions{
-		Docker: isDockerMode(opts),
-		Args:   args,
+		Docker:    isDockerMode(opts),
+		Args:      args,
+		Verbosity: getVerbosity(opts),
 	}
 
 	out.TargetStart(t.Name(), cmd)
@@ -145,6 +167,8 @@ func runTargetCommand(t target.Target, cmd string, args []string, opts *GlobalOp
 
 // runCommandOnAllTargets executes a command on all targets that have it defined.
 func runCommandOnAllTargets(registry *target.Registry, cmd string, args []string, opts *GlobalOptions) int {
+	applyVerbosityToOutput(opts)
+
 	// Get targets in dependency order
 	targets, err := registry.TopologicalOrder()
 	if err != nil {
@@ -178,8 +202,9 @@ func runCommandOnAllTargets(registry *target.Registry, cmd string, args []string
 	// Execute command for each target
 	ctx := context.Background()
 	execOpts := target.ExecOptions{
-		Docker: isDockerMode(opts),
-		Args:   args,
+		Docker:    isDockerMode(opts),
+		Args:      args,
+		Verbosity: getVerbosity(opts),
 	}
 
 	startTime := time.Now()
@@ -332,6 +357,8 @@ func cmdConfigValidate() int {
 
 // cmdCI runs the CI pipeline.
 func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
+	applyVerbosityToOutput(opts)
+
 	// CI pipeline: clean, restore, check, build, test
 	commands := []string{"clean", "restore", "check", "build", "test"}
 

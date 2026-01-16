@@ -1,0 +1,9 @@
+{
+  "name": "addition",
+  "description": "Test basic addition",
+  "input": {
+    "a": 1,
+    "b": 2
+  },
+  "output": 3
+}

@@ -1,0 +1,414 @@
+package testhelper
+
+import (
+	"os"
+	"path/filepath"
+	"testing"
+)
+
+func TestLoadTestCase(t *testing.T) {
+	// Create temp file
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "test1.json")
+	content := `{
+		"input": {"a": 1, "b": 2},
+		"output": {"sum": 3},
+		"description": "add two numbers"
+	}`
+	os.WriteFile(testFile, []byte(content), 0644)
+
+	tc, err := LoadTestCase(testFile)
+	if err != nil {
+		t.Fatalf("LoadTestCase() error = %v", err)
+	}
+
+	if tc.Name != "test1" {
+		t.Errorf("Name = %q, want %q", tc.Name, "test1")
+	}
+	if tc.Description != "add two numbers" {
+		t.Errorf("Description = %q, want %q", tc.Description, "add two numbers")
+	}
+	if tc.Input["a"] != float64(1) {
+		t.Errorf("Input[a] = %v, want 1", tc.Input["a"])
+	}
+}
+
+func TestLoadTestSuite(t *testing.T) {
+	// Create temp directory structure
+	tmpDir := t.TempDir()
+	suiteDir := filepath.Join(tmpDir, "tests", "math")
+	os.MkdirAll(suiteDir, 0755)
+
+	// Create test files
+	os.WriteFile(filepath.Join(suiteDir, "add.json"), []byte(`{"input": {}, "output": 1}`), 0644)
+	os.WriteFile(filepath.Join(suiteDir, "sub.json"), []byte(`{"input": {}, "output": 2}`), 0644)
+
+	cases, err := LoadTestSuite(tmpDir, "math")
+	if err != nil {
+		t.Fatalf("LoadTestSuite() error = %v", err)
+	}
+
+	if len(cases) != 2 {
+		t.Errorf("len(cases) = %d, want 2", len(cases))
+	}
+
+	for _, tc := range cases {
+		if tc.Suite != "math" {
+			t.Errorf("Suite = %q, want %q", tc.Suite, "math")
+		}
+	}
+}
+
+func TestLoadTestSuite_Empty(t *testing.T) {
+	tmpDir := t.TempDir()
+	suiteDir := filepath.Join(tmpDir, "tests", "empty")
+	os.MkdirAll(suiteDir, 0755)
+
+	cases, err := LoadTestSuite(tmpDir, "empty")
+	if err != nil {
+		t.Fatalf("LoadTestSuite() error = %v", err)
+	}
+
+	if len(cases) != 0 {
+		t.Errorf("len(cases) = %d, want 0", len(cases))
+	}
+}
+
+func TestLoadAllSuites(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create multiple suites
+	os.MkdirAll(filepath.Join(tmpDir, "tests", "suite1"), 0755)
+	os.MkdirAll(filepath.Join(tmpDir, "tests", "suite2"), 0755)
+
+	os.WriteFile(filepath.Join(tmpDir, "tests", "suite1", "test.json"), []byte(`{"input": {}, "output": 1}`), 0644)
+	os.WriteFile(filepath.Join(tmpDir, "tests", "suite2", "test.json"), []byte(`{"input": {}, "output": 2}`), 0644)
+
+	suites, err := LoadAllSuites(tmpDir)
+	if err != nil {
+		t.Fatalf("LoadAllSuites() error = %v", err)
+	}
+
+	if len(suites) != 2 {
+		t.Errorf("len(suites) = %d, want 2", len(suites))
+	}
+}
+
+func TestFindProjectRootFrom(t *testing.T) {
+	// Create temp directory structure
+	tmpDir := t.TempDir()
+	subDir := filepath.Join(tmpDir, "src", "deep")
+	os.MkdirAll(subDir, 0755)
+
+	// Create .structyl/config.json at root
+	structylDir := filepath.Join(tmpDir, ".structyl")
+	os.MkdirAll(structylDir, 0755)
+	os.WriteFile(filepath.Join(structylDir, "config.json"), []byte(`{}`), 0644)
+
+	// Find from subdir
+	root, err := FindProjectRootFrom(subDir)
+	if err != nil {
+		t.Fatalf("FindProjectRootFrom() error = %v", err)
+	}
+
+	if root != tmpDir {
+		t.Errorf("root = %q, want %q", root, tmpDir)
+	}
+}
+
+func TestFindProjectRootFrom_NotFound(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	_, err := FindProjectRootFrom(tmpDir)
+	if err == nil {
+		t.Error("expected error when config.json not found")
+	}
+
+	if _, ok := err.(*ProjectNotFoundError); !ok {
+		t.Errorf("error type = %T, want *ProjectNotFoundError", err)
+	}
+}
+
+func TestProjectNotFoundError(t *testing.T) {
+	err := &ProjectNotFoundError{StartDir: "/some/path"}
+
+	if err.Error() == "" {
+		t.Error("Error() should return message")
+	}
+}
+
+func TestListSuites(t *testing.T) {
+	tmpDir := t.TempDir()
+	os.MkdirAll(filepath.Join(tmpDir, "tests", "suite1"), 0755)
+	os.MkdirAll(filepath.Join(tmpDir, "tests", "suite2"), 0755)
+	os.WriteFile(filepath.Join(tmpDir, "tests", "file.txt"), []byte{}, 0644) // Non-directory
+
+	suites, err := ListSuites(tmpDir)
+	if err != nil {
+		t.Fatalf("ListSuites() error = %v", err)
+	}
+
+	if len(suites) != 2 {
+		t.Errorf("len(suites) = %d, want 2", len(suites))
+	}
+}
+
+func TestListSuites_NoTestsDir(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	suites, err := ListSuites(tmpDir)
+	if err != nil {
+		t.Fatalf("ListSuites() error = %v", err)
+	}
+
+	if suites != nil && len(suites) != 0 {
+		t.Errorf("expected nil or empty slice, got %v", suites)
+	}
+}
+
+func TestSuiteExists(t *testing.T) {
+	tmpDir := t.TempDir()
+	os.MkdirAll(filepath.Join(tmpDir, "tests", "exists"), 0755)
+
+	if !SuiteExists(tmpDir, "exists") {
+		t.Error("SuiteExists should return true for existing suite")
+	}
+
+	if SuiteExists(tmpDir, "notexists") {
+		t.Error("SuiteExists should return false for non-existing suite")
+	}
+}
+
+func TestTestCaseExists(t *testing.T) {
+	tmpDir := t.TempDir()
+	os.MkdirAll(filepath.Join(tmpDir, "tests", "suite"), 0755)
+	os.WriteFile(filepath.Join(tmpDir, "tests", "suite", "test.json"), []byte(`{}`), 0644)
+
+	if !TestCaseExists(tmpDir, "suite", "test") {
+		t.Error("TestCaseExists should return true for existing test")
+	}
+
+	if TestCaseExists(tmpDir, "suite", "notexists") {
+		t.Error("TestCaseExists should return false for non-existing test")
+	}
+}
+
+func TestTestCase_Fields(t *testing.T) {
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "test.json")
+	content := `{
+		"input": {"x": 1},
+		"output": 42,
+		"description": "desc",
+		"skip": true,
+		"tags": ["math", "basic"]
+	}`
+	os.WriteFile(testFile, []byte(content), 0644)
+
+	tc, err := LoadTestCase(testFile)
+	if err != nil {
+		t.Fatalf("LoadTestCase() error = %v", err)
+	}
+
+	if tc.Description != "desc" {
+		t.Errorf("Description = %q, want %q", tc.Description, "desc")
+	}
+	if !tc.Skip {
+		t.Error("Skip should be true")
+	}
+	if len(tc.Tags) != 2 {
+		t.Errorf("len(Tags) = %d, want 2", len(tc.Tags))
+	}
+}
+
+// =============================================================================
+// Work Item 9: FindProjectRoot Tests
+// =============================================================================
+
+// withWorkingDir changes to the specified directory for the duration of the
+// function call, then restores the original working directory.
+func withWorkingDir(t *testing.T, dir string, fn func()) {
+	t.Helper()
+	original, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("failed to get working directory: %v", err)
+	}
+
+	if err := os.Chdir(dir); err != nil {
+		t.Fatalf("failed to change to %s: %v", dir, err)
+	}
+
+	defer func() {
+		if err := os.Chdir(original); err != nil {
+			t.Fatalf("failed to restore working directory: %v", err)
+		}
+	}()
+
+	fn()
+}
+
+func TestFindProjectRoot_FromProjectDir(t *testing.T) {
+	tmpDir := t.TempDir()
+	// Handle macOS symlinks
+	root, err := filepath.EvalSymlinks(tmpDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create .structyl/config.json at root
+	structylDir := filepath.Join(root, ".structyl")
+	os.MkdirAll(structylDir, 0755)
+	os.WriteFile(filepath.Join(structylDir, "config.json"), []byte(`{}`), 0644)
+
+	withWorkingDir(t, root, func() {
+		foundRoot, err := FindProjectRoot()
+		if err != nil {
+			t.Errorf("FindProjectRoot() error = %v", err)
+		}
+		if foundRoot != root {
+			t.Errorf("FindProjectRoot() = %q, want %q", foundRoot, root)
+		}
+	})
+}
+
+func TestFindProjectRoot_FromSubdir(t *testing.T) {
+	tmpDir := t.TempDir()
+	// Handle macOS symlinks
+	root, err := filepath.EvalSymlinks(tmpDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	subDir := filepath.Join(root, "src", "deep", "nested")
+	os.MkdirAll(subDir, 0755)
+
+	// Create .structyl/config.json at root
+	structylDir := filepath.Join(root, ".structyl")
+	os.MkdirAll(structylDir, 0755)
+	os.WriteFile(filepath.Join(structylDir, "config.json"), []byte(`{}`), 0644)
+
+	withWorkingDir(t, subDir, func() {
+		foundRoot, err := FindProjectRoot()
+		if err != nil {
+			t.Errorf("FindProjectRoot() error = %v", err)
+		}
+		if foundRoot != root {
+			t.Errorf("FindProjectRoot() = %q, want %q", foundRoot, root)
+		}
+	})
+}
+
+func TestFindProjectRoot_NotFound_ReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	// Handle macOS symlinks
+	root, err := filepath.EvalSymlinks(tmpDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// No config.json in this directory tree
+	withWorkingDir(t, root, func() {
+		_, err := FindProjectRoot()
+		if err == nil {
+			t.Error("FindProjectRoot() expected error when config.json not found")
+		}
+
+		// Verify it's the correct error type
+		if _, ok := err.(*ProjectNotFoundError); !ok {
+			t.Errorf("error type = %T, want *ProjectNotFoundError", err)
+		}
+	})
+}
+
+// =============================================================================
+// Work Item 5: Additional Coverage Tests
+// =============================================================================
+
+func TestLoadTestCase_InvalidJSON_ReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "invalid.json")
+
+	// Write invalid JSON
+	if err := os.WriteFile(testFile, []byte("{invalid json}"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadTestCase(testFile)
+	if err == nil {
+		t.Error("LoadTestCase() expected error for invalid JSON")
+	}
+}
+
+func TestLoadTestCase_FileNotFound_ReturnsError(t *testing.T) {
+	_, err := LoadTestCase("/nonexistent/path/test.json")
+	if err == nil {
+		t.Error("LoadTestCase() expected error for missing file")
+	}
+}
+
+func TestLoadTestSuite_InvalidJSON_ReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	suiteDir := filepath.Join(tmpDir, "tests", "broken")
+	os.MkdirAll(suiteDir, 0755)
+
+	// Create valid test file
+	os.WriteFile(filepath.Join(suiteDir, "valid.json"), []byte(`{"input": {}, "output": 1}`), 0644)
+	// Create invalid test file
+	os.WriteFile(filepath.Join(suiteDir, "invalid.json"), []byte("{broken json}"), 0644)
+
+	_, err := LoadTestSuite(tmpDir, "broken")
+	if err == nil {
+		t.Error("LoadTestSuite() expected error when a test case has invalid JSON")
+	}
+}
+
+func TestLoadAllSuites_MissingTestsDir_ReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	// Don't create the tests directory
+
+	_, err := LoadAllSuites(tmpDir)
+	if err == nil {
+		t.Error("LoadAllSuites() expected error when tests directory doesn't exist")
+	}
+}
+
+func TestLoadAllSuites_InvalidTestCase_ReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	suiteDir := filepath.Join(tmpDir, "tests", "broken")
+	os.MkdirAll(suiteDir, 0755)
+
+	// Create an invalid JSON file
+	os.WriteFile(filepath.Join(suiteDir, "bad.json"), []byte("{invalid}"), 0644)
+
+	_, err := LoadAllSuites(tmpDir)
+	if err == nil {
+		t.Error("LoadAllSuites() expected error when a test case has invalid JSON")
+	}
+}
+
+func TestLoadAllSuites_EmptySuite_Skipped(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create empty suite directory
+	os.MkdirAll(filepath.Join(tmpDir, "tests", "empty"), 0755)
+
+	// Create suite with tests
+	suiteDir := filepath.Join(tmpDir, "tests", "hasTests")
+	os.MkdirAll(suiteDir, 0755)
+	os.WriteFile(filepath.Join(suiteDir, "test.json"), []byte(`{"input": {}, "output": 1}`), 0644)
+
+	suites, err := LoadAllSuites(tmpDir)
+	if err != nil {
+		t.Fatalf("LoadAllSuites() error = %v", err)
+	}
+
+	// Empty suite should not be in the result
+	if _, exists := suites["empty"]; exists {
+		t.Error("empty suite should not be included in results")
+	}
+
+	// Suite with tests should be included
+	if _, exists := suites["hasTests"]; !exists {
+		t.Error("suite with tests should be included in results")
+	}
+}

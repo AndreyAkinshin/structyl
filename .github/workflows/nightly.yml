@@ -1,0 +1,95 @@
+name: Nightly
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  nightly:
+    name: Nightly Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Delete existing nightly release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Delete the release (this also frees up the tag for reuse)
+          gh release delete nightly --yes --cleanup-tag || true
+
+      - name: Get version info
+        id: version
+        run: |
+          # Get the latest tag for base version, default to 0.0.0
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          BASE_VERSION=${LATEST_TAG#v}
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          echo "version=${BASE_VERSION}-nightly+${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "Building nightly version: ${BASE_VERSION}-nightly+${SHORT_SHA}"
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: release --clean --snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_CURRENT_TAG: nightly
+
+      - name: Rename archives for nightly
+        run: |
+          cd dist
+          # Rename snapshot archives to nightly naming
+          for f in structyl_*-SNAPSHOT-*; do
+            if [ -f "$f" ]; then
+              # Extract os and arch from filename
+              # Format: structyl_VERSION-SNAPSHOT-SHA_os_arch.ext
+              newname=$(echo "$f" | sed -E 's/structyl_[^_]+-SNAPSHOT-[^_]+_/structyl_nightly_/')
+              mv "$f" "$newname"
+              echo "Renamed $f -> $newname"
+            fi
+          done
+
+          # Regenerate checksums with new names
+          rm -f checksums.txt
+          sha256sum structyl_nightly_* > checksums.txt
+          cat checksums.txt
+
+      - name: Create nightly release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create nightly \
+            --title "Nightly Build" \
+            --notes "Automated nightly build from main branch.
+
+          **Version:** \`$VERSION\`
+          **Commit:** [\`${GITHUB_SHA::7}\`](https://github.com/${{ github.repository }}/commit/$GITHUB_SHA)
+          **Built:** $(date -u '+%Y-%m-%d %H:%M UTC')
+
+          > ⚠️ This is an unstable development build. Use for testing only.
+
+          ## Install
+
+          \`\`\`bash
+          curl -fsSL https://get.structyl.akinshin.dev/install.sh | sh -s -- --version nightly
+          \`\`\`" \
+            --prerelease \
+            dist/structyl_nightly_*.tar.gz \
+            dist/structyl_nightly_*.zip \
+            dist/checksums.txt

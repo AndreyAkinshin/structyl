@@ -1,0 +1,342 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://structyl.dev/schemas/structyl.schema.json",
+  "title": "Structyl Configuration",
+  "description": "Configuration schema for Structyl multi-language project orchestration",
+  "type": "object",
+  "required": ["project"],
+  "properties": {
+    "project": {
+      "type": "object",
+      "description": "Project metadata",
+      "required": ["name"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Project name (used in package names, documentation)",
+          "pattern": "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "description": {
+          "type": "string",
+          "description": "Short project description"
+        },
+        "homepage": {
+          "type": "string",
+          "format": "uri",
+          "description": "Project homepage URL"
+        },
+        "repository": {
+          "type": "string",
+          "format": "uri",
+          "description": "Source code repository URL"
+        },
+        "license": {
+          "type": "string",
+          "description": "SPDX license identifier",
+          "examples": ["MIT", "Apache-2.0", "GPL-3.0"]
+        }
+      }
+    },
+    "version": {
+      "type": "object",
+      "description": "Version management configuration",
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Path to version file relative to project root",
+          "default": "VERSION"
+        },
+        "files": {
+          "type": "array",
+          "description": "Files to update with version",
+          "items": {
+            "type": "object",
+            "required": ["path", "pattern", "replace"],
+            "properties": {
+              "path": {
+                "type": "string",
+                "description": "Path to file relative to project root"
+              },
+              "pattern": {
+                "type": "string",
+                "description": "Regex pattern to match version string"
+              },
+              "replace": {
+                "type": "string",
+                "description": "Replacement string with {version} placeholder"
+              },
+              "replace_all": {
+                "type": "boolean",
+                "description": "Replace all matches instead of requiring exactly one",
+                "default": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "toolchains": {
+      "type": "object",
+      "description": "Custom toolchain definitions",
+      "additionalProperties": {
+        "$ref": "#/$defs/toolchainDefinition"
+      }
+    },
+    "targets": {
+      "type": "object",
+      "description": "Build targets (languages and auxiliary)",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9-]*$",
+        "minLength": 1,
+        "maxLength": 64
+      },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["type", "title"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["language", "auxiliary"],
+            "description": "Target type"
+          },
+          "title": {
+            "type": "string",
+            "description": "Display name for the target",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "toolchain": {
+            "type": "string",
+            "description": "Toolchain preset name (e.g., cargo, dotnet, npm)"
+          },
+          "directory": {
+            "type": "string",
+            "description": "Directory path (defaults to target key)"
+          },
+          "cwd": {
+            "type": "string",
+            "description": "Working directory for commands (defaults to directory)"
+          },
+          "commands": {
+            "type": "object",
+            "description": "Command definitions or overrides",
+            "additionalProperties": {
+              "$ref": "#/$defs/commandDefinition"
+            }
+          },
+          "vars": {
+            "type": "object",
+            "description": "Custom variables for command interpolation",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "env": {
+            "type": "object",
+            "description": "Environment variables for commands",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "depends_on": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Target dependencies for build ordering"
+          },
+          "demo_path": {
+            "type": "string",
+            "description": "Path to demo source file for documentation generation"
+          }
+        }
+      }
+    },
+    "tests": {
+      "type": "object",
+      "description": "Reference test system configuration",
+      "properties": {
+        "directory": {
+          "type": "string",
+          "description": "Test data directory",
+          "default": "tests"
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Glob pattern for test files",
+          "default": "**/*.json"
+        },
+        "comparison": {
+          "type": "object",
+          "description": "Output comparison settings",
+          "properties": {
+            "float_tolerance": {
+              "type": "number",
+              "description": "Tolerance for floating point comparisons",
+              "minimum": 0,
+              "default": 1e-9
+            },
+            "tolerance_mode": {
+              "type": "string",
+              "enum": ["absolute", "relative", "ulp"],
+              "description": "How tolerance is applied",
+              "default": "relative"
+            },
+            "array_order": {
+              "type": "string",
+              "enum": ["strict", "unordered"],
+              "description": "Whether array element order matters",
+              "default": "strict"
+            },
+            "nan_equals_nan": {
+              "type": "boolean",
+              "description": "Whether NaN equals NaN in comparisons",
+              "default": true
+            }
+          }
+        }
+      }
+    },
+    "documentation": {
+      "type": "object",
+      "description": "Documentation generation settings",
+      "properties": {
+        "readme_template": {
+          "type": "string",
+          "description": "Path to README template file"
+        },
+        "placeholders": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Supported placeholder names"
+        }
+      }
+    },
+    "docker": {
+      "type": "object",
+      "description": "Docker configuration",
+      "properties": {
+        "compose_file": {
+          "type": "string",
+          "description": "Docker Compose file path",
+          "default": "docker-compose.yml"
+        },
+        "env_var": {
+          "type": "string",
+          "description": "Environment variable to enable Docker mode",
+          "default": "STRUCTYL_DOCKER"
+        },
+        "services": {
+          "type": "object",
+          "description": "Per-target Docker service overrides",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "base_image": {
+                "type": "string",
+                "description": "Base Docker image"
+              },
+              "dockerfile": {
+                "type": "string",
+                "description": "Custom Dockerfile path"
+              },
+              "platform": {
+                "type": "string",
+                "description": "Target platform (e.g., linux/amd64)"
+              },
+              "volumes": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Additional volume mounts"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "commandDefinition": {
+      "oneOf": [
+        {
+          "type": "null",
+          "description": "Command is not available for this target"
+        },
+        {
+          "type": "string",
+          "description": "Shell command to execute"
+        },
+        {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Sequence of commands or references"
+        },
+        {
+          "type": "object",
+          "description": "Command with options",
+          "oneOf": [
+            {
+              "properties": {
+                "run": {
+                  "type": "string",
+                  "description": "Shell command to execute"
+                },
+                "cwd": {
+                  "type": "string",
+                  "description": "Working directory for this command"
+                },
+                "env": {
+                  "type": "object",
+                  "description": "Environment variables for this command",
+                  "additionalProperties": {"type": "string"}
+                }
+              },
+              "required": ["run"],
+              "not": {"anyOf": [{"required": ["unix"]}, {"required": ["windows"]}]}
+            },
+            {
+              "properties": {
+                "unix": {
+                  "type": "string",
+                  "description": "Command for Unix platforms"
+                },
+                "windows": {
+                  "type": "string",
+                  "description": "Command for Windows platform"
+                },
+                "cwd": {
+                  "type": "string",
+                  "description": "Working directory for this command"
+                },
+                "env": {
+                  "type": "object",
+                  "description": "Environment variables for this command",
+                  "additionalProperties": {"type": "string"}
+                }
+              },
+              "required": ["unix", "windows"],
+              "not": {"required": ["run"]}
+            }
+          ]
+        }
+      ]
+    },
+    "toolchainDefinition": {
+      "type": "object",
+      "description": "Custom toolchain definition",
+      "properties": {
+        "extends": {
+          "type": "string",
+          "description": "Base toolchain to extend"
+        },
+        "commands": {
+          "type": "object",
+          "description": "Command definitions",
+          "additionalProperties": {
+            "$ref": "#/$defs/commandDefinition"
+          }
+        }
+      }
+    }
+  }
+}

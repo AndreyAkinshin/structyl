@@ -1,0 +1,273 @@
+package tests
+
+import (
+	"fmt"
+	"math"
+	"reflect"
+	"sort"
+)
+
+// Compare compares expected and actual values using the given configuration.
+func Compare(expected, actual interface{}, cfg ComparisonConfig) (bool, string) {
+	return compareValues(expected, actual, cfg, "")
+}
+
+func compareValues(expected, actual interface{}, cfg ComparisonConfig, path string) (bool, string) {
+	// Handle nil cases
+	if expected == nil && actual == nil {
+		return true, ""
+	}
+	if expected == nil || actual == nil {
+		return false, fmt.Sprintf("%s: expected %v, got %v", pathStr(path), expected, actual)
+	}
+
+	// Handle special float values represented as strings
+	if str, ok := expected.(string); ok {
+		if isSpecialFloat(str) {
+			return compareSpecialFloat(str, actual, cfg, path)
+		}
+	}
+
+	switch exp := expected.(type) {
+	case float64:
+		return compareFloats(exp, actual, cfg, path)
+	case int:
+		return compareFloats(float64(exp), actual, cfg, path)
+	case string:
+		if act, ok := actual.(string); ok {
+			if exp == act {
+				return true, ""
+			}
+		}
+		return false, fmt.Sprintf("%s: expected %q, got %v", pathStr(path), exp, actual)
+	case bool:
+		if act, ok := actual.(bool); ok && exp == act {
+			return true, ""
+		}
+		return false, fmt.Sprintf("%s: expected %v, got %v", pathStr(path), exp, actual)
+	case map[string]interface{}:
+		return compareMaps(exp, actual, cfg, path)
+	case []interface{}:
+		return compareArrays(exp, actual, cfg, path)
+	default:
+		if reflect.DeepEqual(expected, actual) {
+			return true, ""
+		}
+		return false, fmt.Sprintf("%s: expected %v (%T), got %v (%T)", pathStr(path), expected, expected, actual, actual)
+	}
+}
+
+func compareFloats(expected float64, actual interface{}, cfg ComparisonConfig, path string) (bool, string) {
+	var actFloat float64
+	switch v := actual.(type) {
+	case float64:
+		actFloat = v
+	case int:
+		actFloat = float64(v)
+	default:
+		return false, fmt.Sprintf("%s: expected float, got %T", pathStr(path), actual)
+	}
+
+	// Handle special values
+	if math.IsNaN(expected) && math.IsNaN(actFloat) {
+		if cfg.NaNEqualsNaN {
+			return true, ""
+		}
+		return false, fmt.Sprintf("%s: NaN != NaN (set nan_equals_nan to allow)", pathStr(path))
+	}
+	if math.IsInf(expected, 1) && math.IsInf(actFloat, 1) {
+		return true, ""
+	}
+	if math.IsInf(expected, -1) && math.IsInf(actFloat, -1) {
+		return true, ""
+	}
+
+	// Compare with tolerance
+	var withinTolerance bool
+	switch cfg.ToleranceMode {
+	case "absolute":
+		withinTolerance = math.Abs(expected-actFloat) <= cfg.FloatTolerance
+	case "ulp":
+		// ULP comparison using IEEE 754 bit representation
+		withinTolerance = ulpDiff(expected, actFloat) <= int64(cfg.FloatTolerance)
+	default:
+		// Default to relative tolerance (handles "relative", "", and unknown modes)
+		if expected == 0 {
+			withinTolerance = math.Abs(actFloat) <= cfg.FloatTolerance
+		} else {
+			withinTolerance = math.Abs((expected-actFloat)/expected) <= cfg.FloatTolerance
+		}
+	}
+
+	if withinTolerance {
+		return true, ""
+	}
+	return false, fmt.Sprintf("%s: expected %v, got %v (tolerance: %v %s)", pathStr(path), expected, actFloat, cfg.FloatTolerance, cfg.ToleranceMode)
+}
+
+func compareMaps(expected map[string]interface{}, actual interface{}, cfg ComparisonConfig, path string) (bool, string) {
+	actMap, ok := actual.(map[string]interface{})
+	if !ok {
+		return false, fmt.Sprintf("%s: expected object, got %T", pathStr(path), actual)
+	}
+
+	// Check for missing/extra keys
+	for key := range expected {
+		if _, ok := actMap[key]; !ok {
+			return false, fmt.Sprintf("%s: missing key %q", pathStr(path), key)
+		}
+	}
+	for key := range actMap {
+		if _, ok := expected[key]; !ok {
+			return false, fmt.Sprintf("%s: unexpected key %q", pathStr(path), key)
+		}
+	}
+
+	// Compare values
+	for key, expVal := range expected {
+		actVal := actMap[key]
+		keyPath := path + "." + key
+		if path == "" {
+			keyPath = key
+		}
+		if ok, diff := compareValues(expVal, actVal, cfg, keyPath); !ok {
+			return false, diff
+		}
+	}
+
+	return true, ""
+}
+
+func compareArrays(expected []interface{}, actual interface{}, cfg ComparisonConfig, path string) (bool, string) {
+	actArr, ok := actual.([]interface{})
+	if !ok {
+		return false, fmt.Sprintf("%s: expected array, got %T", pathStr(path), actual)
+	}
+
+	if len(expected) != len(actArr) {
+		return false, fmt.Sprintf("%s: expected %d elements, got %d", pathStr(path), len(expected), len(actArr))
+	}
+
+	if cfg.ArrayOrder == "unordered" {
+		return compareArraysUnordered(expected, actArr, cfg, path)
+	}
+
+	// Strict order comparison
+	for i := range expected {
+		indexPath := fmt.Sprintf("%s[%d]", path, i)
+		if ok, diff := compareValues(expected[i], actArr[i], cfg, indexPath); !ok {
+			return false, diff
+		}
+	}
+
+	return true, ""
+}
+
+func compareArraysUnordered(expected, actual []interface{}, cfg ComparisonConfig, path string) (bool, string) {
+	// Simple unordered comparison: try to match each expected element
+	matched := make([]bool, len(actual))
+
+	for i, exp := range expected {
+		found := false
+		for j, act := range actual {
+			if matched[j] {
+				continue
+			}
+			if ok, _ := compareValues(exp, act, cfg, ""); ok {
+				matched[j] = true
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false, fmt.Sprintf("%s[%d]: no matching element found for %v", path, i, exp)
+		}
+	}
+
+	return true, ""
+}
+
+func compareSpecialFloat(expected string, actual interface{}, cfg ComparisonConfig, path string) (bool, string) {
+	actFloat, ok := toFloat(actual)
+	if !ok {
+		return false, fmt.Sprintf("%s: expected float, got %T", pathStr(path), actual)
+	}
+
+	switch expected {
+	case "NaN":
+		if math.IsNaN(actFloat) {
+			if cfg.NaNEqualsNaN {
+				return true, ""
+			}
+			return false, fmt.Sprintf("%s: NaN != NaN (set nan_equals_nan to allow)", pathStr(path))
+		}
+		return false, fmt.Sprintf("%s: expected NaN, got %v", pathStr(path), actFloat)
+	case "Infinity", "+Infinity":
+		if math.IsInf(actFloat, 1) {
+			return true, ""
+		}
+		return false, fmt.Sprintf("%s: expected +Infinity, got %v", pathStr(path), actFloat)
+	case "-Infinity":
+		if math.IsInf(actFloat, -1) {
+			return true, ""
+		}
+		return false, fmt.Sprintf("%s: expected -Infinity, got %v", pathStr(path), actFloat)
+	}
+
+	return false, fmt.Sprintf("%s: unexpected special float %q", pathStr(path), expected)
+}
+
+func isSpecialFloat(s string) bool {
+	return s == "NaN" || s == "Infinity" || s == "+Infinity" || s == "-Infinity"
+}
+
+func toFloat(v interface{}) (float64, bool) {
+	switch f := v.(type) {
+	case float64:
+		return f, true
+	case int:
+		return float64(f), true
+	default:
+		return 0, false
+	}
+}
+
+// pathStr formats a path for error messages.
+// Returns "root" for empty path to indicate the top-level value.
+// Note: The pkg/testhelper version uses "$" (JSON Path convention) instead of "root"
+// because it's a public API targeting external consumers familiar with JSON Path.
+func pathStr(path string) string {
+	if path == "" {
+		return "root"
+	}
+	return path
+}
+
+// ulpDiff computes the difference in ULPs (Units in Last Place) between two floats.
+// This uses the IEEE 754 bit representation to count representable floats between a and b.
+func ulpDiff(a, b float64) int64 {
+	ai := int64(math.Float64bits(a))
+	bi := int64(math.Float64bits(b))
+	// Convert from sign-magnitude to two's complement for proper ordering
+	if ai < 0 {
+		ai = math.MinInt64 - ai
+	}
+	if bi < 0 {
+		bi = math.MinInt64 - bi
+	}
+	diff := ai - bi
+	if diff < 0 {
+		return -diff
+	}
+	return diff
+}
+
+// SortedKeys returns sorted keys of a map for deterministic iteration.
+func SortedKeys(m map[string]interface{}) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
+}

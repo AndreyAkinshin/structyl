@@ -1,0 +1,117 @@
+# Structyl Project Guidelines
+
+This project uses **Structyl** for multi-language build orchestration.
+
+## Configuration
+
+Location: `.structyl/config.json`
+
+## Commands
+
+### Meta Commands (all targets)
+
+| Command | Description |
+|---------|-------------|
+| `structyl build` | Build all targets |
+| `structyl test` | Test all language targets |
+| `structyl clean` | Clean all targets |
+| `structyl restore` | Install dependencies |
+| `structyl check` | Run static analysis |
+| `structyl lint` | Run linting |
+| `structyl format` | Auto-fix formatting |
+| `structyl bench` | Run benchmarks |
+| `structyl demo` | Run demo code |
+| `structyl ci` | Run full CI pipeline |
+
+### Target Commands
+
+| Command | Description |
+|---------|-------------|
+| `structyl <cmd> <target>` | Run command for specific target |
+| `structyl build <target>` | Build specific target |
+| `structyl test <target>` | Test specific target |
+
+### Utility Commands
+
+| Command | Description |
+|---------|-------------|
+| `structyl init` | Initialize new project |
+| `structyl new` | Create new target |
+| `structyl targets` | List all targets |
+| `structyl config validate` | Validate configuration |
+| `structyl release` | Set version, commit, and tag |
+| `structyl docker-build` | Build Docker images |
+| `structyl docker-clean` | Clean Docker artifacts |
+
+## Configuration Format
+
+```json
+{
+  "project": { "name": "project-name" },
+  "targets": {
+    "rs": { "type": "language", "title": "Rust", "toolchain": "cargo" },
+    "py": { "type": "language", "title": "Python", "toolchain": "python" }
+  }
+}
+```
+
+## Target Types
+
+- **language**: Code implementations (participates in `structyl test`)
+- **auxiliary**: Supporting tasks (docs, images)
+
+## Supported Toolchains
+
+| Toolchain | Ecosystem |
+|-----------|-----------|
+| `cargo` | Rust |
+| `go` | Go |
+| `dotnet` | .NET (C#, F#) |
+| `npm` | Node.js (npm) |
+| `pnpm` | Node.js (pnpm) |
+| `yarn` | Node.js (Yarn) |
+| `bun` | Bun |
+| `deno` | Deno |
+| `python` | Python (pip) |
+| `uv` | Python (uv) |
+| `poetry` | Python (Poetry) |
+| `gradle` | JVM (Gradle) |
+| `maven` | JVM (Maven) |
+| `sbt` | Scala |
+| `swift` | Swift |
+| `cmake` | C/C++ |
+| `make` | Generic |
+| `bundler` | Ruby |
+| `composer` | PHP |
+| `mix` | Elixir |
+| `cabal` | Haskell (Cabal) |
+| `stack` | Haskell (Stack) |
+| `dune` | OCaml |
+| `lein` | Clojure |
+| `zig` | Zig |
+| `rebar3` | Erlang |
+| `r` | R |
+
+## Dependencies
+
+Use `depends_on` to specify build order:
+
+```json
+{ "bindings": { "toolchain": "python", "depends_on": ["core"] } }
+```
+
+## Docker Mode
+
+```bash
+structyl build --docker
+# or: export STRUCTYL_DOCKER=1
+```
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | Runtime error (command failed) |
+| 2 | Configuration error |
+| 3 | Environment error (missing tools) |

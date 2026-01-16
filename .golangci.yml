@@ -1,0 +1,54 @@
+# golangci-lint configuration for Structyl
+# https://golangci-lint.run/usage/configuration/
+
+run:
+  go: "1.22"
+  timeout: 5m
+  tests: true
+
+linters:
+  enable:
+    # Default linters
+    - errcheck      # Check for unchecked errors
+    - gosimple      # Simplify code
+    - govet         # Go vet checks
+    - ineffassign   # Detect ineffective assignments
+    - staticcheck   # Static analysis
+    - unused        # Find unused code
+
+    # Additional recommended linters
+    - copyloopvar   # Detect loop variable capture issues (Go 1.22+)
+    - gofmt         # Check code formatting
+    - goimports     # Check import organization
+    - misspell      # Check for spelling errors
+    - unconvert     # Remove unnecessary type conversions
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: false
+
+  goimports:
+    local-prefixes: github.com/akinshin/structyl
+
+  misspell:
+    locale: US
+
+issues:
+  # Exclude some linters from running on test files
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck  # Tests often ignore errors intentionally
+
+  # Maximum issues count per one linter (0 = unlimited)
+  max-issues-per-linter: 0
+
+  # Maximum count of issues with the same text (0 = unlimited)
+  max-same-issues: 0
+
+output:
+  formats:
+    - format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true

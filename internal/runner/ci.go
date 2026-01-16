@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/target"
 )
 
@@ -109,7 +110,7 @@ func (r *Runner) RunCI(ctx context.Context, opts CIOptions) (*CIResult, error) {
 
 	// Collect artifacts
 	if opts.ArtifactDir != "" && (result.Success || opts.Continue) {
-		artifactCount, err := r.collectArtifacts(ctx, targets, opts.ArtifactDir)
+		artifactCount, err := r.collectArtifacts(ctx, targets, opts.ArtifactDir, nil)
 		if err != nil {
 			result.Success = false
 		}
@@ -169,7 +170,7 @@ func (r *Runner) runPhase(ctx context.Context, phase string, targets []target.Ta
 }
 
 // collectArtifacts collects build artifacts to the output directory.
-func (r *Runner) collectArtifacts(ctx context.Context, targets []target.Target, outputDir string) (int, error) {
+func (r *Runner) collectArtifacts(ctx context.Context, targets []target.Target, outputDir string, out *output.Writer) (int, error) {
 	// Create output directory
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		return 0, fmt.Errorf("failed to create artifact directory: %w", err)
@@ -184,7 +185,9 @@ func (r *Runner) collectArtifacts(ctx context.Context, targets []target.Target, 
 			destPath := filepath.Join(outputDir, filepath.Base(artifact))
 			if err := copyFile(artifact, destPath); err != nil {
 				// Log but don't fail
-				fmt.Fprintf(os.Stderr, "warning: failed to copy artifact %s: %v\n", artifact, err)
+				if out != nil {
+					out.Warning("failed to copy artifact %s: %v", artifact, err)
+				}
 				continue
 			}
 			count++
@@ -245,10 +248,8 @@ func copyFile(src, dst string) error {
 }
 
 // PrintCISummary prints a summary of CI results.
-func PrintCISummary(result *CIResult) {
-	fmt.Println()
-	fmt.Println("=== CI Summary ===")
-	fmt.Println()
+func PrintCISummary(result *CIResult, out *output.Writer) {
+	out.SummaryHeader("CI Summary")
 
 	// Phase summary
 	var successPhases, failedPhases []string
@@ -261,26 +262,25 @@ func PrintCISummary(result *CIResult) {
 	}
 
 	if len(successPhases) > 0 {
-		fmt.Printf("  Passed: %s\n", strings.Join(successPhases, ", "))
+		out.SummaryPassed("Passed", strings.Join(successPhases, ", "))
 	}
 	if len(failedPhases) > 0 {
-		fmt.Printf("  Failed: %s\n", strings.Join(failedPhases, ", "))
+		out.SummaryFailed("Failed", strings.Join(failedPhases, ", "))
 	}
 
 	// Timing
-	fmt.Printf("  Duration: %s\n", formatDuration(result.Duration))
+	out.SummaryItem("Duration", formatDuration(result.Duration))
 
 	// Artifacts
 	if result.ArtifactCount > 0 {
-		fmt.Printf("  Artifacts: %d\n", result.ArtifactCount)
+		out.SummaryItem("Artifacts", fmt.Sprintf("%d", result.ArtifactCount))
 	}
 
 	// Overall status
-	fmt.Println()
 	if result.Success {
-		fmt.Println("CI pipeline completed successfully.")
+		out.FinalSuccess("CI pipeline completed successfully.")
 	} else {
-		fmt.Println("CI pipeline failed.")
+		out.FinalFailure("CI pipeline failed.")
 	}
 }
 

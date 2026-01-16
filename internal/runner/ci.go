@@ -269,7 +269,7 @@ func PrintCISummary(result *CIResult, out *output.Writer) {
 	}
 
 	// Timing
-	out.SummaryItem("Duration", formatDuration(result.Duration))
+	out.SummaryItem("Duration", FormatDuration(result.Duration))
 
 	// Artifacts
 	if result.ArtifactCount > 0 {
@@ -284,8 +284,8 @@ func PrintCISummary(result *CIResult, out *output.Writer) {
 	}
 }
 
-// formatDuration formats a duration in a human-readable way.
-func formatDuration(d time.Duration) string {
+// FormatDuration formats a duration in a human-readable way.
+func FormatDuration(d time.Duration) string {
 	if d < time.Second {
 		return fmt.Sprintf("%dms", d.Milliseconds())
 	}

@@ -92,6 +92,72 @@ Location: `.structyl/config.json`
 | `rebar3` | Erlang |
 | `r` | R |
 
+## Custom Commands
+
+Commands can be defined as shell strings, arrays, or objects.
+
+### Shell String
+
+```json
+{
+  "targets": {
+    "img": {
+      "type": "auxiliary",
+      "commands": {
+        "build": "python scripts/generate.py",
+        "clean": "rm -rf output/"
+      }
+    }
+  }
+}
+```
+
+### Override Toolchain Commands
+
+```json
+{
+  "targets": {
+    "cs": {
+      "toolchain": "dotnet",
+      "commands": {
+        "test": "dotnet run --project MyLib.Tests"
+      }
+    }
+  }
+}
+```
+
+### Command Object (with cwd/env)
+
+```json
+{
+  "commands": {
+    "test": {
+      "run": "pytest",
+      "cwd": "tests",
+      "env": { "PYTHONPATH": "." }
+    }
+  }
+}
+```
+
+### Command Composition (sequential)
+
+```json
+{
+  "commands": {
+    "check": ["lint", "format-check"],
+    "ci": ["restore", "check", "build", "test"]
+  }
+}
+```
+
+### Disable Command
+
+```json
+{ "commands": { "bench": null } }
+```
+
 ## Dependencies
 
 Use `depends_on` to specify build order:

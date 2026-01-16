@@ -36,12 +36,11 @@ jobs:
       - name: Get version info
         id: version
         run: |
-          # Get the latest tag for base version, default to 0.0.0
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          BASE_VERSION=${LATEST_TAG#v}
+          # Version format must match what GoReleaser produces with --snapshot and GORELEASER_CURRENT_TAG=nightly
+          # GoReleaser produces: nightly-SNAPSHOT-{SHORT_SHA}
           SHORT_SHA=$(git rev-parse --short HEAD)
-          echo "version=${BASE_VERSION}-nightly+${SHORT_SHA}" >> $GITHUB_OUTPUT
-          echo "Building nightly version: ${BASE_VERSION}-nightly+${SHORT_SHA}"
+          echo "version=nightly-SNAPSHOT-${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "Building nightly version: nightly-SNAPSHOT-${SHORT_SHA}"
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6

@@ -25,6 +25,15 @@ func New() *Writer {
 	}
 }
 
+// NewWithWriters creates a Writer with custom io.Writers (for testing).
+func NewWithWriters(out, err io.Writer, color bool) *Writer {
+	return &Writer{
+		out:   out,
+		err:   err,
+		color: color,
+	}
+}
+
 // SetQuiet enables or disables quiet mode.
 func (w *Writer) SetQuiet(quiet bool) {
 	w.quiet = quiet
@@ -294,6 +303,185 @@ func (w *Writer) HelpEnvVar(name, description string, width int) {
 		w.Println("  %s%-*s%s  %s%s%s", colorEnvVar, width, name, reset, colorDescription, description, reset)
 	} else {
 		w.Println("  %-*s  %s", width, name, description)
+	}
+}
+
+// Step prints a numbered step message with color.
+func (w *Writer) Step(num int, format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	if w.color {
+		w.Println("%s%d.%s %s", cyan, num, reset, msg)
+	} else {
+		w.Println("%d. %s", num, msg)
+	}
+}
+
+// StepDetail prints an indented detail line under a step.
+func (w *Writer) StepDetail(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	if w.color {
+		w.Println("   %s- %s%s", dim, msg, reset)
+	} else {
+		w.Println("   - %s", msg)
+	}
+}
+
+// Action prints an action message (what the CLI is doing).
+func (w *Writer) Action(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	if w.color {
+		w.Println("%s%s%s", cyan, msg, reset)
+	} else {
+		w.Println("%s", msg)
+	}
+}
+
+// ErrorPrefix prints an error message with structyl prefix to stderr.
+func (w *Writer) ErrorPrefix(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	if w.color {
+		w.Errorln("%sstructyl:%s %s", red, reset, msg)
+	} else {
+		w.Errorln("structyl: %s", msg)
+	}
+}
+
+// WarningSimple prints a warning message without the "warning:" prefix.
+func (w *Writer) WarningSimple(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	if w.color {
+		w.Errorln("%swarning:%s %s", yellow, reset, msg)
+	} else {
+		w.Errorln("warning: %s", msg)
+	}
+}
+
+// SummaryHeader prints a summary section header.
+func (w *Writer) SummaryHeader(title string) {
+	w.Println("")
+	if w.color {
+		w.Println("%s=== %s ===%s", bold+cyan, title, reset)
+	} else {
+		w.Println("=== %s ===", title)
+	}
+	w.Println("")
+}
+
+// SummaryItem prints a labeled summary item with value.
+func (w *Writer) SummaryItem(label, value string) {
+	if w.color {
+		w.Println("  %s%s:%s %s", dim, label, reset, value)
+	} else {
+		w.Println("  %s: %s", label, value)
+	}
+}
+
+// SummaryPassed prints a passed/success items summary.
+func (w *Writer) SummaryPassed(label, value string) {
+	if w.color {
+		w.Println("  %s%s:%s %s%s%s", dim, label, reset, green, value, reset)
+	} else {
+		w.Println("  %s: %s", label, value)
+	}
+}
+
+// SummaryFailed prints a failed items summary.
+func (w *Writer) SummaryFailed(label, value string) {
+	if w.color {
+		w.Println("  %s%s:%s %s%s%s", dim, label, reset, red, value, reset)
+	} else {
+		w.Println("  %s: %s", label, value)
+	}
+}
+
+// FinalSuccess prints a final success message.
+func (w *Writer) FinalSuccess(format string, args ...interface{}) {
+	w.Println("")
+	msg := fmt.Sprintf(format, args...)
+	if w.color {
+		w.Println("%s%s%s", green, msg, reset)
+	} else {
+		w.Println("%s", msg)
+	}
+}
+
+// FinalFailure prints a final failure message.
+func (w *Writer) FinalFailure(format string, args ...interface{}) {
+	w.Println("")
+	msg := fmt.Sprintf(format, args...)
+	if w.color {
+		w.Println("%s%s%s", red, msg, reset)
+	} else {
+		w.Println("%s", msg)
+	}
+}
+
+// DryRunStart prints the dry run header.
+func (w *Writer) DryRunStart() {
+	w.Println("")
+	if w.color {
+		w.Println("%s=== DRY RUN ===%s", bold+yellow, reset)
+	} else {
+		w.Println("=== DRY RUN ===")
+	}
+	w.Println("")
+}
+
+// DryRunEnd prints the dry run footer.
+func (w *Writer) DryRunEnd() {
+	w.Println("")
+	if w.color {
+		w.Println("%s=== END DRY RUN ===%s", bold+yellow, reset)
+	} else {
+		w.Println("=== END DRY RUN ===")
+	}
+}
+
+// PhaseHeader prints a CI/build phase header.
+func (w *Writer) PhaseHeader(phase string) {
+	w.Println("")
+	if w.color {
+		w.Println("%s=== %s ===%s", bold+blue, phase, reset)
+	} else {
+		w.Println("=== %s ===", phase)
+	}
+}
+
+// TargetInfo prints target information line.
+func (w *Writer) TargetInfo(name, targetType, title string) {
+	if w.color {
+		w.Println("%s%s%s (%s): %s", cyan+bold, name, reset, targetType, title)
+	} else {
+		w.Println("%s (%s): %s", name, targetType, title)
+	}
+}
+
+// TargetDetail prints an indented target detail.
+func (w *Writer) TargetDetail(label, value string) {
+	if w.color {
+		w.Println("  %s%s:%s %s", dim, label, reset, value)
+	} else {
+		w.Println("  %s: %s", label, value)
+	}
+}
+
+// ValidationSuccess prints a validation success message.
+func (w *Writer) ValidationSuccess(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	if w.color {
+		w.Println("%s%s%s %s", green, "✓", reset, msg)
+	} else {
+		w.Println("%s", msg)
+	}
+}
+
+// Hint prints a hint message for the user.
+func (w *Writer) Hint(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	if w.color {
+		w.Println("%s%s%s", dim, msg, reset)
+	} else {
+		w.Println("%s", msg)
 	}
 }
 

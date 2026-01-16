@@ -115,12 +115,18 @@ func handleCheckMode(w *output.Writer, pinnedVersion string) int {
 	}
 
 	w.Println("  Current CLI version:  %s", Version)
-	w.Println("  Pinned version:       %s", pinnedVersion)
+	if pinnedVersion == "" {
+		w.Println("  Pinned version:       (not set)")
+	} else {
+		w.Println("  Pinned version:       %s", pinnedVersion)
+	}
 	w.Println("  Latest stable:        %s", latest)
 	w.Println("")
 
 	// Compare pinned version with latest
-	if !isNightlyVersion(pinnedVersion) {
+	if pinnedVersion == "" {
+		w.Println("No version pinned. Run 'structyl upgrade' to set version.")
+	} else if !isNightlyVersion(pinnedVersion) {
 		cmp, err := version.Compare(pinnedVersion, latest)
 		if err == nil && cmp < 0 {
 			w.Println("A newer version is available. Run 'structyl upgrade' to update.")
@@ -157,8 +163,8 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 		}
 	}
 
-	// Check if already on target version
-	if currentVersion == targetVersion {
+	// Check if already on target version (only if we have a current version)
+	if currentVersion != "" && currentVersion == targetVersion {
 		w.Println("Already on version %s", targetVersion)
 		return 0
 	}
@@ -179,7 +185,11 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 	structylDir := filepath.Join(root, project.ConfigDirName)
 	updateProjectFiles(structylDir)
 
-	w.Println("Upgraded from %s to %s", currentVersion, targetVersion)
+	if currentVersion == "" {
+		w.Println("Set version to %s", targetVersion)
+	} else {
+		w.Println("Upgraded from %s to %s", currentVersion, targetVersion)
+	}
 	w.Println("")
 
 	if isNightlyVersion(targetVersion) {
@@ -300,12 +310,13 @@ func parseNightlyVersionFromBody(body string) string {
 }
 
 // readPinnedVersion reads the pinned CLI version from .structyl/version.
+// Returns empty string if the version file doesn't exist.
 func readPinnedVersion(root string) (string, error) {
 	versionPath := filepath.Join(root, project.ConfigDirName, project.VersionFileName)
 	data, err := os.ReadFile(versionPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return "", fmt.Errorf("version file not found: %s", versionPath)
+			return "", nil // No version file is OK, will be created on upgrade
 		}
 		return "", err
 	}

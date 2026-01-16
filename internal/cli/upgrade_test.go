@@ -190,12 +190,21 @@ func TestReadPinnedVersion_TrimsWhitespace(t *testing.T) {
 	}
 }
 
-func TestReadPinnedVersion_FileNotFound_ReturnsError(t *testing.T) {
+func TestReadPinnedVersion_FileNotFound_ReturnsEmpty(t *testing.T) {
 	tmpDir := t.TempDir()
 
-	_, err := readPinnedVersion(tmpDir)
-	if err == nil {
-		t.Error("readPinnedVersion() error = nil, want error for missing file")
+	// Create .structyl directory but no version file
+	structylDir := filepath.Join(tmpDir, ".structyl")
+	if err := os.MkdirAll(structylDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	ver, err := readPinnedVersion(tmpDir)
+	if err != nil {
+		t.Errorf("readPinnedVersion() error = %v, want nil", err)
+	}
+	if ver != "" {
+		t.Errorf("readPinnedVersion() = %q, want empty string", ver)
 	}
 }
 
@@ -313,6 +322,20 @@ func TestCmdUpgrade_CheckAndVersion_ReturnsUsageError(t *testing.T) {
 // createTestProjectWithVersion creates a test project with a specific pinned version.
 func createTestProjectWithVersion(t *testing.T, pinnedVersion string) string {
 	t.Helper()
+	root := createTestProjectWithoutVersion(t)
+
+	// Create version file
+	versionPath := filepath.Join(root, ".structyl", "version")
+	if err := os.WriteFile(versionPath, []byte(pinnedVersion+"\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	return root
+}
+
+// createTestProjectWithoutVersion creates a test project without a version file.
+func createTestProjectWithoutVersion(t *testing.T) string {
+	t.Helper()
 	tmpDir := t.TempDir()
 
 	root, err := filepath.EvalSymlinks(tmpDir)
@@ -330,12 +353,6 @@ func createTestProjectWithVersion(t *testing.T, pinnedVersion string) string {
 	config := `{"project": {"name": "test-project"}, "targets": {}}`
 	configPath := filepath.Join(structylDir, "config.json")
 	if err := os.WriteFile(configPath, []byte(config), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	// Create version file
-	versionPath := filepath.Join(structylDir, "version")
-	if err := os.WriteFile(versionPath, []byte(pinnedVersion+"\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -380,6 +397,37 @@ func TestCmdUpgrade_SpecificVersion_Success(t *testing.T) {
 		// Check AGENTS.md exists
 		agentsPath := filepath.Join(structylDir, "AGENTS.md")
 		if _, err := os.Stat(agentsPath); err != nil {
+			t.Errorf("AGENTS.md not found: %v", err)
+		}
+	})
+}
+
+func TestCmdUpgrade_NoVersionFile_Success(t *testing.T) {
+	root := createTestProjectWithoutVersion(t)
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"2.0.0"})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([2.0.0]) = %d, want 0", exitCode)
+		}
+
+		// Verify version file was created
+		ver, err := readPinnedVersion(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if ver != "2.0.0" {
+			t.Errorf("pinned version = %q, want %q", ver, "2.0.0")
+		}
+
+		// Verify project files were created
+		structylDir := filepath.Join(root, ".structyl")
+		if _, err := os.Stat(filepath.Join(structylDir, "setup.sh")); err != nil {
+			t.Errorf("setup.sh not found: %v", err)
+		}
+		if _, err := os.Stat(filepath.Join(structylDir, "setup.ps1")); err != nil {
+			t.Errorf("setup.ps1 not found: %v", err)
+		}
+		if _, err := os.Stat(filepath.Join(structylDir, "AGENTS.md")); err != nil {
 			t.Errorf("AGENTS.md not found: %v", err)
 		}
 	})

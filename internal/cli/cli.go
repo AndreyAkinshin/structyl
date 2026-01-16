@@ -100,6 +100,8 @@ type GlobalOptions struct {
 	NoDocker        bool
 	ContinueOnError bool
 	TargetType      string
+	Quiet           bool
+	Verbose         bool
 }
 
 // parseGlobalFlags extracts global flags from arguments.
@@ -120,6 +122,12 @@ func parseGlobalFlags(args []string) (*GlobalOptions, []string, error) {
 			i++
 		case arg == "--continue":
 			opts.ContinueOnError = true
+			i++
+		case arg == "-q" || arg == "--quiet":
+			opts.Quiet = true
+			i++
+		case arg == "-v" || arg == "--verbose":
+			opts.Verbose = true
 			i++
 		case arg == "--type":
 			if i+1 >= len(args) {
@@ -143,6 +151,11 @@ func parseGlobalFlags(args []string) (*GlobalOptions, []string, error) {
 	// Validate target type
 	if opts.TargetType != "" && opts.TargetType != "language" && opts.TargetType != "auxiliary" {
 		return nil, nil, fmt.Errorf("invalid --type value %q (must be 'language' or 'auxiliary')", opts.TargetType)
+	}
+
+	// Validate mutual exclusivity of quiet and verbose
+	if opts.Quiet && opts.Verbose {
+		return nil, nil, fmt.Errorf("--quiet and --verbose are mutually exclusive")
 	}
 
 	return opts, remaining, nil
@@ -271,6 +284,8 @@ func printGenericHelp(w *output.Writer) {
 
 func printGlobalFlags(w *output.Writer) {
 	w.HelpSection("Global Flags:")
+	w.HelpFlag("-q, --quiet", "Minimal output (errors only)", 14)
+	w.HelpFlag("-v, --verbose", "Maximum detail", 14)
 	w.HelpFlag("--docker", "Run in Docker container", 14)
 	w.HelpFlag("--no-docker", "Disable Docker mode", 14)
 	w.HelpFlag("--continue", "Continue on error (don't fail-fast)", 14)

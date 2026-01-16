@@ -3,6 +3,18 @@ package target
 
 import "context"
 
+// Verbosity represents the output verbosity level.
+type Verbosity int
+
+const (
+	// VerbosityDefault is the normal output level.
+	VerbosityDefault Verbosity = iota
+	// VerbosityQuiet suppresses info messages (errors only).
+	VerbosityQuiet
+	// VerbosityVerbose shows maximum detail.
+	VerbosityVerbose
+)
+
 // TargetType represents the type of build target.
 type TargetType string
 
@@ -38,9 +50,10 @@ type Target interface {
 
 // ExecOptions contains options for command execution.
 type ExecOptions struct {
-	Docker bool              // Run in Docker container
-	Args   []string          // Additional arguments
-	Env    map[string]string // Additional environment variables
+	Docker    bool              // Run in Docker container
+	Args      []string          // Additional arguments
+	Env       map[string]string // Additional environment variables
+	Verbosity Verbosity         // Output verbosity level
 }
 
 // ExecResult contains the result of command execution.

@@ -3,7 +3,6 @@ package cli
 import (
 	"context"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/AndreyAkinshin/structyl/internal/output"
@@ -21,7 +20,7 @@ var out = output.New()
 func loadProject() (*project.Project, int) {
 	proj, err := project.LoadProject()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: %v\n", err)
+		out.ErrorPrefix("%v", err)
 		return nil, 1
 	}
 	return proj, 0
@@ -32,7 +31,7 @@ func loadProject() (*project.Project, int) {
 // it runs the command on that target. Otherwise, it runs on all targets that have it.
 func cmdUnified(args []string, opts *GlobalOptions) int {
 	if len(args) == 0 {
-		fmt.Fprintf(os.Stderr, "structyl: usage: structyl <command> [target] [args] or structyl <command> [args]\n")
+		out.ErrorPrefix("usage: structyl <command> [target] [args] or structyl <command> [args]")
 		return 2
 	}
 
@@ -43,12 +42,12 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 
 	// Print warnings
 	for _, w := range proj.Warnings {
-		fmt.Fprintf(os.Stderr, "warning: %s\n", w)
+		out.WarningSimple("%s", w)
 	}
 
 	registry, err := target.NewRegistry(proj.Config, proj.Root)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: %v\n", err)
+		out.ErrorPrefix("%v", err)
 		return 2
 	}
 
@@ -71,7 +70,7 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 // runTargetCommand executes a command on a specific target.
 func runTargetCommand(t target.Target, cmd string, args []string, opts *GlobalOptions) int {
 	if _, ok := t.GetCommand(cmd); !ok {
-		fmt.Fprintf(os.Stderr, "structyl: [%s] command %q not defined\n", t.Name(), cmd)
+		out.ErrorPrefix("[%s] command %q not defined", t.Name(), cmd)
 		return 1
 	}
 
@@ -95,7 +94,7 @@ func runCommandOnAllTargets(registry *target.Registry, cmd string, args []string
 	// Get targets in dependency order
 	targets, err := registry.TopologicalOrder()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: %v\n", err)
+		out.ErrorPrefix("%v", err)
 		return 2
 	}
 
@@ -119,7 +118,7 @@ func runCommandOnAllTargets(registry *target.Registry, cmd string, args []string
 	}
 
 	if !hasCommand {
-		fmt.Fprintf(os.Stderr, "structyl: unknown command %q (no target defines it)\n", cmd)
+		out.ErrorPrefix("unknown command %q (no target defines it)", cmd)
 		return 1
 	}
 
@@ -162,7 +161,7 @@ func cmdMeta(cmd string, args []string, opts *GlobalOptions) int {
 
 	registry, err := target.NewRegistry(proj.Config, proj.Root)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: %v\n", err)
+		out.ErrorPrefix("%v", err)
 		return 2
 	}
 
@@ -178,7 +177,7 @@ func cmdTargets(opts *GlobalOptions) int {
 
 	registry, err := target.NewRegistry(proj.Config, proj.Root)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: %v\n", err)
+		out.ErrorPrefix("%v", err)
 		return 2
 	}
 
@@ -189,10 +188,10 @@ func cmdTargets(opts *GlobalOptions) int {
 
 	for _, t := range targets {
 		commands := strings.Join(t.Commands(), ", ")
-		fmt.Printf("%s (%s): %s\n", t.Name(), t.Type(), t.Title())
-		fmt.Printf("  commands: %s\n", commands)
+		out.TargetInfo(t.Name(), string(t.Type()), t.Title())
+		out.TargetDetail("commands", commands)
 		if deps := t.DependsOn(); len(deps) > 0 {
-			fmt.Printf("  depends_on: %s\n", strings.Join(deps, ", "))
+			out.TargetDetail("depends_on", strings.Join(deps, ", "))
 		}
 	}
 
@@ -202,7 +201,7 @@ func cmdTargets(opts *GlobalOptions) int {
 // cmdConfig handles configuration utilities.
 func cmdConfig(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintf(os.Stderr, "structyl config: subcommand required (validate)\n")
+		out.ErrorPrefix("config: subcommand required (validate)")
 		return 2
 	}
 
@@ -210,7 +209,7 @@ func cmdConfig(args []string) int {
 	case "validate":
 		return cmdConfigValidate()
 	default:
-		fmt.Fprintf(os.Stderr, "structyl config: unknown subcommand %q\n", args[0])
+		out.ErrorPrefix("config: unknown subcommand %q", args[0])
 		return 2
 	}
 }
@@ -223,13 +222,13 @@ func cmdConfigValidate() int {
 
 	// Print warnings
 	for _, w := range proj.Warnings {
-		fmt.Fprintf(os.Stderr, "warning: %s\n", w)
+		out.WarningSimple("%s", w)
 	}
 
 	// Validate registry creation
 	registry, err := target.NewRegistry(proj.Config, proj.Root)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: %v\n", err)
+		out.ErrorPrefix("%v", err)
 		return 2
 	}
 
@@ -244,11 +243,11 @@ func cmdConfigValidate() int {
 		}
 	}
 
-	fmt.Println("Configuration is valid.")
-	fmt.Printf("  Project: %s\n", proj.Config.Project.Name)
-	fmt.Printf("  Targets: %d (%d language, %d auxiliary)\n", len(targets), langCount, auxCount)
+	out.ValidationSuccess("Configuration is valid.")
+	out.SummaryItem("Project", proj.Config.Project.Name)
+	out.SummaryItem("Targets", fmt.Sprintf("%d (%d language, %d auxiliary)", len(targets), langCount, auxCount))
 	if len(proj.Warnings) > 0 {
-		fmt.Printf("  Warnings: %d\n", len(proj.Warnings))
+		out.SummaryItem("Warnings", fmt.Sprintf("%d", len(proj.Warnings)))
 	}
 	return 0
 }
@@ -263,7 +262,7 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 	}
 
 	for _, c := range commands {
-		fmt.Printf("=== %s ===\n", c)
+		out.PhaseHeader(c)
 		if result := cmdMeta(c, args, opts); result != 0 {
 			return result
 		}
@@ -294,7 +293,7 @@ func cmdDockerBuild(args []string, opts *GlobalOptions) int {
 
 	// Check Docker availability
 	if err := runner.CheckDockerAvailable(); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: %v\n", err)
+		out.ErrorPrefix("%v", err)
 		if dockerErr, ok := err.(*runner.DockerUnavailableError); ok {
 			return dockerErr.ExitCode()
 		}
@@ -303,11 +302,11 @@ func cmdDockerBuild(args []string, opts *GlobalOptions) int {
 
 	ctx := context.Background()
 	if err := dockerRunner.Build(ctx, args...); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: docker-build failed: %v\n", err)
+		out.ErrorPrefix("docker-build failed: %v", err)
 		return 1
 	}
 
-	fmt.Println("Docker images built successfully.")
+	out.Success("Docker images built successfully.")
 	return 0
 }
 
@@ -322,7 +321,7 @@ func cmdDockerClean(opts *GlobalOptions) int {
 
 	// Check Docker availability
 	if err := runner.CheckDockerAvailable(); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: %v\n", err)
+		out.ErrorPrefix("%v", err)
 		if dockerErr, ok := err.(*runner.DockerUnavailableError); ok {
 			return dockerErr.ExitCode()
 		}
@@ -331,11 +330,11 @@ func cmdDockerClean(opts *GlobalOptions) int {
 
 	ctx := context.Background()
 	if err := dockerRunner.Clean(ctx); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: docker-clean failed: %v\n", err)
+		out.ErrorPrefix("docker-clean failed: %v", err)
 		return 1
 	}
 
-	fmt.Println("Docker containers and images cleaned successfully.")
+	out.Success("Docker containers and images cleaned successfully.")
 	return 0
 }
 
@@ -360,8 +359,8 @@ func cmdRelease(args []string, opts *GlobalOptions) int {
 	}
 
 	if len(remaining) == 0 {
-		fmt.Fprintf(os.Stderr, "structyl release: version required\n")
-		fmt.Fprintf(os.Stderr, "usage: structyl release <version> [--push] [--dry-run] [--force]\n")
+		out.ErrorPrefix("release: version required")
+		out.Errorln("usage: structyl release <version> [--push] [--dry-run] [--force]")
 		return 2
 	}
 
@@ -376,7 +375,7 @@ func cmdRelease(args []string, opts *GlobalOptions) int {
 
 	ctx := context.Background()
 	if err := releaser.Release(ctx, releaseOpts); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl release: %v\n", err)
+		out.ErrorPrefix("release: %v", err)
 		return 1
 	}
 

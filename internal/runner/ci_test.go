@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/AndreyAkinshin/structyl/internal/output"
 )
 
 func TestFormatDuration_Milliseconds(t *testing.T) {
@@ -453,7 +455,7 @@ func TestCollectArtifacts_CreatesOutputDir(t *testing.T) {
 	runner := New(registry)
 
 	targets, _ := registry.TopologicalOrder()
-	_, err := runner.collectArtifacts(context.Background(), targets, outputDir)
+	_, err := runner.collectArtifacts(context.Background(), targets, outputDir, nil)
 
 	if err != nil {
 		t.Errorf("collectArtifacts() error = %v", err)
@@ -473,7 +475,7 @@ func TestCollectArtifacts_NoMatches_ReturnsZero(t *testing.T) {
 	runner := New(registry)
 
 	targets, _ := registry.TopologicalOrder()
-	count, err := runner.collectArtifacts(context.Background(), targets, outputDir)
+	count, err := runner.collectArtifacts(context.Background(), targets, outputDir, nil)
 
 	if err != nil {
 		t.Errorf("collectArtifacts() error = %v", err)
@@ -503,7 +505,8 @@ func TestPrintCISummary_Success(t *testing.T) {
 
 	// Verify the function completes without panic and doesn't modify input
 	originalCount := len(result.PhaseResults)
-	PrintCISummary(result)
+	out := output.New()
+	PrintCISummary(result, out)
 
 	// Verify input wasn't modified
 	if len(result.PhaseResults) != originalCount {
@@ -528,7 +531,8 @@ func TestPrintCISummary_Failure(t *testing.T) {
 
 	// Verify the function handles failure results without panic
 	// and preserves the original success status
-	PrintCISummary(result)
+	out := output.New()
+	PrintCISummary(result, out)
 
 	if result.Success != false {
 		t.Error("PrintCISummary should not modify Success field")
@@ -548,7 +552,8 @@ func TestPrintCISummary_WithArtifacts(t *testing.T) {
 	}
 
 	// Verify artifact count is preserved after print
-	PrintCISummary(result)
+	out := output.New()
+	PrintCISummary(result, out)
 
 	if result.ArtifactCount != 5 {
 		t.Errorf("PrintCISummary modified ArtifactCount: got %d, want 5", result.ArtifactCount)
@@ -565,7 +570,8 @@ func TestPrintCISummary_EmptyPhases(t *testing.T) {
 	}
 
 	// Verify function handles empty phases gracefully
-	PrintCISummary(result)
+	out := output.New()
+	PrintCISummary(result, out)
 
 	// Verify empty slice wasn't modified
 	if len(result.PhaseResults) != 0 {

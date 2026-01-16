@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/output"
 )
 
 // createTestGitRepo creates a git repo with initial commit for testing.
@@ -299,28 +300,30 @@ func TestDryRun_MinimalConfig(t *testing.T) {
 	dir := t.TempDir()
 	cfg := &config.Config{}
 
+	var buf bytes.Buffer
 	r := NewReleaser(dir, cfg)
+	r.SetOutput(output.NewWithWriters(&buf, &buf, false))
 	opts := Options{Version: "1.2.3", DryRun: true}
 
-	output := captureStdout(t, func() {
-		err := r.dryRun(context.Background(), "1.2.3", opts)
-		if err != nil {
-			t.Fatalf("dryRun() error = %v", err)
-		}
-	})
+	err := r.dryRun(context.Background(), "1.2.3", opts)
+	if err != nil {
+		t.Fatalf("dryRun() error = %v", err)
+	}
+
+	out := buf.String()
 
 	// Check expected output
-	if !strings.Contains(output, "DRY RUN") {
-		t.Error("output should contain 'DRY RUN'")
+	if !strings.Contains(out, "DRY RUN") {
+		t.Errorf("output should contain 'DRY RUN', got: %s", out)
 	}
-	if !strings.Contains(output, "Set version to: 1.2.3") {
-		t.Error("output should contain version")
+	if !strings.Contains(out, "Set version to: 1.2.3") {
+		t.Errorf("output should contain version, got: %s", out)
 	}
-	if !strings.Contains(output, "Create commit") {
-		t.Error("output should contain commit step")
+	if !strings.Contains(out, "Create commit") {
+		t.Errorf("output should contain commit step, got: %s", out)
 	}
-	if !strings.Contains(output, "Move main branch to HEAD") {
-		t.Error("output should contain branch step")
+	if !strings.Contains(out, "Move main branch to HEAD") {
+		t.Errorf("output should contain branch step, got: %s", out)
 	}
 }
 
@@ -335,24 +338,26 @@ func TestDryRun_WithVersionFiles(t *testing.T) {
 		},
 	}
 
+	var buf bytes.Buffer
 	r := NewReleaser(dir, cfg)
+	r.SetOutput(output.NewWithWriters(&buf, &buf, false))
 	opts := Options{Version: "1.2.3", DryRun: true}
 
-	output := captureStdout(t, func() {
-		err := r.dryRun(context.Background(), "1.2.3", opts)
-		if err != nil {
-			t.Fatalf("dryRun() error = %v", err)
-		}
-	})
+	err := r.dryRun(context.Background(), "1.2.3", opts)
+	if err != nil {
+		t.Fatalf("dryRun() error = %v", err)
+	}
 
-	if !strings.Contains(output, "Propagate version to:") {
-		t.Error("output should mention version propagation")
+	out := buf.String()
+
+	if !strings.Contains(out, "Propagate version to:") {
+		t.Errorf("output should mention version propagation, got: %s", out)
 	}
-	if !strings.Contains(output, "package.json") {
-		t.Error("output should list package.json")
+	if !strings.Contains(out, "package.json") {
+		t.Errorf("output should list package.json, got: %s", out)
 	}
-	if !strings.Contains(output, "setup.py") {
-		t.Error("output should list setup.py")
+	if !strings.Contains(out, "setup.py") {
+		t.Errorf("output should list setup.py, got: %s", out)
 	}
 }
 
@@ -364,24 +369,26 @@ func TestDryRun_WithPreCommands(t *testing.T) {
 		},
 	}
 
+	var buf bytes.Buffer
 	r := NewReleaser(dir, cfg)
+	r.SetOutput(output.NewWithWriters(&buf, &buf, false))
 	opts := Options{Version: "1.2.3", DryRun: true}
 
-	output := captureStdout(t, func() {
-		err := r.dryRun(context.Background(), "1.2.3", opts)
-		if err != nil {
-			t.Fatalf("dryRun() error = %v", err)
-		}
-	})
+	err := r.dryRun(context.Background(), "1.2.3", opts)
+	if err != nil {
+		t.Fatalf("dryRun() error = %v", err)
+	}
 
-	if !strings.Contains(output, "Run pre-commit commands:") {
-		t.Error("output should mention pre-commit commands")
+	out := buf.String()
+
+	if !strings.Contains(out, "Run pre-commit commands:") {
+		t.Errorf("output should mention pre-commit commands, got: %s", out)
 	}
-	if !strings.Contains(output, "make test") {
-		t.Error("output should list 'make test'")
+	if !strings.Contains(out, "make test") {
+		t.Errorf("output should list 'make test', got: %s", out)
 	}
-	if !strings.Contains(output, "make lint") {
-		t.Error("output should list 'make lint'")
+	if !strings.Contains(out, "make lint") {
+		t.Errorf("output should list 'make lint', got: %s", out)
 	}
 }
 
@@ -396,27 +403,29 @@ func TestDryRun_WithPush(t *testing.T) {
 		},
 	}
 
+	var buf bytes.Buffer
 	r := NewReleaser(dir, cfg)
+	r.SetOutput(output.NewWithWriters(&buf, &buf, false))
 	opts := Options{Version: "1.2.3", DryRun: true, Push: true}
 
-	output := captureStdout(t, func() {
-		err := r.dryRun(context.Background(), "1.2.3", opts)
-		if err != nil {
-			t.Fatalf("dryRun() error = %v", err)
-		}
-	})
+	err := r.dryRun(context.Background(), "1.2.3", opts)
+	if err != nil {
+		t.Fatalf("dryRun() error = %v", err)
+	}
 
-	if !strings.Contains(output, "Push to upstream:") {
-		t.Error("output should mention push to upstream")
+	out := buf.String()
+
+	if !strings.Contains(out, "Push to upstream:") {
+		t.Errorf("output should mention push to upstream, got: %s", out)
 	}
-	if !strings.Contains(output, "Branch: master") {
-		t.Error("output should show branch")
+	if !strings.Contains(out, "Branch: master") {
+		t.Errorf("output should show branch, got: %s", out)
 	}
-	if !strings.Contains(output, "Tag: v1.2.3") {
-		t.Error("output should show tag v1.2.3")
+	if !strings.Contains(out, "Tag: v1.2.3") {
+		t.Errorf("output should show tag v1.2.3, got: %s", out)
 	}
-	if !strings.Contains(output, "Tag: latest") {
-		t.Error("output should show tag latest")
+	if !strings.Contains(out, "Tag: latest") {
+		t.Errorf("output should show tag latest, got: %s", out)
 	}
 }
 

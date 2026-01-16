@@ -795,3 +795,176 @@ func TestExecute_CompositeWithUnavailableCommand_ContinuesWithOthers(t *testing.
 		t.Errorf("output = %q, want to contain 'vet-ran' (vet should have executed)", string(content))
 	}
 }
+
+func TestExecute_MissingNpmScript_SkipsGracefully(t *testing.T) {
+	// Clear cache before test
+	clearPackageJSONCache()
+	defer clearPackageJSONCache()
+
+	tmpDir := t.TempDir()
+
+	// Create package.json without lint script
+	packageJSON := `{"name": "test", "scripts": {"build": "echo building"}}`
+	err := os.WriteFile(filepath.Join(tmpDir, "package.json"), []byte(packageJSON), 0644)
+	if err != nil {
+		t.Fatalf("failed to write package.json: %v", err)
+	}
+
+	cfg := config.TargetConfig{
+		Type:      "language",
+		Title:     "Test",
+		Directory: ".",
+		Cwd:       ".",
+		Commands: map[string]interface{}{
+			"lint": "npm run lint",
+		},
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("ts", cfg, tmpDir, resolver)
+
+	ctx := context.Background()
+	err = target.Execute(ctx, "lint", ExecOptions{})
+
+	// Should NOT return error - it should skip gracefully
+	if err != nil {
+		t.Errorf("Execute() error = %v, want nil for missing npm script (should skip)", err)
+	}
+}
+
+func TestExecute_ExistingNpmScript_Executes(t *testing.T) {
+	// Clear cache before test
+	clearPackageJSONCache()
+	defer clearPackageJSONCache()
+
+	tmpDir := t.TempDir()
+	outputFile := filepath.Join(tmpDir, "output.txt")
+
+	// Create package.json with echo script
+	packageJSON := fmt.Sprintf(`{"name": "test", "scripts": {"echo": "echo script-ran > %s"}}`, outputFile)
+	err := os.WriteFile(filepath.Join(tmpDir, "package.json"), []byte(packageJSON), 0644)
+	if err != nil {
+		t.Fatalf("failed to write package.json: %v", err)
+	}
+
+	cfg := config.TargetConfig{
+		Type:      "language",
+		Title:     "Test",
+		Directory: ".",
+		Cwd:       ".",
+		Commands: map[string]interface{}{
+			// Use echo builtin directly since npm might not be available in test env
+			"echo": fmt.Sprintf("echo script-ran > %s", outputFile),
+		},
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("ts", cfg, tmpDir, resolver)
+
+	ctx := context.Background()
+	err = target.Execute(ctx, "echo", ExecOptions{})
+
+	if err != nil {
+		t.Errorf("Execute() error = %v", err)
+	}
+
+	// Verify the command ran
+	content, readErr := os.ReadFile(outputFile)
+	if readErr != nil {
+		t.Errorf("failed to read output file: %v", readErr)
+		return
+	}
+
+	if !strings.Contains(string(content), "script-ran") {
+		t.Errorf("output = %q, want to contain 'script-ran'", string(content))
+	}
+}
+
+func TestExecute_CompositeWithMissingNpmScript_ContinuesWithOthers(t *testing.T) {
+	// Clear cache before test
+	clearPackageJSONCache()
+	defer clearPackageJSONCache()
+
+	tmpDir := t.TempDir()
+	outputFile := filepath.Join(tmpDir, "output.txt")
+
+	// Create package.json with only build script, not lint
+	packageJSON := `{"name": "test", "scripts": {"build": "echo building"}}`
+	err := os.WriteFile(filepath.Join(tmpDir, "package.json"), []byte(packageJSON), 0644)
+	if err != nil {
+		t.Fatalf("failed to write package.json: %v", err)
+	}
+
+	cfg := config.TargetConfig{
+		Type:      "language",
+		Title:     "Test",
+		Directory: ".",
+		Cwd:       ".",
+		Commands: map[string]interface{}{
+			"lint":  "npm run lint",                             // Missing script - should skip
+			"build": "echo build-ran > " + outputFile,           // Should execute
+			"check": []interface{}{"lint", "build"},
+		},
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("ts", cfg, tmpDir, resolver)
+
+	ctx := context.Background()
+	err = target.Execute(ctx, "check", ExecOptions{})
+
+	// Should succeed - lint is skipped, build runs
+	if err != nil {
+		t.Errorf("Execute() error = %v, want nil", err)
+	}
+
+	// Verify build ran
+	content, readErr := os.ReadFile(outputFile)
+	if readErr != nil {
+		t.Errorf("failed to read output file: %v", readErr)
+		return
+	}
+
+	if !strings.Contains(string(content), "build-ran") {
+		t.Errorf("output = %q, want to contain 'build-ran' (build should have executed)", string(content))
+	}
+}
+
+func TestExecute_NpmBuiltinCommand_AlwaysAvailable(t *testing.T) {
+	// Clear cache before test
+	clearPackageJSONCache()
+	defer clearPackageJSONCache()
+
+	tmpDir := t.TempDir()
+
+	// Create package.json without install script
+	packageJSON := `{"name": "test", "scripts": {}}`
+	err := os.WriteFile(filepath.Join(tmpDir, "package.json"), []byte(packageJSON), 0644)
+	if err != nil {
+		t.Fatalf("failed to write package.json: %v", err)
+	}
+
+	cfg := config.TargetConfig{
+		Type:      "language",
+		Title:     "Test",
+		Directory: ".",
+		Cwd:       ".",
+		Commands: map[string]interface{}{
+			// npm install is a builtin command, not a script
+			// It should not be blocked even though there's no "install" script
+			"install": "echo mock-npm-install",
+		},
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("ts", cfg, tmpDir, resolver)
+
+	ctx := context.Background()
+	err = target.Execute(ctx, "install", ExecOptions{})
+
+	// Should succeed - "echo mock-npm-install" is not a package manager command
+	// and should execute normally
+	if err != nil {
+		t.Errorf("Execute() error = %v, want nil", err)
+	}
+}

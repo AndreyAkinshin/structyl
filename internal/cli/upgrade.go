@@ -228,8 +228,18 @@ func writePinnedVersion(root, ver string) error {
 }
 
 // isNightlyVersion checks if the version string represents a nightly build.
+// This handles various nightly formats: "nightly", "X.Y.Z-nightly+SHA", "X.Y.Z-SNAPSHOT-SHA".
 func isNightlyVersion(ver string) bool {
-	return ver == "nightly"
+	if ver == "nightly" {
+		return true
+	}
+	if strings.Contains(ver, "-SNAPSHOT-") {
+		return true
+	}
+	if strings.Contains(ver, "-nightly") {
+		return true
+	}
+	return false
 }
 
 // isVersionInstalled checks if a version is installed in ~/.structyl/versions/<ver>/.

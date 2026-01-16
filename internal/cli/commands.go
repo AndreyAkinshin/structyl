@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/project"
@@ -14,6 +15,47 @@ import (
 
 // out is the shared output writer for CLI commands.
 var out = output.New()
+
+// targetResult tracks the result of running a command on a single target.
+type targetResult struct {
+	name     string
+	success  bool
+	err      error
+	duration time.Duration
+}
+
+// printCommandSummary prints a summary of command execution across multiple targets.
+func printCommandSummary(cmd string, results []targetResult, totalDuration time.Duration) {
+	out.SummaryHeader(cmd + " Summary")
+
+	// Count results
+	var passed, failed int
+	var failedNames []string
+	for _, r := range results {
+		if r.success {
+			passed++
+		} else {
+			failed++
+			failedNames = append(failedNames, r.name)
+		}
+	}
+
+	// Print summary details
+	out.SummaryItem("Command", cmd)
+	out.SummaryItem("Targets", fmt.Sprintf("%d", len(results)))
+	out.SummaryPassed("Passed", fmt.Sprintf("%d", passed))
+	if failed > 0 {
+		out.SummaryFailed("Failed", fmt.Sprintf("%d (%s)", failed, strings.Join(failedNames, ", ")))
+	}
+	out.SummaryItem("Duration", runner.FormatDuration(totalDuration))
+
+	// Final message
+	if failed == 0 {
+		out.FinalSuccess("All %d targets completed %s successfully.", len(results), cmd)
+	} else {
+		out.FinalFailure("%d of %d targets failed.", failed, len(results))
+	}
+}
 
 // loadProject loads the project configuration and handles errors uniformly.
 // Returns the project and exit code 0 on success, or nil and exit code 1 on failure.
@@ -86,6 +128,7 @@ func runTargetCommand(t target.Target, cmd string, args []string, opts *GlobalOp
 		return 1
 	}
 
+	out.TargetSuccess(t.Name(), cmd)
 	return 0
 }
 
@@ -108,16 +151,15 @@ func runCommandOnAllTargets(registry *target.Registry, cmd string, args []string
 		targets = filterTargetsByType(targets, target.TypeLanguage)
 	}
 
-	// Check if any target has this command
-	hasCommand := false
+	// Count targets with this command
+	var targetsWithCommand []target.Target
 	for _, t := range targets {
 		if _, ok := t.GetCommand(cmd); ok {
-			hasCommand = true
-			break
+			targetsWithCommand = append(targetsWithCommand, t)
 		}
 	}
 
-	if !hasCommand {
+	if len(targetsWithCommand) == 0 {
 		out.ErrorPrefix("unknown command %q (no target defines it)", cmd)
 		return 1
 	}
@@ -129,21 +171,46 @@ func runCommandOnAllTargets(registry *target.Registry, cmd string, args []string
 		Args:   args,
 	}
 
+	startTime := time.Now()
+	var results []targetResult
 	hasError := false
-	for _, t := range targets {
-		// Skip if target doesn't have this command
-		if _, ok := t.GetCommand(cmd); !ok {
-			continue
-		}
 
+	for _, t := range targetsWithCommand {
+		targetStart := time.Now()
 		out.TargetStart(t.Name(), cmd)
-		if err := t.Execute(ctx, cmd, execOpts); err != nil {
+
+		err := t.Execute(ctx, cmd, execOpts)
+		targetDuration := time.Since(targetStart)
+
+		if err != nil {
 			out.TargetFailed(t.Name(), cmd, err)
+			results = append(results, targetResult{
+				name:     t.Name(),
+				success:  false,
+				err:      err,
+				duration: targetDuration,
+			})
 			hasError = true
 			if !opts.ContinueOnError {
+				// Print summary even on early exit if we ran multiple targets
+				if len(results) > 1 {
+					printCommandSummary(cmd, results, time.Since(startTime))
+				}
 				return 1
 			}
+		} else {
+			out.TargetSuccess(t.Name(), cmd)
+			results = append(results, targetResult{
+				name:     t.Name(),
+				success:  true,
+				duration: targetDuration,
+			})
 		}
+	}
+
+	// Print summary if multiple targets were run
+	if len(results) > 1 {
+		printCommandSummary(cmd, results, time.Since(startTime))
 	}
 
 	if hasError {
@@ -261,12 +328,42 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 		commands = []string{"clean", "restore", "check", "build:release", "test"}
 	}
 
+	startTime := time.Now()
+	ciResult := &runner.CIResult{
+		StartTime:     startTime,
+		PhaseResults:  make([]runner.PhaseResult, 0, len(commands)),
+		TargetResults: make(map[string]runner.TargetResult),
+		Success:       true,
+	}
+
 	for _, c := range commands {
+		phaseStart := time.Now()
 		out.PhaseHeader(c)
-		if result := cmdMeta(c, args, opts); result != 0 {
-			return result
+
+		exitCode := cmdMeta(c, args, opts)
+		phaseDuration := time.Since(phaseStart)
+
+		phaseResult := runner.PhaseResult{
+			Name:      c,
+			StartTime: phaseStart,
+			EndTime:   time.Now(),
+			Duration:  phaseDuration,
+			Success:   exitCode == 0,
+		}
+		ciResult.PhaseResults = append(ciResult.PhaseResults, phaseResult)
+
+		if exitCode != 0 {
+			ciResult.Success = false
+			ciResult.EndTime = time.Now()
+			ciResult.Duration = time.Since(startTime)
+			runner.PrintCISummary(ciResult, out)
+			return exitCode
 		}
 	}
+
+	ciResult.EndTime = time.Now()
+	ciResult.Duration = time.Since(startTime)
+	runner.PrintCISummary(ciResult, out)
 
 	return 0
 }

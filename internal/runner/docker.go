@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -14,9 +15,10 @@ import (
 
 // DockerRunner handles command execution in Docker containers.
 type DockerRunner struct {
-	composeFile string
-	projectRoot string
-	config      *config.DockerConfig
+	composeFile   string
+	projectRoot   string
+	config        *config.DockerConfig
+	projectConfig *config.Config // Full project config for per-target Dockerfiles
 }
 
 // NewDockerRunner creates a new DockerRunner.
@@ -25,6 +27,21 @@ func NewDockerRunner(projectRoot string, cfg *config.DockerConfig) *DockerRunner
 		composeFile: composeFileName(cfg),
 		projectRoot: projectRoot,
 		config:      cfg,
+	}
+}
+
+// NewDockerRunnerWithConfig creates a new DockerRunner with full project config.
+// This enables per-target Dockerfile support.
+func NewDockerRunnerWithConfig(projectRoot string, cfg *config.Config) *DockerRunner {
+	var dockerCfg *config.DockerConfig
+	if cfg != nil {
+		dockerCfg = cfg.Docker
+	}
+	return &DockerRunner{
+		composeFile:   composeFileName(dockerCfg),
+		projectRoot:   projectRoot,
+		config:        dockerCfg,
+		projectConfig: cfg,
 	}
 }
 
@@ -98,11 +115,51 @@ func (r *DockerRunner) buildRunArgs(service, cmd string) []string {
 }
 
 // Build builds Docker images for services.
+// If per-target Dockerfiles exist (from mise dockerfile), they will be used.
+// Otherwise falls back to docker-compose.
 func (r *DockerRunner) Build(ctx context.Context, services ...string) error {
 	if err := CheckDockerAvailable(); err != nil {
 		return err
 	}
 
+	// If we have project config, try per-target Dockerfiles first
+	if r.projectConfig != nil && len(services) == 0 {
+		// Try to build all targets using per-target Dockerfiles
+		builtAny := false
+		for name, targetCfg := range r.projectConfig.Targets {
+			dockerfilePath := r.getDockerfilePath(name, targetCfg)
+			if _, err := os.Stat(dockerfilePath); err == nil {
+				if err := r.buildTarget(ctx, name, targetCfg); err != nil {
+					return err
+				}
+				builtAny = true
+			}
+		}
+		if builtAny {
+			return nil
+		}
+	}
+
+	// If specific services requested, try per-target Dockerfiles first
+	if r.projectConfig != nil && len(services) > 0 {
+		builtAny := false
+		for _, service := range services {
+			if targetCfg, ok := r.projectConfig.Targets[service]; ok {
+				dockerfilePath := r.getDockerfilePath(service, targetCfg)
+				if _, err := os.Stat(dockerfilePath); err == nil {
+					if err := r.buildTarget(ctx, service, targetCfg); err != nil {
+						return err
+					}
+					builtAny = true
+				}
+			}
+		}
+		if builtAny {
+			return nil
+		}
+	}
+
+	// Fall back to docker-compose
 	args := []string{"compose", "-f", r.composeFile, "build"}
 	args = append(args, services...)
 
@@ -112,6 +169,31 @@ func (r *DockerRunner) Build(ctx context.Context, services ...string) error {
 	dockerCmd.Stderr = os.Stderr
 
 	return dockerCmd.Run()
+}
+
+// buildTarget builds a Docker image for a specific target using its Dockerfile.
+func (r *DockerRunner) buildTarget(ctx context.Context, name string, targetCfg config.TargetConfig) error {
+	dockerfilePath := r.getDockerfilePath(name, targetCfg)
+	imageName := fmt.Sprintf("structyl-%s", name)
+
+	// docker build -t <image> -f <dockerfile> .
+	args := []string{"build", "-t", imageName, "-f", dockerfilePath, "."}
+
+	dockerCmd := exec.CommandContext(ctx, "docker", args...)
+	dockerCmd.Dir = r.projectRoot
+	dockerCmd.Stdout = os.Stdout
+	dockerCmd.Stderr = os.Stderr
+
+	return dockerCmd.Run()
+}
+
+// getDockerfilePath returns the path to the Dockerfile for a target.
+func (r *DockerRunner) getDockerfilePath(name string, targetCfg config.TargetConfig) string {
+	targetDir := name
+	if targetCfg.Directory != "" {
+		targetDir = targetCfg.Directory
+	}
+	return filepath.Join(r.projectRoot, targetDir, "Dockerfile")
 }
 
 // Clean removes Docker containers and images.

@@ -1,4 +1,8 @@
 // Package runner provides build orchestration with dependency ordering and parallel execution.
+//
+// Deprecated: The docker-compose functionality in this file is deprecated.
+// Use per-target Dockerfiles with mise instead (see internal/mise/dockerfile.go).
+// Generate Dockerfiles using: structyl mise dockerfile
 package runner
 
 import (

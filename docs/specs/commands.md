@@ -44,7 +44,7 @@ structyl clean cs
 Downloads and installs dependencies. MUST be idempotent given unchanged lock files—running twice on the same lock file state MUST have no additional effect. If lock files change between runs (e.g., due to manual edits or `npm update`), behavior is implementation-defined.
 
 ```bash
-structyl restore py  # uv sync
+structyl restore py  # uv sync --all-extras
 structyl restore ts  # pnpm install --frozen-lockfile
 ```
 

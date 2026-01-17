@@ -113,7 +113,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 |---------|------|
 | `build` | `uv build` |
 | `test` | `uv run pytest` |
-| `restore` | `uv sync` |
+| `restore` | `uv sync --all-extras` |
 | `lint` | `uv run ruff check .` |
 | `format` | `uv run ruff format .` |
 

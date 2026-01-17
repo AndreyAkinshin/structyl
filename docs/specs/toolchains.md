@@ -277,7 +277,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | Command | Implementation |
 |---------|----------------|
 | `clean` | `rm -rf dist/ build/ *.egg-info .venv/` |
-| `restore` | `uv sync` |
+| `restore` | `uv sync --all-extras` |
 | `build` | `uv build` |
 | `test` | `uv run pytest` |
 | `test:coverage` | `uv run pytest --cov` |

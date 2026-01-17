@@ -865,7 +865,7 @@ func TestCmdInit_Success(t *testing.T) {
 	})
 }
 
-func TestCmdInit_ConfigExists_ReturnsError(t *testing.T) {
+func TestCmdInit_ConfigExists_IsIdempotent(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	// Resolve symlinks
@@ -880,14 +880,56 @@ func TestCmdInit_ConfigExists_ReturnsError(t *testing.T) {
 		t.Fatal(err)
 	}
 	configPath := filepath.Join(structylDir, "config.json")
-	if err := os.WriteFile(configPath, []byte(`{"project":{"name":"existing"}}`), 0644); err != nil {
+	if err := os.WriteFile(configPath, []byte(`{"project":{"name":"existing"},"targets":{}}`), 0644); err != nil {
 		t.Fatal(err)
 	}
 
 	withWorkingDir(t, root, func() {
+		// Init should succeed when config exists (idempotent)
 		exitCode := cmdInit(nil)
-		if exitCode != 2 {
-			t.Errorf("cmdInit() = %d, want 2 (config exists)", exitCode)
+		if exitCode != 0 {
+			t.Errorf("cmdInit() = %d, want 0 (idempotent)", exitCode)
+		}
+
+		// Config should not be overwritten
+		content, err := os.ReadFile(configPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(string(content), "existing") {
+			t.Error("config.json was overwritten, want preserved")
+		}
+	})
+}
+
+func TestCmdInit_WithMiseFlag_CreatesMiseToml(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	root, err := filepath.EvalSymlinks(tmpDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create rs/ directory with Cargo.toml for detection
+	rsDir := filepath.Join(root, "rs")
+	if err := os.MkdirAll(rsDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(rsDir, "Cargo.toml"), []byte("[package]\nname = \"test\"\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	withWorkingDir(t, root, func() {
+		exitCode := cmdInit([]string{"--mise"})
+		if exitCode != 0 {
+			t.Errorf("cmdInit(--mise) = %d, want 0", exitCode)
+			return
+		}
+
+		// Verify .mise.toml was created
+		miseTomlPath := filepath.Join(root, ".mise.toml")
+		if _, err := os.Stat(miseTomlPath); os.IsNotExist(err) {
+			t.Error(".mise.toml was not created")
 		}
 	})
 }

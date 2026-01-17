@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/mise"
 	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/project"
 )
@@ -23,39 +24,41 @@ var SetupScriptSh string
 //go:embed setup_template.ps1
 var SetupScriptPs1 string
 
-// cmdInit initializes a new structyl project.
+// initOptions holds parsed init command options.
+type initOptions struct {
+	Mise bool // Generate/regenerate .mise.toml
+}
+
+// cmdInit initializes a new structyl project or updates an existing one.
+// This command is idempotent - it only creates files that don't exist.
 func cmdInit(args []string) int {
+	// Parse flags
+	opts := initOptions{}
+	for _, arg := range args {
+		switch arg {
+		case "--mise":
+			opts.Mise = true
+		default:
+			if strings.HasPrefix(arg, "-") {
+				fmt.Fprintf(os.Stderr, "structyl: init: unknown option %q\n", arg)
+				return 2
+			}
+		}
+	}
+
 	cwd, err := os.Getwd()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "structyl: error: %v\n", err)
 		return 1
 	}
 
-	// Check if .structyl/config.json already exists
+	w := output.New()
 	structylDir := filepath.Join(cwd, project.ConfigDirName)
 	configPath := filepath.Join(structylDir, project.ConfigFileName)
-	if _, err := os.Stat(configPath); err == nil {
-		fmt.Fprintln(os.Stderr, "structyl: error: .structyl/config.json already exists")
-		fmt.Fprintln(os.Stderr, "Use 'structyl config validate' to check existing configuration")
-		return 2
-	}
 
-	// Use directory name as project name
-	projectName := sanitizeProjectName(filepath.Base(cwd))
-
-	// Create minimal config
-	cfg := config.Config{
-		Project: config.ProjectConfig{
-			Name: projectName,
-		},
-		Targets: make(map[string]config.TargetConfig),
-	}
-
-	// Auto-detect existing language directories
-	targets := detectTargetDirectories(cwd)
-	for name, targetCfg := range targets {
-		cfg.Targets[name] = targetCfg
-	}
+	// Track what we create
+	var created []string
+	isNewProject := false
 
 	// Create .structyl directory
 	if err := os.MkdirAll(structylDir, 0755); err != nil {
@@ -63,73 +66,148 @@ func cmdInit(args []string) int {
 		return 1
 	}
 
-	// Write .structyl/config.json
-	data, err := json.MarshalIndent(cfg, "", "  ")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: error: %v\n", err)
-		return 1
-	}
-	data = append(data, '\n')
+	// Check if this is a new project or existing
+	var cfg *config.Config
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		isNewProject = true
+		// Use directory name as project name
+		projectName := sanitizeProjectName(filepath.Base(cwd))
 
-	if err := os.WriteFile(configPath, data, 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: error: %v\n", err)
-		return 3
+		// Create minimal config
+		cfg = &config.Config{
+			Project: config.ProjectConfig{
+				Name: projectName,
+			},
+			Targets: make(map[string]config.TargetConfig),
+		}
+
+		// Auto-detect existing language directories
+		targets := detectTargetDirectories(cwd)
+		for name, targetCfg := range targets {
+			cfg.Targets[name] = targetCfg
+		}
+
+		// Write .structyl/config.json
+		data, err := json.MarshalIndent(cfg, "", "  ")
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "structyl: error: %v\n", err)
+			return 1
+		}
+		data = append(data, '\n')
+
+		if err := os.WriteFile(configPath, data, 0644); err != nil {
+			fmt.Fprintf(os.Stderr, "structyl: error: %v\n", err)
+			return 3
+		}
+		created = append(created, ".structyl/config.json")
+	} else {
+		// Load existing config
+		cfg, _, err = config.LoadAndValidate(configPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "structyl: error loading config: %v\n", err)
+			return 1
+		}
 	}
 
-	// Write .structyl/version (pinned CLI version)
+	// Write .structyl/version (pinned CLI version) - only if missing
 	versionFilePath := filepath.Join(structylDir, project.VersionFileName)
-	if err := os.WriteFile(versionFilePath, []byte(Version+"\n"), 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: warning: could not create version file: %v\n", err)
+	if _, err := os.Stat(versionFilePath); os.IsNotExist(err) {
+		if err := os.WriteFile(versionFilePath, []byte(Version+"\n"), 0644); err != nil {
+			fmt.Fprintf(os.Stderr, "structyl: warning: could not create version file: %v\n", err)
+		} else {
+			created = append(created, ".structyl/version")
+		}
 	}
 
-	// Write .structyl/setup.sh (bootstrap script)
+	// Write .structyl/setup.sh - only if missing
 	setupShPath := filepath.Join(structylDir, "setup.sh")
-	if err := os.WriteFile(setupShPath, []byte(SetupScriptSh), 0755); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: warning: could not create setup.sh: %v\n", err)
+	if _, err := os.Stat(setupShPath); os.IsNotExist(err) {
+		if err := os.WriteFile(setupShPath, []byte(SetupScriptSh), 0755); err != nil {
+			fmt.Fprintf(os.Stderr, "structyl: warning: could not create setup.sh: %v\n", err)
+		} else {
+			created = append(created, ".structyl/setup.sh")
+		}
 	}
 
-	// Write .structyl/setup.ps1 (PowerShell bootstrap script)
+	// Write .structyl/setup.ps1 - only if missing
 	setupPs1Path := filepath.Join(structylDir, "setup.ps1")
-	if err := os.WriteFile(setupPs1Path, []byte(SetupScriptPs1), 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: warning: could not create setup.ps1: %v\n", err)
+	if _, err := os.Stat(setupPs1Path); os.IsNotExist(err) {
+		if err := os.WriteFile(setupPs1Path, []byte(SetupScriptPs1), 0644); err != nil {
+			fmt.Fprintf(os.Stderr, "structyl: warning: could not create setup.ps1: %v\n", err)
+		} else {
+			created = append(created, ".structyl/setup.ps1")
+		}
 	}
 
-	// Write .structyl/AGENTS.md
+	// Write .structyl/AGENTS.md - only if missing
 	agentsPath := filepath.Join(structylDir, AgentsPromptFileName)
-	if err := os.WriteFile(agentsPath, []byte(AgentsPromptContent), 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: warning: could not create AGENTS.md: %v\n", err)
+	if _, err := os.Stat(agentsPath); os.IsNotExist(err) {
+		if err := os.WriteFile(agentsPath, []byte(AgentsPromptContent), 0644); err != nil {
+			fmt.Fprintf(os.Stderr, "structyl: warning: could not create AGENTS.md: %v\n", err)
+		} else {
+			created = append(created, ".structyl/AGENTS.md")
+		}
 	}
 
-	// Create VERSION file if it doesn't exist
+	// Create VERSION file - only if missing
 	versionPath := filepath.Join(cwd, "VERSION")
 	if _, err := os.Stat(versionPath); os.IsNotExist(err) {
 		if err := os.WriteFile(versionPath, []byte("0.1.0\n"), 0644); err != nil {
 			fmt.Fprintf(os.Stderr, "structyl: warning: could not create VERSION file: %v\n", err)
+		} else {
+			created = append(created, "VERSION")
 		}
 	}
 
-	// Create tests/ directory
+	// Create tests/ directory - only if missing
 	testsDir := filepath.Join(cwd, "tests")
-	if err := os.MkdirAll(testsDir, 0755); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: warning: could not create tests directory: %v\n", err)
+	if _, err := os.Stat(testsDir); os.IsNotExist(err) {
+		if err := os.MkdirAll(testsDir, 0755); err != nil {
+			fmt.Fprintf(os.Stderr, "structyl: warning: could not create tests directory: %v\n", err)
+		} else {
+			created = append(created, "tests/")
+		}
 	}
 
 	// Update or create .gitignore
 	updateGitignore(cwd)
 
-	// Print success message with colors
-	w := output.New()
-	w.Println("")
-	w.Success("Initialized Structyl project: %s", projectName)
-
-	if len(targets) > 0 {
-		w.HelpSection("Detected targets:")
-		for name, t := range targets {
-			w.Println("  - %s (%s)", name, t.Title)
+	// Handle --mise flag: generate/regenerate .mise.toml
+	if opts.Mise {
+		miseCreated, err := mise.WriteMiseToml(cwd, cfg, true) // force=true to regenerate
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "structyl: warning: could not create .mise.toml: %v\n", err)
+		} else if miseCreated {
+			created = append(created, ".mise.toml")
 		}
 	}
 
-	printNextSteps(w)
+	// Print results
+	w.Println("")
+	if isNewProject {
+		w.Success("Initialized Structyl project: %s", cfg.Project.Name)
+		if len(cfg.Targets) > 0 {
+			w.HelpSection("Detected targets:")
+			for name, t := range cfg.Targets {
+				w.Println("  - %s (%s)", name, t.Title)
+			}
+		}
+	} else if len(created) > 0 {
+		w.Success("Updated Structyl project")
+	} else {
+		w.Info("Project already initialized (nothing to do)")
+	}
+
+	if len(created) > 0 {
+		w.HelpSection("Created:")
+		for _, f := range created {
+			w.Println("  - %s", f)
+		}
+	}
+
+	if isNewProject {
+		printNextSteps(w)
+	}
 
 	return 0
 }

@@ -152,6 +152,34 @@ func TestRegistry_ValidateDependencies_Circular(t *testing.T) {
 	}
 }
 
+func TestRegistry_ValidateDependencies_TwoNodeCycle(t *testing.T) {
+	// Test simplest cycle: A depends on B, B depends on A
+	cfg := &config.Config{
+		Project: config.ProjectConfig{Name: "test"},
+		Targets: map[string]config.TargetConfig{
+			"a": {
+				Type:      "language",
+				Title:     "A",
+				DependsOn: []string{"b"},
+			},
+			"b": {
+				Type:      "language",
+				Title:     "B",
+				DependsOn: []string{"a"},
+			},
+		},
+	}
+
+	_, err := NewRegistry(cfg, "/project")
+	if err == nil {
+		t.Fatal("NewRegistry() expected error for 2-node circular dependency")
+	}
+	// Verify error message mentions cycle or circular
+	if !strings.Contains(strings.ToLower(err.Error()), "circular") && !strings.Contains(strings.ToLower(err.Error()), "cycle") {
+		t.Errorf("error = %q, want to mention 'circular' or 'cycle'", err.Error())
+	}
+}
+
 func TestRegistry_TopologicalOrder(t *testing.T) {
 	cfg := &config.Config{
 		Project: config.ProjectConfig{Name: "test"},

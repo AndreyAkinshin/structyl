@@ -551,8 +551,10 @@ func createTestProject(t *testing.T) string {
 	}
 
 	// Create .structyl/config.json
+	// Disable mise to prevent actual mise calls during unit tests
 	config := `{
 		"project": {"name": "test-project"},
+		"mise": {"enabled": false},
 		"targets": {
 			"cs": {
 				"type": "language",
@@ -1354,8 +1356,10 @@ func createTestProjectWithDocker(t *testing.T) string {
 	}
 
 	// Create .structyl/config.json with docker config
+	// Disable mise to prevent actual mise calls during unit tests
 	config := `{
 		"project": {"name": "test-project"},
+		"mise": {"enabled": false},
 		"docker": {
 			"compose_file": "docker-compose.yml",
 			"env_var": "TEST_DOCKER"

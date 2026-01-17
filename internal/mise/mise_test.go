@@ -154,8 +154,8 @@ func TestMiseTomlExists(t *testing.T) {
 func TestGenerateMiseToml_TaskDependencies(t *testing.T) {
 	cfg := &config.Config{
 		Targets: map[string]config.TargetConfig{
-			"rs": {Toolchain: "cargo"},
-			"ts": {Toolchain: "npm"},
+			"rs": {Toolchain: "cargo", Directory: "rs"},
+			"ts": {Toolchain: "npm", Directory: "ts"},
 		},
 	}
 
@@ -164,13 +164,29 @@ func TestGenerateMiseToml_TaskDependencies(t *testing.T) {
 		t.Fatalf("GenerateMiseToml() error = %v", err)
 	}
 
-	// Check that ci tasks depend on setup:structyl
-	if !strings.Contains(content, `depends = ["setup:structyl"]`) {
-		t.Error("ci tasks should depend on setup:structyl")
+	// Check that individual command tasks exist
+	if !strings.Contains(content, `[tasks."build:rs"]`) {
+		t.Error("missing build:rs task")
+	}
+	if !strings.Contains(content, `[tasks."test:rs"]`) {
+		t.Error("missing test:rs task")
+	}
+
+	// Check that CI tasks depend on command tasks (not setup:structyl anymore)
+	if !strings.Contains(content, `[tasks."ci:rs"]`) {
+		t.Error("missing ci:rs task")
 	}
 
 	// Check that main ci task depends on individual ci tasks
 	if !strings.Contains(content, `depends = ["ci:rs", "ci:ts"]`) {
 		t.Error("main ci task should depend on ci:rs and ci:ts")
+	}
+
+	// Check aggregate tasks
+	if !strings.Contains(content, `[tasks."build"]`) {
+		t.Error("missing aggregate build task")
+	}
+	if !strings.Contains(content, `[tasks."test"]`) {
+		t.Error("missing aggregate test task")
 	}
 }

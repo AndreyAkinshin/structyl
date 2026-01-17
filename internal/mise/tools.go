@@ -158,6 +158,10 @@ func GetMiseTools(toolchain string) *ToolMapping {
 
 // GetAllToolsFromConfig aggregates all unique mise tools from a project config.
 // Returns a map of tool names to versions.
+// Priority for version resolution:
+//  1. Target-level toolchain_version
+//  2. Custom toolchain definition version
+//  3. Default from built-in MiseToolMapping
 func GetAllToolsFromConfig(cfg *config.Config) map[string]string {
 	tools := make(map[string]string)
 
@@ -167,15 +171,33 @@ func GetAllToolsFromConfig(cfg *config.Config) map[string]string {
 			continue
 		}
 
-		// Add primary tool if not already present or if version is more specific
+		// Determine version with priority: target > toolchain config > default
+		version := mapping.Version
+		if tcCfg, ok := cfg.Toolchains[target.Toolchain]; ok && tcCfg.Version != "" {
+			version = tcCfg.Version
+		}
+		if target.ToolchainVersion != "" {
+			version = target.ToolchainVersion
+		}
+
+		// Add primary tool if not already present
 		if mapping.PrimaryTool != "" {
 			if _, exists := tools[mapping.PrimaryTool]; !exists {
-				tools[mapping.PrimaryTool] = mapping.Version
+				tools[mapping.PrimaryTool] = version
 			}
 		}
 
-		// Add extra tools
-		for tool, version := range mapping.ExtraTools {
+		// Add extra tools from mapping
+		for tool, ver := range mapping.ExtraTools {
+			if _, exists := tools[tool]; !exists {
+				tools[tool] = ver
+			}
+		}
+	}
+
+	// Add extra tools from mise config
+	if cfg.Mise != nil {
+		for tool, version := range cfg.Mise.ExtraTools {
 			if _, exists := tools[tool]; !exists {
 				tools[tool] = version
 			}

@@ -10,6 +10,7 @@ import (
 )
 
 func TestGenerateMiseToml_Basic(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Targets: map[string]config.TargetConfig{
 			"rs": {Toolchain: "cargo", Title: "Rust"},
@@ -52,6 +53,7 @@ func TestGenerateMiseToml_Basic(t *testing.T) {
 }
 
 func TestGenerateMiseToml_Empty(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Targets: map[string]config.TargetConfig{},
 	}
@@ -68,6 +70,7 @@ func TestGenerateMiseToml_Empty(t *testing.T) {
 }
 
 func TestGenerateMiseToml_UnsupportedToolchain(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Targets: map[string]config.TargetConfig{
 			"custom": {Toolchain: "make"}, // make has no mise mapping
@@ -86,6 +89,7 @@ func TestGenerateMiseToml_UnsupportedToolchain(t *testing.T) {
 }
 
 func TestWriteMiseToml(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 
 	cfg := &config.Config{
@@ -132,6 +136,7 @@ func TestWriteMiseToml(t *testing.T) {
 }
 
 func TestMiseTomlExists(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 
 	// Should not exist initially
@@ -152,6 +157,7 @@ func TestMiseTomlExists(t *testing.T) {
 }
 
 func TestGenerateMiseToml_TaskDependencies(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Targets: map[string]config.TargetConfig{
 			"rs": {Toolchain: "cargo", Directory: "rs"},

@@ -1,5 +1,6 @@
 [tools]
 go = "1.22"
+golangci-lint = "latest"
 
 [env]
 CGO_ENABLED = "0"

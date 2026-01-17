@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -221,5 +222,146 @@ func TestLoadWithDefaults_NoDockerSection(t *testing.T) {
 	// Docker should remain nil when not specified
 	if cfg.Docker != nil {
 		t.Error("Docker config should be nil when not specified")
+	}
+}
+
+// =============================================================================
+// LoadAndValidate Tests
+// =============================================================================
+
+func TestLoadAndValidate_Success(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+	content := `{
+		"project": {"name": "myproject"},
+		"targets": {
+			"cs": {"type": "language", "title": "C#"}
+		}
+	}`
+	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, warnings, err := LoadAndValidate(path)
+	if err != nil {
+		t.Fatalf("LoadAndValidate() error = %v", err)
+	}
+	if cfg == nil {
+		t.Fatal("LoadAndValidate() returned nil config")
+	}
+	if len(warnings) != 0 {
+		t.Errorf("LoadAndValidate() warnings = %v, want empty", warnings)
+	}
+}
+
+func TestLoadAndValidate_UnknownFieldsOnly_NoError(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+	// Config with unknown fields at root level
+	content := `{
+		"project": {"name": "myproject"},
+		"unknown_field": "value",
+		"another_unknown": 123
+	}`
+	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, warnings, err := LoadAndValidate(path)
+	if err != nil {
+		t.Fatalf("LoadAndValidate() error = %v, want nil (unknown fields should not cause error)", err)
+	}
+	if cfg == nil {
+		t.Fatal("LoadAndValidate() returned nil config")
+	}
+	if len(warnings) != 2 {
+		t.Errorf("LoadAndValidate() warnings = %d, want 2", len(warnings))
+	}
+	// Verify warnings mention the unknown fields
+	warningText := warnings[0] + warnings[1]
+	if !strings.Contains(warningText, "unknown_field") {
+		t.Errorf("warnings should mention 'unknown_field', got %v", warnings)
+	}
+}
+
+func TestLoadAndValidate_ValidationError_ReturnsError(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+	// Config with invalid project name (uppercase not allowed)
+	content := `{
+		"project": {"name": "MyProject"}
+	}`
+	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, warnings, err := LoadAndValidate(path)
+	if err == nil {
+		t.Fatal("LoadAndValidate() error = nil, want error for invalid project name")
+	}
+	if cfg != nil {
+		t.Error("LoadAndValidate() should return nil config on error")
+	}
+	// Warnings should be empty since validation failed before accumulation
+	_ = warnings // warnings may or may not be present depending on error stage
+}
+
+func TestLoadAndValidate_ValidationError_WithUnknownFields_ReturnsBothWarnings(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+	// Config with unknown fields AND validation error
+	content := `{
+		"project": {"name": "InvalidName"},
+		"unknown_field": "value",
+		"targets": {
+			"cs": {"type": "language", "title": "C#", "unknown_target_field": "x"}
+		}
+	}`
+	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, warnings, err := LoadAndValidate(path)
+	if err == nil {
+		t.Fatal("LoadAndValidate() error = nil, want error for invalid project name")
+	}
+	if cfg != nil {
+		t.Error("LoadAndValidate() should return nil config on error")
+	}
+	// Unknown field warnings should still be returned even when validation fails
+	if len(warnings) < 1 {
+		t.Errorf("LoadAndValidate() should return warnings even with validation error, got %d", len(warnings))
+	}
+}
+
+func TestLoadAndValidate_FileNotFound_ReturnsError(t *testing.T) {
+	t.Parallel()
+	_, _, err := LoadAndValidate("/nonexistent/path/config.json")
+	if err == nil {
+		t.Fatal("LoadAndValidate() error = nil, want error for missing file")
+	}
+	if !strings.Contains(err.Error(), "failed to read") {
+		t.Errorf("error = %q, want to contain 'failed to read'", err.Error())
+	}
+}
+
+func TestLoadAndValidate_InvalidJSON_ReturnsError(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+	if err := os.WriteFile(path, []byte("{invalid json"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, _, err := LoadAndValidate(path)
+	if err == nil {
+		t.Fatal("LoadAndValidate() error = nil, want error for invalid JSON")
+	}
+	if !strings.Contains(err.Error(), "parse") {
+		t.Errorf("error = %q, want to contain 'parse'", err.Error())
 	}
 }

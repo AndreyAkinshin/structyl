@@ -17,10 +17,16 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/version"
 )
 
-// Default API URLs (variables to allow test overrides)
+// Default API URLs and functions (variables to allow test overrides)
 var (
 	githubAPIURL        = "https://api.github.com/repos/AndreyAkinshin/structyl/releases/latest"
 	githubNightlyAPIURL = "https://api.github.com/repos/AndreyAkinshin/structyl/releases/tags/nightly"
+	// installVersionFunc is the function used to install a version.
+	// Can be overridden in tests to avoid actual network calls.
+	installVersionFunc = installVersionReal
+	// isVersionInstalledFunc checks if a version is installed.
+	// Can be overridden in tests.
+	isVersionInstalledFunc = isVersionInstalledReal
 )
 
 const (
@@ -180,9 +186,23 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 	}
 
 	// Check if version is installed
-	alreadyInstalled := isVersionInstalled(targetVersion)
+	alreadyInstalled := isVersionInstalledFunc(targetVersion)
 
-	// Write new pinned version
+	// Install the version BEFORE updating version marker
+	// This ensures the version file only points to actually installed versions
+	if !alreadyInstalled {
+		w.Println("Installing version %s...", targetVersion)
+		if err := installVersionFunc(targetVersion); err != nil {
+			fmt.Fprintf(os.Stderr, "structyl: error: failed to install version: %v\n", err)
+			w.Println("")
+			w.Println("You can try installing manually with: .structyl/setup.sh")
+			return 1
+		}
+		w.Println("Successfully installed version %s", targetVersion)
+		w.Println("")
+	}
+
+	// Write new pinned version (only after successful installation)
 	if err := writePinnedVersion(root, targetVersion); err != nil {
 		fmt.Fprintf(os.Stderr, "structyl: error: %v\n", err)
 		return 1
@@ -198,27 +218,16 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 		w.Println("Upgraded from %s to %s", currentVersion, targetVersion)
 	}
 
-	// Install the version if not already installed
 	if alreadyInstalled {
 		w.Println("")
 		w.Println("Version %s is already installed.", targetVersion)
-	} else {
-		w.Println("")
-		w.Println("Installing version %s...", targetVersion)
-		if err := installVersion(targetVersion); err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: error: failed to install version: %v\n", err)
-			w.Println("")
-			w.Println("You can try installing manually with: .structyl/setup.sh")
-			return 1
-		}
-		w.Println("Successfully installed version %s", targetVersion)
 	}
 
 	return 0
 }
 
-// installVersion downloads and installs a specific version of structyl.
-func installVersion(ver string) error {
+// installVersionReal downloads and installs a specific version of structyl.
+func installVersionReal(ver string) error {
 	// Use the install script URL
 	installScriptURL := "https://structyl.akinshin.dev/install.sh"
 
@@ -382,8 +391,8 @@ func isNightlyVersion(ver string) bool {
 	return false
 }
 
-// isVersionInstalled checks if a version is installed in ~/.structyl/versions/<ver>/.
-func isVersionInstalled(ver string) bool {
+// isVersionInstalledReal checks if a version is installed in ~/.structyl/versions/<ver>/.
+func isVersionInstalledReal(ver string) bool {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return false

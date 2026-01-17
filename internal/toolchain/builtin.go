@@ -25,6 +25,8 @@ var builtinToolchains = map[string]*Toolchain{
 			"doc":           "cargo doc --no-deps",
 			"demo":          "cargo run --example demo",
 			"publish":       "cargo publish --dry-run",
+			"test:coverage": "cargo llvm-cov",
+			"coverage":      "cargo llvm-cov",
 		},
 	},
 	"dotnet": {
@@ -51,6 +53,8 @@ var builtinToolchains = map[string]*Toolchain{
 			"demo":          "dotnet run --project Demo",
 			"publish":       "dotnet publish",
 			"watch":         "dotnet watch run",
+			"test:coverage": "dotnet test --collect:\"XPlat Code Coverage\"",
+			"coverage":      "dotnet test --collect:\"XPlat Code Coverage\"",
 		},
 	},
 	"go": {
@@ -258,6 +262,8 @@ var builtinToolchains = map[string]*Toolchain{
 			"demo":         "gradle run",
 			"jar":          "gradle jar",
 			"deps":         "gradle dependencies",
+			"test:coverage": "gradle test jacocoTestReport",
+			"coverage":      "gradle test jacocoTestReport",
 		},
 	},
 	"maven": {
@@ -277,6 +283,8 @@ var builtinToolchains = map[string]*Toolchain{
 			"demo":         "mvn exec:java",
 			"jar":          "mvn package -DskipTests",
 			"deps":         "mvn dependency:resolve",
+			"test:coverage": "mvn verify -Djacoco.skip=false",
+			"coverage":      "mvn verify -Djacoco.skip=false",
 		},
 	},
 	"make": {
@@ -331,6 +339,8 @@ var builtinToolchains = map[string]*Toolchain{
 			"pack":          nil,
 			"doc":           nil,
 			"demo":          "swift run Demo",
+			"test:coverage": "swift test --enable-code-coverage",
+			"coverage":      "swift test --enable-code-coverage",
 		},
 	},
 	"r": {
@@ -368,6 +378,7 @@ var builtinToolchains = map[string]*Toolchain{
 			"bench":         "deno bench",
 			"doc":           "deno doc",
 			"demo":          "deno run demo.ts",
+			"coverage":      "deno test --coverage",
 		},
 	},
 	"bundler": {
@@ -387,6 +398,7 @@ var builtinToolchains = map[string]*Toolchain{
 			"doc":           "bundle exec yard doc",
 			"demo":          "bundle exec ruby demo.rb",
 			"publish":       "gem push *.gem",
+			"coverage":      "bundle exec rake test COVERAGE=true",
 		},
 	},
 	"composer": {
@@ -404,6 +416,7 @@ var builtinToolchains = map[string]*Toolchain{
 			"bench":         nil,
 			"doc":           nil,
 			"demo":          "php demo.php",
+			"coverage":      "composer test -- --coverage",
 		},
 	},
 	"mix": {
@@ -424,6 +437,7 @@ var builtinToolchains = map[string]*Toolchain{
 			"demo":          "mix run demo.exs",
 			"deps":          "mix deps.get",
 			"publish":       "mix hex.publish",
+			"coverage":      "mix test --cover",
 		},
 	},
 	"sbt": {
@@ -442,6 +456,8 @@ var builtinToolchains = map[string]*Toolchain{
 			"doc":          "sbt doc",
 			"demo":         "sbt run",
 			"publish":      "sbt publish",
+			"test:coverage": "sbt coverage test coverageReport",
+			"coverage":      "sbt coverage test coverageReport",
 		},
 	},
 	"cabal": {
@@ -459,6 +475,8 @@ var builtinToolchains = map[string]*Toolchain{
 			"doc":          "cabal haddock",
 			"demo":         "cabal run",
 			"publish":      "cabal upload",
+			"test:coverage": "cabal test --enable-coverage",
+			"coverage":      "cabal test --enable-coverage",
 		},
 	},
 	"stack": {
@@ -476,6 +494,8 @@ var builtinToolchains = map[string]*Toolchain{
 			"doc":          "stack haddock",
 			"demo":         "stack run",
 			"publish":      "stack upload",
+			"test:coverage": "stack test --coverage",
+			"coverage":      "stack test --coverage",
 		},
 	},
 	"dune": {
@@ -492,6 +512,8 @@ var builtinToolchains = map[string]*Toolchain{
 			"bench":        nil,
 			"doc":          "dune build @doc",
 			"demo":         "dune exec demo",
+			"test:coverage": "dune runtest --instrument-with bisect_ppx",
+			"coverage":      "dune runtest --instrument-with bisect_ppx",
 		},
 	},
 	"lein": {
@@ -510,6 +532,8 @@ var builtinToolchains = map[string]*Toolchain{
 			"doc":          "lein codox",
 			"demo":         "lein run",
 			"publish":      "lein deploy clojars",
+			"test:coverage": "lein cloverage",
+			"coverage":      "lein cloverage",
 		},
 	},
 	"zig": {
@@ -545,6 +569,8 @@ var builtinToolchains = map[string]*Toolchain{
 			"doc":          "rebar3 edoc",
 			"demo":         "rebar3 shell",
 			"publish":      "rebar3 hex publish",
+			"test:coverage": "rebar3 cover",
+			"coverage":      "rebar3 cover",
 		},
 	},
 }

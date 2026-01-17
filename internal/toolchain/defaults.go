@@ -33,6 +33,8 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"doc":           "cargo doc --no-deps",
 					"demo":          "cargo run --example demo",
 					"publish":       "cargo publish --dry-run",
+					"test:coverage": "cargo llvm-cov",
+					"coverage":      "cargo llvm-cov",
 				},
 			},
 			"dotnet": {
@@ -62,6 +64,8 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"demo":          "dotnet run --project Demo",
 					"publish":       "dotnet publish",
 					"watch":         "dotnet watch run",
+					"test:coverage": "dotnet test --collect:\"XPlat Code Coverage\"",
+					"coverage":      "dotnet test --collect:\"XPlat Code Coverage\"",
 				},
 			},
 			"go": {
@@ -306,6 +310,8 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"demo":         "gradle run",
 					"jar":          "gradle jar",
 					"deps":         "gradle dependencies",
+					"test:coverage": "gradle test jacocoTestReport",
+					"coverage":      "gradle test jacocoTestReport",
 				},
 			},
 			"maven": {
@@ -328,6 +334,8 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"demo":         "mvn exec:java",
 					"jar":          "mvn package -DskipTests",
 					"deps":         "mvn dependency:resolve",
+					"test:coverage": "mvn verify -Djacoco.skip=false",
+					"coverage":      "mvn verify -Djacoco.skip=false",
 				},
 			},
 			"make": {
@@ -388,6 +396,8 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"pack":          nil,
 					"doc":           nil,
 					"demo":          "swift run Demo",
+					"test:coverage": "swift test --enable-code-coverage",
+					"coverage":      "swift test --enable-code-coverage",
 				},
 			},
 			"r": {
@@ -431,6 +441,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"bench":         "deno bench",
 					"doc":           "deno doc",
 					"demo":          "deno run demo.ts",
+					"coverage":      "deno test --coverage",
 				},
 			},
 			"bundler": {
@@ -453,6 +464,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"doc":           "bundle exec yard doc",
 					"demo":          "bundle exec ruby demo.rb",
 					"publish":       "gem push *.gem",
+					"coverage":      "bundle exec rake test COVERAGE=true",
 				},
 			},
 			"composer": {
@@ -473,6 +485,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"bench":         nil,
 					"doc":           nil,
 					"demo":          "php demo.php",
+					"coverage":      "composer test -- --coverage",
 				},
 			},
 			"mix": {
@@ -496,6 +509,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"demo":          "mix run demo.exs",
 					"deps":          "mix deps.get",
 					"publish":       "mix hex.publish",
+					"coverage":      "mix test --cover",
 				},
 			},
 			"sbt": {
@@ -520,6 +534,8 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"doc":          "sbt doc",
 					"demo":         "sbt run",
 					"publish":      "sbt publish",
+					"test:coverage": "sbt coverage test coverageReport",
+					"coverage":      "sbt coverage test coverageReport",
 				},
 			},
 			"cabal": {
@@ -540,6 +556,8 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"doc":          "cabal haddock",
 					"demo":         "cabal run",
 					"publish":      "cabal upload",
+					"test:coverage": "cabal test --enable-coverage",
+					"coverage":      "cabal test --enable-coverage",
 				},
 			},
 			"stack": {
@@ -560,6 +578,8 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"doc":          "stack haddock",
 					"demo":         "stack run",
 					"publish":      "stack upload",
+					"test:coverage": "stack test --coverage",
+					"coverage":      "stack test --coverage",
 				},
 			},
 			"dune": {
@@ -579,6 +599,8 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"bench":        nil,
 					"doc":          "dune build @doc",
 					"demo":         "dune exec demo",
+					"test:coverage": "dune runtest --instrument-with bisect_ppx",
+					"coverage":      "dune runtest --instrument-with bisect_ppx",
 				},
 			},
 			"lein": {
@@ -603,6 +625,8 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"doc":          "lein codox",
 					"demo":         "lein run",
 					"publish":      "lein deploy clojars",
+					"test:coverage": "lein cloverage",
+					"coverage":      "lein cloverage",
 				},
 			},
 			"zig": {
@@ -644,6 +668,8 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"doc":          "rebar3 edoc",
 					"demo":         "rebar3 shell",
 					"publish":      "rebar3 hex publish",
+					"test:coverage": "rebar3 cover",
+					"coverage":      "rebar3 cover",
 				},
 			},
 		},

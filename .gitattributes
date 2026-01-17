@@ -1,0 +1,7 @@
+# Ensure consistent line endings across platforms
+* text=auto
+
+# Go files must use LF line endings for gofmt compatibility
+*.go text eol=lf
+go.mod text eol=lf
+go.sum text eol=lf

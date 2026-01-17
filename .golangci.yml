@@ -55,5 +55,5 @@ formatters:
 
 output:
   formats:
-    text:
+    colored-line-number:
       print-linter-name: true

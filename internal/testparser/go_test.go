@@ -94,3 +94,89 @@ func TestGoParserName(t *testing.T) {
 		t.Errorf("Name: got %s, want go", parser.Name())
 	}
 }
+
+func TestGoParserFailedTestDetails(t *testing.T) {
+	parser := &GoParser{}
+
+	tests := []struct {
+		name           string
+		output         string
+		expectedFailed int
+		expectedTests  []FailedTest
+	}{
+		{
+			name: "single failure with reason",
+			output: `=== RUN   TestFoo
+--- PASS: TestFoo (0.00s)
+=== RUN   TestBar
+    bar_test.go:15: expected 42, got 0
+--- FAIL: TestBar (0.01s)
+FAIL`,
+			expectedFailed: 1,
+			expectedTests: []FailedTest{
+				{Name: "TestBar", Reason: "expected 42, got 0"},
+			},
+		},
+		{
+			name: "multiple failures",
+			output: `=== RUN   TestFoo
+    foo_test.go:10: assertion failed: wrong value
+--- FAIL: TestFoo (0.00s)
+=== RUN   TestBar
+    bar_test.go:20: unexpected error: connection refused
+--- FAIL: TestBar (0.01s)
+FAIL`,
+			expectedFailed: 2,
+			expectedTests: []FailedTest{
+				{Name: "TestFoo", Reason: "assertion failed: wrong value"},
+				{Name: "TestBar", Reason: "unexpected error: connection refused"},
+			},
+		},
+		{
+			name: "failure without explicit reason line",
+			output: `=== RUN   TestFoo
+--- FAIL: TestFoo (0.00s)
+FAIL`,
+			expectedFailed: 1,
+			expectedTests: []FailedTest{
+				{Name: "TestFoo", Reason: ""},
+			},
+		},
+		{
+			name: "subtest failure",
+			output: `=== RUN   TestFoo
+=== RUN   TestFoo/subcase
+    foo_test.go:25: subtest failed
+--- FAIL: TestFoo/subcase (0.00s)
+--- FAIL: TestFoo (0.01s)
+FAIL`,
+			expectedFailed: 2,
+			expectedTests: []FailedTest{
+				{Name: "TestFoo/subcase", Reason: "subtest failed"},
+				{Name: "TestFoo", Reason: ""},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := parser.Parse(tt.output)
+			if result.Failed != tt.expectedFailed {
+				t.Errorf("Failed count: got %d, want %d", result.Failed, tt.expectedFailed)
+			}
+			if len(result.FailedTests) != len(tt.expectedTests) {
+				t.Errorf("FailedTests length: got %d, want %d", len(result.FailedTests), len(tt.expectedTests))
+				return
+			}
+			for i, expected := range tt.expectedTests {
+				got := result.FailedTests[i]
+				if got.Name != expected.Name {
+					t.Errorf("FailedTests[%d].Name: got %q, want %q", i, got.Name, expected.Name)
+				}
+				if got.Reason != expected.Reason {
+					t.Errorf("FailedTests[%d].Reason: got %q, want %q", i, got.Reason, expected.Reason)
+				}
+			}
+		})
+	}
+}

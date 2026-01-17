@@ -691,6 +691,34 @@ func (w *Writer) printTestCountsSummary(counts *testparser.TestCounts) {
 		w.Println("  Tests: %s", strings.Join(parts, ", "))
 		w.Println("")
 	}
+
+	// Print failed test details if any
+	w.printFailedTestDetails(counts.FailedTests)
+}
+
+// printFailedTestDetails prints detailed information about failed tests.
+func (w *Writer) printFailedTestDetails(failedTests []testparser.FailedTest) {
+	if len(failedTests) == 0 {
+		return
+	}
+
+	w.SummarySectionLabel("Failed Tests:")
+	for _, ft := range failedTests {
+		if w.color {
+			if ft.Reason != "" {
+				w.Println("    %s✗%s %s: %s%s%s", red, reset, ft.Name, dim, ft.Reason, reset)
+			} else {
+				w.Println("    %s✗%s %s", red, reset, ft.Name)
+			}
+		} else {
+			if ft.Reason != "" {
+				w.Println("    x %s: %s", ft.Name, ft.Reason)
+			} else {
+				w.Println("    x %s", ft.Name)
+			}
+		}
+	}
+	w.Println("")
 }
 
 // FormatDuration formats a duration in a human-readable way.

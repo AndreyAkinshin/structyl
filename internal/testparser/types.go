@@ -1,13 +1,20 @@
 // Package testparser provides test output parsing for various test frameworks.
 package testparser
 
+// FailedTest holds information about a single failed test.
+type FailedTest struct {
+	Name   string // Test name (e.g., "TestFoo/subtest")
+	Reason string // Failure reason/error message
+}
+
 // TestCounts holds parsed test result counts.
 type TestCounts struct {
-	Passed  int
-	Failed  int
-	Skipped int
-	Total   int
-	Parsed  bool // true if counts were successfully extracted
+	Passed      int
+	Failed      int
+	Skipped     int
+	Total       int
+	Parsed      bool         // true if counts were successfully extracted
+	FailedTests []FailedTest // details of failed tests
 }
 
 // Add adds another TestCounts to this one, aggregating the counts.
@@ -19,6 +26,7 @@ func (tc *TestCounts) Add(other *TestCounts) {
 	tc.Failed += other.Failed
 	tc.Skipped += other.Skipped
 	tc.Total += other.Total
+	tc.FailedTests = append(tc.FailedTests, other.FailedTests...)
 	if other.Parsed {
 		tc.Parsed = true
 	}

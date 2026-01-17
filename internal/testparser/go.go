@@ -24,12 +24,19 @@ func (p *GoParser) Parse(output string) TestCounts {
 
 	// Match individual test results
 	passRegex := regexp.MustCompile(`(?m)^---\s+PASS:\s+`)
-	failRegex := regexp.MustCompile(`(?m)^---\s+FAIL:\s+`)
+	failRegex := regexp.MustCompile(`(?m)^---\s+FAIL:\s+(\S+)`)
 	skipRegex := regexp.MustCompile(`(?m)^---\s+SKIP:\s+`)
 
 	counts.Passed = len(passRegex.FindAllString(output, -1))
-	counts.Failed = len(failRegex.FindAllString(output, -1))
 	counts.Skipped = len(skipRegex.FindAllString(output, -1))
+
+	// Extract failed test names and their reasons
+	failMatches := failRegex.FindAllStringSubmatch(output, -1)
+	counts.Failed = len(failMatches)
+
+	if counts.Failed > 0 {
+		counts.FailedTests = p.extractFailedTests(output, failMatches)
+	}
 
 	// Also check for the summary line at the end for verification
 	// ok  	package	0.123s
@@ -52,4 +59,93 @@ func (p *GoParser) Parse(output string) TestCounts {
 	}
 
 	return counts
+}
+
+// extractFailedTests extracts detailed failure information for each failed test.
+func (p *GoParser) extractFailedTests(output string, failMatches [][]string) []FailedTest {
+	var failedTests []FailedTest
+	lines := strings.Split(output, "\n")
+
+	// Build a map of test name to failure reason
+	// Go test output format:
+	//   === RUN   TestFoo
+	//       file_test.go:15: expected X, got Y
+	//   --- FAIL: TestFoo (0.00s)
+	for _, match := range failMatches {
+		if len(match) < 2 {
+			continue
+		}
+		testName := match[1]
+		reason := p.findFailureReason(lines, testName)
+		failedTests = append(failedTests, FailedTest{
+			Name:   testName,
+			Reason: reason,
+		})
+	}
+
+	return failedTests
+}
+
+// findFailureReason searches for the failure reason for a given test.
+func (p *GoParser) findFailureReason(lines []string, testName string) string {
+	// Find the FAIL line for this test
+	failLineIdx := -1
+	failPattern := regexp.MustCompile(`^---\s+FAIL:\s+` + regexp.QuoteMeta(testName) + `\s+`)
+
+	for i, line := range lines {
+		if failPattern.MatchString(line) {
+			failLineIdx = i
+			break
+		}
+	}
+
+	if failLineIdx == -1 {
+		return ""
+	}
+
+	// Look backwards for error messages (lines with file:line: pattern)
+	// These are typically indented with spaces/tabs
+	errorPattern := regexp.MustCompile(`^\s+\S+\.go:\d+:`)
+	var reasons []string
+
+	for i := failLineIdx - 1; i >= 0; i-- {
+		line := lines[i]
+		trimmed := strings.TrimSpace(line)
+
+		// Stop at RUN line or another test result
+		if strings.HasPrefix(line, "=== RUN") ||
+			strings.HasPrefix(line, "--- PASS:") ||
+			strings.HasPrefix(line, "--- FAIL:") ||
+			strings.HasPrefix(line, "--- SKIP:") {
+			break
+		}
+
+		// Capture error lines (file:line: format)
+		if errorPattern.MatchString(line) && trimmed != "" {
+			reasons = append([]string{trimmed}, reasons...)
+		}
+	}
+
+	if len(reasons) == 0 {
+		return ""
+	}
+
+	// Return the first (most relevant) error, truncated if too long
+	reason := reasons[0]
+	// Extract just the message part after file:line:
+	if idx := strings.Index(reason, ".go:"); idx != -1 {
+		// Find the colon after line number
+		afterFile := reason[idx+4:]
+		if colonIdx := strings.Index(afterFile, ": "); colonIdx != -1 {
+			reason = strings.TrimSpace(afterFile[colonIdx+2:])
+		}
+	}
+
+	// Truncate if too long
+	const maxLen = 80
+	if len(reason) > maxLen {
+		reason = reason[:maxLen-3] + "..."
+	}
+
+	return reason
 }

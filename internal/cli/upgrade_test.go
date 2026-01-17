@@ -1182,6 +1182,93 @@ func TestCmdUpgrade_ProjectFilesRegeneratedAfterInstall(t *testing.T) {
 	})
 }
 
+func TestCmdUpgrade_NightlyToNightly_InstallerReceivesResolvedVersion(t *testing.T) {
+	// Mock the nightly API to return a SNAPSHOT format version (like real nightly builds)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "nightly", "body": "**Version:** ` + "`" + `nightly-SNAPSHOT-95ab345` + "`" + `"}`))
+	}))
+	defer server.Close()
+
+	originalNightlyURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalNightlyURL }()
+
+	// Capture the version passed to the installer
+	var installedVersion string
+	originalInstaller := installVersionFunc
+	installVersionFunc = func(ver string) error {
+		installedVersion = ver
+		return nil
+	}
+	defer func() { installVersionFunc = originalInstaller }()
+
+	// Mock isVersionInstalled to return false so installation is attempted
+	originalIsInstalled := isVersionInstalledFunc
+	isVersionInstalledFunc = func(ver string) bool { return false }
+	defer func() { isVersionInstalledFunc = originalIsInstalled }()
+
+	// Create a project with an old nightly version
+	root := createTestProjectWithVersion(t, "nightly-SNAPSHOT-old1234")
+
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"nightly"})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([nightly]) = %d, want 0", exitCode)
+		}
+
+		// Verify installer was called with the resolved version, not "nightly"
+		// This is critical: install.sh must receive the full version string
+		// so it can properly detect it as a nightly build
+		if installedVersion != "nightly-SNAPSHOT-95ab345" {
+			t.Errorf("installer called with version %q, want %q", installedVersion, "nightly-SNAPSHOT-95ab345")
+		}
+	})
+}
+
+func TestCmdUpgrade_NightlyWithPlusFormat_InstallerReceivesResolvedVersion(t *testing.T) {
+	// Mock the nightly API to return X.Y.Z-nightly+SHA format
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "nightly", "body": "**Version:** ` + "`" + `0.2.0-nightly+def5678` + "`" + `"}`))
+	}))
+	defer server.Close()
+
+	originalNightlyURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalNightlyURL }()
+
+	// Capture the version passed to the installer
+	var installedVersion string
+	originalInstaller := installVersionFunc
+	installVersionFunc = func(ver string) error {
+		installedVersion = ver
+		return nil
+	}
+	defer func() { installVersionFunc = originalInstaller }()
+
+	// Mock isVersionInstalled to return false so installation is attempted
+	originalIsInstalled := isVersionInstalledFunc
+	isVersionInstalledFunc = func(ver string) bool { return false }
+	defer func() { isVersionInstalledFunc = originalIsInstalled }()
+
+	root := createTestProjectWithVersion(t, "1.0.0")
+
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"nightly"})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([nightly]) = %d, want 0", exitCode)
+		}
+
+		// Verify installer was called with the resolved version
+		if installedVersion != "0.2.0-nightly+def5678" {
+			t.Errorf("installer called with version %q, want %q", installedVersion, "0.2.0-nightly+def5678")
+		}
+	})
+}
+
 func TestCmdUpgrade_InstallationFailure_ProjectFilesNotRegenerated(t *testing.T) {
 	// Mock the installer to fail
 	originalInstaller := installVersionFunc

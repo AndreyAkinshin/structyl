@@ -126,6 +126,12 @@ func TestParseGlobalFlags(t *testing.T) {
 			args:          []string{},
 			wantRemaining: nil,
 		},
+		{
+			name:           "empty type value is valid",
+			args:           []string{"--type=", "build"},
+			wantTargetType: "",
+			wantRemaining:  []string{"build"},
+		},
 	}
 
 	for _, tt := range tests {
@@ -173,21 +179,6 @@ func TestParseGlobalFlags(t *testing.T) {
 				}
 			}
 		})
-	}
-}
-
-func TestParseGlobalFlags_EmptyTypeIsValid(t *testing.T) {
-	// Empty --type= is valid (treated as no type filter)
-	opts, remaining, err := parseGlobalFlags([]string{"--type=", "build"})
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-		return
-	}
-	if opts.TargetType != "" {
-		t.Errorf("TargetType = %q, want empty", opts.TargetType)
-	}
-	if len(remaining) != 1 || remaining[0] != "build" {
-		t.Errorf("remaining = %v, want [build]", remaining)
 	}
 }
 

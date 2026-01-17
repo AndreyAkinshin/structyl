@@ -66,31 +66,6 @@ func TestBuildRunArgs_SkipDepsHasNoEffect(t *testing.T) {
 	}
 }
 
-func TestBuildRunArgs_TaskArgsAfterTaskName(t *testing.T) {
-	// Verify task args come after task name
-	args := buildRunArgs("build:rs", []string{"--release", "--target", "arm64"}, true)
-
-	// Expected: ["run", "build:rs", "--release", "--target", "arm64"]
-	taskIdx := -1
-	for i, arg := range args {
-		if arg == "build:rs" {
-			taskIdx = i
-			break
-		}
-	}
-
-	if taskIdx == -1 {
-		t.Fatal("task name not found")
-	}
-
-	// All args after taskIdx should be the task args
-	taskArgs := args[taskIdx+1:]
-	expected := []string{"--release", "--target", "arm64"}
-	if !reflect.DeepEqual(taskArgs, expected) {
-		t.Errorf("task args = %v, want %v", taskArgs, expected)
-	}
-}
-
 // Tests for Executor basic methods
 
 func TestNewExecutor(t *testing.T) {

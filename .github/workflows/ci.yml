@@ -11,8 +11,8 @@ env:
   MISE_EXPERIMENTAL: 1
 
 jobs:
-  test:
-    name: Test
+  ci:
+    name: CI
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -24,47 +24,8 @@ jobs:
       - name: Set up mise
         uses: jdx/mise-action@v2
 
-      - name: Download dependencies
-        run: mise run deps
-
-      - name: Run unit tests
-        run: mise run test:unit
-
-      - name: Run integration tests
-        run: mise run test:integration
-
-      - name: Run package tests
-        run: mise run test:pkg
-
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up mise
-        uses: jdx/mise-action@v2
-
-      - name: Run golangci-lint
-        run: mise run lint
-
-  build:
-    name: Build
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    needs: [test, lint]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up mise
-        uses: jdx/mise-action@v2
-
-      - name: Build
-        run: mise run build
+      - name: Run CI
+        run: mise run ci
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

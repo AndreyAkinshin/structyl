@@ -30,3 +30,7 @@ run = "golangci-lint run"
 [tasks.build]
 description = "Build the structyl binary"
 run = "go build -v ./cmd/structyl"
+
+[tasks.ci]
+description = "Run full CI pipeline (deps, lint, test, build)"
+depends = ["deps", "lint", "test", "build"]

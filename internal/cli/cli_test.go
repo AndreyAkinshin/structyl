@@ -544,6 +544,24 @@ func createTestProject(t *testing.T) string {
 		t.Fatal(err)
 	}
 
+	// Create minimal .csproj file for C# target (required on Windows where dotnet is installed)
+	csproj := `<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+</Project>`
+	csprojPath := filepath.Join(csDir, "test.csproj")
+	if err := os.WriteFile(csprojPath, []byte(csproj), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create minimal C# source file
+	csFile := "namespace Test;\n\npublic class Class1 { }\n"
+	csFilePath := filepath.Join(csDir, "Class1.cs")
+	if err := os.WriteFile(csFilePath, []byte(csFile), 0644); err != nil {
+		t.Fatal(err)
+	}
+
 	// Create .structyl directory
 	structylDir := filepath.Join(root, ".structyl")
 	if err := os.MkdirAll(structylDir, 0755); err != nil {
@@ -1346,6 +1364,24 @@ func createTestProjectWithDocker(t *testing.T) string {
 	// Create target directory
 	csDir := filepath.Join(root, "cs")
 	if err := os.MkdirAll(csDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create minimal .csproj file for C# target (required on Windows where dotnet is installed)
+	csproj := `<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+</Project>`
+	csprojPath := filepath.Join(csDir, "test.csproj")
+	if err := os.WriteFile(csprojPath, []byte(csproj), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create minimal C# source file
+	csFile := "namespace Test;\n\npublic class Class1 { }\n"
+	csFilePath := filepath.Join(csDir, "Class1.cs")
+	if err := os.WriteFile(csFilePath, []byte(csFile), 0644); err != nil {
 		t.Fatal(err)
 	}
 

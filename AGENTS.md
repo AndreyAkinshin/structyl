@@ -8,6 +8,23 @@ This document provides comprehensive information for AI agents and developers wo
 
 **Primary Use Case:** Managing polyglot projects where multiple language implementations must produce semantically identical outputs (e.g., a statistical library implemented in Rust, Python, Go, and C#).
 
+## Build System
+
+**This project uses [mise](https://mise.jdx.dev/) as the primary build system.** All tools and commands should be run via mise.
+
+```bash
+# Always use mise to run commands
+mise run build        # Build the project
+mise run test         # Run tests
+mise run lint         # Run linter
+mise run fmt          # Format code
+
+# List available tasks
+mise tasks
+```
+
+**Important:** Do not run Go commands directly (e.g., `go build`, `go test`). Always use the corresponding mise tasks to ensure consistent tooling and environment.
+
 ## Architecture Summary
 
 ```
@@ -355,24 +372,17 @@ func DetectToolchain(dir string) string {
 
 ### Running Tests
 
+**Always use mise to run tests:**
+
 ```bash
 # All tests
-go test ./...
+mise run test
 
 # With race detector
-go test -race ./...
+mise run test:race
 
 # With coverage
-go test -cover ./...
-
-# Specific package
-go test ./internal/config/...
-
-# Integration only
-go test ./test/integration/...
-
-# Verbose output
-go test -v ./...
+mise run test:cover
 ```
 
 ### Test Patterns
@@ -435,43 +445,48 @@ test/fixtures/
 
 ## Development Commands
 
+**All commands should be run via mise.** Do not run Go commands directly.
+
 ### Build
 
 ```bash
 # Development build
-go build -o structyl ./cmd/structyl
+mise run build
 
 # Install to $GOPATH/bin
-go install ./cmd/structyl
-
-# Build with version
-go build -ldflags "-X github.com/AndreyAkinshin/structyl/internal/cli.Version=1.0.0" -o structyl ./cmd/structyl
+mise run install
 ```
 
 ### Lint & Format
 
 ```bash
 # Format code
-go fmt ./...
+mise run fmt
 
-# Lint (requires golangci-lint)
-golangci-lint run
+# Lint
+mise run lint
 
 # Vet
-go vet ./...
+mise run vet
 ```
 
-### Test Coverage
+### Test
 
 ```bash
-# Generate coverage report
-go test -coverprofile=coverage.out ./...
+# Run all tests
+mise run test
 
-# View coverage in browser
-go tool cover -html=coverage.out
+# Run tests with race detector
+mise run test:race
 
-# Show coverage by function
-go tool cover -func=coverage.out
+# Run tests with coverage
+mise run test:cover
+```
+
+### List All Available Tasks
+
+```bash
+mise tasks
 ```
 
 ## Adding New Features
@@ -621,26 +636,13 @@ GitHub Actions workflow (`.github/workflows/ci.yml`):
 
 ## Common Development Tasks
 
+**All commands should be run via mise.**
+
 ### Debug a failing test
 
 ```bash
-# Run specific test with verbose output
-go test -v -run TestSpecificName ./internal/config/
-
-# Run with race detector
-go test -race -run TestSpecificName ./internal/config/
-```
-
-### Profile performance
-
-```bash
-# CPU profile
-go test -cpuprofile=cpu.prof -bench=. ./internal/runner/
-go tool pprof cpu.prof
-
-# Memory profile
-go test -memprofile=mem.prof -bench=. ./internal/runner/
-go tool pprof mem.prof
+# Run tests (use mise tasks)
+mise run test
 ```
 
 ### Update test fixtures
@@ -651,10 +653,10 @@ Edit files in `test/fixtures/` directly. Fixtures are JSON files that are loaded
 
 ```bash
 # Run full test suite with race detector
-go test -race ./...
+mise run test:race
 
-# Check coverage hasn't dropped
-go test -cover ./... | grep -E "^ok.*coverage"
+# Check coverage
+mise run test:cover
 ```
 
 ## Specification Documents

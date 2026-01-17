@@ -8,7 +8,7 @@ import (
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
 	"github.com/AndreyAkinshin/structyl/internal/project"
-	"github.com/AndreyAkinshin/structyl/internal/runner"
+	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: intentionally using deprecated package for backwards compatibility
 	"github.com/AndreyAkinshin/structyl/internal/target"
 	"github.com/AndreyAkinshin/structyl/internal/version"
 )

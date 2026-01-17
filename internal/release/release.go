@@ -128,7 +128,6 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 	if opts.Push {
 		remote := r.getRemote()
 		r.out.Step(stepNum, "Pushing to %s...", remote)
-		stepNum++
 
 		// Create tags
 		tags := r.getTags(verStr)

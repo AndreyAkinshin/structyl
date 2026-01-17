@@ -65,22 +65,22 @@ func (w *Writer) Debug(format string, args ...interface{}) {
 
 // Print writes to stdout.
 func (w *Writer) Print(format string, args ...interface{}) {
-	fmt.Fprintf(w.out, format, args...)
+	_, _ = fmt.Fprintf(w.out, format, args...)
 }
 
 // Println writes a line to stdout.
 func (w *Writer) Println(format string, args ...interface{}) {
-	fmt.Fprintf(w.out, format+"\n", args...)
+	_, _ = fmt.Fprintf(w.out, format+"\n", args...)
 }
 
 // Error writes to stderr.
 func (w *Writer) Error(format string, args ...interface{}) {
-	fmt.Fprintf(w.err, format, args...)
+	_, _ = fmt.Fprintf(w.err, format, args...)
 }
 
 // Errorln writes a line to stderr.
 func (w *Writer) Errorln(format string, args ...interface{}) {
-	fmt.Fprintf(w.err, format+"\n", args...)
+	_, _ = fmt.Fprintf(w.err, format+"\n", args...)
 }
 
 // Info prints an info message (skipped in quiet mode).

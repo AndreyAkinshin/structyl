@@ -151,12 +151,49 @@ func runViaMise(proj *project.Project, cmd string, targetName string, args []str
 	executor := mise.NewExecutor(proj.Root)
 	executor.SetVerbose(opts.Verbose)
 
-	// Run the task
-	if err := executor.RunTask(ctx, task, args); err != nil {
-		// Don't print error prefix - mise already prints detailed output
-		return 1
+	// Try to resolve dependencies for tracking
+	tasks, err := executor.ResolveTaskDependencies(ctx, task)
+	if err != nil {
+		// Fall back to direct execution if dependency resolution fails
+		if err := executor.RunTask(ctx, task, args); err != nil {
+			return 1
+		}
+		return 0
 	}
 
+	// If single task with no dependencies, use direct execution (no tracking overhead)
+	if len(tasks) == 1 {
+		if err := executor.RunTask(ctx, task, args); err != nil {
+			return 1
+		}
+		return 0
+	}
+
+	// Run with tracking
+	summary := executor.RunTasksWithTracking(ctx, tasks, args, opts.ContinueOnError, out)
+
+	// Convert to output summary format
+	outSummary := &output.TaskRunSummary{
+		Tasks:         make([]output.TaskResult, len(summary.Tasks)),
+		TotalDuration: summary.TotalDuration,
+		Passed:        summary.Passed,
+		Failed:        summary.Failed,
+	}
+	for i, t := range summary.Tasks {
+		outSummary.Tasks[i] = output.TaskResult{
+			Name:     t.Name,
+			Success:  t.Success,
+			Duration: t.Duration,
+			Error:    t.Error,
+		}
+	}
+
+	// Print summary
+	out.PrintTaskSummary(task, outSummary)
+
+	if summary.Failed > 0 {
+		return 1
+	}
 	return 0
 }
 
@@ -508,22 +545,7 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 			return 1
 		}
 
-		// Determine task name
-		task := "ci"
-		if targetName != "" {
-			task = fmt.Sprintf("ci:%s", targetName)
-		}
-
-		// Create executor
-		executor := mise.NewExecutor(proj.Root)
-		executor.SetVerbose(opts.Verbose)
-
-		// Run the CI task
-		ctx := context.Background()
-		if err := executor.RunTask(ctx, task, cmdArgs); err != nil {
-			return 1
-		}
-		return 0
+		return runViaMise(proj, cmd, targetName, cmdArgs, opts)
 	}
 
 	// Fallback to direct execution (Docker mode or mise disabled)

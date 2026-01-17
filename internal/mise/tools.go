@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
 
 // ToolMapping maps a structyl toolchain to mise tools.
@@ -145,10 +146,11 @@ var toolchainMappings = map[string]ToolMapping{
 	},
 }
 
-// GetMiseTools returns the mise tool mapping for a given toolchain.
+// GetMiseTools returns the mise tool mapping for a given toolchain from hardcoded defaults.
 // Returns nil if the toolchain is not recognized or has no mise mapping.
-func GetMiseTools(toolchain string) *ToolMapping {
-	if mapping, ok := toolchainMappings[toolchain]; ok {
+// Deprecated: Use GetMiseToolsFromConfig for loaded toolchains configuration.
+func GetMiseTools(tcName string) *ToolMapping {
+	if mapping, ok := toolchainMappings[tcName]; ok {
 		if mapping.PrimaryTool != "" {
 			return &mapping
 		}
@@ -156,22 +158,51 @@ func GetMiseTools(toolchain string) *ToolMapping {
 	return nil
 }
 
+// GetMiseToolsFromConfig returns the mise tool mapping for a given toolchain
+// using the loaded toolchains configuration.
+// Returns nil if the toolchain has no mise mapping.
+func GetMiseToolsFromConfig(tcName string, loaded *toolchain.ToolchainsFile) *ToolMapping {
+	if loaded == nil {
+		return GetMiseTools(tcName)
+	}
+
+	miseConfig := toolchain.GetMiseConfigFromToolchains(tcName, loaded)
+	if miseConfig == nil || miseConfig.PrimaryTool == "" {
+		return nil
+	}
+
+	return &ToolMapping{
+		PrimaryTool: miseConfig.PrimaryTool,
+		Version:     miseConfig.Version,
+		ExtraTools:  miseConfig.ExtraTools,
+	}
+}
+
 // GetAllToolsFromConfig aggregates all unique mise tools from a project config.
+// Returns a map of tool names to versions.
+// Deprecated: Use GetAllToolsWithToolchains for loaded toolchains configuration.
+func GetAllToolsFromConfig(cfg *config.Config) map[string]string {
+	return GetAllToolsWithToolchains(cfg, nil)
+}
+
+// GetAllToolsWithToolchains aggregates all unique mise tools from a project config
+// using the loaded toolchains configuration.
 // Returns a map of tool names to versions.
 // Priority for version resolution:
 //  1. Target-level toolchain_version
-//  2. Custom toolchain definition version
-//  3. Default from built-in MiseToolMapping
-func GetAllToolsFromConfig(cfg *config.Config) map[string]string {
+//  2. Custom toolchain definition version (in config.json)
+//  3. Loaded toolchains.json configuration
+//  4. Default from built-in MiseToolMapping
+func GetAllToolsWithToolchains(cfg *config.Config, loaded *toolchain.ToolchainsFile) map[string]string {
 	tools := make(map[string]string)
 
 	for _, target := range cfg.Targets {
-		mapping := GetMiseTools(target.Toolchain)
+		mapping := GetMiseToolsFromConfig(target.Toolchain, loaded)
 		if mapping == nil {
 			continue
 		}
 
-		// Determine version with priority: target > toolchain config > default
+		// Determine version with priority: target > toolchain config > loaded/default
 		version := mapping.Version
 		if tcCfg, ok := cfg.Toolchains[target.Toolchain]; ok && tcCfg.Version != "" {
 			version = tcCfg.Version
@@ -224,19 +255,29 @@ func GetToolsSorted(tools map[string]string) [][2]string {
 	return result
 }
 
-// IsToolchainSupported checks if a toolchain has mise support.
-func IsToolchainSupported(toolchain string) bool {
-	return GetMiseTools(toolchain) != nil
+// IsToolchainSupported checks if a toolchain has mise support using loaded config.
+func IsToolchainSupported(tcName string, loaded *toolchain.ToolchainsFile) bool {
+	return GetMiseToolsFromConfig(tcName, loaded) != nil
 }
 
 // SupportedToolchains returns a list of all toolchains with mise support.
-func SupportedToolchains() []string {
+func SupportedToolchains(loaded *toolchain.ToolchainsFile) []string {
 	var supported []string
-	for name, mapping := range toolchainMappings {
-		if mapping.PrimaryTool != "" {
-			supported = append(supported, name)
+
+	if loaded != nil {
+		for name, entry := range loaded.Toolchains {
+			if entry.Mise != nil && entry.Mise.PrimaryTool != "" {
+				supported = append(supported, name)
+			}
+		}
+	} else {
+		for name, mapping := range toolchainMappings {
+			if mapping.PrimaryTool != "" {
+				supported = append(supported, name)
+			}
 		}
 	}
+
 	sort.Strings(supported)
 	return supported
 }

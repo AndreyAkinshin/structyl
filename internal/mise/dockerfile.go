@@ -88,7 +88,7 @@ func WriteAllDockerfiles(projectRoot string, cfg *config.Config, force bool) (ma
 
 	for name, targetCfg := range cfg.Targets {
 		// Skip targets without mise-supported toolchains
-		if !IsToolchainSupported(targetCfg.Toolchain) {
+		if !IsToolchainSupported(targetCfg.Toolchain, nil) {
 			continue
 		}
 

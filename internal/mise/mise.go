@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
 
 // MiseConfig represents a .mise.toml configuration.
@@ -22,15 +23,30 @@ type MiseTask struct {
 	Run         string            // Direct shell command
 	Dir         string            // Working directory
 	Env         map[string]string // Environment variables
-	DependsOn   []string          // Task dependencies
+	DependsOn   []string          // Task dependencies (run in parallel)
+	RunSequence []RunStep         // Sequential run steps (run one by one)
+}
+
+// RunStep represents a step in a sequential run.
+// Either Task (single task) or Tasks (parallel tasks) should be set.
+type RunStep struct {
+	Task  string   // Single task to run
+	Tasks []string // Multiple tasks to run in parallel
 }
 
 // GenerateMiseToml generates the content of a .mise.toml file.
+// Deprecated: Use GenerateMiseTomlWithToolchains for loaded toolchains configuration.
 func GenerateMiseToml(cfg *config.Config) (string, error) {
+	return GenerateMiseTomlWithToolchains(cfg, nil)
+}
+
+// GenerateMiseTomlWithToolchains generates the content of a .mise.toml file
+// using the loaded toolchains configuration.
+func GenerateMiseTomlWithToolchains(cfg *config.Config, loaded *toolchain.ToolchainsFile) (string, error) {
 	var b strings.Builder
 
 	// Get all tools
-	tools := GetAllToolsFromConfig(cfg)
+	tools := GetAllToolsWithToolchains(cfg, loaded)
 	sortedTools := GetToolsSorted(tools)
 
 	// Write tools section
@@ -43,7 +59,7 @@ func GenerateMiseToml(cfg *config.Config) (string, error) {
 	}
 
 	// Generate tasks section
-	tasks := generateTasks(cfg)
+	tasks := generateTasksWithToolchains(cfg, loaded)
 	if len(tasks) > 0 {
 		writeTasks(&b, tasks)
 	}
@@ -64,8 +80,14 @@ var aggregateCommands = []string{
 }
 
 // generateTasks creates mise tasks from project config.
-// Generates individual tasks for each command of each target with direct shell commands.
+// Deprecated: Use generateTasksWithToolchains for loaded toolchains configuration.
 func generateTasks(cfg *config.Config) map[string]MiseTask {
+	return generateTasksWithToolchains(cfg, nil)
+}
+
+// generateTasksWithToolchains creates mise tasks from project config
+// using the loaded toolchains configuration.
+func generateTasksWithToolchains(cfg *config.Config, loaded *toolchain.ToolchainsFile) map[string]MiseTask {
 	tasks := make(map[string]MiseTask)
 
 	// Setup task for structyl
@@ -89,7 +111,7 @@ func generateTasks(cfg *config.Config) map[string]MiseTask {
 		targetCfg := cfg.Targets[targetName]
 
 		// Get resolved commands for this target
-		resolvedCommands := getResolvedCommandsForTarget(targetCfg, cfg)
+		resolvedCommands := getResolvedCommandsForTargetWithToolchains(targetCfg, cfg, loaded)
 
 		// Determine working directory
 		dir := targetCfg.Directory
@@ -144,19 +166,19 @@ func generateTasks(cfg *config.Config) map[string]MiseTask {
 			}
 		}
 
-		// Generate CI task for each target
+		// Generate CI task for each target with sequential execution
 		ciTaskName := fmt.Sprintf("ci:%s", targetName)
-		ciDeps := []string{}
+		var ciSteps []RunStep
 		for _, cmd := range []string{"clean", "restore", "check", "build", "test"} {
 			depTask := fmt.Sprintf("%s:%s", cmd, targetName)
 			if _, exists := tasks[depTask]; exists {
-				ciDeps = append(ciDeps, depTask)
+				ciSteps = append(ciSteps, RunStep{Task: depTask})
 			}
 		}
-		if len(ciDeps) > 0 {
+		if len(ciSteps) > 0 {
 			tasks[ciTaskName] = MiseTask{
 				Description: fmt.Sprintf("Run CI for %s target", targetName),
-				DependsOn:   ciDeps,
+				RunSequence: ciSteps,
 			}
 		}
 	}
@@ -198,27 +220,39 @@ func generateTasks(cfg *config.Config) map[string]MiseTask {
 }
 
 // getResolvedCommandsForTarget resolves commands for a target, merging toolchain defaults with overrides.
+// Deprecated: Use getResolvedCommandsForTargetWithToolchains for loaded toolchains configuration.
 func getResolvedCommandsForTarget(targetCfg config.TargetConfig, cfg *config.Config) map[string]interface{} {
+	return getResolvedCommandsForTargetWithToolchains(targetCfg, cfg, nil)
+}
+
+// getResolvedCommandsForTargetWithToolchains resolves commands for a target using loaded toolchains,
+// merging toolchain defaults with overrides.
+// Resolution priority (highest to lowest):
+//  1. Target-specific commands in config.json targets.X.commands
+//  2. Custom toolchain commands in config.json toolchains.X
+//  3. Loaded .structyl/toolchains.json overrides
+//  4. Hardcoded Go defaults
+func getResolvedCommandsForTargetWithToolchains(targetCfg config.TargetConfig, cfg *config.Config, loaded *toolchain.ToolchainsFile) map[string]interface{} {
 	commands := make(map[string]interface{})
 
-	// Get built-in toolchain commands
-	if tc := getBuiltinToolchain(targetCfg.Toolchain); tc != nil {
-		for k, v := range tc {
+	// Get toolchain commands from loaded config (or fall back to builtins)
+	if tc, ok := toolchain.GetFromConfig(targetCfg.Toolchain, loaded); ok {
+		for k, v := range tc.Commands {
 			commands[k] = v
 		}
 	}
 
-	// Override with custom toolchain commands if defined
+	// Override with custom toolchain commands if defined in config.json
 	if tcCfg, ok := cfg.Toolchains[targetCfg.Toolchain]; ok {
 		// If extending, get base commands first
 		if tcCfg.Extends != "" {
-			if base := getBuiltinToolchain(tcCfg.Extends); base != nil {
-				for k, v := range base {
+			if base, ok := toolchain.GetFromConfig(tcCfg.Extends, loaded); ok {
+				for k, v := range base.Commands {
 					commands[k] = v
 				}
 			}
 		}
-		// Apply custom commands
+		// Apply custom commands from config.json
 		for k, v := range tcCfg.Commands {
 			commands[k] = v
 		}
@@ -282,7 +316,22 @@ func writeTasks(b *strings.Builder, tasks map[string]MiseTask) {
 			}
 			fmt.Fprintf(b, "depends = [%s]\n", strings.Join(deps, ", "))
 		}
-		if task.Run != "" {
+		if len(task.RunSequence) > 0 {
+			// Format run as array of sequential steps
+			b.WriteString("run = [\n")
+			for _, step := range task.RunSequence {
+				if step.Task != "" {
+					fmt.Fprintf(b, "    { task = %q },\n", step.Task)
+				} else if len(step.Tasks) > 0 {
+					tasks := make([]string, len(step.Tasks))
+					for i, t := range step.Tasks {
+						tasks[i] = fmt.Sprintf("%q", t)
+					}
+					fmt.Fprintf(b, "    { tasks = [%s] },\n", strings.Join(tasks, ", "))
+				}
+			}
+			b.WriteString("]\n")
+		} else if task.Run != "" {
 			fmt.Fprintf(b, "run = %q\n", task.Run)
 		}
 		b.WriteString("\n")
@@ -543,7 +592,16 @@ func getBuiltinToolchain(name string) map[string]interface{} {
 // WriteMiseToml generates and writes a .mise.toml file to the project root.
 // Returns true if a new file was created, false if it already exists.
 // Use force=true to overwrite an existing file.
+// Deprecated: Use WriteMiseTomlWithToolchains for loaded toolchains configuration.
 func WriteMiseToml(projectRoot string, cfg *config.Config, force bool) (bool, error) {
+	return WriteMiseTomlWithToolchains(projectRoot, cfg, nil, force)
+}
+
+// WriteMiseTomlWithToolchains generates and writes a .mise.toml file to the project root
+// using the loaded toolchains configuration.
+// Returns true if a new file was created, false if it already exists.
+// Use force=true to overwrite an existing file.
+func WriteMiseTomlWithToolchains(projectRoot string, cfg *config.Config, loaded *toolchain.ToolchainsFile, force bool) (bool, error) {
 	outputPath := filepath.Join(projectRoot, ".mise.toml")
 
 	// Check if file already exists
@@ -553,7 +611,7 @@ func WriteMiseToml(projectRoot string, cfg *config.Config, force bool) (bool, er
 		}
 	}
 
-	content, err := GenerateMiseToml(cfg)
+	content, err := GenerateMiseTomlWithToolchains(cfg, loaded)
 	if err != nil {
 		return false, fmt.Errorf("failed to generate .mise.toml: %w", err)
 	}

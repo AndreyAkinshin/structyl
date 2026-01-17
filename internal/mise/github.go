@@ -71,7 +71,7 @@ func GenerateGitHubWorkflow(cfg *config.Config) (string, error) {
 		targetCfg := cfg.Targets[name]
 
 		// Skip targets without mise-supported toolchains
-		if !IsToolchainSupported(targetCfg.Toolchain) {
+		if !IsToolchainSupported(targetCfg.Toolchain, nil) {
 			continue
 		}
 

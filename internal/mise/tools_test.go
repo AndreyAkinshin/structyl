@@ -169,21 +169,21 @@ func TestGetToolsSorted(t *testing.T) {
 func TestIsToolchainSupported(t *testing.T) {
 	supported := []string{"cargo", "go", "npm", "python", "uv"}
 	for _, tc := range supported {
-		if !IsToolchainSupported(tc) {
+		if !IsToolchainSupported(tc, nil) {
 			t.Errorf("IsToolchainSupported(%q) = false, want true", tc)
 		}
 	}
 
 	unsupported := []string{"make", "nonexistent"}
 	for _, tc := range unsupported {
-		if IsToolchainSupported(tc) {
+		if IsToolchainSupported(tc, nil) {
 			t.Errorf("IsToolchainSupported(%q) = true, want false", tc)
 		}
 	}
 }
 
 func TestSupportedToolchains(t *testing.T) {
-	supported := SupportedToolchains()
+	supported := SupportedToolchains(nil)
 
 	if len(supported) == 0 {
 		t.Error("SupportedToolchains() returned empty")

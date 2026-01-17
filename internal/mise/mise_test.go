@@ -172,12 +172,23 @@ func TestGenerateMiseToml_TaskDependencies(t *testing.T) {
 		t.Error("missing test:rs task")
 	}
 
-	// Check that CI tasks depend on command tasks (not setup:structyl anymore)
+	// Check that CI tasks exist and use sequential run format
 	if !strings.Contains(content, `[tasks."ci:rs"]`) {
 		t.Error("missing ci:rs task")
 	}
 
-	// Check that main ci task depends on individual ci tasks
+	// Check that per-target CI tasks use sequential execution (run = [...])
+	if !strings.Contains(content, `{ task = "clean:rs" }`) {
+		t.Error("ci:rs should use sequential run format with clean:rs task")
+	}
+	if !strings.Contains(content, `{ task = "build:rs" }`) {
+		t.Error("ci:rs should use sequential run format with build:rs task")
+	}
+	if !strings.Contains(content, `{ task = "test:rs" }`) {
+		t.Error("ci:rs should use sequential run format with test:rs task")
+	}
+
+	// Check that main ci task depends on individual ci tasks (parallel execution across targets)
 	if !strings.Contains(content, `depends = ["ci:rs", "ci:ts"]`) {
 		t.Error("main ci task should depend on ci:rs and ci:ts")
 	}

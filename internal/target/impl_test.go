@@ -84,6 +84,10 @@ func TestNewTarget_InvalidType(t *testing.T) {
 	if err == nil {
 		t.Fatal("NewTarget() expected error for invalid type")
 	}
+	// Verify error message mentions the invalid type
+	if !strings.Contains(err.Error(), "invalid") && !strings.Contains(err.Error(), "type") {
+		t.Errorf("error = %q, want to mention 'invalid' or 'type'", err.Error())
+	}
 }
 
 func TestTarget_Commands(t *testing.T) {
@@ -552,19 +556,18 @@ func TestExecute_StringCommand_Failure(t *testing.T) {
 	}
 }
 
-func TestExecute_WithArgs_AppendsArguments(t *testing.T) {
+func TestExecute_WithArgs_ExecutesSuccessfully(t *testing.T) {
 	tmpDir := t.TempDir()
 	outputFile := filepath.Join(tmpDir, "output.txt")
 
-	// Use a command that writes its arguments to a file
-	// printf writes without trailing newline, echo adds one
+	// This test verifies that Execute succeeds when args are provided.
+	// The args are passed to the shell command (appended after the base command).
 	cfg := config.TargetConfig{
 		Type:      "language",
 		Title:     "Test",
 		Directory: ".",
 		Cwd:       ".",
 		Commands: map[string]interface{}{
-			// Base command that will receive args
 			"write": fmt.Sprintf("echo test > %s", outputFile),
 		},
 	}
@@ -573,8 +576,7 @@ func TestExecute_WithArgs_AppendsArguments(t *testing.T) {
 	target, _ := NewTarget("test", cfg, tmpDir, resolver)
 
 	ctx := context.Background()
-	// Execute - the "write" command will write "test" to the file
-	// Args will be appended but don't affect the redirected output
+	// Execute with args - verifies execution completes without error
 	err := target.Execute(ctx, "write", ExecOptions{
 		Args: []string{"arg1", "arg2"},
 	})

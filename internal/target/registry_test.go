@@ -1,6 +1,7 @@
 package target
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
@@ -144,6 +145,10 @@ func TestRegistry_ValidateDependencies_Circular(t *testing.T) {
 	_, err := NewRegistry(cfg, "/project")
 	if err == nil {
 		t.Fatal("NewRegistry() expected error for circular dependency")
+	}
+	// Verify error message mentions cycle or circular
+	if !strings.Contains(strings.ToLower(err.Error()), "circular") && !strings.Contains(strings.ToLower(err.Error()), "cycle") {
+		t.Errorf("error = %q, want to mention 'circular' or 'cycle'", err.Error())
 	}
 }
 

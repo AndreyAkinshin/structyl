@@ -210,3 +210,135 @@ func TestSupportedToolchains(t *testing.T) {
 		}
 	}
 }
+
+// =============================================================================
+// GetMiseToolsFromConfig Tests
+// =============================================================================
+
+func TestGetMiseToolsFromConfig_NilLoaded_FallsBackToDefault(t *testing.T) {
+	// When loaded is nil, should fall back to GetMiseTools
+	mapping := GetMiseToolsFromConfig("cargo", nil)
+	if mapping == nil {
+		t.Fatal("GetMiseToolsFromConfig(cargo, nil) = nil, want mapping")
+	}
+	if mapping.PrimaryTool != "rust" {
+		t.Errorf("PrimaryTool = %q, want %q", mapping.PrimaryTool, "rust")
+	}
+}
+
+func TestGetMiseToolsFromConfig_UnknownToolchain(t *testing.T) {
+	mapping := GetMiseToolsFromConfig("nonexistent", nil)
+	if mapping != nil {
+		t.Errorf("GetMiseToolsFromConfig(nonexistent, nil) = %v, want nil", mapping)
+	}
+}
+
+// =============================================================================
+// GetAllToolsWithToolchains Tests
+// =============================================================================
+
+func TestGetAllToolsWithToolchains_ToolchainVersionOverride(t *testing.T) {
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"go": {Toolchain: "go", ToolchainVersion: "1.21"}, // Override default 1.22
+		},
+	}
+
+	tools := GetAllToolsWithToolchains(cfg, nil)
+
+	if tools["go"] != "1.21" {
+		t.Errorf("tools[go] = %q, want %q (target override)", tools["go"], "1.21")
+	}
+}
+
+func TestGetAllToolsWithToolchains_ToolchainConfigVersionOverride(t *testing.T) {
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"go": {Toolchain: "go"}, // No target-level override
+		},
+		Toolchains: map[string]config.ToolchainConfig{
+			"go": {Version: "1.20"}, // Config-level override
+		},
+	}
+
+	tools := GetAllToolsWithToolchains(cfg, nil)
+
+	if tools["go"] != "1.20" {
+		t.Errorf("tools[go] = %q, want %q (toolchain config override)", tools["go"], "1.20")
+	}
+}
+
+func TestGetAllToolsWithToolchains_TargetOverridesThanToolchainConfig(t *testing.T) {
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"go": {Toolchain: "go", ToolchainVersion: "1.21"}, // Target-level override
+		},
+		Toolchains: map[string]config.ToolchainConfig{
+			"go": {Version: "1.20"}, // Config-level override (lower priority)
+		},
+	}
+
+	tools := GetAllToolsWithToolchains(cfg, nil)
+
+	// Target override should win over toolchain config
+	if tools["go"] != "1.21" {
+		t.Errorf("tools[go] = %q, want %q (target override should win)", tools["go"], "1.21")
+	}
+}
+
+func TestGetAllToolsWithToolchains_MiseExtraTools(t *testing.T) {
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"go": {Toolchain: "go"},
+		},
+		Mise: &config.MiseConfig{
+			ExtraTools: map[string]string{
+				"custom-tool": "1.0.0",
+			},
+		},
+	}
+
+	tools := GetAllToolsWithToolchains(cfg, nil)
+
+	if tools["custom-tool"] != "1.0.0" {
+		t.Errorf("tools[custom-tool] = %q, want %q", tools["custom-tool"], "1.0.0")
+	}
+}
+
+func TestGetAllToolsWithToolchains_DoesNotOverrideExisting(t *testing.T) {
+	// When a tool already exists, extra tools should not override it
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"go": {Toolchain: "go"}, // Has golangci-lint as extra tool
+		},
+		Mise: &config.MiseConfig{
+			ExtraTools: map[string]string{
+				"golangci-lint": "v1.0.0", // Try to override
+			},
+		},
+	}
+
+	tools := GetAllToolsWithToolchains(cfg, nil)
+
+	// Original extra tool version should be preserved
+	if tools["golangci-lint"] != "latest" {
+		t.Errorf("tools[golangci-lint] = %q, want %q (original should be preserved)", tools["golangci-lint"], "latest")
+	}
+}
+
+func TestGetToolsSorted_Empty(t *testing.T) {
+	sorted := GetToolsSorted(map[string]string{})
+	if len(sorted) != 0 {
+		t.Errorf("GetToolsSorted(empty) = %v, want empty", sorted)
+	}
+}
+
+func TestGetToolsSorted_SingleItem(t *testing.T) {
+	sorted := GetToolsSorted(map[string]string{"go": "1.22"})
+	if len(sorted) != 1 {
+		t.Errorf("len(sorted) = %d, want 1", len(sorted))
+	}
+	if sorted[0][0] != "go" || sorted[0][1] != "1.22" {
+		t.Errorf("sorted[0] = %v, want [go 1.22]", sorted[0])
+	}
+}

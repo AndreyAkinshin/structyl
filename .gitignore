@@ -2,6 +2,7 @@
 .structyl/
 !test/fixtures/**/.structyl/
 artifacts/
+.mise.toml
 **/.nuget-docker/
 **/.cargo-docker/
 **/.cache-docker/

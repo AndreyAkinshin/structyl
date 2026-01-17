@@ -320,6 +320,7 @@ func updateGitignore(root string) {
 	entries := []string{
 		"# Structyl",
 		"artifacts/",
+		".mise.toml",
 	}
 
 	existingContent := ""

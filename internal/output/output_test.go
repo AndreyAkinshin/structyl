@@ -24,6 +24,7 @@ func newTestWriter() (*Writer, *bytes.Buffer, *bytes.Buffer) {
 }
 
 func TestNew(t *testing.T) {
+	t.Parallel()
 	w := New()
 	if w == nil {
 		t.Fatal("New() returned nil")
@@ -37,6 +38,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestNewWithWriters(t *testing.T) {
+	t.Parallel()
 	stdout := &bytes.Buffer{}
 	stderr := &bytes.Buffer{}
 
@@ -56,6 +58,7 @@ func TestNewWithWriters(t *testing.T) {
 }
 
 func TestNewWithWriters_NoColor(t *testing.T) {
+	t.Parallel()
 	stdout := &bytes.Buffer{}
 	stderr := &bytes.Buffer{}
 
@@ -66,6 +69,7 @@ func TestNewWithWriters_NoColor(t *testing.T) {
 }
 
 func TestNewWithWriters_WritesToCustomWriters(t *testing.T) {
+	t.Parallel()
 	stdout := &bytes.Buffer{}
 	stderr := &bytes.Buffer{}
 
@@ -85,6 +89,7 @@ func TestNewWithWriters_WritesToCustomWriters(t *testing.T) {
 }
 
 func TestWriter_SetQuiet(t *testing.T) {
+	t.Parallel()
 	w, _, _ := newTestWriter()
 
 	w.SetQuiet(true)
@@ -99,6 +104,7 @@ func TestWriter_SetQuiet(t *testing.T) {
 }
 
 func TestWriter_SetVerbose(t *testing.T) {
+	t.Parallel()
 	w, _, _ := newTestWriter()
 
 	w.SetVerbose(true)
@@ -119,6 +125,7 @@ func TestWriter_SetVerbose(t *testing.T) {
 }
 
 func TestWriter_Debug(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		verbose bool
@@ -132,6 +139,7 @@ func TestWriter_Debug(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.verbose = tt.verbose
 			w.color = tt.color
@@ -146,6 +154,7 @@ func TestWriter_Debug(t *testing.T) {
 }
 
 func TestWriter_Print(t *testing.T) {
+	t.Parallel()
 	w, stdout, _ := newTestWriter()
 
 	w.Print("hello %s", "world")
@@ -156,6 +165,7 @@ func TestWriter_Print(t *testing.T) {
 }
 
 func TestWriter_Println(t *testing.T) {
+	t.Parallel()
 	w, stdout, _ := newTestWriter()
 
 	w.Println("hello %s", "world")
@@ -166,6 +176,7 @@ func TestWriter_Println(t *testing.T) {
 }
 
 func TestWriter_Error(t *testing.T) {
+	t.Parallel()
 	w, _, stderr := newTestWriter()
 
 	w.Error("error %d", 42)
@@ -176,6 +187,7 @@ func TestWriter_Error(t *testing.T) {
 }
 
 func TestWriter_Errorln(t *testing.T) {
+	t.Parallel()
 	w, _, stderr := newTestWriter()
 
 	w.Errorln("error %d", 42)
@@ -186,6 +198,7 @@ func TestWriter_Errorln(t *testing.T) {
 }
 
 func TestWriter_Info(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		quiet  bool
@@ -197,6 +210,7 @@ func TestWriter_Info(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.quiet = tt.quiet
 
@@ -210,6 +224,7 @@ func TestWriter_Info(t *testing.T) {
 }
 
 func TestWriter_Success(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -221,6 +236,7 @@ func TestWriter_Success(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -234,6 +250,7 @@ func TestWriter_Success(t *testing.T) {
 }
 
 func TestWriter_Warning(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -245,6 +262,7 @@ func TestWriter_Warning(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, _, stderr := newTestWriter()
 			w.color = tt.color
 
@@ -258,6 +276,7 @@ func TestWriter_Warning(t *testing.T) {
 }
 
 func TestWriter_TargetStart(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		quiet  bool
@@ -271,6 +290,7 @@ func TestWriter_TargetStart(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.quiet = tt.quiet
 			w.color = tt.color
@@ -285,6 +305,7 @@ func TestWriter_TargetStart(t *testing.T) {
 }
 
 func TestWriter_TargetSuccess(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		quiet  bool
@@ -298,6 +319,7 @@ func TestWriter_TargetSuccess(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.quiet = tt.quiet
 			w.color = tt.color
@@ -312,6 +334,7 @@ func TestWriter_TargetSuccess(t *testing.T) {
 }
 
 func TestWriter_TargetFailed(t *testing.T) {
+	t.Parallel()
 	testErr := errors.New("compilation error")
 
 	tests := []struct {
@@ -325,6 +348,7 @@ func TestWriter_TargetFailed(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, _, stderr := newTestWriter()
 			w.color = tt.color
 
@@ -338,6 +362,7 @@ func TestWriter_TargetFailed(t *testing.T) {
 }
 
 func TestWriter_Section(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		quiet  bool
@@ -351,6 +376,7 @@ func TestWriter_Section(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.quiet = tt.quiet
 			w.color = tt.color
@@ -365,6 +391,7 @@ func TestWriter_Section(t *testing.T) {
 }
 
 func TestWriter_List(t *testing.T) {
+	t.Parallel()
 	w, stdout, _ := newTestWriter()
 
 	w.List([]string{"item1", "item2", "item3"})
@@ -376,6 +403,7 @@ func TestWriter_List(t *testing.T) {
 }
 
 func TestWriter_List_Empty(t *testing.T) {
+	t.Parallel()
 	w, stdout, _ := newTestWriter()
 
 	w.List([]string{})
@@ -386,6 +414,7 @@ func TestWriter_List_Empty(t *testing.T) {
 }
 
 func TestWriter_Table(t *testing.T) {
+	t.Parallel()
 	w, stdout, _ := newTestWriter()
 
 	headers := []string{"Name", "Type", "Status"}
@@ -424,6 +453,7 @@ func TestWriter_Table(t *testing.T) {
 }
 
 func TestWriter_Table_VaryingWidths(t *testing.T) {
+	t.Parallel()
 	w, stdout, _ := newTestWriter()
 
 	headers := []string{"A", "LongHeader"}
@@ -450,6 +480,7 @@ func TestWriter_Table_VaryingWidths(t *testing.T) {
 }
 
 func TestWriter_Table_Empty(t *testing.T) {
+	t.Parallel()
 	w, stdout, _ := newTestWriter()
 
 	headers := []string{"Name", "Value"}
@@ -466,6 +497,7 @@ func TestWriter_Table_Empty(t *testing.T) {
 }
 
 func TestWriter_Table_RowShorterThanHeaders(t *testing.T) {
+	t.Parallel()
 	w, stdout, _ := newTestWriter()
 
 	headers := []string{"A", "B", "C"}
@@ -485,6 +517,7 @@ func TestWriter_Table_RowShorterThanHeaders(t *testing.T) {
 // Tests for Help methods
 
 func TestWriter_HelpTitle(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -496,6 +529,7 @@ func TestWriter_HelpTitle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -509,6 +543,7 @@ func TestWriter_HelpTitle(t *testing.T) {
 }
 
 func TestWriter_HelpSection(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -520,6 +555,7 @@ func TestWriter_HelpSection(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -533,6 +569,7 @@ func TestWriter_HelpSection(t *testing.T) {
 }
 
 func TestWriter_HelpCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -547,6 +584,7 @@ func TestWriter_HelpCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -560,6 +598,7 @@ func TestWriter_HelpCommand(t *testing.T) {
 }
 
 func TestWriter_HelpCommand_WithPlaceholder(t *testing.T) {
+	t.Parallel()
 	w, stdout, _ := newTestWriter()
 	w.color = true
 
@@ -573,6 +612,7 @@ func TestWriter_HelpCommand_WithPlaceholder(t *testing.T) {
 }
 
 func TestWriter_HelpSubCommand(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -584,6 +624,7 @@ func TestWriter_HelpSubCommand(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -597,6 +638,7 @@ func TestWriter_HelpSubCommand(t *testing.T) {
 }
 
 func TestWriter_HelpFlag(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -608,6 +650,7 @@ func TestWriter_HelpFlag(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -621,6 +664,7 @@ func TestWriter_HelpFlag(t *testing.T) {
 }
 
 func TestWriter_HelpFlag_WithPlaceholder(t *testing.T) {
+	t.Parallel()
 	w, stdout, _ := newTestWriter()
 	w.color = true
 
@@ -634,6 +678,7 @@ func TestWriter_HelpFlag_WithPlaceholder(t *testing.T) {
 }
 
 func TestWriter_HelpExample(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -649,6 +694,7 @@ func TestWriter_HelpExample(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -662,6 +708,7 @@ func TestWriter_HelpExample(t *testing.T) {
 }
 
 func TestWriter_HelpUsage(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -674,6 +721,7 @@ func TestWriter_HelpUsage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -687,6 +735,7 @@ func TestWriter_HelpUsage(t *testing.T) {
 }
 
 func TestWriter_HelpEnvVar(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -698,6 +747,7 @@ func TestWriter_HelpEnvVar(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -713,6 +763,7 @@ func TestWriter_HelpEnvVar(t *testing.T) {
 // Tests for Summary methods
 
 func TestWriter_SummaryHeader(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -724,6 +775,7 @@ func TestWriter_SummaryHeader(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -737,6 +789,7 @@ func TestWriter_SummaryHeader(t *testing.T) {
 }
 
 func TestWriter_SummaryItem(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -748,6 +801,7 @@ func TestWriter_SummaryItem(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -761,6 +815,7 @@ func TestWriter_SummaryItem(t *testing.T) {
 }
 
 func TestWriter_SummaryPassed(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -772,6 +827,7 @@ func TestWriter_SummaryPassed(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -785,6 +841,7 @@ func TestWriter_SummaryPassed(t *testing.T) {
 }
 
 func TestWriter_SummaryFailed(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -796,6 +853,7 @@ func TestWriter_SummaryFailed(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -809,6 +867,7 @@ func TestWriter_SummaryFailed(t *testing.T) {
 }
 
 func TestWriter_SummaryAction(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name    string
 		color   bool
@@ -826,6 +885,7 @@ func TestWriter_SummaryAction(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -839,6 +899,7 @@ func TestWriter_SummaryAction(t *testing.T) {
 }
 
 func TestWriter_SummarySectionLabel(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -850,6 +911,7 @@ func TestWriter_SummarySectionLabel(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -865,6 +927,7 @@ func TestWriter_SummarySectionLabel(t *testing.T) {
 // Tests for Step/Action methods
 
 func TestWriter_Step(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -876,6 +939,7 @@ func TestWriter_Step(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -889,6 +953,7 @@ func TestWriter_Step(t *testing.T) {
 }
 
 func TestWriter_StepDetail(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -900,6 +965,7 @@ func TestWriter_StepDetail(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -913,6 +979,7 @@ func TestWriter_StepDetail(t *testing.T) {
 }
 
 func TestWriter_Action(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -924,6 +991,7 @@ func TestWriter_Action(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -939,6 +1007,7 @@ func TestWriter_Action(t *testing.T) {
 // Tests for Status methods
 
 func TestWriter_ErrorPrefix(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -950,6 +1019,7 @@ func TestWriter_ErrorPrefix(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, _, stderr := newTestWriter()
 			w.color = tt.color
 
@@ -963,6 +1033,7 @@ func TestWriter_ErrorPrefix(t *testing.T) {
 }
 
 func TestWriter_WarningSimple(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -974,6 +1045,7 @@ func TestWriter_WarningSimple(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, _, stderr := newTestWriter()
 			w.color = tt.color
 
@@ -987,6 +1059,7 @@ func TestWriter_WarningSimple(t *testing.T) {
 }
 
 func TestWriter_FinalSuccess(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -998,6 +1071,7 @@ func TestWriter_FinalSuccess(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -1011,6 +1085,7 @@ func TestWriter_FinalSuccess(t *testing.T) {
 }
 
 func TestWriter_FinalFailure(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -1022,6 +1097,7 @@ func TestWriter_FinalFailure(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -1035,6 +1111,7 @@ func TestWriter_FinalFailure(t *testing.T) {
 }
 
 func TestWriter_ValidationSuccess(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -1046,6 +1123,7 @@ func TestWriter_ValidationSuccess(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -1059,6 +1137,7 @@ func TestWriter_ValidationSuccess(t *testing.T) {
 }
 
 func TestWriter_Hint(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -1070,6 +1149,7 @@ func TestWriter_Hint(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -1085,6 +1165,7 @@ func TestWriter_Hint(t *testing.T) {
 // Tests for DryRun/Phase/Target methods
 
 func TestWriter_DryRunStart(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -1096,6 +1177,7 @@ func TestWriter_DryRunStart(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -1109,6 +1191,7 @@ func TestWriter_DryRunStart(t *testing.T) {
 }
 
 func TestWriter_DryRunEnd(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -1120,6 +1203,7 @@ func TestWriter_DryRunEnd(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -1133,6 +1217,7 @@ func TestWriter_DryRunEnd(t *testing.T) {
 }
 
 func TestWriter_PhaseHeader(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -1144,6 +1229,7 @@ func TestWriter_PhaseHeader(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -1157,6 +1243,7 @@ func TestWriter_PhaseHeader(t *testing.T) {
 }
 
 func TestWriter_TargetInfo(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -1168,6 +1255,7 @@ func TestWriter_TargetInfo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -1181,6 +1269,7 @@ func TestWriter_TargetInfo(t *testing.T) {
 }
 
 func TestWriter_TargetDetail(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		color  bool
@@ -1192,6 +1281,7 @@ func TestWriter_TargetDetail(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, stdout, _ := newTestWriter()
 			w.color = tt.color
 
@@ -1207,6 +1297,7 @@ func TestWriter_TargetDetail(t *testing.T) {
 // Tests for Utility functions
 
 func TestFormatTestCounts(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		counts *testparser.TestCounts
@@ -1222,6 +1313,7 @@ func TestFormatTestCounts(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := FormatTestCounts(tt.counts)
 			if got != tt.expect {
 				t.Errorf("FormatTestCounts() = %q, want %q", got, tt.expect)
@@ -1231,6 +1323,7 @@ func TestFormatTestCounts(t *testing.T) {
 }
 
 func TestFormatDuration(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		duration time.Duration
@@ -1248,6 +1341,7 @@ func TestFormatDuration(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			got := FormatDuration(tt.duration)
 			if got != tt.expect {
 				t.Errorf("FormatDuration(%v) = %q, want %q", tt.duration, got, tt.expect)
@@ -1257,6 +1351,7 @@ func TestFormatDuration(t *testing.T) {
 }
 
 func TestWriter_ColorPlaceholders(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name   string
 		input  string
@@ -1271,6 +1366,7 @@ func TestWriter_ColorPlaceholders(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			w, _, _ := newTestWriter()
 			w.color = true
 
@@ -1285,6 +1381,7 @@ func TestWriter_ColorPlaceholders(t *testing.T) {
 // Tests for PrintTaskSummary
 
 func TestWriter_PrintTaskSummary_AllPassed(t *testing.T) {
+	t.Parallel()
 	w, stdout, _ := newTestWriter()
 
 	summary := &TaskRunSummary{
@@ -1332,6 +1429,7 @@ func TestWriter_PrintTaskSummary_AllPassed(t *testing.T) {
 }
 
 func TestWriter_PrintTaskSummary_WithFailures(t *testing.T) {
+	t.Parallel()
 	w, stdout, _ := newTestWriter()
 
 	summary := &TaskRunSummary{
@@ -1366,6 +1464,7 @@ func TestWriter_PrintTaskSummary_WithFailures(t *testing.T) {
 }
 
 func TestWriter_PrintTaskSummary_WithTestCounts(t *testing.T) {
+	t.Parallel()
 	w, stdout, _ := newTestWriter()
 
 	taskCounts := &testparser.TestCounts{
@@ -1407,6 +1506,7 @@ func TestWriter_PrintTaskSummary_WithTestCounts(t *testing.T) {
 }
 
 func TestWriter_PrintTaskSummary_EmptyTasks(t *testing.T) {
+	t.Parallel()
 	w, stdout, _ := newTestWriter()
 
 	summary := &TaskRunSummary{

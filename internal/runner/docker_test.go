@@ -9,6 +9,7 @@ import (
 )
 
 func TestNewDockerRunner(t *testing.T) {
+	t.Parallel()
 	cfg := &config.DockerConfig{
 		ComposeFile: "custom-compose.yml",
 	}
@@ -24,6 +25,7 @@ func TestNewDockerRunner(t *testing.T) {
 }
 
 func TestNewDockerRunner_Default(t *testing.T) {
+	t.Parallel()
 	runner := NewDockerRunner("/project", nil)
 
 	if runner.composeFile != "docker-compose.yml" {
@@ -32,6 +34,7 @@ func TestNewDockerRunner_Default(t *testing.T) {
 }
 
 func TestDockerUnavailableError(t *testing.T) {
+	t.Parallel()
 	err := &DockerUnavailableError{}
 
 	if err.Error() == "" {
@@ -43,6 +46,7 @@ func TestDockerUnavailableError(t *testing.T) {
 }
 
 func TestBuildRunArgs(t *testing.T) {
+	t.Parallel()
 	runner := NewDockerRunner("/project", nil)
 
 	args := runner.buildRunArgs("myservice", "echo hello")
@@ -142,6 +146,7 @@ func TestGetDockerMode_Default(t *testing.T) {
 }
 
 func TestIsDockerAvailable_DoesNotPanic(t *testing.T) {
+	t.Parallel()
 	// This test verifies IsDockerAvailable does not panic when Docker
 	// is unavailable. The actual result depends on system state.
 	result := IsDockerAvailable()
@@ -149,6 +154,7 @@ func TestIsDockerAvailable_DoesNotPanic(t *testing.T) {
 }
 
 func TestCheckDockerAvailable_ReturnsCorrectType(t *testing.T) {
+	t.Parallel()
 	err := CheckDockerAvailable()
 	if err != nil {
 		// Verify it returns the correct error type
@@ -161,6 +167,7 @@ func TestCheckDockerAvailable_ReturnsCorrectType(t *testing.T) {
 }
 
 func TestBuildRunArgs_IncludesComposeFile(t *testing.T) {
+	t.Parallel()
 	runner := NewDockerRunner("/project", &config.DockerConfig{
 		ComposeFile: "custom.yml",
 	})
@@ -180,6 +187,7 @@ func TestBuildRunArgs_IncludesComposeFile(t *testing.T) {
 }
 
 func TestBuildRunArgs_CustomComposeFile(t *testing.T) {
+	t.Parallel()
 	cfg := &config.DockerConfig{ComposeFile: "docker/compose.yaml"}
 	runner := NewDockerRunner("/project", cfg)
 
@@ -198,6 +206,7 @@ func TestBuildRunArgs_CustomComposeFile(t *testing.T) {
 }
 
 func TestBuildRunArgs_ShellCommand(t *testing.T) {
+	t.Parallel()
 	runner := NewDockerRunner("/project", nil)
 
 	args := runner.buildRunArgs("service", "npm run build")
@@ -219,6 +228,7 @@ func TestBuildRunArgs_ShellCommand(t *testing.T) {
 }
 
 func TestBuildRunArgs_ServiceName(t *testing.T) {
+	t.Parallel()
 	runner := NewDockerRunner("/project", nil)
 
 	args := runner.buildRunArgs("myapp", "test")
@@ -236,6 +246,7 @@ func TestBuildRunArgs_ServiceName(t *testing.T) {
 }
 
 func TestDockerRunner_ProjectRoot(t *testing.T) {
+	t.Parallel()
 	runner := NewDockerRunner("/my/project/root", nil)
 
 	if runner.projectRoot != "/my/project/root" {
@@ -244,6 +255,7 @@ func TestDockerRunner_ProjectRoot(t *testing.T) {
 }
 
 func TestDockerRunner_Config(t *testing.T) {
+	t.Parallel()
 	cfg := &config.DockerConfig{
 		ComposeFile: "compose.yml",
 	}
@@ -373,6 +385,7 @@ func TestDockerRunner_Build_EmptyServiceList(t *testing.T) {
 // =============================================================================
 
 func TestBuildRunArgs_CompleteStructure(t *testing.T) {
+	t.Parallel()
 	runner := NewDockerRunner("/project", &config.DockerConfig{
 		ComposeFile: "compose.yml",
 	})
@@ -429,6 +442,7 @@ func TestBuildRunArgs_CompleteStructure(t *testing.T) {
 }
 
 func TestBuildRunArgs_ServiceBeforeCommand(t *testing.T) {
+	t.Parallel()
 	runner := NewDockerRunner("/project", nil)
 
 	args := runner.buildRunArgs("myservice", "echo hello")
@@ -457,6 +471,7 @@ func TestBuildRunArgs_ServiceBeforeCommand(t *testing.T) {
 }
 
 func TestBuildRunArgs_UserFlagOnlyOnUnix(t *testing.T) {
+	t.Parallel()
 	runner := NewDockerRunner("/project", nil)
 
 	args := runner.buildRunArgs("service", "cmd")
@@ -481,6 +496,7 @@ func TestBuildRunArgs_UserFlagOnlyOnUnix(t *testing.T) {
 }
 
 func TestBuildRunArgs_ShellWrapperPlatformSpecific(t *testing.T) {
+	t.Parallel()
 	runner := NewDockerRunner("/project", nil)
 
 	args := runner.buildRunArgs("service", "echo test")
@@ -519,6 +535,7 @@ func TestBuildRunArgs_ShellWrapperPlatformSpecific(t *testing.T) {
 // =============================================================================
 
 func TestNewDockerRunnerWithConfig_NilConfig(t *testing.T) {
+	t.Parallel()
 	runner := NewDockerRunnerWithConfig("/project", nil)
 
 	if runner == nil {
@@ -540,6 +557,7 @@ func TestNewDockerRunnerWithConfig_NilConfig(t *testing.T) {
 }
 
 func TestNewDockerRunnerWithConfig_WithDockerConfig(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Docker: &config.DockerConfig{
 			ComposeFile: "custom-compose.yml",
@@ -560,6 +578,7 @@ func TestNewDockerRunnerWithConfig_WithDockerConfig(t *testing.T) {
 }
 
 func TestNewDockerRunnerWithConfig_ConfigWithoutDocker(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Docker: nil, // No Docker config
 	}
@@ -578,6 +597,7 @@ func TestNewDockerRunnerWithConfig_ConfigWithoutDocker(t *testing.T) {
 }
 
 func TestNewDockerRunnerWithConfig_StoresProjectConfig(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Project: config.ProjectConfig{Name: "test-project"},
 		Targets: map[string]config.TargetConfig{
@@ -601,6 +621,7 @@ func TestNewDockerRunnerWithConfig_StoresProjectConfig(t *testing.T) {
 // =============================================================================
 
 func TestGetDockerfilePath_DefaultDirectory(t *testing.T) {
+	t.Parallel()
 	runner := NewDockerRunnerWithConfig("/project", nil)
 
 	targetCfg := config.TargetConfig{
@@ -616,6 +637,7 @@ func TestGetDockerfilePath_DefaultDirectory(t *testing.T) {
 }
 
 func TestGetDockerfilePath_CustomDirectory(t *testing.T) {
+	t.Parallel()
 	runner := NewDockerRunnerWithConfig("/project", nil)
 
 	targetCfg := config.TargetConfig{
@@ -631,6 +653,7 @@ func TestGetDockerfilePath_CustomDirectory(t *testing.T) {
 }
 
 func TestGetDockerfilePath_RootDirectory(t *testing.T) {
+	t.Parallel()
 	runner := NewDockerRunnerWithConfig("/project", nil)
 
 	targetCfg := config.TargetConfig{

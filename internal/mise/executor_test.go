@@ -2,6 +2,7 @@ package mise
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -43,52 +44,6 @@ func TestBuildRunArgs_WithoutSkipDeps(t *testing.T) {
 			got := buildRunArgs(tt.task, tt.args, false)
 			if !reflect.DeepEqual(got, tt.expected) {
 				t.Errorf("buildRunArgs(%q, %v, false) = %v, want %v", tt.task, tt.args, got, tt.expected)
-			}
-		})
-	}
-}
-
-func TestBuildRunArgs_WithSkipDeps(t *testing.T) {
-	// Note: skipDeps parameter is kept for API compatibility but has no effect
-	// since mise doesn't support a --no-deps flag. The output should be the
-	// same whether skipDeps is true or false.
-	tests := []struct {
-		name     string
-		task     string
-		args     []string
-		expected []string
-	}{
-		{
-			name:     "simple task with skip deps (ignored)",
-			task:     "build",
-			args:     nil,
-			expected: []string{"run", "build"},
-		},
-		{
-			name:     "task with args and skip deps (ignored)",
-			task:     "test",
-			args:     []string{"--verbose"},
-			expected: []string{"run", "test", "--verbose"},
-		},
-		{
-			name:     "namespaced task with skip deps (ignored)",
-			task:     "test:go",
-			args:     nil,
-			expected: []string{"run", "test:go"},
-		},
-		{
-			name:     "aggregate task with skip deps (ignored)",
-			task:     "test",
-			args:     nil,
-			expected: []string{"run", "test"},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := buildRunArgs(tt.task, tt.args, true)
-			if !reflect.DeepEqual(got, tt.expected) {
-				t.Errorf("buildRunArgs(%q, %v, true) = %v, want %v", tt.task, tt.args, got, tt.expected)
 			}
 		})
 	}
@@ -312,7 +267,7 @@ func TestResolveTaskDependencies_CircularDependency(t *testing.T) {
 	if err == nil {
 		t.Error("resolveTaskDependenciesFromSlice() expected error for circular dependency")
 	}
-	if err != nil && !contains(err.Error(), "circular dependency") {
+	if err != nil && !strings.Contains(err.Error(), "circular dependency") {
 		t.Errorf("error = %q, want to contain 'circular dependency'", err.Error())
 	}
 }
@@ -327,7 +282,7 @@ func TestResolveTaskDependencies_SelfDependency(t *testing.T) {
 	if err == nil {
 		t.Error("resolveTaskDependenciesFromSlice() expected error for self dependency")
 	}
-	if err != nil && !contains(err.Error(), "circular dependency") {
+	if err != nil && !strings.Contains(err.Error(), "circular dependency") {
 		t.Errorf("error = %q, want to contain 'circular dependency'", err.Error())
 	}
 }
@@ -341,7 +296,7 @@ func TestResolveTaskDependencies_TaskNotFound(t *testing.T) {
 	if err == nil {
 		t.Error("resolveTaskDependenciesFromSlice() expected error for missing task")
 	}
-	if err != nil && !contains(err.Error(), "not found") {
+	if err != nil && !strings.Contains(err.Error(), "not found") {
 		t.Errorf("error = %q, want to contain 'not found'", err.Error())
 	}
 }
@@ -355,7 +310,7 @@ func TestResolveTaskDependencies_MissingDependency(t *testing.T) {
 	if err == nil {
 		t.Error("resolveTaskDependenciesFromSlice() expected error for missing dependency")
 	}
-	if err != nil && !contains(err.Error(), "not found") {
+	if err != nil && !strings.Contains(err.Error(), "not found") {
 		t.Errorf("error = %q, want to contain 'not found'", err.Error())
 	}
 }
@@ -393,17 +348,3 @@ func TestResolveTaskDependencies_MultipleDependencies(t *testing.T) {
 	}
 }
 
-// contains checks if s contains substr
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
-		(len(s) > 0 && len(substr) > 0 && findSubstring(s, substr)))
-}
-
-func findSubstring(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
-}

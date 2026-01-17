@@ -3,7 +3,6 @@ package integration
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
@@ -137,6 +136,3 @@ func mkdir(path string) error {
 	return os.MkdirAll(path, 0755)
 }
 
-func containsAny(s string, substr string) bool {
-	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
-}

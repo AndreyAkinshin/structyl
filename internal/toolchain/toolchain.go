@@ -25,9 +25,22 @@ func (t *Toolchain) HasCommand(name string) bool {
 }
 
 // Get retrieves a toolchain by name from built-in toolchains.
+// Deprecated: Use GetFromConfig for loaded toolchains configuration.
 func Get(name string) (*Toolchain, bool) {
 	tc, ok := builtinToolchains[name]
 	return tc, ok
+}
+
+// GetFromConfig retrieves a toolchain by name using the loaded configuration.
+// Falls back to built-in toolchains if loaded is nil or toolchain not found.
+func GetFromConfig(name string, loaded *ToolchainsFile) (*Toolchain, bool) {
+	// Try loaded config first
+	if tc, ok := GetToolchainFromConfig(name, loaded); ok {
+		return tc, true
+	}
+
+	// Fallback to built-in
+	return Get(name)
 }
 
 // List returns a list of all built-in toolchain names.

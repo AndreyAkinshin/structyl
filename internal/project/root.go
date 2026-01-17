@@ -13,6 +13,9 @@ const ConfigDirName = ".structyl"
 // ConfigFileName is the name of the configuration file.
 const ConfigFileName = "config.json"
 
+// ToolchainsFileName is the name of the toolchains configuration file.
+const ToolchainsFileName = "toolchains.json"
+
 // VersionFileName is the name of the version file inside .structyl directory.
 const VersionFileName = "version"
 

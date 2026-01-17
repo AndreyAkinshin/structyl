@@ -35,8 +35,26 @@ func (e *Executor) SetVerbose(v bool) {
 
 // RunTask executes a mise task by name.
 func (e *Executor) RunTask(ctx context.Context, task string, args []string) error {
-	cmdArgs := []string{"run", task}
+	return e.runTask(ctx, task, args, false)
+}
+
+// buildRunArgs constructs the command arguments for mise run.
+// When skipDeps is true, adds --no-deps flag to prevent mise from running dependencies.
+func buildRunArgs(task string, args []string, skipDeps bool) []string {
+	cmdArgs := []string{"run"}
+	if skipDeps {
+		cmdArgs = append(cmdArgs, "--no-deps")
+	}
+	cmdArgs = append(cmdArgs, task)
 	cmdArgs = append(cmdArgs, args...)
+	return cmdArgs
+}
+
+// runTask executes a mise task with optional --no-deps flag.
+// When skipDeps is true, mise won't run the task's dependencies (useful when
+// the caller is managing dependency execution order).
+func (e *Executor) runTask(ctx context.Context, task string, args []string, skipDeps bool) error {
+	cmdArgs := buildRunArgs(task, args, skipDeps)
 
 	cmd := exec.CommandContext(ctx, "mise", cmdArgs...)
 	cmd.Dir = e.projectRoot
@@ -57,8 +75,12 @@ func (e *Executor) RunTask(ctx context.Context, task string, args []string) erro
 // RunTaskWithCapture executes a mise task, streaming output while capturing it.
 // Returns the combined stdout+stderr output and any execution error.
 func (e *Executor) RunTaskWithCapture(ctx context.Context, task string, args []string) (string, error) {
-	cmdArgs := []string{"run", task}
-	cmdArgs = append(cmdArgs, args...)
+	return e.runTaskWithCapture(ctx, task, args, false)
+}
+
+// runTaskWithCapture executes a mise task with optional --no-deps flag, streaming output while capturing it.
+func (e *Executor) runTaskWithCapture(ctx context.Context, task string, args []string, skipDeps bool) (string, error) {
+	cmdArgs := buildRunArgs(task, args, skipDeps)
 
 	cmd := exec.CommandContext(ctx, "mise", cmdArgs...)
 	cmd.Dir = e.projectRoot
@@ -277,12 +299,13 @@ func (e *Executor) RunTasksWithTracking(ctx context.Context, tasks []MiseTaskMet
 		var err error
 		var taskOutput string
 
+		// Use --no-deps since we're managing dependency order ourselves
 		if parser != nil {
 			// Use capture mode for test tasks to parse output
-			taskOutput, err = e.RunTaskWithCapture(ctx, task.Name, args)
+			taskOutput, err = e.runTaskWithCapture(ctx, task.Name, args, true)
 		} else {
 			// Use regular execution for non-test tasks
-			err = e.RunTask(ctx, task.Name, args)
+			err = e.runTask(ctx, task.Name, args, true)
 		}
 
 		result.Duration = time.Since(taskStart)

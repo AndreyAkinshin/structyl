@@ -1,0 +1,60 @@
+[tools]
+go = "1.22"
+
+[env]
+CGO_ENABLED = "0"
+
+[tasks.build]
+description = "Build the CLI"
+run = "go build -v ./cmd/structyl"
+
+[tasks.test]
+description = "Run all tests"
+run = "go test -v -race ./..."
+
+[tasks."test:unit"]
+description = "Run unit tests only"
+run = "go test -v -race ./internal/..."
+
+[tasks."test:integration"]
+description = "Run integration tests"
+run = "go test -v -race ./test/integration/..."
+
+[tasks."test:coverage"]
+description = "Run tests with coverage"
+run = "go test -coverprofile=coverage.out ./internal/..."
+
+[tasks.lint]
+description = "Run golangci-lint"
+run = "golangci-lint run"
+
+[tasks.fmt]
+description = "Format code"
+run = "go fmt ./..."
+
+[tasks."fmt:check"]
+description = "Check code formatting"
+run = '''
+#!/usr/bin/env bash
+if [ -n "$(gofmt -l .)" ]; then
+  echo "Code is not formatted. Run 'mise run fmt'"
+  gofmt -l .
+  exit 1
+fi
+'''
+
+[tasks.clean]
+description = "Clean build artifacts"
+run = "rm -f structyl structyl.exe coverage.out coverage*.out"
+
+[tasks.ci]
+description = "Run CI pipeline (lint, test, build)"
+depends = ["lint", "test", "build"]
+
+[tasks.release]
+description = "Create release with goreleaser"
+run = "goreleaser release --clean"
+
+[tasks."release:snapshot"]
+description = "Create snapshot release (no publish)"
+run = "goreleaser release --snapshot --clean"

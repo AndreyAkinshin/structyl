@@ -213,6 +213,12 @@ func (e *Executor) ResolveTaskDependencies(ctx context.Context, taskName string)
 		return nil, err
 	}
 
+	return resolveTaskDependenciesFromSlice(allTasks, taskName)
+}
+
+// resolveTaskDependenciesFromSlice performs topological sort on tasks.
+// This is an internal function that can be tested without calling mise.
+func resolveTaskDependenciesFromSlice(allTasks []MiseTaskMeta, taskName string) ([]MiseTaskMeta, error) {
 	// Build task map for lookup
 	taskMap := make(map[string]MiseTaskMeta)
 	for _, t := range allTasks {

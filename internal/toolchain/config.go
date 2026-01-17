@@ -8,8 +8,8 @@ import (
 
 // ToolchainsFile represents the .structyl/toolchains.json configuration file.
 type ToolchainsFile struct {
-	Schema     string                       `json:"$schema,omitempty"`
-	Version    string                       `json:"version"`
+	Schema     string                        `json:"$schema,omitempty"`
+	Version    string                        `json:"version"`
 	Toolchains map[string]ToolchainFileEntry `json:"toolchains"`
 }
 

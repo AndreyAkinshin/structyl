@@ -190,4 +190,3 @@ func containsIgnoreCaseImpl(s, substr string) bool {
 	}
 	return false
 }
-

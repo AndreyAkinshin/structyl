@@ -322,4 +322,3 @@ func TestResolveTaskDependencies_MultipleDependencies(t *testing.T) {
 		t.Errorf("last task = %q, want D", result[len(result)-1].Name)
 	}
 }
-

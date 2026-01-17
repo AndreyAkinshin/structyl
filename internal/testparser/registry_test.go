@@ -60,9 +60,9 @@ func TestRegistryGetParserForTask(t *testing.T) {
 		{"test:py", "pytest", false},
 		{"ci:test:go", "go", false},
 		{"build:go", "go", false},
-		{"test", "", true},           // No toolchain suffix
-		{"singleword", "", true},     // No colon
-		{"test:unknown", "", true},   // Unknown toolchain
+		{"test", "", true},         // No toolchain suffix
+		{"singleword", "", true},   // No colon
+		{"test:unknown", "", true}, // Unknown toolchain
 	}
 
 	for _, tt := range tests {

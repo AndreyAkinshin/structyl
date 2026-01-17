@@ -81,6 +81,10 @@ func Run(args []string) int {
 	case "github":
 		return cmdGitHub(cmdArgs, opts)
 
+	// Mise commands
+	case "mise":
+		return cmdMise(cmdArgs, opts)
+
 	// Utility commands
 	case "targets":
 		return cmdTargets(opts)
@@ -240,6 +244,9 @@ func printProjectHelp(w *output.Writer, proj *project.Project) {
 	w.HelpCommand("dockerfile", "Generate Dockerfiles with mise", 12)
 	w.HelpCommand("github", "Generate GitHub Actions CI workflow", 12)
 
+	w.HelpSection("Mise Commands:")
+	w.HelpCommand("mise sync", "Regenerate .mise.toml from config", 12)
+
 	w.HelpSection("Utility Commands:")
 	w.HelpCommand("targets", "List all configured targets", 10)
 	w.HelpCommand("config", "Configuration utilities", 10)
@@ -278,6 +285,9 @@ func printGenericHelp(w *output.Writer) {
 	w.HelpSection("Generation Commands:")
 	w.HelpCommand("dockerfile", "Generate Dockerfiles with mise", 12)
 	w.HelpCommand("github", "Generate GitHub Actions CI workflow", 12)
+
+	w.HelpSection("Mise Commands:")
+	w.HelpCommand("mise sync", "Regenerate .mise.toml from config", 12)
 
 	w.HelpSection("Utility Commands:")
 	w.HelpCommand("targets", "List all configured targets", 10)

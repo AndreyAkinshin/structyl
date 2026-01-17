@@ -103,6 +103,9 @@ func builtinCommands() []string {
 		"release",
 		"docker-build",
 		"docker-clean",
+		"dockerfile",
+		"github",
+		"mise",
 		"targets",
 		"config",
 		"upgrade",
@@ -251,6 +254,9 @@ func generateZshCompletion(cmdName string) string {
         'release:Create a release'
         'docker-build:Build Docker images'
         'docker-clean:Remove Docker containers and images'
+        'dockerfile:Generate Dockerfiles with mise'
+        'github:Generate GitHub Actions CI workflow'
+        'mise:Mise integration commands'
         'targets:List all configured targets'
         'config:Configuration utilities'
         'upgrade:Manage pinned CLI version'
@@ -355,6 +361,9 @@ complete -c %s -f
 		"release":      "Create a release",
 		"docker-build": "Build Docker images",
 		"docker-clean": "Remove Docker containers and images",
+		"dockerfile":   "Generate Dockerfiles with mise",
+		"github":       "Generate GitHub Actions CI workflow",
+		"mise":         "Mise integration commands",
 		"targets":      "List all configured targets",
 		"config":       "Configuration utilities",
 		"upgrade":      "Manage pinned CLI version",

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -291,9 +292,9 @@ func TestWritePinnedVersion_Overwrites(t *testing.T) {
 
 func TestIsVersionInstalled_NotInstalled(t *testing.T) {
 	// Non-existent version should return false
-	installed := isVersionInstalled("99.99.99")
+	installed := isVersionInstalledReal("99.99.99")
 	if installed {
-		t.Error("isVersionInstalled(99.99.99) = true, want false")
+		t.Error("isVersionInstalledReal(99.99.99) = true, want false")
 	}
 }
 
@@ -367,7 +368,27 @@ func createTestProjectWithoutVersion(t *testing.T) string {
 	return root
 }
 
+// mockInstaller creates a mock installer that can be configured to succeed or fail.
+func mockInstaller(shouldFail bool) func(ver string) error {
+	return func(ver string) error {
+		if shouldFail {
+			return errors.New("mock installation failed")
+		}
+		return nil
+	}
+}
+
 func TestCmdUpgrade_SpecificVersion_Success(t *testing.T) {
+	// Mock the installer to succeed
+	originalInstaller := installVersionFunc
+	installVersionFunc = mockInstaller(false)
+	defer func() { installVersionFunc = originalInstaller }()
+
+	// Mock isVersionInstalled to return false so installation is attempted
+	originalIsInstalled := isVersionInstalledFunc
+	isVersionInstalledFunc = func(ver string) bool { return false }
+	defer func() { isVersionInstalledFunc = originalIsInstalled }()
+
 	root := createTestProjectWithVersion(t, "1.0.0")
 	withWorkingDir(t, root, func() {
 		exitCode := cmdUpgrade([]string{"2.0.0"})
@@ -411,6 +432,16 @@ func TestCmdUpgrade_SpecificVersion_Success(t *testing.T) {
 }
 
 func TestCmdUpgrade_NoVersionFile_Success(t *testing.T) {
+	// Mock the installer to succeed
+	originalInstaller := installVersionFunc
+	installVersionFunc = mockInstaller(false)
+	defer func() { installVersionFunc = originalInstaller }()
+
+	// Mock isVersionInstalled to return false so installation is attempted
+	originalIsInstalled := isVersionInstalledFunc
+	isVersionInstalledFunc = func(ver string) bool { return false }
+	defer func() { isVersionInstalledFunc = originalIsInstalled }()
+
 	root := createTestProjectWithoutVersion(t)
 	withWorkingDir(t, root, func() {
 		exitCode := cmdUpgrade([]string{"2.0.0"})
@@ -452,29 +483,43 @@ func TestCmdUpgrade_SameVersion_NoChange(t *testing.T) {
 }
 
 func TestCmdUpgrade_NightlyVersion_Success(t *testing.T) {
+	// Mock the nightly API
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "nightly", "body": "**Version:** ` + "`" + `0.1.0-nightly+abc1234` + "`" + `"}`))
+	}))
+	defer server.Close()
+
+	originalNightlyURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalNightlyURL }()
+
+	// Mock the installer to succeed
+	originalInstaller := installVersionFunc
+	installVersionFunc = mockInstaller(false)
+	defer func() { installVersionFunc = originalInstaller }()
+
+	// Mock isVersionInstalled to return false so installation is attempted
+	originalIsInstalled := isVersionInstalledFunc
+	isVersionInstalledFunc = func(ver string) bool { return false }
+	defer func() { isVersionInstalledFunc = originalIsInstalled }()
+
 	root := createTestProjectWithVersion(t, "1.0.0")
 	withWorkingDir(t, root, func() {
 		exitCode := cmdUpgrade([]string{"nightly"})
-		// Exit code 1 is acceptable if network is unavailable
-		// Exit code 0 means success
-		// Exit code 2 would mean usage error (bad)
-		if exitCode == 2 {
-			t.Errorf("cmdUpgrade([nightly]) = 2 (usage error), want 0 or 1")
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([nightly]) = %d, want 0", exitCode)
 		}
 
-		if exitCode == 0 {
-			// Verify version was updated to actual nightly version (not just "nightly")
-			ver, err := readPinnedVersion(root)
-			if err != nil {
-				t.Fatal(err)
-			}
-			// The version should be resolved to actual nightly format (e.g., "X.Y.Z-nightly+SHA")
-			if !isNightlyVersion(ver) {
-				t.Errorf("pinned version = %q, want nightly version format", ver)
-			}
-			if ver == "nightly" {
-				t.Errorf("pinned version = %q, should be resolved to actual version", ver)
-			}
+		// Verify version was updated to actual nightly version (not just "nightly")
+		ver, err := readPinnedVersion(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		// The version should be resolved to actual nightly format (e.g., "X.Y.Z-nightly+SHA")
+		if ver != "0.1.0-nightly+abc1234" {
+			t.Errorf("pinned version = %q, want %q", ver, "0.1.0-nightly+abc1234")
 		}
 	})
 }
@@ -609,6 +654,16 @@ func TestCmdUpgrade_CheckMode_NightlyPinned(t *testing.T) {
 }
 
 func TestRun_UpgradeCommand_Routing(t *testing.T) {
+	// Mock the installer to succeed
+	originalInstaller := installVersionFunc
+	installVersionFunc = mockInstaller(false)
+	defer func() { installVersionFunc = originalInstaller }()
+
+	// Mock isVersionInstalled to return false so installation is attempted
+	originalIsInstalled := isVersionInstalledFunc
+	isVersionInstalledFunc = func(ver string) bool { return false }
+	defer func() { isVersionInstalledFunc = originalIsInstalled }()
+
 	root := createTestProjectWithVersion(t, "1.0.0")
 	withWorkingDir(t, root, func() {
 		// Test that "upgrade" command is properly routed
@@ -793,4 +848,374 @@ func TestFetchNightlyVersion_NoVersionInBody_ReturnsError(t *testing.T) {
 	if err == nil {
 		t.Error("fetchNightlyVersion() error = nil, want error when version not in body")
 	}
+}
+
+// =============================================================================
+// Nightly Upgrade Scenario Tests
+// =============================================================================
+
+func TestCmdUpgrade_NightlyToNightly_Success(t *testing.T) {
+	// Mock the nightly API to return a new nightly version
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "nightly", "body": "**Version:** ` + "`" + `0.2.0-nightly+def5678` + "`" + `"}`))
+	}))
+	defer server.Close()
+
+	originalNightlyURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalNightlyURL }()
+
+	// Mock the installer to succeed
+	originalInstaller := installVersionFunc
+	installVersionFunc = mockInstaller(false)
+	defer func() { installVersionFunc = originalInstaller }()
+
+	// Create a project with an old nightly version
+	root := createTestProjectWithVersion(t, "0.1.0-nightly+abc1234")
+
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"nightly"})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([nightly]) = %d, want 0", exitCode)
+		}
+
+		// Verify version was updated to the new nightly version
+		ver, err := readPinnedVersion(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if ver != "0.2.0-nightly+def5678" {
+			t.Errorf("pinned version = %q, want %q", ver, "0.2.0-nightly+def5678")
+		}
+	})
+}
+
+func TestCmdUpgrade_NightlyToNightly_SameVersion_NoChange(t *testing.T) {
+	// Mock the nightly API to return the same version as currently pinned
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "nightly", "body": "**Version:** ` + "`" + `0.1.0-nightly+abc1234` + "`" + `"}`))
+	}))
+	defer server.Close()
+
+	originalNightlyURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalNightlyURL }()
+
+	// Mock the installer (should not be called since version is same)
+	installerCalled := false
+	originalInstaller := installVersionFunc
+	installVersionFunc = func(ver string) error {
+		installerCalled = true
+		return nil
+	}
+	defer func() { installVersionFunc = originalInstaller }()
+
+	// Create a project with the same nightly version
+	root := createTestProjectWithVersion(t, "0.1.0-nightly+abc1234")
+
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"nightly"})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([nightly]) = %d, want 0 (already on version)", exitCode)
+		}
+
+		// Verify version is unchanged
+		ver, err := readPinnedVersion(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if ver != "0.1.0-nightly+abc1234" {
+			t.Errorf("pinned version = %q, want %q (unchanged)", ver, "0.1.0-nightly+abc1234")
+		}
+
+		// Verify installer was not called
+		if installerCalled {
+			t.Error("installer was called, but should not be called when already on same version")
+		}
+	})
+}
+
+func TestCmdUpgrade_InstallationFailure_VersionNotUpdated(t *testing.T) {
+	// Mock the installer to fail
+	originalInstaller := installVersionFunc
+	installVersionFunc = mockInstaller(true)
+	defer func() { installVersionFunc = originalInstaller }()
+
+	// Mock isVersionInstalled to return false so installation is attempted
+	originalIsInstalled := isVersionInstalledFunc
+	isVersionInstalledFunc = func(ver string) bool { return false }
+	defer func() { isVersionInstalledFunc = originalIsInstalled }()
+
+	// Create a project with an old version
+	root := createTestProjectWithVersion(t, "1.0.0")
+	originalVersion := "1.0.0"
+
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"2.0.0"})
+		if exitCode == 0 {
+			t.Error("cmdUpgrade([2.0.0]) = 0, want non-zero (installation failed)")
+		}
+
+		// Verify version was NOT updated (should remain at original)
+		ver, err := readPinnedVersion(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if ver != originalVersion {
+			t.Errorf("pinned version = %q, want %q (should not change on installation failure)", ver, originalVersion)
+		}
+	})
+}
+
+func TestCmdUpgrade_NightlyInstallationFailure_VersionNotUpdated(t *testing.T) {
+	// Mock the nightly API to return a new version
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "nightly", "body": "**Version:** ` + "`" + `0.2.0-nightly+def5678` + "`" + `"}`))
+	}))
+	defer server.Close()
+
+	originalNightlyURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalNightlyURL }()
+
+	// Mock the installer to fail
+	originalInstaller := installVersionFunc
+	installVersionFunc = mockInstaller(true)
+	defer func() { installVersionFunc = originalInstaller }()
+
+	// Mock isVersionInstalled to return false so installation is attempted
+	originalIsInstalled := isVersionInstalledFunc
+	isVersionInstalledFunc = func(ver string) bool { return false }
+	defer func() { isVersionInstalledFunc = originalIsInstalled }()
+
+	// Create a project with an old nightly version
+	root := createTestProjectWithVersion(t, "0.1.0-nightly+abc1234")
+	originalVersion := "0.1.0-nightly+abc1234"
+
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"nightly"})
+		if exitCode == 0 {
+			t.Error("cmdUpgrade([nightly]) = 0, want non-zero (installation failed)")
+		}
+
+		// Verify version was NOT updated (should remain at original)
+		ver, err := readPinnedVersion(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if ver != originalVersion {
+			t.Errorf("pinned version = %q, want %q (should not change on installation failure)", ver, originalVersion)
+		}
+	})
+}
+
+func TestCmdUpgrade_StableToNightly_Success(t *testing.T) {
+	// Mock the nightly API
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "nightly", "body": "**Version:** ` + "`" + `0.2.0-nightly+abc1234` + "`" + `"}`))
+	}))
+	defer server.Close()
+
+	originalNightlyURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalNightlyURL }()
+
+	// Mock the installer to succeed
+	originalInstaller := installVersionFunc
+	installVersionFunc = mockInstaller(false)
+	defer func() { installVersionFunc = originalInstaller }()
+
+	// Create a project with a stable version
+	root := createTestProjectWithVersion(t, "1.0.0")
+
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"nightly"})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([nightly]) = %d, want 0", exitCode)
+		}
+
+		// Verify version was updated to nightly
+		ver, err := readPinnedVersion(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if ver != "0.2.0-nightly+abc1234" {
+			t.Errorf("pinned version = %q, want %q", ver, "0.2.0-nightly+abc1234")
+		}
+	})
+}
+
+func TestCmdUpgrade_NightlyToStable_Success(t *testing.T) {
+	// Mock the installer to succeed
+	originalInstaller := installVersionFunc
+	installVersionFunc = mockInstaller(false)
+	defer func() { installVersionFunc = originalInstaller }()
+
+	// Create a project with a nightly version
+	root := createTestProjectWithVersion(t, "0.1.0-nightly+abc1234")
+
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"2.0.0"})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([2.0.0]) = %d, want 0", exitCode)
+		}
+
+		// Verify version was updated to stable
+		ver, err := readPinnedVersion(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if ver != "2.0.0" {
+			t.Errorf("pinned version = %q, want %q", ver, "2.0.0")
+		}
+	})
+}
+
+func TestCmdUpgrade_NightlyFetchFailure_VersionNotUpdated(t *testing.T) {
+	// Mock the nightly API to fail
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	originalNightlyURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalNightlyURL }()
+
+	// Create a project with a stable version
+	root := createTestProjectWithVersion(t, "1.0.0")
+	originalVersion := "1.0.0"
+
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"nightly"})
+		if exitCode == 0 {
+			t.Error("cmdUpgrade([nightly]) = 0, want non-zero (fetch failed)")
+		}
+
+		// Verify version was NOT updated
+		ver, err := readPinnedVersion(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if ver != originalVersion {
+			t.Errorf("pinned version = %q, want %q (should not change on fetch failure)", ver, originalVersion)
+		}
+	})
+}
+
+func TestCmdUpgrade_SNAPSHOTVersion_Success(t *testing.T) {
+	// Mock the nightly API to return SNAPSHOT format version
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"tag_name": "nightly", "body": "**Version:** ` + "`" + `nightly-SNAPSHOT-abc1234` + "`" + `"}`))
+	}))
+	defer server.Close()
+
+	originalNightlyURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalNightlyURL }()
+
+	// Mock the installer to succeed
+	originalInstaller := installVersionFunc
+	installVersionFunc = mockInstaller(false)
+	defer func() { installVersionFunc = originalInstaller }()
+
+	// Create a project with an old SNAPSHOT version
+	root := createTestProjectWithVersion(t, "nightly-SNAPSHOT-xyz5678")
+
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"nightly"})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([nightly]) = %d, want 0", exitCode)
+		}
+
+		// Verify version was updated to new SNAPSHOT
+		ver, err := readPinnedVersion(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if ver != "nightly-SNAPSHOT-abc1234" {
+			t.Errorf("pinned version = %q, want %q", ver, "nightly-SNAPSHOT-abc1234")
+		}
+	})
+}
+
+func TestCmdUpgrade_ProjectFilesRegeneratedAfterInstall(t *testing.T) {
+	// Mock the installer to succeed
+	originalInstaller := installVersionFunc
+	installVersionFunc = mockInstaller(false)
+	defer func() { installVersionFunc = originalInstaller }()
+
+	root := createTestProjectWithVersion(t, "1.0.0")
+
+	// Remove existing project files to verify they get regenerated
+	structylDir := filepath.Join(root, ".structyl")
+	os.Remove(filepath.Join(structylDir, "setup.sh"))
+	os.Remove(filepath.Join(structylDir, "setup.ps1"))
+	os.Remove(filepath.Join(structylDir, "AGENTS.md"))
+
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"2.0.0"})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([2.0.0]) = %d, want 0", exitCode)
+		}
+
+		// Verify all project files were regenerated
+		if _, err := os.Stat(filepath.Join(structylDir, "setup.sh")); os.IsNotExist(err) {
+			t.Error("setup.sh was not regenerated")
+		}
+		if _, err := os.Stat(filepath.Join(structylDir, "setup.ps1")); os.IsNotExist(err) {
+			t.Error("setup.ps1 was not regenerated")
+		}
+		if _, err := os.Stat(filepath.Join(structylDir, "AGENTS.md")); os.IsNotExist(err) {
+			t.Error("AGENTS.md was not regenerated")
+		}
+	})
+}
+
+func TestCmdUpgrade_InstallationFailure_ProjectFilesNotRegenerated(t *testing.T) {
+	// Mock the installer to fail
+	originalInstaller := installVersionFunc
+	installVersionFunc = mockInstaller(true)
+	defer func() { installVersionFunc = originalInstaller }()
+
+	// Mock isVersionInstalled to return false so installation is attempted
+	originalIsInstalled := isVersionInstalledFunc
+	isVersionInstalledFunc = func(ver string) bool { return false }
+	defer func() { isVersionInstalledFunc = originalIsInstalled }()
+
+	root := createTestProjectWithVersion(t, "1.0.0")
+
+	// Remove existing project files to verify they don't get regenerated on failure
+	structylDir := filepath.Join(root, ".structyl")
+	os.Remove(filepath.Join(structylDir, "setup.sh"))
+	os.Remove(filepath.Join(structylDir, "setup.ps1"))
+	os.Remove(filepath.Join(structylDir, "AGENTS.md"))
+
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"2.0.0"})
+		if exitCode == 0 {
+			t.Error("cmdUpgrade([2.0.0]) = 0, want non-zero (installation failed)")
+		}
+
+		// Verify project files were NOT regenerated (since installation failed)
+		if _, err := os.Stat(filepath.Join(structylDir, "setup.sh")); !os.IsNotExist(err) {
+			t.Error("setup.sh was regenerated despite installation failure")
+		}
+		if _, err := os.Stat(filepath.Join(structylDir, "setup.ps1")); !os.IsNotExist(err) {
+			t.Error("setup.ps1 was regenerated despite installation failure")
+		}
+		if _, err := os.Stat(filepath.Join(structylDir, "AGENTS.md")); !os.IsNotExist(err) {
+			t.Error("AGENTS.md was regenerated despite installation failure")
+		}
+	})
 }

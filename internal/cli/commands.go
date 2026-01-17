@@ -9,7 +9,7 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/project"
 	"github.com/AndreyAkinshin/structyl/internal/release"
-	"github.com/AndreyAkinshin/structyl/internal/runner"
+	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: intentionally using deprecated package for backwards compatibility
 	"github.com/AndreyAkinshin/structyl/internal/target"
 )
 
@@ -424,7 +424,8 @@ func cmdDockerBuild(args []string, opts *GlobalOptions) int {
 		return exitCode
 	}
 
-	dockerRunner := runner.NewDockerRunner(proj.Root, proj.Config.Docker)
+	// Use the full config runner to support per-target Dockerfiles
+	dockerRunner := runner.NewDockerRunnerWithConfig(proj.Root, proj.Config)
 
 	// Check Docker availability
 	if err := runner.CheckDockerAvailable(); err != nil {

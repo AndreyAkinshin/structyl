@@ -9,7 +9,7 @@ import (
 
 	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/project"
-	"github.com/AndreyAkinshin/structyl/internal/runner"
+	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: intentionally using deprecated package for backwards compatibility
 	"github.com/AndreyAkinshin/structyl/internal/target"
 )
 
@@ -74,6 +74,12 @@ func Run(args []string) int {
 		return cmdDockerBuild(cmdArgs, opts)
 	case "docker-clean":
 		return cmdDockerClean(opts)
+
+	// Generation commands (mise-based)
+	case "dockerfile":
+		return cmdDockerfile(cmdArgs, opts)
+	case "github":
+		return cmdGitHub(cmdArgs, opts)
 
 	// Utility commands
 	case "targets":
@@ -230,6 +236,10 @@ func printProjectHelp(w *output.Writer, proj *project.Project) {
 	w.HelpCommand("docker-build [services]", "Build Docker images for services", 22)
 	w.HelpCommand("docker-clean", "Remove Docker containers and images", 22)
 
+	w.HelpSection("Generation Commands:")
+	w.HelpCommand("dockerfile", "Generate Dockerfiles with mise", 12)
+	w.HelpCommand("github", "Generate GitHub Actions CI workflow", 12)
+
 	w.HelpSection("Utility Commands:")
 	w.HelpCommand("targets", "List all configured targets", 10)
 	w.HelpCommand("config", "Configuration utilities", 10)
@@ -264,6 +274,10 @@ func printGenericHelp(w *output.Writer) {
 	w.HelpSection("Docker Commands:")
 	w.HelpCommand("docker-build [services]", "Build Docker images for services", 22)
 	w.HelpCommand("docker-clean", "Remove Docker containers and images", 22)
+
+	w.HelpSection("Generation Commands:")
+	w.HelpCommand("dockerfile", "Generate Dockerfiles with mise", 12)
+	w.HelpCommand("github", "Generate GitHub Actions CI workflow", 12)
 
 	w.HelpSection("Utility Commands:")
 	w.HelpCommand("targets", "List all configured targets", 10)

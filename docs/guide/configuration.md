@@ -133,6 +133,30 @@ Configure the reference test system.
 
 See [Testing](./testing) for details on cross-language testing.
 
+### `mise`
+
+Configure mise integration (enabled by default).
+
+```json
+{
+  "mise": {
+    "enabled": true,
+    "auto_generate": true,
+    "extra_tools": {
+      "jq": "latest"
+    }
+  }
+}
+```
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `enabled` | `true` | Enable mise integration |
+| `auto_generate` | `true` | Regenerate .mise.toml before each run |
+| `extra_tools` | `{}` | Additional mise tools to install |
+
+See [Mise Integration](./mise) for details.
+
 ### `docker`
 
 Enable Docker-based builds.
@@ -160,6 +184,7 @@ Each target supports these options:
 | `type` | string | Required | `"language"` or `"auxiliary"` |
 | `title` | string | Required | Display name |
 | `toolchain` | string | Auto-detect | Toolchain preset |
+| `toolchain_version` | string | From toolchain | Override mise tool version |
 | `directory` | string | Target key | Directory path |
 | `cwd` | string | `directory` | Working directory |
 | `commands` | object | From toolchain | Command overrides |

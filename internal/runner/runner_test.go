@@ -6,68 +6,12 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"testing"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
 	"github.com/AndreyAkinshin/structyl/internal/target"
+	"github.com/AndreyAkinshin/structyl/internal/testing/mocks"
 )
-
-// mockTarget implements target.Target for testing runner execution
-type mockTarget struct {
-	name       string
-	targetType target.TargetType
-	commands   map[string]bool
-	execFunc   func(ctx context.Context, cmd string) error
-	execCount  int32
-	mu         sync.Mutex
-	execOrder  []string
-	directory  string // optional custom directory
-}
-
-func (m *mockTarget) Name() string            { return m.name }
-func (m *mockTarget) Title() string           { return m.name }
-func (m *mockTarget) Type() target.TargetType { return m.targetType }
-func (m *mockTarget) Directory() string {
-	if m.directory != "" {
-		return m.directory
-	}
-	return m.name
-}
-func (m *mockTarget) Cwd() string { return m.name }
-func (m *mockTarget) Commands() []string {
-	if m.commands == nil {
-		return nil
-	}
-	cmds := make([]string, 0, len(m.commands))
-	for k := range m.commands {
-		cmds = append(cmds, k)
-	}
-	return cmds
-}
-func (m *mockTarget) DependsOn() []string     { return nil }
-func (m *mockTarget) Env() map[string]string  { return nil }
-func (m *mockTarget) Vars() map[string]string { return nil }
-func (m *mockTarget) DemoPath() string        { return "" }
-func (m *mockTarget) GetCommand(name string) (interface{}, bool) {
-	if m.commands == nil {
-		return "cmd", true
-	}
-	_, ok := m.commands[name]
-	return "cmd", ok
-}
-
-func (m *mockTarget) Execute(ctx context.Context, cmd string, opts target.ExecOptions) error {
-	atomic.AddInt32(&m.execCount, 1)
-	m.mu.Lock()
-	m.execOrder = append(m.execOrder, m.name)
-	m.mu.Unlock()
-
-	if m.execFunc != nil {
-		return m.execFunc(ctx, cmd)
-	}
-	return nil
-}
 
 func TestGetParallelWorkers_Default(t *testing.T) {
 	t.Setenv("STRUCTYL_PARALLEL", "")
@@ -269,9 +213,9 @@ func TestRunTargets_EmptyTargetList_ReturnsNil(t *testing.T) {
 
 func TestRunSequential_ExecutesAll(t *testing.T) {
 	// Create mock targets
-	target1 := &mockTarget{name: "t1", targetType: target.TypeLanguage}
-	target2 := &mockTarget{name: "t2", targetType: target.TypeLanguage}
-	target3 := &mockTarget{name: "t3", targetType: target.TypeLanguage}
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage)
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage)
+	target3 := mocks.NewTarget("t3").WithType(target.TypeLanguage)
 
 	targets := []target.Target{target1, target2, target3}
 
@@ -286,27 +230,24 @@ func TestRunSequential_ExecutesAll(t *testing.T) {
 	}
 
 	// All targets should have executed
-	if target1.execCount != 1 {
-		t.Errorf("target1.execCount = %d, want 1", target1.execCount)
+	if target1.ExecCount() != 1 {
+		t.Errorf("target1.ExecCount() = %d, want 1", target1.ExecCount())
 	}
-	if target2.execCount != 1 {
-		t.Errorf("target2.execCount = %d, want 1", target2.execCount)
+	if target2.ExecCount() != 1 {
+		t.Errorf("target2.ExecCount() = %d, want 1", target2.ExecCount())
 	}
-	if target3.execCount != 1 {
-		t.Errorf("target3.execCount = %d, want 1", target3.execCount)
+	if target3.ExecCount() != 1 {
+		t.Errorf("target3.ExecCount() = %d, want 1", target3.ExecCount())
 	}
 }
 
 func TestRunSequential_StopsOnError(t *testing.T) {
 	testErr := errors.New("test error")
 
-	target1 := &mockTarget{name: "t1", targetType: target.TypeLanguage}
-	target2 := &mockTarget{
-		name:       "t2",
-		targetType: target.TypeLanguage,
-		execFunc:   func(ctx context.Context, cmd string) error { return testErr },
-	}
-	target3 := &mockTarget{name: "t3", targetType: target.TypeLanguage}
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage)
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error { return testErr })
+	target3 := mocks.NewTarget("t3").WithType(target.TypeLanguage)
 
 	targets := []target.Target{target1, target2, target3}
 
@@ -321,27 +262,24 @@ func TestRunSequential_StopsOnError(t *testing.T) {
 	}
 
 	// First two should have executed, third should not
-	if target1.execCount != 1 {
-		t.Errorf("target1.execCount = %d, want 1", target1.execCount)
+	if target1.ExecCount() != 1 {
+		t.Errorf("target1.ExecCount() = %d, want 1", target1.ExecCount())
 	}
-	if target2.execCount != 1 {
-		t.Errorf("target2.execCount = %d, want 1", target2.execCount)
+	if target2.ExecCount() != 1 {
+		t.Errorf("target2.ExecCount() = %d, want 1", target2.ExecCount())
 	}
-	if target3.execCount != 0 {
-		t.Errorf("target3.execCount = %d, want 0 (should not execute after error)", target3.execCount)
+	if target3.ExecCount() != 0 {
+		t.Errorf("target3.ExecCount() = %d, want 0 (should not execute after error)", target3.ExecCount())
 	}
 }
 
 func TestRunSequential_ContinueOnError(t *testing.T) {
 	testErr := errors.New("test error")
 
-	target1 := &mockTarget{name: "t1", targetType: target.TypeLanguage}
-	target2 := &mockTarget{
-		name:       "t2",
-		targetType: target.TypeLanguage,
-		execFunc:   func(ctx context.Context, cmd string) error { return testErr },
-	}
-	target3 := &mockTarget{name: "t3", targetType: target.TypeLanguage}
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage)
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error { return testErr })
+	target3 := mocks.NewTarget("t3").WithType(target.TypeLanguage)
 
 	targets := []target.Target{target1, target2, target3}
 
@@ -356,14 +294,14 @@ func TestRunSequential_ContinueOnError(t *testing.T) {
 	}
 
 	// All targets should have executed despite error in t2
-	if target1.execCount != 1 {
-		t.Errorf("target1.execCount = %d, want 1", target1.execCount)
+	if target1.ExecCount() != 1 {
+		t.Errorf("target1.ExecCount() = %d, want 1", target1.ExecCount())
 	}
-	if target2.execCount != 1 {
-		t.Errorf("target2.execCount = %d, want 1", target2.execCount)
+	if target2.ExecCount() != 1 {
+		t.Errorf("target2.ExecCount() = %d, want 1", target2.ExecCount())
 	}
-	if target3.execCount != 1 {
-		t.Errorf("target3.execCount = %d, want 1 (should continue after error)", target3.execCount)
+	if target3.ExecCount() != 1 {
+		t.Errorf("target3.ExecCount() = %d, want 1 (should continue after error)", target3.ExecCount())
 	}
 }
 
@@ -371,16 +309,13 @@ func TestRunSequential_ContextCancellation(t *testing.T) {
 	// Use channel-based synchronization instead of time.Sleep to avoid flakiness
 	started := make(chan struct{})
 
-	target1 := &mockTarget{
-		name:       "t1",
-		targetType: target.TypeLanguage,
-		execFunc: func(ctx context.Context, cmd string) error {
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
 			close(started) // Signal that execution has begun
 			<-ctx.Done()   // Block until context is canceled
 			return ctx.Err()
-		},
-	}
-	target2 := &mockTarget{name: "t2", targetType: target.TypeLanguage}
+		})
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage)
 
 	targets := []target.Target{target1, target2}
 
@@ -405,9 +340,9 @@ func TestRunSequential_ContextCancellation(t *testing.T) {
 func TestRunParallel_ExecutesAll(t *testing.T) {
 	t.Setenv("STRUCTYL_PARALLEL", "4")
 
-	target1 := &mockTarget{name: "t1", targetType: target.TypeLanguage}
-	target2 := &mockTarget{name: "t2", targetType: target.TypeLanguage}
-	target3 := &mockTarget{name: "t3", targetType: target.TypeLanguage}
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage)
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage)
+	target3 := mocks.NewTarget("t3").WithType(target.TypeLanguage)
 
 	targets := []target.Target{target1, target2, target3}
 
@@ -422,14 +357,14 @@ func TestRunParallel_ExecutesAll(t *testing.T) {
 	}
 
 	// All targets should have executed
-	if target1.execCount != 1 {
-		t.Errorf("target1.execCount = %d, want 1", target1.execCount)
+	if target1.ExecCount() != 1 {
+		t.Errorf("target1.ExecCount() = %d, want 1", target1.ExecCount())
 	}
-	if target2.execCount != 1 {
-		t.Errorf("target2.execCount = %d, want 1", target2.execCount)
+	if target2.ExecCount() != 1 {
+		t.Errorf("target2.ExecCount() = %d, want 1", target2.ExecCount())
 	}
-	if target3.execCount != 1 {
-		t.Errorf("target3.execCount = %d, want 1", target3.execCount)
+	if target3.ExecCount() != 1 {
+		t.Errorf("target3.ExecCount() = %d, want 1", target3.ExecCount())
 	}
 }
 
@@ -438,13 +373,10 @@ func TestRunParallel_CollectsErrors(t *testing.T) {
 
 	testErr := errors.New("test error")
 
-	target1 := &mockTarget{name: "t1", targetType: target.TypeLanguage}
-	target2 := &mockTarget{
-		name:       "t2",
-		targetType: target.TypeLanguage,
-		execFunc:   func(ctx context.Context, cmd string) error { return testErr },
-	}
-	target3 := &mockTarget{name: "t3", targetType: target.TypeLanguage}
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage)
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error { return testErr })
+	target3 := mocks.NewTarget("t3").WithType(target.TypeLanguage)
 
 	targets := []target.Target{target1, target2, target3}
 
@@ -459,14 +391,14 @@ func TestRunParallel_CollectsErrors(t *testing.T) {
 	}
 
 	// All should execute with Continue: true
-	if target1.execCount != 1 {
-		t.Errorf("target1.execCount = %d, want 1", target1.execCount)
+	if target1.ExecCount() != 1 {
+		t.Errorf("target1.ExecCount() = %d, want 1", target1.ExecCount())
 	}
-	if target2.execCount != 1 {
-		t.Errorf("target2.execCount = %d, want 1", target2.execCount)
+	if target2.ExecCount() != 1 {
+		t.Errorf("target2.ExecCount() = %d, want 1", target2.ExecCount())
 	}
-	if target3.execCount != 1 {
-		t.Errorf("target3.execCount = %d, want 1", target3.execCount)
+	if target3.ExecCount() != 1 {
+		t.Errorf("target3.ExecCount() = %d, want 1", target3.ExecCount())
 	}
 }
 
@@ -476,24 +408,18 @@ func TestRunParallel_FailFastCancels(t *testing.T) {
 	testErr := errors.New("test error")
 
 	// First target fails immediately
-	target1 := &mockTarget{
-		name:       "t1",
-		targetType: target.TypeLanguage,
-		execFunc:   func(ctx context.Context, cmd string) error { return testErr },
-	}
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error { return testErr })
 	// Second target checks context
-	target2 := &mockTarget{
-		name:       "t2",
-		targetType: target.TypeLanguage,
-		execFunc: func(ctx context.Context, cmd string) error {
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
 			default:
 				return nil
 			}
-		},
-	}
+		})
 
 	targets := []target.Target{target1, target2}
 
@@ -508,8 +434,8 @@ func TestRunParallel_FailFastCancels(t *testing.T) {
 	}
 
 	// First should have executed
-	if target1.execCount != 1 {
-		t.Errorf("target1.execCount = %d, want 1", target1.execCount)
+	if target1.ExecCount() != 1 {
+		t.Errorf("target1.ExecCount() = %d, want 1", target1.ExecCount())
 	}
 }
 
@@ -534,5 +460,256 @@ func TestCombineErrors_MessageFormat(t *testing.T) {
 	}
 	if !strings.Contains(msg, "error three") {
 		t.Errorf("message should contain 'error three', got %q", msg)
+	}
+}
+
+// =============================================================================
+// Docker Mode Tests
+// =============================================================================
+
+func TestRunSequential_WithDockerOption_PassesToAllTargets(t *testing.T) {
+	var receivedDocker []bool
+
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			receivedDocker = append(receivedDocker, opts.Docker)
+			return nil
+		})
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			receivedDocker = append(receivedDocker, opts.Docker)
+			return nil
+		})
+
+	targets := []target.Target{target1, target2}
+
+	registry, _ := createTestRegistry(t)
+	r := New(registry)
+
+	ctx := context.Background()
+	err := r.runSequential(ctx, targets, "build", RunOptions{Docker: true})
+
+	if err != nil {
+		t.Errorf("runSequential() error = %v", err)
+	}
+
+	if len(receivedDocker) != 2 {
+		t.Fatalf("expected 2 executions, got %d", len(receivedDocker))
+	}
+
+	for i, received := range receivedDocker {
+		if !received {
+			t.Errorf("target %d: Docker option not passed (received false)", i)
+		}
+	}
+}
+
+func TestRunParallel_WithDockerOption_PassesToAllTargets(t *testing.T) {
+	t.Setenv("STRUCTYL_PARALLEL", "4")
+
+	var mu sync.Mutex
+	var receivedDocker []bool
+
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			mu.Lock()
+			receivedDocker = append(receivedDocker, opts.Docker)
+			mu.Unlock()
+			return nil
+		})
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			mu.Lock()
+			receivedDocker = append(receivedDocker, opts.Docker)
+			mu.Unlock()
+			return nil
+		})
+	target3 := mocks.NewTarget("t3").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			mu.Lock()
+			receivedDocker = append(receivedDocker, opts.Docker)
+			mu.Unlock()
+			return nil
+		})
+
+	targets := []target.Target{target1, target2, target3}
+
+	registry, _ := createTestRegistry(t)
+	r := New(registry)
+
+	ctx := context.Background()
+	err := r.runParallel(ctx, targets, "build", RunOptions{Docker: true})
+
+	if err != nil {
+		t.Errorf("runParallel() error = %v", err)
+	}
+
+	if len(receivedDocker) != 3 {
+		t.Fatalf("expected 3 executions, got %d", len(receivedDocker))
+	}
+
+	for i, received := range receivedDocker {
+		if !received {
+			t.Errorf("target %d: Docker option not passed (received false)", i)
+		}
+	}
+}
+
+func TestRunSequential_WithEnvOption_PassesToAllTargets(t *testing.T) {
+	var receivedEnv []map[string]string
+
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			receivedEnv = append(receivedEnv, opts.Env)
+			return nil
+		})
+
+	targets := []target.Target{target1}
+
+	registry, _ := createTestRegistry(t)
+	r := New(registry)
+
+	ctx := context.Background()
+	env := map[string]string{"FOO": "bar", "BAZ": "qux"}
+	err := r.runSequential(ctx, targets, "build", RunOptions{Env: env})
+
+	if err != nil {
+		t.Errorf("runSequential() error = %v", err)
+	}
+
+	if len(receivedEnv) != 1 {
+		t.Fatalf("expected 1 execution, got %d", len(receivedEnv))
+	}
+
+	if receivedEnv[0]["FOO"] != "bar" {
+		t.Errorf("expected FOO=bar, got FOO=%s", receivedEnv[0]["FOO"])
+	}
+	if receivedEnv[0]["BAZ"] != "qux" {
+		t.Errorf("expected BAZ=qux, got BAZ=%s", receivedEnv[0]["BAZ"])
+	}
+}
+
+// =============================================================================
+// Parallel Error Aggregation Tests
+// =============================================================================
+
+func TestRunParallel_AllFail_CombinesAllErrors(t *testing.T) {
+	t.Setenv("STRUCTYL_PARALLEL", "4")
+
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			return errors.New("t1 failed")
+		})
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			return errors.New("t2 failed")
+		})
+	target3 := mocks.NewTarget("t3").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			return errors.New("t3 failed")
+		})
+
+	targets := []target.Target{target1, target2, target3}
+
+	registry, _ := createTestRegistry(t)
+	r := New(registry)
+
+	ctx := context.Background()
+	err := r.runParallel(ctx, targets, "build", RunOptions{Continue: true})
+
+	if err == nil {
+		t.Fatal("expected error when all targets fail")
+	}
+
+	errMsg := err.Error()
+
+	// Error message should mention "3 errors"
+	if !strings.Contains(errMsg, "3 errors") {
+		t.Errorf("error should mention '3 errors', got %q", errMsg)
+	}
+
+	// All target names should be mentioned
+	if !strings.Contains(errMsg, "t1") {
+		t.Errorf("error should mention 't1', got %q", errMsg)
+	}
+	if !strings.Contains(errMsg, "t2") {
+		t.Errorf("error should mention 't2', got %q", errMsg)
+	}
+	if !strings.Contains(errMsg, "t3") {
+		t.Errorf("error should mention 't3', got %q", errMsg)
+	}
+}
+
+func TestRunParallel_AllFail_WithoutContinue_StopsOnFirstError(t *testing.T) {
+	t.Setenv("STRUCTYL_PARALLEL", "1") // Serialize for deterministic order
+
+	// With fail-fast and serialized execution, the first error should
+	// cancel the context, potentially preventing later tasks from running.
+	// However, due to goroutine scheduling, both may complete before cancellation.
+	// This test verifies that:
+	// 1. An error is returned
+	// 2. If both complete, both are reported (due to race between cancel and completion)
+
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			return errors.New("t1 failed")
+		})
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			// Check context before proceeding
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+				return errors.New("t2 failed")
+			}
+		})
+
+	targets := []target.Target{target1, target2}
+
+	registry, _ := createTestRegistry(t)
+	r := New(registry)
+
+	ctx := context.Background()
+	err := r.runParallel(ctx, targets, "build", RunOptions{Continue: false})
+
+	if err == nil {
+		t.Fatal("expected error when targets fail")
+	}
+
+	// The key behavior: we get an error. The exact count depends on timing.
+	errMsg := err.Error()
+	if !strings.Contains(errMsg, "failed") {
+		t.Errorf("error should mention failure, got %q", errMsg)
+	}
+}
+
+func TestRunSequential_AllFail_CombinesAllErrors(t *testing.T) {
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			return errors.New("t1 failed")
+		})
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			return errors.New("t2 failed")
+		})
+
+	targets := []target.Target{target1, target2}
+
+	registry, _ := createTestRegistry(t)
+	r := New(registry)
+
+	ctx := context.Background()
+	err := r.runSequential(ctx, targets, "build", RunOptions{Continue: true})
+
+	if err == nil {
+		t.Fatal("expected error when all targets fail")
+	}
+
+	errMsg := err.Error()
+
+	// Should have combined errors
+	if !strings.Contains(errMsg, "2 errors") {
+		t.Errorf("error should mention '2 errors', got %q", errMsg)
 	}
 }

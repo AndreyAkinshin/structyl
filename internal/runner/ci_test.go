@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/AndreyAkinshin/structyl/internal/output"
+	"github.com/AndreyAkinshin/structyl/internal/testing/mocks"
 )
 
 func TestFormatDuration_Milliseconds(t *testing.T) {
@@ -244,11 +245,7 @@ func TestCopyFile_EmptyFile(t *testing.T) {
 
 func TestFindArtifacts_NoMatches(t *testing.T) {
 	tmpDir := t.TempDir()
-	mock := &mockTarget{
-		name:     "test",
-		commands: map[string]bool{},
-	}
-	mock.directory = tmpDir
+	mock := mocks.NewTarget("test").WithDirectory(tmpDir)
 
 	artifacts := findArtifacts(mock)
 	if len(artifacts) != 0 {
@@ -271,11 +268,7 @@ func TestFindArtifacts_MatchesRustPattern(t *testing.T) {
 		t.Fatalf("failed to create artifact: %v", err)
 	}
 
-	mock := &mockTarget{
-		name:     "rs",
-		commands: map[string]bool{},
-	}
-	mock.directory = tmpDir
+	mock := mocks.NewTarget("rs").WithDirectory(tmpDir)
 
 	artifacts := findArtifacts(mock)
 	if len(artifacts) != 1 {
@@ -301,11 +294,7 @@ func TestFindArtifacts_MatchesBinPattern(t *testing.T) {
 		t.Fatalf("failed to create artifact: %v", err)
 	}
 
-	mock := &mockTarget{
-		name:     "go",
-		commands: map[string]bool{},
-	}
-	mock.directory = tmpDir
+	mock := mocks.NewTarget("go").WithDirectory(tmpDir)
 
 	artifacts := findArtifacts(mock)
 	if len(artifacts) != 1 {

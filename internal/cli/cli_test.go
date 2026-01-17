@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/AndreyAkinshin/structyl/internal/target"
+	"github.com/AndreyAkinshin/structyl/internal/testing/mocks"
 )
 
 func TestParseGlobalFlags(t *testing.T) {
@@ -105,18 +106,9 @@ func TestParseGlobalFlags(t *testing.T) {
 			wantRemaining:  []string{"test", "rs"},
 		},
 		{
+			// --type only accepts "language" or "auxiliary"; any other value is invalid
 			name:    "invalid --type value",
 			args:    []string{"--type=invalid", "build"},
-			wantErr: true,
-		},
-		{
-			name:    "invalid --type=foo",
-			args:    []string{"--type=foo", "build"},
-			wantErr: true,
-		},
-		{
-			name:    "invalid --type=other",
-			args:    []string{"--type=other", "build"},
 			wantErr: true,
 		},
 		{
@@ -388,54 +380,16 @@ func TestIsDockerMode_Default(t *testing.T) {
 	}
 }
 
-// mockTarget implements target.Target for testing
-type mockTarget struct {
-	name       string
-	title      string
-	targetType target.TargetType
-	directory  string
-	commands   map[string]interface{}
-	dependsOn  []string
-	env        map[string]string
-	vars       map[string]string
-	demoPath   string
-	execFunc   func(ctx context.Context, cmd string, opts target.ExecOptions) error
-}
-
-func (m *mockTarget) Name() string            { return m.name }
-func (m *mockTarget) Title() string           { return m.title }
-func (m *mockTarget) Type() target.TargetType { return m.targetType }
-func (m *mockTarget) Directory() string       { return m.directory }
-func (m *mockTarget) Cwd() string             { return m.directory }
-func (m *mockTarget) Commands() []string {
-	cmds := make([]string, 0, len(m.commands))
-	for k := range m.commands {
-		cmds = append(cmds, k)
-	}
-	return cmds
-}
-func (m *mockTarget) DependsOn() []string { return m.dependsOn }
-func (m *mockTarget) GetCommand(name string) (interface{}, bool) {
-	cmd, ok := m.commands[name]
-	return cmd, ok
-}
-func (m *mockTarget) Env() map[string]string  { return m.env }
-func (m *mockTarget) Vars() map[string]string { return m.vars }
-func (m *mockTarget) DemoPath() string        { return m.demoPath }
-func (m *mockTarget) Execute(ctx context.Context, cmd string, opts target.ExecOptions) error {
-	if m.execFunc != nil {
-		return m.execFunc(ctx, cmd, opts)
-	}
-	return nil
-}
+// mockTarget is an alias for the shared mock in internal/testing/mocks.
+// Use mocks.NewTarget("name") to create instances.
 
 func TestFilterTargetsByType_FiltersCorrectly(t *testing.T) {
 	t.Parallel()
 	targets := []target.Target{
-		&mockTarget{name: "cs", targetType: target.TypeLanguage},
-		&mockTarget{name: "py", targetType: target.TypeLanguage},
-		&mockTarget{name: "img", targetType: target.TypeAuxiliary},
-		&mockTarget{name: "docs", targetType: target.TypeAuxiliary},
+		mocks.NewTarget("cs").WithType(target.TypeLanguage),
+		mocks.NewTarget("py").WithType(target.TypeLanguage),
+		mocks.NewTarget("img").WithType(target.TypeAuxiliary),
+		mocks.NewTarget("docs").WithType(target.TypeAuxiliary),
 	}
 
 	// Filter to language only
@@ -476,8 +430,8 @@ func TestFilterTargetsByType_EmptySlice_ReturnsEmpty(t *testing.T) {
 
 func TestFilterTargetsByType_NoMatches_ReturnsEmpty(t *testing.T) {
 	targets := []target.Target{
-		&mockTarget{name: "cs", targetType: target.TypeLanguage},
-		&mockTarget{name: "py", targetType: target.TypeLanguage},
+		mocks.NewTarget("cs").WithType(target.TypeLanguage),
+		mocks.NewTarget("py").WithType(target.TypeLanguage),
 	}
 
 	filtered := filterTargetsByType(targets, target.TypeAuxiliary)
@@ -488,9 +442,9 @@ func TestFilterTargetsByType_NoMatches_ReturnsEmpty(t *testing.T) {
 
 func TestFilterTargetsByType_AllMatch_ReturnsAll(t *testing.T) {
 	targets := []target.Target{
-		&mockTarget{name: "cs", targetType: target.TypeLanguage},
-		&mockTarget{name: "py", targetType: target.TypeLanguage},
-		&mockTarget{name: "go", targetType: target.TypeLanguage},
+		mocks.NewTarget("cs").WithType(target.TypeLanguage),
+		mocks.NewTarget("py").WithType(target.TypeLanguage),
+		mocks.NewTarget("go").WithType(target.TypeLanguage),
 	}
 
 	filtered := filterTargetsByType(targets, target.TypeLanguage)
@@ -507,17 +461,15 @@ func TestRunTargetCommand_Success_ExecutesCommand(t *testing.T) {
 	var executedCmd string
 	var executedOpts target.ExecOptions
 
-	mock := &mockTarget{
-		name:       "test",
-		title:      "Test Target",
-		targetType: target.TypeLanguage,
-		commands:   map[string]interface{}{"build": "echo building"},
-		execFunc: func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+	mock := mocks.NewTarget("test").
+		WithTitle("Test Target").
+		WithType(target.TypeLanguage).
+		WithCommand("build", "echo building").
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
 			executedCmd = cmd
 			executedOpts = opts
 			return nil
-		},
-	}
+		})
 
 	exitCode := runTargetCommand(mock, "build", []string{"--verbose"}, &GlobalOptions{})
 	if exitCode != 0 {
@@ -532,12 +484,10 @@ func TestRunTargetCommand_Success_ExecutesCommand(t *testing.T) {
 }
 
 func TestRunTargetCommand_CommandNotDefined_ReturnsError(t *testing.T) {
-	mock := &mockTarget{
-		name:       "test",
-		title:      "Test Target",
-		targetType: target.TypeLanguage,
-		commands:   map[string]interface{}{}, // no commands defined
-	}
+	mock := mocks.NewTarget("test").
+		WithTitle("Test Target").
+		WithType(target.TypeLanguage).
+		WithCommands(map[string]interface{}{}) // no commands defined
 
 	exitCode := runTargetCommand(mock, "build", nil, &GlobalOptions{})
 	if exitCode != 1 {
@@ -546,15 +496,13 @@ func TestRunTargetCommand_CommandNotDefined_ReturnsError(t *testing.T) {
 }
 
 func TestRunTargetCommand_ExecutionError_ReturnsFailed(t *testing.T) {
-	mock := &mockTarget{
-		name:       "test",
-		title:      "Test Target",
-		targetType: target.TypeLanguage,
-		commands:   map[string]interface{}{"build": "echo building"},
-		execFunc: func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+	mock := mocks.NewTarget("test").
+		WithTitle("Test Target").
+		WithType(target.TypeLanguage).
+		WithCommand("build", "echo building").
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
 			return fmt.Errorf("build failed")
-		},
-	}
+		})
 
 	exitCode := runTargetCommand(mock, "build", nil, &GlobalOptions{})
 	if exitCode != 1 {
@@ -565,16 +513,14 @@ func TestRunTargetCommand_ExecutionError_ReturnsFailed(t *testing.T) {
 func TestRunTargetCommand_DockerMode_PassesDockerOption(t *testing.T) {
 	var receivedDocker bool
 
-	mock := &mockTarget{
-		name:       "test",
-		title:      "Test Target",
-		targetType: target.TypeLanguage,
-		commands:   map[string]interface{}{"build": "echo building"},
-		execFunc: func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+	mock := mocks.NewTarget("test").
+		WithTitle("Test Target").
+		WithType(target.TypeLanguage).
+		WithCommand("build", "echo building").
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
 			receivedDocker = opts.Docker
 			return nil
-		},
-	}
+		})
 
 	// Set Docker mode via options
 	exitCode := runTargetCommand(mock, "build", nil, &GlobalOptions{Docker: true})
@@ -1671,14 +1617,12 @@ func TestCollectAllCommands_EmptyTargets(t *testing.T) {
 
 func TestCollectAllCommands_SingleTarget(t *testing.T) {
 	t.Parallel()
-	mock := &mockTarget{
-		name:       "test",
-		targetType: target.TypeLanguage,
-		commands: map[string]interface{}{
+	mock := mocks.NewTarget("test").
+		WithType(target.TypeLanguage).
+		WithCommands(map[string]interface{}{
 			"build": "go build",
 			"test":  "go test",
-		},
-	}
+		})
 
 	result := collectAllCommands([]target.Target{mock})
 	if len(result) != 2 {
@@ -1698,32 +1642,26 @@ func TestCollectAllCommands_SingleTarget(t *testing.T) {
 func TestCollectAllCommands_MultipleTargets_SortsByFrequency(t *testing.T) {
 	t.Parallel()
 	// Target 1 has build, test, clean
-	mock1 := &mockTarget{
-		name:       "t1",
-		targetType: target.TypeLanguage,
-		commands: map[string]interface{}{
+	mock1 := mocks.NewTarget("t1").
+		WithType(target.TypeLanguage).
+		WithCommands(map[string]interface{}{
 			"build": "cmd1",
 			"test":  "cmd2",
 			"clean": "cmd3",
-		},
-	}
+		})
 	// Target 2 has build, test (no clean)
-	mock2 := &mockTarget{
-		name:       "t2",
-		targetType: target.TypeLanguage,
-		commands: map[string]interface{}{
+	mock2 := mocks.NewTarget("t2").
+		WithType(target.TypeLanguage).
+		WithCommands(map[string]interface{}{
 			"build": "cmd1",
 			"test":  "cmd2",
-		},
-	}
+		})
 	// Target 3 has build only
-	mock3 := &mockTarget{
-		name:       "t3",
-		targetType: target.TypeLanguage,
-		commands: map[string]interface{}{
+	mock3 := mocks.NewTarget("t3").
+		WithType(target.TypeLanguage).
+		WithCommands(map[string]interface{}{
 			"build": "cmd1",
-		},
-	}
+		})
 
 	result := collectAllCommands([]target.Target{mock1, mock2, mock3})
 
@@ -1739,17 +1677,15 @@ func TestCollectAllCommands_MultipleTargets_SortsByFrequency(t *testing.T) {
 
 func TestCollectAllCommands_DescriptionMapping(t *testing.T) {
 	t.Parallel()
-	mock := &mockTarget{
-		name:       "test",
-		targetType: target.TypeLanguage,
-		commands: map[string]interface{}{
+	mock := mocks.NewTarget("test").
+		WithType(target.TypeLanguage).
+		WithCommands(map[string]interface{}{
 			"build":   "go build",
 			"test":    "go test",
 			"clean":   "rm -rf",
 			"restore": "go mod download",
 			"custom":  "echo custom", // Not in descriptions map
-		},
-	}
+		})
 
 	result := collectAllCommands([]target.Target{mock})
 

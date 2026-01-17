@@ -49,6 +49,9 @@ func TestBuildRunArgs_WithoutSkipDeps(t *testing.T) {
 }
 
 func TestBuildRunArgs_WithSkipDeps(t *testing.T) {
+	// Note: skipDeps parameter is kept for API compatibility but has no effect
+	// since mise doesn't support a --no-deps flag. The output should be the
+	// same whether skipDeps is true or false.
 	tests := []struct {
 		name     string
 		task     string
@@ -56,28 +59,28 @@ func TestBuildRunArgs_WithSkipDeps(t *testing.T) {
 		expected []string
 	}{
 		{
-			name:     "simple task with skip deps",
+			name:     "simple task with skip deps (ignored)",
 			task:     "build",
 			args:     nil,
-			expected: []string{"run", "--no-deps", "build"},
+			expected: []string{"run", "build"},
 		},
 		{
-			name:     "task with args and skip deps",
+			name:     "task with args and skip deps (ignored)",
 			task:     "test",
 			args:     []string{"--verbose"},
-			expected: []string{"run", "--no-deps", "test", "--verbose"},
+			expected: []string{"run", "test", "--verbose"},
 		},
 		{
-			name:     "namespaced task with skip deps",
+			name:     "namespaced task with skip deps (ignored)",
 			task:     "test:go",
 			args:     nil,
-			expected: []string{"run", "--no-deps", "test:go"},
+			expected: []string{"run", "test:go"},
 		},
 		{
-			name:     "aggregate task with skip deps",
+			name:     "aggregate task with skip deps (ignored)",
 			task:     "test",
 			args:     nil,
-			expected: []string{"run", "--no-deps", "test"},
+			expected: []string{"run", "test"},
 		},
 	}
 
@@ -91,30 +94,20 @@ func TestBuildRunArgs_WithSkipDeps(t *testing.T) {
 	}
 }
 
-func TestBuildRunArgs_NoDepsBeforeTaskName(t *testing.T) {
-	// Verify --no-deps comes before task name (mise requirement)
-	args := buildRunArgs("test", []string{"--coverage"}, true)
+func TestBuildRunArgs_SkipDepsHasNoEffect(t *testing.T) {
+	// Verify that skipDeps=true produces the same result as skipDeps=false
+	// since mise doesn't support --no-deps flag
+	argsWithSkip := buildRunArgs("test", []string{"--coverage"}, true)
+	argsWithoutSkip := buildRunArgs("test", []string{"--coverage"}, false)
 
-	// Find position of --no-deps and task name
-	noDepsIdx := -1
-	taskIdx := -1
-	for i, arg := range args {
-		if arg == "--no-deps" {
-			noDepsIdx = i
-		}
-		if arg == "test" {
-			taskIdx = i
-		}
+	if !reflect.DeepEqual(argsWithSkip, argsWithoutSkip) {
+		t.Errorf("skipDeps should have no effect: with=%v, without=%v", argsWithSkip, argsWithoutSkip)
 	}
 
-	if noDepsIdx == -1 {
-		t.Error("--no-deps not found in args")
-	}
-	if taskIdx == -1 {
-		t.Error("task name not found in args")
-	}
-	if noDepsIdx >= taskIdx {
-		t.Errorf("--no-deps (index %d) should come before task name (index %d)", noDepsIdx, taskIdx)
+	// Both should be: ["run", "test", "--coverage"]
+	expected := []string{"run", "test", "--coverage"}
+	if !reflect.DeepEqual(argsWithSkip, expected) {
+		t.Errorf("args = %v, want %v", argsWithSkip, expected)
 	}
 }
 
@@ -122,7 +115,7 @@ func TestBuildRunArgs_TaskArgsAfterTaskName(t *testing.T) {
 	// Verify task args come after task name
 	args := buildRunArgs("build:rs", []string{"--release", "--target", "arm64"}, true)
 
-	// Expected: ["run", "--no-deps", "build:rs", "--release", "--target", "arm64"]
+	// Expected: ["run", "build:rs", "--release", "--target", "arm64"]
 	taskIdx := -1
 	for i, arg := range args {
 		if arg == "build:rs" {

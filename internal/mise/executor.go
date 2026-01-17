@@ -39,20 +39,23 @@ func (e *Executor) RunTask(ctx context.Context, task string, args []string) erro
 }
 
 // buildRunArgs constructs the command arguments for mise run.
-// When skipDeps is true, adds --no-deps flag to prevent mise from running dependencies.
+// The skipDeps parameter is kept for API compatibility but is not used,
+// as mise does not support a --no-deps flag. Dependencies are managed
+// through task definitions in .mise.toml (via depends and run arrays).
 func buildRunArgs(task string, args []string, skipDeps bool) []string {
-	cmdArgs := []string{"run"}
-	if skipDeps {
-		cmdArgs = append(cmdArgs, "--no-deps")
-	}
-	cmdArgs = append(cmdArgs, task)
+	// Note: mise doesn't have a --no-deps flag. Dependencies are handled
+	// by the task definition itself (depends array for parallel, run array
+	// for sequential execution). When structyl manages task ordering, it
+	// runs tasks directly and lets mise handle internal task structure.
+	_ = skipDeps // intentionally unused - kept for API compatibility
+	cmdArgs := []string{"run", task}
 	cmdArgs = append(cmdArgs, args...)
 	return cmdArgs
 }
 
-// runTask executes a mise task with optional --no-deps flag.
-// When skipDeps is true, mise won't run the task's dependencies (useful when
-// the caller is managing dependency execution order).
+// runTask executes a mise task.
+// The skipDeps parameter is kept for API compatibility but has no effect,
+// as mise does not support skipping dependencies at runtime.
 func (e *Executor) runTask(ctx context.Context, task string, args []string, skipDeps bool) error {
 	cmdArgs := buildRunArgs(task, args, skipDeps)
 
@@ -78,7 +81,8 @@ func (e *Executor) RunTaskWithCapture(ctx context.Context, task string, args []s
 	return e.runTaskWithCapture(ctx, task, args, false)
 }
 
-// runTaskWithCapture executes a mise task with optional --no-deps flag, streaming output while capturing it.
+// runTaskWithCapture executes a mise task, streaming output while capturing it.
+// The skipDeps parameter is kept for API compatibility but has no effect.
 func (e *Executor) runTaskWithCapture(ctx context.Context, task string, args []string, skipDeps bool) (string, error) {
 	cmdArgs := buildRunArgs(task, args, skipDeps)
 

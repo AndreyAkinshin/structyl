@@ -233,3 +233,31 @@ func TestWrite(t *testing.T) {
 		t.Errorf("file content = %q, want %q", string(data), "1.2.3\n")
 	}
 }
+
+func TestWrite_InvalidVersion(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "VERSION")
+
+	// Write with invalid version should fail validation before writing
+	err := Write(path, "invalid-version")
+	if err == nil {
+		t.Error("Write() expected error for invalid version")
+	}
+
+	// File should not have been created
+	if _, statErr := os.Stat(path); !os.IsNotExist(statErr) {
+		t.Error("file should not exist after failed Write")
+	}
+}
+
+func TestWrite_InvalidPath(t *testing.T) {
+	t.Parallel()
+	// Try to write to a path where the parent directory doesn't exist
+	path := filepath.Join("/nonexistent-dir-xyz-12345", "VERSION")
+
+	err := Write(path, "1.2.3")
+	if err == nil {
+		t.Error("Write() expected error for invalid path")
+	}
+}

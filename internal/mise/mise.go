@@ -408,7 +408,7 @@ var builtinToolchainCommands = map[string]map[string]interface{}{
 	},
 	"uv": {
 		"clean":        "rm -rf dist/ build/ *.egg-info .venv/",
-		"restore":      "uv sync",
+		"restore":      "uv sync --all-extras",
 		"build":        "uv build",
 		"test":         "uv run pytest",
 		"check":        []interface{}{"lint"},

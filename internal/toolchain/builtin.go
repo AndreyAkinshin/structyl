@@ -201,7 +201,7 @@ var builtinToolchains = map[string]*Toolchain{
 		Name: "uv",
 		Commands: map[string]interface{}{
 			"clean":         "rm -rf dist/ build/ *.egg-info .venv/",
-			"restore":       "uv sync",
+			"restore":       "uv sync --all-extras",
 			"build":         "uv build",
 			"test":          "uv run pytest",
 			"test:coverage": "uv run pytest --cov",
@@ -214,7 +214,7 @@ var builtinToolchains = map[string]*Toolchain{
 			"pack":          "uv build",
 			"doc":           nil,
 			"demo":          "uv run python demo.py",
-			"install":       "uv sync",
+			"install":       "uv sync --all-extras",
 			"coverage":      "uv run pytest --cov",
 			"publish":       "uv publish",
 		},

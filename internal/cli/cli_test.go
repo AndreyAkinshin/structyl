@@ -804,11 +804,14 @@ func TestCmdMeta_ContinueOnError(t *testing.T) {
 func TestCmdMeta_TestCommandFiltersToLanguageTargets(t *testing.T) {
 	root := createTestProject(t)
 	withWorkingDir(t, root, func() {
-		// The "test" command auto-filters to language targets
-		// This test just verifies the code path works
+		// The "test" command auto-filters to language targets.
+		// This verifies the filtering code path executes without panic.
+		// Actual execution depends on toolchains (mise, dotnet) being installed.
+		// Exit code 2 = usage/routing error, 0/1 = command was parsed correctly
 		exitCode := cmdMeta("test", nil, &GlobalOptions{})
-		// May fail if dotnet not installed, but we're testing the filter logic
-		_ = exitCode // Just verify no panic
+		if exitCode == 2 {
+			t.Errorf("cmdMeta(test) = 2 (usage error), want 0 or 1 (command recognized)")
+		}
 	})
 }
 
@@ -825,11 +828,13 @@ func TestCmdCI_NoProject_ReturnsError(t *testing.T) {
 func TestCmdCI_Release_HasReleaseBuild(t *testing.T) {
 	root := createTestProject(t)
 	withWorkingDir(t, root, func() {
-		// ci:release should work on valid project
-		// Will likely fail during actual execution, but tests the command parsing
+		// ci:release should work on valid project.
+		// This verifies command routing to the release pipeline.
+		// Exit code 2 = usage/routing error, 0/1 = command was parsed correctly
 		exitCode := cmdCI("ci:release", nil, &GlobalOptions{})
-		// May fail during execution, but command should be parsed correctly
-		_ = exitCode // Just verify no panic
+		if exitCode == 2 {
+			t.Errorf("cmdCI(ci:release) = 2 (usage error), want 0 or 1 (command recognized)")
+		}
 	})
 }
 
@@ -1828,6 +1833,242 @@ func TestPrintUsage_WithProjectTargets_ShowsAllTargets(t *testing.T) {
 		exitCode := Run([]string{"--help"})
 		if exitCode != 0 {
 			t.Errorf("Run([--help]) with project = %d, want 0", exitCode)
+		}
+	})
+}
+
+// =============================================================================
+// Print Function Tests
+// These tests verify print/usage functions execute without panic.
+// =============================================================================
+
+func TestPrintUnifiedUsage_AllCommands(t *testing.T) {
+	t.Parallel()
+	// Test that printUnifiedUsage executes without panic for all known commands
+	commands := []string{
+		"build", "build:release", "test", "test:coverage",
+		"clean", "restore", "check", "format", "format-check",
+		"lint", "bench", "demo", "doc", "pack",
+	}
+
+	for _, cmd := range commands {
+		t.Run(cmd, func(t *testing.T) {
+			t.Parallel()
+			// Just verify no panic occurs
+			printUnifiedUsage(cmd)
+		})
+	}
+}
+
+func TestPrintUnifiedUsage_UnknownCommand(t *testing.T) {
+	t.Parallel()
+	// Unknown commands should use default description
+	printUnifiedUsage("unknown-cmd")
+}
+
+func TestPrintReleaseUsage(t *testing.T) {
+	t.Parallel()
+	// Verify release usage prints without panic
+	printReleaseUsage()
+}
+
+func TestPrintCIUsage(t *testing.T) {
+	t.Parallel()
+	// Verify CI usage prints without panic for all CI commands
+	commands := []string{"ci", "ci:release"}
+	for _, cmd := range commands {
+		t.Run(cmd, func(t *testing.T) {
+			t.Parallel()
+			printCIUsage(cmd)
+		})
+	}
+}
+
+func TestPrintConfigUsage(t *testing.T) {
+	t.Parallel()
+	// Verify config usage prints without panic
+	printConfigUsage()
+}
+
+func TestPrintMiseUsage(t *testing.T) {
+	t.Parallel()
+	// Verify mise usage prints without panic
+	printMiseUsage()
+}
+
+func TestPrintMiseSyncUsage(t *testing.T) {
+	t.Parallel()
+	// Verify mise sync usage prints without panic
+	printMiseSyncUsage()
+}
+
+func TestPrintDockerBuildUsage(t *testing.T) {
+	t.Parallel()
+	// Verify docker build usage prints without panic
+	printDockerBuildUsage()
+}
+
+func TestPrintDockerCleanUsage(t *testing.T) {
+	t.Parallel()
+	// Verify docker clean usage prints without panic
+	printDockerCleanUsage()
+}
+
+func TestPrintTargetsUsage(t *testing.T) {
+	t.Parallel()
+	// Verify targets usage prints without panic
+	printTargetsUsage()
+}
+
+func TestPrintCompletionUsage(t *testing.T) {
+	t.Parallel()
+	// Verify completion usage prints without panic
+	printCompletionUsage()
+}
+
+func TestPrintInitUsage(t *testing.T) {
+	t.Parallel()
+	// Verify init usage prints without panic
+	printInitUsage()
+}
+
+func TestPrintUpgradeUsage(t *testing.T) {
+	t.Parallel()
+	// Verify upgrade usage prints without panic
+	printUpgradeUsage()
+}
+
+// =============================================================================
+// Mise Command Tests
+// =============================================================================
+
+func TestCmdMise_NoSubcommand_ReturnsUsageError(t *testing.T) {
+	exitCode := cmdMise(nil, &GlobalOptions{})
+	if exitCode != 2 {
+		t.Errorf("cmdMise(nil) = %d, want 2 (usage error)", exitCode)
+	}
+
+	exitCode = cmdMise([]string{}, &GlobalOptions{})
+	if exitCode != 2 {
+		t.Errorf("cmdMise([]) = %d, want 2 (usage error)", exitCode)
+	}
+}
+
+func TestCmdMise_UnknownSubcommand_ReturnsError(t *testing.T) {
+	exitCode := cmdMise([]string{"unknown"}, &GlobalOptions{})
+	if exitCode != 2 {
+		t.Errorf("cmdMise([unknown]) = %d, want 2 (usage error)", exitCode)
+	}
+}
+
+func TestCmdMise_HelpFlag_ReturnsSuccess(t *testing.T) {
+	t.Parallel()
+	helpFlags := []string{"-h", "--help"}
+	for _, flag := range helpFlags {
+		t.Run(flag, func(t *testing.T) {
+			exitCode := cmdMise([]string{flag}, &GlobalOptions{})
+			if exitCode != 0 {
+				t.Errorf("cmdMise([%s]) = %d, want 0", flag, exitCode)
+			}
+		})
+	}
+}
+
+func TestCmdMiseSync_NoProject_ReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	withWorkingDir(t, tmpDir, func() {
+		exitCode := cmdMiseSync(nil, &GlobalOptions{})
+		if exitCode == 0 {
+			t.Error("cmdMiseSync() = 0, want non-zero when no project")
+		}
+	})
+}
+
+func TestCmdMiseSync_HelpFlag_ReturnsSuccess(t *testing.T) {
+	t.Parallel()
+	helpFlags := []string{"-h", "--help"}
+	for _, flag := range helpFlags {
+		t.Run(flag, func(t *testing.T) {
+			exitCode := cmdMiseSync([]string{flag}, &GlobalOptions{})
+			if exitCode != 0 {
+				t.Errorf("cmdMiseSync([%s]) = %d, want 0", flag, exitCode)
+			}
+		})
+	}
+}
+
+func TestCmdMiseSync_UnknownOption_ReturnsError(t *testing.T) {
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		exitCode := cmdMiseSync([]string{"--invalid"}, &GlobalOptions{})
+		if exitCode != 2 {
+			t.Errorf("cmdMiseSync([--invalid]) = %d, want 2 (usage error)", exitCode)
+		}
+	})
+}
+
+func TestCmdDockerfile_NoProject_ReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	withWorkingDir(t, tmpDir, func() {
+		exitCode := cmdDockerfile(nil, &GlobalOptions{})
+		if exitCode == 0 {
+			t.Error("cmdDockerfile() = 0, want non-zero when no project")
+		}
+	})
+}
+
+func TestCmdDockerfile_HelpFlag_ReturnsSuccess(t *testing.T) {
+	t.Parallel()
+	helpFlags := []string{"-h", "--help"}
+	for _, flag := range helpFlags {
+		t.Run(flag, func(t *testing.T) {
+			exitCode := cmdDockerfile([]string{flag}, &GlobalOptions{})
+			if exitCode != 0 {
+				t.Errorf("cmdDockerfile([%s]) = %d, want 0", flag, exitCode)
+			}
+		})
+	}
+}
+
+func TestCmdDockerfile_UnknownOption_ReturnsError(t *testing.T) {
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		exitCode := cmdDockerfile([]string{"--invalid"}, &GlobalOptions{})
+		if exitCode != 2 {
+			t.Errorf("cmdDockerfile([--invalid]) = %d, want 2 (usage error)", exitCode)
+		}
+	})
+}
+
+func TestCmdGitHub_NoProject_ReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	withWorkingDir(t, tmpDir, func() {
+		exitCode := cmdGitHub(nil, &GlobalOptions{})
+		if exitCode == 0 {
+			t.Error("cmdGitHub() = 0, want non-zero when no project")
+		}
+	})
+}
+
+func TestCmdGitHub_HelpFlag_ReturnsSuccess(t *testing.T) {
+	t.Parallel()
+	helpFlags := []string{"-h", "--help"}
+	for _, flag := range helpFlags {
+		t.Run(flag, func(t *testing.T) {
+			exitCode := cmdGitHub([]string{flag}, &GlobalOptions{})
+			if exitCode != 0 {
+				t.Errorf("cmdGitHub([%s]) = %d, want 0", flag, exitCode)
+			}
+		})
+	}
+}
+
+func TestCmdGitHub_UnknownOption_ReturnsError(t *testing.T) {
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		exitCode := cmdGitHub([]string{"--invalid"}, &GlobalOptions{})
+		if exitCode != 2 {
+			t.Errorf("cmdGitHub([--invalid]) = %d, want 2 (usage error)", exitCode)
 		}
 	})
 }

@@ -125,3 +125,63 @@ func TestBuiltinToolchains_HaveStandardCommands(t *testing.T) {
 		}
 	}
 }
+
+func TestGetFromConfig_WithLoadedConfig(t *testing.T) {
+	t.Parallel()
+	loaded := &ToolchainsFile{
+		Toolchains: map[string]ToolchainFileEntry{
+			"custom": {
+				Commands: map[string]interface{}{
+					"build": "custom build cmd",
+					"test":  "custom test cmd",
+				},
+			},
+		},
+	}
+
+	// Test loaded config returns custom toolchain
+	tc, ok := GetFromConfig("custom", loaded)
+	if !ok {
+		t.Fatal("GetFromConfig() should find custom toolchain in loaded config")
+	}
+	if tc.Name != "custom" {
+		t.Errorf("tc.Name = %q, want %q", tc.Name, "custom")
+	}
+	if tc.Commands["build"] != "custom build cmd" {
+		t.Errorf("tc.Commands[build] = %v, want %q", tc.Commands["build"], "custom build cmd")
+	}
+
+	// Test fallback to builtin when not in loaded config
+	tc, ok = GetFromConfig("cargo", loaded)
+	if !ok {
+		t.Fatal("GetFromConfig() should fall back to builtin for cargo")
+	}
+	if tc.Name != "cargo" {
+		t.Errorf("tc.Name = %q, want %q", tc.Name, "cargo")
+	}
+}
+
+func TestGetFromConfig_NilLoaded(t *testing.T) {
+	t.Parallel()
+	// When loaded is nil, should fall back to builtin
+	tc, ok := GetFromConfig("cargo", nil)
+	if !ok {
+		t.Fatal("GetFromConfig(nil) should fall back to builtin")
+	}
+	if tc.Name != "cargo" {
+		t.Errorf("tc.Name = %q, want %q", tc.Name, "cargo")
+	}
+}
+
+func TestGetFromConfig_NotFound(t *testing.T) {
+	t.Parallel()
+	loaded := &ToolchainsFile{
+		Toolchains: map[string]ToolchainFileEntry{},
+	}
+
+	// Non-existent in both loaded and builtin
+	_, ok := GetFromConfig("nonexistent", loaded)
+	if ok {
+		t.Error("GetFromConfig() should return false for nonexistent toolchain")
+	}
+}

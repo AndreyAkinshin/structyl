@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
 
 func TestGetMiseTools_KnownToolchains(t *testing.T) {
@@ -230,6 +231,88 @@ func TestGetMiseToolsFromConfig_UnknownToolchain(t *testing.T) {
 	mapping := GetMiseToolsFromConfig("nonexistent", nil)
 	if mapping != nil {
 		t.Errorf("GetMiseToolsFromConfig(nonexistent, nil) = %v, want nil", mapping)
+	}
+}
+
+func TestGetMiseToolsFromConfig_WithLoadedConfig(t *testing.T) {
+	t.Parallel()
+	loaded := &toolchain.ToolchainsFile{
+		Toolchains: map[string]toolchain.ToolchainFileEntry{
+			"custom": {
+				Mise: &toolchain.MiseConfig{
+					PrimaryTool: "custom-tool",
+					Version:     "2.0",
+					ExtraTools:  map[string]string{"extra": "1.0"},
+				},
+			},
+		},
+	}
+
+	mapping := GetMiseToolsFromConfig("custom", loaded)
+	if mapping == nil {
+		t.Fatal("GetMiseToolsFromConfig(custom, loaded) = nil, want mapping")
+	}
+	if mapping.PrimaryTool != "custom-tool" {
+		t.Errorf("PrimaryTool = %q, want %q", mapping.PrimaryTool, "custom-tool")
+	}
+	if mapping.Version != "2.0" {
+		t.Errorf("Version = %q, want %q", mapping.Version, "2.0")
+	}
+	if mapping.ExtraTools["extra"] != "1.0" {
+		t.Errorf("ExtraTools[extra] = %q, want %q", mapping.ExtraTools["extra"], "1.0")
+	}
+}
+
+func TestGetMiseToolsFromConfig_LoadedWithoutMiseConfig(t *testing.T) {
+	t.Parallel()
+	loaded := &toolchain.ToolchainsFile{
+		Toolchains: map[string]toolchain.ToolchainFileEntry{
+			"custom": {
+				// No Mise config
+				Commands: map[string]interface{}{"build": "custom build"},
+			},
+		},
+	}
+
+	mapping := GetMiseToolsFromConfig("custom", loaded)
+	if mapping != nil {
+		t.Errorf("GetMiseToolsFromConfig() = %v, want nil (no mise config)", mapping)
+	}
+}
+
+func TestGetMiseToolsFromConfig_LoadedWithEmptyPrimaryTool(t *testing.T) {
+	t.Parallel()
+	loaded := &toolchain.ToolchainsFile{
+		Toolchains: map[string]toolchain.ToolchainFileEntry{
+			"custom": {
+				Mise: &toolchain.MiseConfig{
+					PrimaryTool: "", // Empty primary tool
+					Version:     "1.0",
+				},
+			},
+		},
+	}
+
+	mapping := GetMiseToolsFromConfig("custom", loaded)
+	if mapping != nil {
+		t.Errorf("GetMiseToolsFromConfig() = %v, want nil (empty primary tool)", mapping)
+	}
+}
+
+func TestGetMiseToolsFromConfig_ToolchainNotInLoaded(t *testing.T) {
+	t.Parallel()
+	loaded := &toolchain.ToolchainsFile{
+		Toolchains: map[string]toolchain.ToolchainFileEntry{
+			"other": {
+				Mise: &toolchain.MiseConfig{PrimaryTool: "other-tool", Version: "1.0"},
+			},
+		},
+	}
+
+	// Request a toolchain not in loaded - should return nil
+	mapping := GetMiseToolsFromConfig("nonexistent", loaded)
+	if mapping != nil {
+		t.Errorf("GetMiseToolsFromConfig(nonexistent, loaded) = %v, want nil", mapping)
 	}
 }
 

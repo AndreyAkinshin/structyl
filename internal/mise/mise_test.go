@@ -215,3 +215,59 @@ func TestGenerateMiseToml_TaskDependencies(t *testing.T) {
 		t.Error("missing aggregate test task")
 	}
 }
+
+func TestGenerateMiseToml_WithEnvVars(t *testing.T) {
+	t.Parallel()
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"go": {
+				Toolchain: "go",
+				Directory: "go",
+				Env: map[string]string{
+					"CGO_ENABLED": "0",
+					"GOOS":        "linux",
+				},
+			},
+		},
+	}
+
+	content, err := GenerateMiseToml(cfg)
+	if err != nil {
+		t.Fatalf("GenerateMiseToml() error = %v", err)
+	}
+
+	// Check that env vars are included in tasks
+	if !strings.Contains(content, "env = {") {
+		t.Error("missing env inline table")
+	}
+	if !strings.Contains(content, `CGO_ENABLED = "0"`) {
+		t.Error("missing CGO_ENABLED env var")
+	}
+	if !strings.Contains(content, `GOOS = "linux"`) {
+		t.Error("missing GOOS env var")
+	}
+}
+
+func TestCapitalize(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"", ""},
+		{"a", "A"},
+		{"hello", "Hello"},
+		{"HELLO", "HELLO"},
+		{"123", "123"},
+		{"helloWorld", "HelloWorld"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			result := capitalize(tt.input)
+			if result != tt.expected {
+				t.Errorf("capitalize(%q) = %q, want %q", tt.input, result, tt.expected)
+			}
+		})
+	}
+}

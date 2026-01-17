@@ -26,7 +26,7 @@
     "dotnet": {
       "mise": {
         "primary_tool": "dotnet",
-        "version": "8.0"
+        "version": "10.0"
       },
       "commands": {
         "clean": "dotnet clean",
@@ -47,7 +47,7 @@
     "go": {
       "mise": {
         "primary_tool": "go",
-        "version": "1.22",
+        "version": "1.24",
         "extra_tools": {
           "golangci-lint": "latest"
         }
@@ -71,7 +71,7 @@
     "npm": {
       "mise": {
         "primary_tool": "node",
-        "version": "20"
+        "version": "22"
       },
       "commands": {
         "clean": "npm run clean",
@@ -92,9 +92,9 @@
     "pnpm": {
       "mise": {
         "primary_tool": "node",
-        "version": "20",
+        "version": "22",
         "extra_tools": {
-          "pnpm": "9"
+          "pnpm": "10"
         }
       },
       "commands": {
@@ -116,7 +116,7 @@
     "yarn": {
       "mise": {
         "primary_tool": "node",
-        "version": "20"
+        "version": "22"
       },
       "commands": {
         "clean": "yarn clean",
@@ -158,7 +158,7 @@
     "python": {
       "mise": {
         "primary_tool": "python",
-        "version": "3.12"
+        "version": "3.13"
       },
       "commands": {
         "clean": "rm -rf dist/ build/ *.egg-info **/__pycache__/",
@@ -179,9 +179,9 @@
     "uv": {
       "mise": {
         "primary_tool": "python",
-        "version": "3.12",
+        "version": "3.13",
         "extra_tools": {
-          "uv": "0.5",
+          "uv": "0.6",
           "ruff": "latest"
         }
       },
@@ -204,7 +204,7 @@
     "poetry": {
       "mise": {
         "primary_tool": "python",
-        "version": "3.12"
+        "version": "3.13"
       },
       "commands": {
         "clean": "rm -rf dist/",
@@ -225,7 +225,7 @@
     "gradle": {
       "mise": {
         "primary_tool": "java",
-        "version": "temurin-21"
+        "version": "temurin-23"
       },
       "commands": {
         "clean": "gradle clean",
@@ -245,7 +245,7 @@
     "maven": {
       "mise": {
         "primary_tool": "java",
-        "version": "temurin-21"
+        "version": "temurin-23"
       },
       "commands": {
         "clean": "mvn clean",
@@ -363,7 +363,7 @@
     "bundler": {
       "mise": {
         "primary_tool": "ruby",
-        "version": "3.3"
+        "version": "3.4"
       },
       "commands": {
         "clean": "bundle clean",
@@ -383,7 +383,7 @@
     "composer": {
       "mise": {
         "primary_tool": "php",
-        "version": "8.3"
+        "version": "8.4"
       },
       "commands": {
         "clean": null,
@@ -402,7 +402,7 @@
     "mix": {
       "mise": {
         "primary_tool": "elixir",
-        "version": "1.16"
+        "version": "1.18"
       },
       "commands": {
         "clean": "mix clean",
@@ -422,7 +422,7 @@
     "sbt": {
       "mise": {
         "primary_tool": "java",
-        "version": "temurin-21",
+        "version": "temurin-23",
         "extra_tools": {
           "sbt": "latest"
         }
@@ -445,7 +445,7 @@
     "cabal": {
       "mise": {
         "primary_tool": "ghc",
-        "version": "9.8"
+        "version": "9.12"
       },
       "commands": {
         "clean": "cabal clean",
@@ -464,7 +464,7 @@
     "stack": {
       "mise": {
         "primary_tool": "ghc",
-        "version": "9.8"
+        "version": "9.12"
       },
       "commands": {
         "clean": "stack clean",
@@ -483,7 +483,7 @@
     "dune": {
       "mise": {
         "primary_tool": "ocaml",
-        "version": "5.1"
+        "version": "5.3"
       },
       "commands": {
         "clean": "dune clean",
@@ -502,7 +502,7 @@
     "lein": {
       "mise": {
         "primary_tool": "java",
-        "version": "temurin-21",
+        "version": "temurin-23",
         "extra_tools": {
           "leiningen": "latest"
         }
@@ -544,7 +544,7 @@
     "rebar3": {
       "mise": {
         "primary_tool": "erlang",
-        "version": "26"
+        "version": "27"
       },
       "commands": {
         "clean": "rebar3 clean",

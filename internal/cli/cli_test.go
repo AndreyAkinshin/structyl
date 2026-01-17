@@ -781,9 +781,10 @@ func TestCmdMeta_WithTargetTypeFilter(t *testing.T) {
 	withWorkingDir(t, root, func() {
 		// Filter to auxiliary targets only - should succeed even if no commands match
 		exitCode := cmdMeta("build", nil, &GlobalOptions{TargetType: "auxiliary"})
-		// Exit code depends on whether any targets have the command
-		// For auxiliary targets, they typically don't have build commands
-		_ = exitCode // Just verify it doesn't panic
+		// Auxiliary targets don't have build commands, expect exit code 1
+		if exitCode != 1 {
+			t.Errorf("cmdMeta with auxiliary filter = %d, want 1", exitCode)
+		}
 	})
 }
 

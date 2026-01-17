@@ -142,3 +142,74 @@ func TestBuildRunArgs_TaskArgsAfterTaskName(t *testing.T) {
 		t.Errorf("task args = %v, want %v", taskArgs, expected)
 	}
 }
+
+// Tests for Executor basic methods
+
+func TestNewExecutor(t *testing.T) {
+	tests := []struct {
+		name        string
+		projectRoot string
+	}{
+		{"with current dir", "."},
+		{"with absolute path", "/tmp/project"},
+		{"with relative path", "../other-project"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := NewExecutor(tt.projectRoot)
+
+			if e == nil {
+				t.Fatal("NewExecutor() returned nil")
+			}
+			if e.projectRoot != tt.projectRoot {
+				t.Errorf("NewExecutor().projectRoot = %q, want %q", e.projectRoot, tt.projectRoot)
+			}
+			if e.verbose {
+				t.Error("NewExecutor().verbose should be false by default")
+			}
+		})
+	}
+}
+
+func TestExecutor_SetVerbose(t *testing.T) {
+	tests := []struct {
+		name    string
+		verbose bool
+	}{
+		{"enable verbose", true},
+		{"disable verbose", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			e := NewExecutor(".")
+			e.SetVerbose(tt.verbose)
+
+			if e.verbose != tt.verbose {
+				t.Errorf("SetVerbose(%v): verbose = %v, want %v", tt.verbose, e.verbose, tt.verbose)
+			}
+		})
+	}
+}
+
+func TestExecutor_SetVerbose_Toggle(t *testing.T) {
+	e := NewExecutor(".")
+
+	// Initially false
+	if e.verbose {
+		t.Error("initial verbose should be false")
+	}
+
+	// Enable
+	e.SetVerbose(true)
+	if !e.verbose {
+		t.Error("verbose should be true after SetVerbose(true)")
+	}
+
+	// Disable
+	e.SetVerbose(false)
+	if e.verbose {
+		t.Error("verbose should be false after SetVerbose(false)")
+	}
+}

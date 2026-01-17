@@ -20,34 +20,34 @@ func TestExtractNpmScriptName(t *testing.T) {
 		{"npm start", "npm", "start"},
 		{"npm stop", "npm", "stop"},
 		{"npm restart", "npm", "restart"},
-		{"npm install", "npm", ""},      // builtin
-		{"npm i", "npm", ""},             // builtin alias
-		{"npm ci", "npm", ""},            // builtin
-		{"npm publish", "npm", ""},       // builtin
+		{"npm install", "npm", ""}, // builtin
+		{"npm i", "npm", ""},       // builtin alias
+		{"npm ci", "npm", ""},      // builtin
+		{"npm publish", "npm", ""}, // builtin
 
 		// pnpm patterns
 		{"pnpm lint", "pnpm", "lint"},
 		{"pnpm run lint", "pnpm", "lint"},
 		{"pnpm build", "pnpm", "build"},
-		{"pnpm install", "pnpm", ""},     // builtin
-		{"pnpm i", "pnpm", ""},           // builtin
-		{"pnpm add react", "pnpm", ""},   // builtin
+		{"pnpm install", "pnpm", ""},              // builtin
+		{"pnpm i", "pnpm", ""},                    // builtin
+		{"pnpm add react", "pnpm", ""},            // builtin
 		{"pnpm dlx create-react-app", "pnpm", ""}, // builtin
 
 		// yarn patterns
 		{"yarn lint", "yarn", "lint"},
 		{"yarn build", "yarn", "build"},
 		{"yarn test", "yarn", "test"},
-		{"yarn install", "yarn", ""},     // builtin
-		{"yarn add react", "yarn", ""},   // builtin
+		{"yarn install", "yarn", ""},   // builtin
+		{"yarn add react", "yarn", ""}, // builtin
 
 		// bun patterns
 		{"bun run lint", "bun", "lint"},
 		{"bun lint", "bun", "lint"},
 		{"bun build", "bun", "build"},
-		{"bun install", "bun", ""},       // builtin
-		{"bun i", "bun", ""},             // builtin
-		{"bun add react", "bun", ""},     // builtin
+		{"bun install", "bun", ""},            // builtin
+		{"bun i", "bun", ""},                  // builtin
+		{"bun add react", "bun", ""},          // builtin
 		{"bun x create-react-app", "bun", ""}, // builtin
 
 		// Non-package-manager commands
@@ -151,9 +151,9 @@ func TestIsNpmScriptAvailable_ScriptExists(t *testing.T) {
 	}
 
 	tests := []struct {
-		cmdStr       string
-		wantAvail    bool
-		wantScript   string
+		cmdStr     string
+		wantAvail  bool
+		wantScript string
 	}{
 		{"npm run lint", true, "lint"},
 		{"npm run build", true, "build"},

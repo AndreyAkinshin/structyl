@@ -34,7 +34,7 @@ func (m *mockTarget) Directory() string {
 	}
 	return m.name
 }
-func (m *mockTarget) Cwd() string             { return m.name }
+func (m *mockTarget) Cwd() string { return m.name }
 func (m *mockTarget) Commands() []string {
 	if m.commands == nil {
 		return nil

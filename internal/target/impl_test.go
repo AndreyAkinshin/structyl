@@ -995,8 +995,8 @@ func TestExecute_CompositeWithMissingNpmScript_ContinuesWithOthers(t *testing.T)
 		Directory: ".",
 		Cwd:       ".",
 		Commands: map[string]interface{}{
-			"lint":  "npm run lint",                             // Missing script - should skip
-			"build": "echo build-ran > " + outputFile,           // Should execute
+			"lint":  "npm run lint",                   // Missing script - should skip
+			"build": "echo build-ran > " + outputFile, // Should execute
 			"check": []interface{}{"lint", "build"},
 		},
 	}

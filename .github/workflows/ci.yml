@@ -25,16 +25,16 @@ jobs:
         uses: jdx/mise-action@v2
 
       - name: Download dependencies
-        run: go mod download
+        run: mise run deps
 
       - name: Run unit tests
-        run: go test -v -race ./internal/...
+        run: mise run test:unit
 
       - name: Run integration tests
-        run: go test -v -race ./test/integration/...
+        run: mise run test:integration
 
       - name: Run package tests
-        run: go test -v -race ./pkg/...
+        run: mise run test:pkg
 
   lint:
     name: Lint
@@ -47,7 +47,7 @@ jobs:
         uses: jdx/mise-action@v2
 
       - name: Run golangci-lint
-        run: golangci-lint run
+        run: mise run lint
 
   build:
     name: Build
@@ -64,7 +64,7 @@ jobs:
         uses: jdx/mise-action@v2
 
       - name: Build
-        run: go build -v ./cmd/structyl
+        run: mise run build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

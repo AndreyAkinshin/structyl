@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 )
 
 // Writer handles CLI output formatting.
@@ -541,6 +542,73 @@ func (w *Writer) SummarySectionLabel(label string) {
 	} else {
 		w.Println("  %s", label)
 	}
+}
+
+// TaskResult holds task execution result data for summary printing.
+type TaskResult struct {
+	Name     string
+	Success  bool
+	Duration time.Duration
+	Error    error
+}
+
+// TaskRunSummary holds summary data for task execution.
+type TaskRunSummary struct {
+	Tasks         []TaskResult
+	TotalDuration time.Duration
+	Passed        int
+	Failed        int
+}
+
+// PrintTaskSummary prints a summary of task execution.
+func (w *Writer) PrintTaskSummary(taskName string, summary *TaskRunSummary) {
+	w.SummaryHeader(taskName + " Summary")
+
+	// Print detailed task listing
+	w.SummarySectionLabel("Tasks:")
+	for _, t := range summary.Tasks {
+		var errMsg string
+		if t.Error != nil {
+			errMsg = t.Error.Error()
+		}
+		w.SummaryAction(t.Name, t.Success, FormatDuration(t.Duration), errMsg)
+	}
+	w.Println("")
+
+	// Print summary details
+	w.SummaryItem("Total Tasks", fmt.Sprintf("%d", len(summary.Tasks)))
+	w.SummaryPassed("Passed", fmt.Sprintf("%d", summary.Passed))
+	if summary.Failed > 0 {
+		// Collect failed task names
+		var failedNames []string
+		for _, t := range summary.Tasks {
+			if !t.Success {
+				failedNames = append(failedNames, t.Name)
+			}
+		}
+		w.SummaryFailed("Failed", fmt.Sprintf("%d (%s)", summary.Failed, strings.Join(failedNames, ", ")))
+	}
+	w.SummaryItem("Duration", FormatDuration(summary.TotalDuration))
+
+	// Final message
+	if summary.Failed == 0 {
+		w.FinalSuccess("All %d tasks completed successfully.", len(summary.Tasks))
+	} else {
+		w.FinalFailure("%d of %d tasks failed.", summary.Failed, len(summary.Tasks))
+	}
+}
+
+// FormatDuration formats a duration in a human-readable way.
+func FormatDuration(d time.Duration) string {
+	if d < time.Second {
+		return fmt.Sprintf("%dms", d.Milliseconds())
+	}
+	if d < time.Minute {
+		return fmt.Sprintf("%.1fs", d.Seconds())
+	}
+	m := int(d.Minutes())
+	s := int(d.Seconds()) % 60
+	return fmt.Sprintf("%dm%ds", m, s)
 }
 
 // colorPlaceholders highlights <placeholder> patterns in text.

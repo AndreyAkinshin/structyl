@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/AndreyAkinshin/structyl/internal/testparser"
 )
 
 // Writer handles CLI output formatting.
@@ -546,10 +548,11 @@ func (w *Writer) SummarySectionLabel(label string) {
 
 // TaskResult holds task execution result data for summary printing.
 type TaskResult struct {
-	Name     string
-	Success  bool
-	Duration time.Duration
-	Error    error
+	Name       string
+	Success    bool
+	Duration   time.Duration
+	Error      error
+	TestCounts *testparser.TestCounts
 }
 
 // TaskRunSummary holds summary data for task execution.
@@ -558,6 +561,26 @@ type TaskRunSummary struct {
 	TotalDuration time.Duration
 	Passed        int
 	Failed        int
+	TestCounts    *testparser.TestCounts
+}
+
+// FormatTestCounts formats test counts for display.
+// Returns empty string if counts are nil or not parsed.
+func FormatTestCounts(counts *testparser.TestCounts) string {
+	if counts == nil || !counts.Parsed {
+		return ""
+	}
+
+	var parts []string
+	parts = append(parts, fmt.Sprintf("%d passed", counts.Passed))
+	if counts.Failed > 0 {
+		parts = append(parts, fmt.Sprintf("%d failed", counts.Failed))
+	}
+	if counts.Skipped > 0 {
+		parts = append(parts, fmt.Sprintf("%d skipped", counts.Skipped))
+	}
+
+	return strings.Join(parts, ", ")
 }
 
 // PrintTaskSummary prints a summary of task execution.
@@ -567,13 +590,14 @@ func (w *Writer) PrintTaskSummary(taskName string, summary *TaskRunSummary) {
 	// Print detailed task listing
 	w.SummarySectionLabel("Tasks:")
 	for _, t := range summary.Tasks {
-		var errMsg string
-		if t.Error != nil {
-			errMsg = t.Error.Error()
-		}
-		w.SummaryAction(t.Name, t.Success, FormatDuration(t.Duration), errMsg)
+		w.printTaskResultLine(t)
 	}
 	w.Println("")
+
+	// Print aggregated test counts if available
+	if summary.TestCounts != nil && summary.TestCounts.Parsed {
+		w.printTestCountsSummary(summary.TestCounts)
+	}
 
 	// Print summary details
 	w.SummaryItem("Total Tasks", fmt.Sprintf("%d", len(summary.Tasks)))
@@ -595,6 +619,77 @@ func (w *Writer) PrintTaskSummary(taskName string, summary *TaskRunSummary) {
 		w.FinalSuccess("All %d tasks completed successfully.", len(summary.Tasks))
 	} else {
 		w.FinalFailure("%d of %d tasks failed.", summary.Failed, len(summary.Tasks))
+	}
+}
+
+// printTaskResultLine prints a single task result with optional test counts.
+func (w *Writer) printTaskResultLine(t TaskResult) {
+	duration := FormatDuration(t.Duration)
+	testCountsStr := FormatTestCounts(t.TestCounts)
+
+	if w.color {
+		if t.Success {
+			w.Print("    %s✓%s %-12s %s%s%s", green, reset, t.Name, dim, duration, reset)
+		} else {
+			w.Print("    %s✗%s %-12s %s%s%s", red, reset, t.Name, dim, duration, reset)
+		}
+
+		if testCountsStr != "" {
+			w.Print("    %s(%s)%s", dim, testCountsStr, reset)
+		} else if t.Error != nil {
+			w.Print("  %s(%s)%s", dim, t.Error.Error(), reset)
+		}
+	} else {
+		if t.Success {
+			w.Print("    + %-12s %s", t.Name, duration)
+		} else {
+			w.Print("    x %-12s %s", t.Name, duration)
+		}
+
+		if testCountsStr != "" {
+			w.Print("    (%s)", testCountsStr)
+		} else if t.Error != nil {
+			w.Print("  (%s)", t.Error.Error())
+		}
+	}
+	w.Print("\n")
+}
+
+// printTestCountsSummary prints the aggregated test counts summary line.
+func (w *Writer) printTestCountsSummary(counts *testparser.TestCounts) {
+	if counts == nil || !counts.Parsed {
+		return
+	}
+
+	var parts []string
+
+	if counts.Passed > 0 {
+		if w.color {
+			parts = append(parts, fmt.Sprintf("%s%d passed%s", green, counts.Passed, reset))
+		} else {
+			parts = append(parts, fmt.Sprintf("%d passed", counts.Passed))
+		}
+	}
+
+	if counts.Failed > 0 {
+		if w.color {
+			parts = append(parts, fmt.Sprintf("%s%d failed%s", red, counts.Failed, reset))
+		} else {
+			parts = append(parts, fmt.Sprintf("%d failed", counts.Failed))
+		}
+	}
+
+	if counts.Skipped > 0 {
+		if w.color {
+			parts = append(parts, fmt.Sprintf("%s%d skipped%s", yellow, counts.Skipped, reset))
+		} else {
+			parts = append(parts, fmt.Sprintf("%d skipped", counts.Skipped))
+		}
+	}
+
+	if len(parts) > 0 {
+		w.Println("  Tests: %s", strings.Join(parts, ", "))
+		w.Println("")
 	}
 }
 

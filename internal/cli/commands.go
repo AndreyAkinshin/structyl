@@ -10,8 +10,9 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/project"
 	"github.com/AndreyAkinshin/structyl/internal/release"
-	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: intentionally using deprecated package for backwards compatibility
+	"github.com/AndreyAkinshin/structyl/internal/runner"    //nolint:staticcheck // SA1019: intentionally using deprecated package for backwards compatibility
 	"github.com/AndreyAkinshin/structyl/internal/target"
+	"github.com/AndreyAkinshin/structyl/internal/testparser"
 )
 
 // out is the shared output writer for CLI commands.
@@ -151,6 +152,12 @@ func runViaMise(proj *project.Project, cmd string, targetName string, args []str
 	executor := mise.NewExecutor(proj.Root)
 	executor.SetVerbose(opts.Verbose)
 
+	// Create parser registry for test commands
+	var parserRegistry *testparser.Registry
+	if strings.HasPrefix(cmd, "test") || cmd == "ci" || cmd == "ci:release" {
+		parserRegistry = testparser.NewRegistry()
+	}
+
 	// Try to resolve dependencies for tracking
 	tasks, err := executor.ResolveTaskDependencies(ctx, task)
 	if err != nil {
@@ -170,7 +177,7 @@ func runViaMise(proj *project.Project, cmd string, targetName string, args []str
 	}
 
 	// Run with tracking
-	summary := executor.RunTasksWithTracking(ctx, tasks, args, opts.ContinueOnError, out)
+	summary := executor.RunTasksWithTracking(ctx, tasks, args, opts.ContinueOnError, out, parserRegistry)
 
 	// Convert to output summary format
 	outSummary := &output.TaskRunSummary{
@@ -178,13 +185,15 @@ func runViaMise(proj *project.Project, cmd string, targetName string, args []str
 		TotalDuration: summary.TotalDuration,
 		Passed:        summary.Passed,
 		Failed:        summary.Failed,
+		TestCounts:    summary.TestCounts,
 	}
 	for i, t := range summary.Tasks {
 		outSummary.Tasks[i] = output.TaskResult{
-			Name:     t.Name,
-			Success:  t.Success,
-			Duration: t.Duration,
-			Error:    t.Error,
+			Name:       t.Name,
+			Success:    t.Success,
+			Duration:   t.Duration,
+			Error:      t.Error,
+			TestCounts: t.TestCounts,
 		}
 	}
 

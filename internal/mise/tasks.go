@@ -1,6 +1,10 @@
 package mise
 
-import "time"
+import (
+	"time"
+
+	"github.com/AndreyAkinshin/structyl/internal/testparser"
+)
 
 // MiseTaskMeta represents task metadata from `mise tasks --json`.
 type MiseTaskMeta struct {
@@ -12,10 +16,11 @@ type MiseTaskMeta struct {
 
 // TaskResult tracks execution result of a single task.
 type TaskResult struct {
-	Name     string
-	Success  bool
-	Duration time.Duration
-	Error    error
+	Name       string
+	Success    bool
+	Duration   time.Duration
+	Error      error
+	TestCounts *testparser.TestCounts
 }
 
 // TaskRunSummary contains aggregated results.
@@ -24,4 +29,5 @@ type TaskRunSummary struct {
 	TotalDuration time.Duration
 	Passed        int
 	Failed        int
+	TestCounts    *testparser.TestCounts // Aggregated test counts
 }

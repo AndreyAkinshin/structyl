@@ -5,12 +5,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
 	"time"
 
 	"github.com/AndreyAkinshin/structyl/internal/output"
+	"github.com/AndreyAkinshin/structyl/internal/testparser"
 )
 
 // Executor handles mise task execution.
@@ -50,6 +52,34 @@ func (e *Executor) RunTask(ctx context.Context, task string, args []string) erro
 	}
 
 	return cmd.Run()
+}
+
+// RunTaskWithCapture executes a mise task, streaming output while capturing it.
+// Returns the combined stdout+stderr output and any execution error.
+func (e *Executor) RunTaskWithCapture(ctx context.Context, task string, args []string) (string, error) {
+	cmdArgs := []string{"run", task}
+	cmdArgs = append(cmdArgs, args...)
+
+	cmd := exec.CommandContext(ctx, "mise", cmdArgs...)
+	cmd.Dir = e.projectRoot
+	cmd.Stdin = os.Stdin
+
+	// Pass through environment
+	cmd.Env = os.Environ()
+
+	// Create a buffer to capture output while also streaming to stdout/stderr
+	var capturedOutput bytes.Buffer
+
+	// Use MultiWriter to both capture and stream output
+	cmd.Stdout = io.MultiWriter(os.Stdout, &capturedOutput)
+	cmd.Stderr = io.MultiWriter(os.Stderr, &capturedOutput)
+
+	if e.verbose {
+		fmt.Printf("Running: mise %s\n", strings.Join(cmdArgs, " "))
+	}
+
+	err := cmd.Run()
+	return capturedOutput.String(), err
 }
 
 // RunTaskOutput executes a mise task and returns the output.
@@ -221,9 +251,11 @@ func (e *Executor) ResolveTaskDependencies(ctx context.Context, taskName string)
 }
 
 // RunTasksWithTracking executes tasks individually with progress tracking.
-func (e *Executor) RunTasksWithTracking(ctx context.Context, tasks []MiseTaskMeta, args []string, continueOnError bool, out *output.Writer) *TaskRunSummary {
+// If parserRegistry is provided, test tasks will have their output parsed for test counts.
+func (e *Executor) RunTasksWithTracking(ctx context.Context, tasks []MiseTaskMeta, args []string, continueOnError bool, out *output.Writer, parserRegistry *testparser.Registry) *TaskRunSummary {
 	summary := &TaskRunSummary{
-		Tasks: make([]TaskResult, 0, len(tasks)),
+		Tasks:      make([]TaskResult, 0, len(tasks)),
+		TestCounts: &testparser.TestCounts{},
 	}
 
 	startTime := time.Now()
@@ -236,7 +268,23 @@ func (e *Executor) RunTasksWithTracking(ctx context.Context, tasks []MiseTaskMet
 		out.TargetStart(task.Name, "run")
 		taskStart := time.Now()
 
-		err := e.RunTask(ctx, task.Name, args)
+		// Determine if we should capture output for parsing
+		var parser testparser.Parser
+		if parserRegistry != nil {
+			parser = parserRegistry.GetParserForTask(task.Name)
+		}
+
+		var err error
+		var taskOutput string
+
+		if parser != nil {
+			// Use capture mode for test tasks to parse output
+			taskOutput, err = e.RunTaskWithCapture(ctx, task.Name, args)
+		} else {
+			// Use regular execution for non-test tasks
+			err = e.RunTask(ctx, task.Name, args)
+		}
+
 		result.Duration = time.Since(taskStart)
 
 		if err != nil {
@@ -248,6 +296,15 @@ func (e *Executor) RunTasksWithTracking(ctx context.Context, tasks []MiseTaskMet
 			result.Success = true
 			out.TargetSuccess(task.Name, "run")
 			summary.Passed++
+		}
+
+		// Parse test output if parser available
+		if parser != nil && taskOutput != "" {
+			counts := parser.Parse(taskOutput)
+			if counts.Parsed {
+				result.TestCounts = &counts
+				summary.TestCounts.Add(&counts)
+			}
 		}
 
 		summary.Tasks = append(summary.Tasks, result)

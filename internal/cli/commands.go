@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/AndreyAkinshin/structyl/internal/mise"
 	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/project"
 	"github.com/AndreyAkinshin/structyl/internal/release"
@@ -96,6 +97,69 @@ func loadProject() (*project.Project, int) {
 	return proj, 0
 }
 
+// isMiseEnabled checks if mise integration is enabled for the project.
+// Returns true by default (mise.enabled defaults to true).
+func isMiseEnabled(proj *project.Project) bool {
+	if proj.Config.Mise == nil {
+		return true // Default to enabled
+	}
+	// If Mise config exists but Enabled is not set, default to true
+	// Only return false if explicitly set to false
+	return proj.Config.Mise.Enabled || proj.Config.Mise == nil
+}
+
+// ensureMiseConfig ensures .mise.toml is up-to-date.
+// If auto_generate is enabled, regenerates the file.
+// If force is true, always regenerates.
+func ensureMiseConfig(proj *project.Project, force bool) error {
+	// Check if auto-generate is enabled
+	autoGen := true // default
+	if proj.Config.Mise != nil {
+		autoGen = proj.Config.Mise.AutoGenerate
+	}
+
+	if force || autoGen || !mise.MiseTomlExists(proj.Root) {
+		_, err := mise.WriteMiseToml(proj.Root, proj.Config, true)
+		if err != nil {
+			return fmt.Errorf("failed to generate .mise.toml: %w", err)
+		}
+	}
+
+	return nil
+}
+
+// formatMiseTaskName converts a structyl command and optional target to a mise task name.
+// Examples:
+//   - ("build", "") → "build"
+//   - ("build", "go") → "build:go"
+//   - ("ci", "rs") → "ci:rs"
+func formatMiseTaskName(cmd string, target string) string {
+	if target == "" {
+		return cmd
+	}
+	return fmt.Sprintf("%s:%s", cmd, target)
+}
+
+// runViaMise executes a command via mise.
+func runViaMise(proj *project.Project, cmd string, targetName string, args []string, opts *GlobalOptions) int {
+	ctx := context.Background()
+
+	// Format task name
+	task := formatMiseTaskName(cmd, targetName)
+
+	// Create executor
+	executor := mise.NewExecutor(proj.Root)
+	executor.SetVerbose(opts.Verbose)
+
+	// Run the task
+	if err := executor.RunTask(ctx, task, args); err != nil {
+		// Don't print error prefix - mise already prints detailed output
+		return 1
+	}
+
+	return 0
+}
+
 // cmdUnified handles both target-specific and cross-target commands.
 // The first argument is always the command. If a second argument matches a target name,
 // it runs the command on that target. Otherwise, it runs on all targets that have it.
@@ -127,16 +191,47 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 	cmd := args[0]
 	remaining := args[1:]
 
-	// Check if second argument is a target name
+	// Determine target name (if specified)
+	var targetName string
+	var cmdArgs []string
+
 	if len(remaining) > 0 {
-		if t, ok := registry.Get(remaining[0]); ok {
-			// It's a target - run specific command on it
-			return runTargetCommand(t, cmd, remaining[1:], opts)
+		if _, ok := registry.Get(remaining[0]); ok {
+			// It's a target
+			targetName = remaining[0]
+			cmdArgs = remaining[1:]
+		} else {
+			cmdArgs = remaining
+		}
+	}
+
+	// Use mise if enabled and not in Docker mode
+	if isMiseEnabled(proj) && !isDockerMode(opts) {
+		// Check mise is installed
+		if err := EnsureMise(true); err != nil {
+			out.ErrorPrefix("%v", err)
+			PrintMiseInstallInstructions()
+			return 1
+		}
+
+		// Ensure .mise.toml is up-to-date
+		if err := ensureMiseConfig(proj, false); err != nil {
+			out.ErrorPrefix("%v", err)
+			return 1
+		}
+
+		return runViaMise(proj, cmd, targetName, cmdArgs, opts)
+	}
+
+	// Fallback to direct execution (Docker mode or mise disabled)
+	if targetName != "" {
+		if t, ok := registry.Get(targetName); ok {
+			return runTargetCommand(t, cmd, cmdArgs, opts)
 		}
 	}
 
 	// No target specified - run command on all targets
-	return runCommandOnAllTargets(registry, cmd, remaining, opts)
+	return runCommandOnAllTargets(registry, cmd, cmdArgs, opts)
 }
 
 // runTargetCommand executes a command on a specific target.
@@ -359,6 +454,60 @@ func cmdConfigValidate() int {
 func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 	applyVerbosityToOutput(opts)
 
+	proj, exitCode := loadProject()
+	if proj == nil {
+		return exitCode
+	}
+
+	// Determine target name from args
+	var targetName string
+	var cmdArgs []string
+	if len(args) > 0 {
+		registry, err := target.NewRegistry(proj.Config, proj.Root)
+		if err == nil {
+			if _, ok := registry.Get(args[0]); ok {
+				targetName = args[0]
+				cmdArgs = args[1:]
+			} else {
+				cmdArgs = args
+			}
+		}
+	}
+
+	// Use mise if enabled and not in Docker mode
+	if isMiseEnabled(proj) && !isDockerMode(opts) {
+		// Check mise is installed
+		if err := EnsureMise(true); err != nil {
+			out.ErrorPrefix("%v", err)
+			PrintMiseInstallInstructions()
+			return 1
+		}
+
+		// Ensure .mise.toml is up-to-date
+		if err := ensureMiseConfig(proj, false); err != nil {
+			out.ErrorPrefix("%v", err)
+			return 1
+		}
+
+		// Determine task name
+		task := "ci"
+		if targetName != "" {
+			task = fmt.Sprintf("ci:%s", targetName)
+		}
+
+		// Create executor
+		executor := mise.NewExecutor(proj.Root)
+		executor.SetVerbose(opts.Verbose)
+
+		// Run the CI task
+		ctx := context.Background()
+		if err := executor.RunTask(ctx, task, cmdArgs); err != nil {
+			return 1
+		}
+		return 0
+	}
+
+	// Fallback to direct execution (Docker mode or mise disabled)
 	// CI pipeline: clean, restore, check, build, test
 	commands := []string{"clean", "restore", "check", "build", "test"}
 
@@ -415,6 +564,70 @@ func filterTargetsByType(targets []target.Target, targetType target.TargetType) 
 		}
 	}
 	return filtered
+}
+
+// cmdMise handles mise-related subcommands.
+func cmdMise(args []string, opts *GlobalOptions) int {
+	if len(args) == 0 {
+		out.ErrorPrefix("mise: subcommand required (sync)")
+		out.Println("usage: structyl mise sync [--force]")
+		return 2
+	}
+
+	switch args[0] {
+	case "sync":
+		return cmdMiseSync(args[1:], opts)
+	default:
+		out.ErrorPrefix("mise: unknown subcommand %q", args[0])
+		out.Println("usage: structyl mise sync [--force]")
+		return 2
+	}
+}
+
+// cmdMiseSync regenerates the .mise.toml file.
+func cmdMiseSync(args []string, opts *GlobalOptions) int {
+	// Parse flags
+	force := false
+	for _, arg := range args {
+		switch arg {
+		case "--force":
+			force = true
+		default:
+			if strings.HasPrefix(arg, "-") {
+				out.ErrorPrefix("mise sync: unknown option %q", arg)
+				return 2
+			}
+		}
+	}
+
+	proj, exitCode := loadProject()
+	if proj == nil {
+		return exitCode
+	}
+
+	// Generate .mise.toml
+	created, err := mise.WriteMiseToml(proj.Root, proj.Config, force || true) // Always force on explicit sync
+	if err != nil {
+		out.ErrorPrefix("mise sync: %v", err)
+		return 1
+	}
+
+	if created {
+		out.Success("Generated .mise.toml")
+	} else {
+		out.Info(".mise.toml is up to date")
+	}
+
+	// Print summary
+	tools := mise.GetAllToolsFromConfig(proj.Config)
+	if len(tools) > 0 {
+		out.HelpSection("Tools:")
+		for name, version := range tools {
+			out.Println("  %s = %s", name, version)
+		}
+	}
+
+	return 0
 }
 
 // cmdDockerBuild builds Docker images for services.

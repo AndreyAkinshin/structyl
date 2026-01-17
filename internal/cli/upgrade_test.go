@@ -9,9 +9,12 @@ import (
 )
 
 func TestParseUpgradeArgs_NoArgs(t *testing.T) {
-	opts, err := parseUpgradeArgs([]string{})
+	opts, showHelp, err := parseUpgradeArgs([]string{})
 	if err != nil {
 		t.Errorf("parseUpgradeArgs([]) error = %v, want nil", err)
+	}
+	if showHelp {
+		t.Error("showHelp = true, want false")
 	}
 	if opts.check {
 		t.Error("opts.check = true, want false")
@@ -22,9 +25,12 @@ func TestParseUpgradeArgs_NoArgs(t *testing.T) {
 }
 
 func TestParseUpgradeArgs_VersionOnly(t *testing.T) {
-	opts, err := parseUpgradeArgs([]string{"1.2.3"})
+	opts, showHelp, err := parseUpgradeArgs([]string{"1.2.3"})
 	if err != nil {
 		t.Errorf("parseUpgradeArgs([1.2.3]) error = %v, want nil", err)
+	}
+	if showHelp {
+		t.Error("showHelp = true, want false")
 	}
 	if opts.version != "1.2.3" {
 		t.Errorf("opts.version = %q, want %q", opts.version, "1.2.3")
@@ -35,9 +41,12 @@ func TestParseUpgradeArgs_VersionOnly(t *testing.T) {
 }
 
 func TestParseUpgradeArgs_CheckFlag(t *testing.T) {
-	opts, err := parseUpgradeArgs([]string{"--check"})
+	opts, showHelp, err := parseUpgradeArgs([]string{"--check"})
 	if err != nil {
 		t.Errorf("parseUpgradeArgs([--check]) error = %v, want nil", err)
+	}
+	if showHelp {
+		t.Error("showHelp = true, want false")
 	}
 	if !opts.check {
 		t.Error("opts.check = false, want true")
@@ -48,31 +57,52 @@ func TestParseUpgradeArgs_CheckFlag(t *testing.T) {
 }
 
 func TestParseUpgradeArgs_NightlyVersion(t *testing.T) {
-	opts, err := parseUpgradeArgs([]string{"nightly"})
+	opts, showHelp, err := parseUpgradeArgs([]string{"nightly"})
 	if err != nil {
 		t.Errorf("parseUpgradeArgs([nightly]) error = %v, want nil", err)
+	}
+	if showHelp {
+		t.Error("showHelp = true, want false")
 	}
 	if opts.version != "nightly" {
 		t.Errorf("opts.version = %q, want %q", opts.version, "nightly")
 	}
 }
 
+func TestParseUpgradeArgs_HelpFlag(t *testing.T) {
+	_, showHelp, err := parseUpgradeArgs([]string{"-h"})
+	if err != nil {
+		t.Errorf("parseUpgradeArgs([-h]) error = %v, want nil", err)
+	}
+	if !showHelp {
+		t.Error("showHelp = false, want true")
+	}
+
+	_, showHelp, err = parseUpgradeArgs([]string{"--help"})
+	if err != nil {
+		t.Errorf("parseUpgradeArgs([--help]) error = %v, want nil", err)
+	}
+	if !showHelp {
+		t.Error("showHelp = false, want true")
+	}
+}
+
 func TestParseUpgradeArgs_CheckAndVersion_ReturnsError(t *testing.T) {
-	_, err := parseUpgradeArgs([]string{"--check", "1.2.3"})
+	_, _, err := parseUpgradeArgs([]string{"--check", "1.2.3"})
 	if err == nil {
 		t.Error("parseUpgradeArgs([--check, 1.2.3]) error = nil, want error")
 	}
 }
 
 func TestParseUpgradeArgs_UnknownFlag_ReturnsError(t *testing.T) {
-	_, err := parseUpgradeArgs([]string{"--unknown"})
+	_, _, err := parseUpgradeArgs([]string{"--unknown"})
 	if err == nil {
 		t.Error("parseUpgradeArgs([--unknown]) error = nil, want error")
 	}
 }
 
 func TestParseUpgradeArgs_MultipleVersions_ReturnsError(t *testing.T) {
-	_, err := parseUpgradeArgs([]string{"1.2.3", "4.5.6"})
+	_, _, err := parseUpgradeArgs([]string{"1.2.3", "4.5.6"})
 	if err == nil {
 		t.Error("parseUpgradeArgs([1.2.3, 4.5.6]) error = nil, want error")
 	}

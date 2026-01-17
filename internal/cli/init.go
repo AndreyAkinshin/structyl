@@ -32,6 +32,11 @@ type initOptions struct {
 // cmdInit initializes a new structyl project or updates an existing one.
 // This command is idempotent - it only creates files that don't exist.
 func cmdInit(args []string) int {
+	if wantsHelp(args) {
+		printInitUsage()
+		return 0
+	}
+
 	// Parse flags
 	opts := initOptions{}
 	for _, arg := range args {
@@ -365,4 +370,29 @@ func printNextSteps(w *output.Writer) {
 	w.Println("New contributors can run: .structyl/setup.sh (or setup.ps1 on Windows)")
 	w.Println("")
 	w.Println("For more information, see: https://structyl.akinshin.dev")
+}
+
+// printInitUsage prints the help text for the init command.
+func printInitUsage() {
+	w := output.New()
+
+	w.HelpTitle("structyl init - initialize a new structyl project")
+
+	w.HelpSection("Usage:")
+	w.HelpUsage("structyl init [--mise]")
+
+	w.HelpSection("Description:")
+	w.Println("  Initializes a new structyl project in the current directory.")
+	w.Println("  Creates .structyl/config.json, VERSION file, and setup scripts.")
+	w.Println("  Auto-detects existing language directories (rs, go, cs, py, etc.).")
+	w.Println("  This command is idempotent - it only creates files that don't exist.")
+
+	w.HelpSection("Options:")
+	w.HelpFlag("--mise", "Generate/regenerate .mise.toml configuration", 10)
+	w.HelpFlag("-h, --help", "Show this help", 10)
+
+	w.HelpSection("Examples:")
+	w.HelpExample("structyl init", "Initialize new project")
+	w.HelpExample("structyl init --mise", "Initialize with mise configuration")
+	w.Println("")
 }

@@ -16,6 +16,19 @@ import (
 // Version is set at build time.
 var Version = "dev"
 
+// wantsHelp checks if args contain -h or --help flag.
+func wantsHelp(args []string) bool {
+	for _, arg := range args {
+		if arg == "-h" || arg == "--help" {
+			return true
+		}
+		if arg == "--" {
+			return false
+		}
+	}
+	return false
+}
+
 // Run executes the CLI with the given arguments and returns an exit code.
 func Run(args []string) int {
 	if len(args) == 0 {
@@ -73,7 +86,7 @@ func Run(args []string) int {
 	case "docker-build":
 		return cmdDockerBuild(cmdArgs, opts)
 	case "docker-clean":
-		return cmdDockerClean(opts)
+		return cmdDockerClean(cmdArgs, opts)
 
 	// Generation commands (mise-based)
 	case "dockerfile":
@@ -87,7 +100,7 @@ func Run(args []string) int {
 
 	// Utility commands
 	case "targets":
-		return cmdTargets(opts)
+		return cmdTargets(cmdArgs, opts)
 	case "config":
 		return cmdConfig(cmdArgs)
 	case "upgrade":

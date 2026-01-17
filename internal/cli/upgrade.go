@@ -41,7 +41,11 @@ type upgradeOptions struct {
 
 // cmdUpgrade handles the 'structyl upgrade' command.
 func cmdUpgrade(args []string) int {
-	opts, err := parseUpgradeArgs(args)
+	opts, showHelp, err := parseUpgradeArgs(args)
+	if showHelp {
+		printUpgradeUsage()
+		return 0
+	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "structyl: error: %v\n", err)
 		printUpgradeUsage()
@@ -83,7 +87,8 @@ func cmdUpgrade(args []string) int {
 }
 
 // parseUpgradeArgs parses arguments for the upgrade command.
-func parseUpgradeArgs(args []string) (*upgradeOptions, error) {
+// Returns opts, showHelp, error.
+func parseUpgradeArgs(args []string) (*upgradeOptions, bool, error) {
 	opts := &upgradeOptions{}
 
 	for i := 0; i < len(args); i++ {
@@ -92,13 +97,12 @@ func parseUpgradeArgs(args []string) (*upgradeOptions, error) {
 		case arg == "--check":
 			opts.check = true
 		case arg == "-h" || arg == "--help":
-			printUpgradeUsage()
-			os.Exit(0)
+			return nil, true, nil
 		case strings.HasPrefix(arg, "-"):
-			return nil, fmt.Errorf("unknown flag: %s", arg)
+			return nil, false, fmt.Errorf("unknown flag: %s", arg)
 		default:
 			if opts.version != "" {
-				return nil, fmt.Errorf("unexpected argument: %s", arg)
+				return nil, false, fmt.Errorf("unexpected argument: %s", arg)
 			}
 			opts.version = arg
 		}
@@ -106,10 +110,10 @@ func parseUpgradeArgs(args []string) (*upgradeOptions, error) {
 
 	// --check and version are mutually exclusive
 	if opts.check && opts.version != "" {
-		return nil, fmt.Errorf("--check and version argument are mutually exclusive")
+		return nil, false, fmt.Errorf("--check and version argument are mutually exclusive")
 	}
 
-	return opts, nil
+	return opts, false, nil
 }
 
 // handleCheckMode displays version information without making changes.

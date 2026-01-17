@@ -171,6 +171,12 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 		return 2
 	}
 
+	// Check for help flag early (after command name)
+	if len(args) > 1 && wantsHelp(args[1:]) {
+		printUnifiedUsage(args[0])
+		return 0
+	}
+
 	proj, exitCode := loadProject()
 	if proj == nil {
 		return exitCode
@@ -367,7 +373,12 @@ func cmdMeta(cmd string, args []string, opts *GlobalOptions) int {
 }
 
 // cmdTargets lists all configured targets.
-func cmdTargets(opts *GlobalOptions) int {
+func cmdTargets(args []string, opts *GlobalOptions) int {
+	if wantsHelp(args) {
+		printTargetsUsage()
+		return 0
+	}
+
 	proj, exitCode := loadProject()
 	if proj == nil {
 		return exitCode
@@ -406,6 +417,9 @@ func cmdConfig(args []string) int {
 	switch args[0] {
 	case "validate":
 		return cmdConfigValidate()
+	case "-h", "--help":
+		printConfigUsage()
+		return 0
 	default:
 		out.ErrorPrefix("config: unknown subcommand %q", args[0])
 		return 2
@@ -452,6 +466,11 @@ func cmdConfigValidate() int {
 
 // cmdCI runs the CI pipeline.
 func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
+	if wantsHelp(args) {
+		printCIUsage(cmd)
+		return 0
+	}
+
 	applyVerbosityToOutput(opts)
 
 	proj, exitCode := loadProject()
@@ -574,9 +593,14 @@ func cmdMise(args []string, opts *GlobalOptions) int {
 		return 2
 	}
 
+	// Check if first arg is a known subcommand - if so, route to it
+	// Otherwise, check for help flag at mise level
 	switch args[0] {
 	case "sync":
 		return cmdMiseSync(args[1:], opts)
+	case "-h", "--help":
+		printMiseUsage()
+		return 0
 	default:
 		out.ErrorPrefix("mise: unknown subcommand %q", args[0])
 		out.Println("usage: structyl mise sync [--force]")
@@ -586,6 +610,11 @@ func cmdMise(args []string, opts *GlobalOptions) int {
 
 // cmdMiseSync regenerates the .mise.toml file.
 func cmdMiseSync(args []string, opts *GlobalOptions) int {
+	if wantsHelp(args) {
+		printMiseSyncUsage()
+		return 0
+	}
+
 	// Parse flags
 	force := false
 	for _, arg := range args {
@@ -632,6 +661,11 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 
 // cmdDockerBuild builds Docker images for services.
 func cmdDockerBuild(args []string, opts *GlobalOptions) int {
+	if wantsHelp(args) {
+		printDockerBuildUsage()
+		return 0
+	}
+
 	proj, exitCode := loadProject()
 	if proj == nil {
 		return exitCode
@@ -660,7 +694,12 @@ func cmdDockerBuild(args []string, opts *GlobalOptions) int {
 }
 
 // cmdDockerClean removes Docker containers and images.
-func cmdDockerClean(opts *GlobalOptions) int {
+func cmdDockerClean(args []string, opts *GlobalOptions) int {
+	if wantsHelp(args) {
+		printDockerCleanUsage()
+		return 0
+	}
+
 	proj, exitCode := loadProject()
 	if proj == nil {
 		return exitCode
@@ -689,6 +728,11 @@ func cmdDockerClean(opts *GlobalOptions) int {
 
 // cmdRelease performs the release workflow.
 func cmdRelease(args []string, opts *GlobalOptions) int {
+	if wantsHelp(args) {
+		printReleaseUsage()
+		return 0
+	}
+
 	// Parse release-specific flags
 	releaseOpts := release.Options{}
 	var remaining []string
@@ -729,4 +773,262 @@ func cmdRelease(args []string, opts *GlobalOptions) int {
 	}
 
 	return 0
+}
+
+// printUnifiedUsage prints the help text for unified commands (build, test, etc.).
+func printUnifiedUsage(cmd string) {
+	w := output.New()
+
+	descriptions := map[string]string{
+		"build":         "build targets",
+		"build:release": "build targets in release mode",
+		"test":          "run tests",
+		"test:coverage": "run tests with coverage",
+		"clean":         "clean build artifacts",
+		"restore":       "restore/install dependencies",
+		"check":         "run static analysis",
+		"format":        "format code",
+		"format-check":  "check code formatting",
+		"lint":          "run linter",
+		"bench":         "run benchmarks",
+		"demo":          "run demos",
+		"doc":           "generate documentation",
+		"pack":          "create package",
+	}
+
+	desc := descriptions[cmd]
+	if desc == "" {
+		desc = fmt.Sprintf("run %s", cmd)
+	}
+
+	w.HelpTitle(fmt.Sprintf("structyl %s - %s", cmd, desc))
+
+	w.HelpSection("Usage:")
+	w.HelpUsage(fmt.Sprintf("structyl %s [target] [options]", cmd))
+
+	w.HelpSection("Description:")
+	w.Println("  When a target is specified, runs %s on that target only.", cmd)
+	w.Println("  Without a target, runs %s on all targets that have it defined.", cmd)
+
+	w.HelpSection("Arguments:")
+	w.HelpFlag("[target]", "Target name to run command on (optional)", 10)
+
+	w.HelpSection("Global Options:")
+	w.HelpFlag("-q, --quiet", "Minimal output (errors only)", 14)
+	w.HelpFlag("-v, --verbose", "Maximum detail", 14)
+	w.HelpFlag("--docker", "Run in Docker container", 14)
+	w.HelpFlag("--no-docker", "Disable Docker mode", 14)
+	w.HelpFlag("--continue", "Continue on error (don't fail-fast)", 14)
+	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", 14)
+	w.HelpFlag("-h, --help", "Show this help", 14)
+
+	w.HelpSection("Examples:")
+	w.HelpExample(fmt.Sprintf("structyl %s", cmd), fmt.Sprintf("%s all targets", strings.Title(cmd)))
+	w.HelpExample(fmt.Sprintf("structyl %s go", cmd), fmt.Sprintf("%s Go target only", strings.Title(cmd)))
+	w.HelpExample(fmt.Sprintf("structyl %s --docker", cmd), fmt.Sprintf("%s all targets in Docker", strings.Title(cmd)))
+	w.Println("")
+}
+
+// printReleaseUsage prints the help text for the release command.
+func printReleaseUsage() {
+	w := output.New()
+
+	w.HelpTitle("structyl release - create a release")
+
+	w.HelpSection("Usage:")
+	w.HelpUsage("structyl release <version> [options]")
+
+	w.HelpSection("Description:")
+	w.Println("  Creates a release by setting the version across all targets,")
+	w.Println("  committing the changes, and optionally pushing to the remote.")
+
+	w.HelpSection("Arguments:")
+	w.HelpFlag("<version>", "Version number (e.g., 1.2.3)", 10)
+
+	w.HelpSection("Options:")
+	w.HelpFlag("--push", "Push to remote with tags after commit", 10)
+	w.HelpFlag("--dry-run", "Print what would be done without making changes", 10)
+	w.HelpFlag("--force", "Force release with uncommitted changes", 10)
+	w.HelpFlag("-h, --help", "Show this help", 10)
+
+	w.HelpSection("Examples:")
+	w.HelpExample("structyl release 1.2.3", "Create release 1.2.3")
+	w.HelpExample("structyl release 1.2.3 --push", "Create and push release 1.2.3")
+	w.HelpExample("structyl release 1.2.3 --dry-run", "Preview release without changes")
+	w.Println("")
+}
+
+// printCIUsage prints the help text for the ci and ci:release commands.
+func printCIUsage(cmd string) {
+	w := output.New()
+
+	if cmd == "ci:release" {
+		w.HelpTitle("structyl ci:release - run CI pipeline with release builds")
+	} else {
+		w.HelpTitle("structyl ci - run CI pipeline")
+	}
+
+	w.HelpSection("Usage:")
+	w.HelpUsage(fmt.Sprintf("structyl %s [target] [options]", cmd))
+
+	w.HelpSection("Description:")
+	if cmd == "ci:release" {
+		w.Println("  Runs the CI pipeline with release builds: clean, restore, check,")
+		w.Println("  build:release, test. When a target is specified, runs only for")
+		w.Println("  that target.")
+	} else {
+		w.Println("  Runs the CI pipeline: clean, restore, check, build, test.")
+		w.Println("  When a target is specified, runs only for that target.")
+	}
+
+	w.HelpSection("Arguments:")
+	w.HelpFlag("[target]", "Target name to run CI on (optional)", 10)
+
+	w.HelpSection("Global Options:")
+	w.HelpFlag("-q, --quiet", "Minimal output (errors only)", 14)
+	w.HelpFlag("-v, --verbose", "Maximum detail", 14)
+	w.HelpFlag("--docker", "Run in Docker container", 14)
+	w.HelpFlag("--no-docker", "Disable Docker mode", 14)
+	w.HelpFlag("--continue", "Continue on error (don't fail-fast)", 14)
+	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", 14)
+	w.HelpFlag("-h, --help", "Show this help", 14)
+
+	w.HelpSection("Examples:")
+	w.HelpExample(fmt.Sprintf("structyl %s", cmd), "Run CI on all targets")
+	w.HelpExample(fmt.Sprintf("structyl %s go", cmd), "Run CI on Go target only")
+	w.HelpExample(fmt.Sprintf("structyl %s --docker", cmd), "Run CI in Docker")
+	w.Println("")
+}
+
+// printConfigUsage prints the help text for the config command.
+func printConfigUsage() {
+	w := output.New()
+
+	w.HelpTitle("structyl config - configuration utilities")
+
+	w.HelpSection("Usage:")
+	w.HelpUsage("structyl config <subcommand>")
+
+	w.HelpSection("Subcommands:")
+	w.HelpCommand("validate", "Validate the project configuration", 10)
+
+	w.HelpSection("Options:")
+	w.HelpFlag("-h, --help", "Show this help", 10)
+
+	w.HelpSection("Examples:")
+	w.HelpExample("structyl config validate", "Validate project configuration")
+	w.Println("")
+}
+
+// printMiseUsage prints the help text for the mise command.
+func printMiseUsage() {
+	w := output.New()
+
+	w.HelpTitle("structyl mise - mise integration commands")
+
+	w.HelpSection("Usage:")
+	w.HelpUsage("structyl mise <subcommand>")
+
+	w.HelpSection("Subcommands:")
+	w.HelpCommand("sync", "Regenerate .mise.toml from project configuration", 6)
+
+	w.HelpSection("Options:")
+	w.HelpFlag("-h, --help", "Show this help", 10)
+
+	w.HelpSection("Examples:")
+	w.HelpExample("structyl mise sync", "Regenerate .mise.toml")
+	w.HelpExample("structyl mise sync --force", "Force regenerate .mise.toml")
+	w.Println("")
+}
+
+// printMiseSyncUsage prints the help text for the mise sync command.
+func printMiseSyncUsage() {
+	w := output.New()
+
+	w.HelpTitle("structyl mise sync - regenerate .mise.toml")
+
+	w.HelpSection("Usage:")
+	w.HelpUsage("structyl mise sync [--force]")
+
+	w.HelpSection("Description:")
+	w.Println("  Regenerates the .mise.toml file from project configuration.")
+	w.Println("  This file defines tasks and tools for the mise task runner.")
+
+	w.HelpSection("Options:")
+	w.HelpFlag("--force", "Force regeneration even if file exists", 10)
+	w.HelpFlag("-h, --help", "Show this help", 10)
+
+	w.HelpSection("Examples:")
+	w.HelpExample("structyl mise sync", "Regenerate .mise.toml")
+	w.HelpExample("structyl mise sync --force", "Force regenerate .mise.toml")
+	w.Println("")
+}
+
+// printDockerBuildUsage prints the help text for the docker-build command.
+func printDockerBuildUsage() {
+	w := output.New()
+
+	w.HelpTitle("structyl docker-build - build Docker images")
+
+	w.HelpSection("Usage:")
+	w.HelpUsage("structyl docker-build [services...]")
+
+	w.HelpSection("Description:")
+	w.Println("  Builds Docker images for the specified services (or all services")
+	w.Println("  if none specified). Uses docker compose build under the hood.")
+
+	w.HelpSection("Arguments:")
+	w.HelpFlag("[services]", "Service names to build (optional, builds all if omitted)", 12)
+
+	w.HelpSection("Options:")
+	w.HelpFlag("-h, --help", "Show this help", 10)
+
+	w.HelpSection("Examples:")
+	w.HelpExample("structyl docker-build", "Build all Docker images")
+	w.HelpExample("structyl docker-build api", "Build only the 'api' service")
+	w.Println("")
+}
+
+// printDockerCleanUsage prints the help text for the docker-clean command.
+func printDockerCleanUsage() {
+	w := output.New()
+
+	w.HelpTitle("structyl docker-clean - remove Docker containers and images")
+
+	w.HelpSection("Usage:")
+	w.HelpUsage("structyl docker-clean")
+
+	w.HelpSection("Description:")
+	w.Println("  Removes Docker containers and images associated with the project.")
+	w.Println("  Uses docker compose down --rmi all under the hood.")
+
+	w.HelpSection("Options:")
+	w.HelpFlag("-h, --help", "Show this help", 10)
+
+	w.HelpSection("Examples:")
+	w.HelpExample("structyl docker-clean", "Remove all Docker containers and images")
+	w.Println("")
+}
+
+// printTargetsUsage prints the help text for the targets command.
+func printTargetsUsage() {
+	w := output.New()
+
+	w.HelpTitle("structyl targets - list configured targets")
+
+	w.HelpSection("Usage:")
+	w.HelpUsage("structyl targets [options]")
+
+	w.HelpSection("Description:")
+	w.Println("  Lists all configured targets in the project with their type,")
+	w.Println("  title, available commands, and dependencies.")
+
+	w.HelpSection("Options:")
+	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", 14)
+	w.HelpFlag("-h, --help", "Show this help", 14)
+
+	w.HelpSection("Examples:")
+	w.HelpExample("structyl targets", "List all targets")
+	w.HelpExample("structyl targets --type=language", "List only language targets")
+	w.Println("")
 }

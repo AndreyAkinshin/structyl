@@ -655,7 +655,7 @@ func withWorkingDir(t *testing.T, dir string, fn func()) {
 func TestCmdTargets_Success(t *testing.T) {
 	root := createTestProject(t)
 	withWorkingDir(t, root, func() {
-		exitCode := cmdTargets(&GlobalOptions{})
+		exitCode := cmdTargets([]string{}, &GlobalOptions{})
 		if exitCode != 0 {
 			t.Errorf("cmdTargets() = %d, want 0", exitCode)
 		}
@@ -665,7 +665,7 @@ func TestCmdTargets_Success(t *testing.T) {
 func TestCmdTargets_NoProject_ReturnsError(t *testing.T) {
 	tmpDir := t.TempDir()
 	withWorkingDir(t, tmpDir, func() {
-		exitCode := cmdTargets(&GlobalOptions{})
+		exitCode := cmdTargets([]string{}, &GlobalOptions{})
 		if exitCode == 0 {
 			t.Error("cmdTargets() = 0, want non-zero when no project")
 		}
@@ -676,13 +676,13 @@ func TestCmdTargets_WithTypeFilter(t *testing.T) {
 	root := createTestProject(t)
 	withWorkingDir(t, root, func() {
 		// Filter to language only
-		exitCode := cmdTargets(&GlobalOptions{TargetType: "language"})
+		exitCode := cmdTargets([]string{}, &GlobalOptions{TargetType: "language"})
 		if exitCode != 0 {
 			t.Errorf("cmdTargets(language) = %d, want 0", exitCode)
 		}
 
 		// Filter to auxiliary only
-		exitCode = cmdTargets(&GlobalOptions{TargetType: "auxiliary"})
+		exitCode = cmdTargets([]string{}, &GlobalOptions{TargetType: "auxiliary"})
 		if exitCode != 0 {
 			t.Errorf("cmdTargets(auxiliary) = %d, want 0", exitCode)
 		}
@@ -1333,7 +1333,7 @@ func TestCmdDockerBuild_NoProject_ReturnsError(t *testing.T) {
 func TestCmdDockerClean_NoProject_ReturnsError(t *testing.T) {
 	tmpDir := t.TempDir()
 	withWorkingDir(t, tmpDir, func() {
-		exitCode := cmdDockerClean(&GlobalOptions{})
+		exitCode := cmdDockerClean([]string{}, &GlobalOptions{})
 		if exitCode == 0 {
 			t.Error("cmdDockerClean() = 0, want non-zero when no project")
 		}
@@ -1466,7 +1466,7 @@ func TestCmdDockerClean_ValidProject_LoadsProject(t *testing.T) {
 	root := createTestProjectWithDocker(t)
 	withWorkingDir(t, root, func() {
 		// This tests the project loading path up to Docker availability check
-		exitCode := cmdDockerClean(&GlobalOptions{})
+		exitCode := cmdDockerClean([]string{}, &GlobalOptions{})
 		// Exit code 3 = Docker unavailable (expected)
 		// Exit code 0 = Docker available and clean succeeded
 		if exitCode != 0 && exitCode != 3 {

@@ -5,10 +5,16 @@ import (
 	"strings"
 
 	"github.com/AndreyAkinshin/structyl/internal/mise"
+	"github.com/AndreyAkinshin/structyl/internal/output"
 )
 
 // cmdDockerfile generates Dockerfiles for targets using mise.
 func cmdDockerfile(args []string, opts *GlobalOptions) int {
+	if wantsHelp(args) {
+		printDockerfileUsage()
+		return 0
+	}
+
 	// Parse flags
 	force := false
 	for _, arg := range args {
@@ -70,6 +76,11 @@ func cmdDockerfile(args []string, opts *GlobalOptions) int {
 
 // cmdGitHub generates a GitHub Actions CI workflow using mise.
 func cmdGitHub(args []string, opts *GlobalOptions) int {
+	if wantsHelp(args) {
+		printGitHubUsage()
+		return 0
+	}
+
 	// Parse flags
 	force := false
 	for _, arg := range args {
@@ -134,4 +145,51 @@ func cmdGitHub(args []string, opts *GlobalOptions) int {
 	}
 
 	return 0
+}
+
+// printDockerfileUsage prints the help text for the dockerfile command.
+func printDockerfileUsage() {
+	w := output.New()
+
+	w.HelpTitle("structyl dockerfile - generate Dockerfiles")
+
+	w.HelpSection("Usage:")
+	w.HelpUsage("structyl dockerfile [--force]")
+
+	w.HelpSection("Description:")
+	w.Println("  Generates Dockerfiles for all targets with mise-supported toolchains.")
+	w.Println("  Each target gets its own Dockerfile in its directory.")
+
+	w.HelpSection("Options:")
+	w.HelpFlag("--force", "Overwrite existing Dockerfiles", 10)
+	w.HelpFlag("-h, --help", "Show this help", 10)
+
+	w.HelpSection("Examples:")
+	w.HelpExample("structyl dockerfile", "Generate Dockerfiles for all targets")
+	w.HelpExample("structyl dockerfile --force", "Regenerate all Dockerfiles")
+	w.Println("")
+}
+
+// printGitHubUsage prints the help text for the github command.
+func printGitHubUsage() {
+	w := output.New()
+
+	w.HelpTitle("structyl github - generate GitHub Actions CI workflow")
+
+	w.HelpSection("Usage:")
+	w.HelpUsage("structyl github [--force]")
+
+	w.HelpSection("Description:")
+	w.Println("  Generates a GitHub Actions CI workflow file at")
+	w.Println("  .github/workflows/ci.yml. The workflow uses mise to run")
+	w.Println("  CI tasks for each configured target.")
+
+	w.HelpSection("Options:")
+	w.HelpFlag("--force", "Overwrite existing workflow file", 10)
+	w.HelpFlag("-h, --help", "Show this help", 10)
+
+	w.HelpSection("Examples:")
+	w.HelpExample("structyl github", "Generate GitHub Actions workflow")
+	w.HelpExample("structyl github --force", "Regenerate workflow file")
+	w.Println("")
 }

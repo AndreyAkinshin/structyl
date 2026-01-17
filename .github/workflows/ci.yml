@@ -49,7 +49,7 @@ jobs:
       - name: Set up mise
         uses: jdx/mise-action@v2
         with:
-          install_args: "go@1.24"
+          install_args: "go@1.24 golangci-lint"
 
       - name: Run golangci-lint
         run: golangci-lint run

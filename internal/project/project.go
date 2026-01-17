@@ -5,13 +5,15 @@ import (
 	"path/filepath"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
 
 // Project represents a loaded structyl project.
 type Project struct {
-	Root     string
-	Config   *config.Config
-	Warnings []string
+	Root       string
+	Config     *config.Config
+	Toolchains *toolchain.ToolchainsFile
+	Warnings   []string
 }
 
 // LoadProject finds and loads a project from the current directory.
@@ -32,6 +34,12 @@ func LoadProjectFrom(root string) (*Project, error) {
 		return nil, fmt.Errorf("failed to load configuration: %w", err)
 	}
 
+	// Load toolchains configuration (merges with defaults)
+	toolchains, err := toolchain.LoadToolchains(root)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load toolchains: %w", err)
+	}
+
 	// Validate target directories exist
 	for name, target := range cfg.Targets {
 		targetDir := filepath.Join(root, target.Directory)
@@ -41,9 +49,10 @@ func LoadProjectFrom(root string) (*Project, error) {
 	}
 
 	return &Project{
-		Root:     root,
-		Config:   cfg,
-		Warnings: warnings,
+		Root:       root,
+		Config:     cfg,
+		Toolchains: toolchains,
+		Warnings:   warnings,
 	}, nil
 }
 

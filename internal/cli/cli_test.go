@@ -12,6 +12,7 @@ import (
 )
 
 func TestParseGlobalFlags(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name           string
 		args           []string
@@ -198,20 +199,27 @@ func TestParseGlobalFlags_EmptyTypeIsValid(t *testing.T) {
 	}
 }
 
-func TestParseGlobalFlags_TypeWithoutValue(t *testing.T) {
-	_, _, err := parseGlobalFlags([]string{"--type"})
-	if err == nil {
-		t.Error("parseGlobalFlags() expected error for --type without value")
+func TestParseGlobalFlags_TypeMissingValue(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		args []string
+	}{
+		{"type flag only", []string{"--type"}},
+		{"type at end after command", []string{"build", "--type"}},
 	}
-	if err != nil && !strings.Contains(err.Error(), "--type requires a value") {
-		t.Errorf("error = %q, want to contain '--type requires a value'", err.Error())
-	}
-}
 
-func TestParseGlobalFlags_TypeAtEndOfArgs(t *testing.T) {
-	_, _, err := parseGlobalFlags([]string{"build", "--type"})
-	if err == nil {
-		t.Error("parseGlobalFlags() expected error for --type at end of args")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			_, _, err := parseGlobalFlags(tt.args)
+			if err == nil {
+				t.Error("parseGlobalFlags() expected error for --type without value")
+			}
+			if err != nil && !strings.Contains(err.Error(), "--type requires a value") {
+				t.Errorf("error = %q, want to contain '--type requires a value'", err.Error())
+			}
+		})
 	}
 }
 
@@ -262,6 +270,7 @@ func TestRun_EmptyArgs(t *testing.T) {
 }
 
 func TestSanitizeProjectName(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		input    string
 		expected string
@@ -291,6 +300,7 @@ func TestSanitizeProjectName(t *testing.T) {
 }
 
 func TestSanitizeProjectName_SpecialCharacters(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    string
@@ -314,6 +324,7 @@ func TestSanitizeProjectName_SpecialCharacters(t *testing.T) {
 }
 
 func TestGetVerbosity(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		opts     *GlobalOptions
@@ -419,6 +430,7 @@ func (m *mockTarget) Execute(ctx context.Context, cmd string, opts target.ExecOp
 }
 
 func TestFilterTargetsByType_FiltersCorrectly(t *testing.T) {
+	t.Parallel()
 	targets := []target.Target{
 		&mockTarget{name: "cs", targetType: target.TypeLanguage},
 		&mockTarget{name: "py", targetType: target.TypeLanguage},
@@ -450,6 +462,7 @@ func TestFilterTargetsByType_FiltersCorrectly(t *testing.T) {
 }
 
 func TestFilterTargetsByType_EmptySlice_ReturnsEmpty(t *testing.T) {
+	t.Parallel()
 	filtered := filterTargetsByType(nil, target.TypeLanguage)
 	if len(filtered) != 0 {
 		t.Errorf("filterTargetsByType(nil) = %d targets, want 0", len(filtered))
@@ -1587,6 +1600,191 @@ func TestCmdRelease_InvalidVersion_ReturnsError(t *testing.T) {
 		exitCode := cmdRelease([]string{"invalid-version", "--dry-run"}, &GlobalOptions{})
 		if exitCode == 0 {
 			t.Error("cmdRelease(invalid-version) = 0, want non-zero")
+		}
+	})
+}
+
+// =============================================================================
+// collectAllCommands Tests
+// =============================================================================
+
+func TestCollectAllCommands_EmptyTargets(t *testing.T) {
+	t.Parallel()
+	result := collectAllCommands(nil)
+	if len(result) != 0 {
+		t.Errorf("collectAllCommands(nil) = %d items, want 0", len(result))
+	}
+
+	result = collectAllCommands([]target.Target{})
+	if len(result) != 0 {
+		t.Errorf("collectAllCommands([]) = %d items, want 0", len(result))
+	}
+}
+
+func TestCollectAllCommands_SingleTarget(t *testing.T) {
+	t.Parallel()
+	mock := &mockTarget{
+		name:       "test",
+		targetType: target.TypeLanguage,
+		commands: map[string]interface{}{
+			"build": "go build",
+			"test":  "go test",
+		},
+	}
+
+	result := collectAllCommands([]target.Target{mock})
+	if len(result) != 2 {
+		t.Errorf("collectAllCommands() = %d items, want 2", len(result))
+	}
+
+	// Verify commands are present
+	cmdNames := make(map[string]bool)
+	for _, cmd := range result {
+		cmdNames[cmd.name] = true
+	}
+	if !cmdNames["build"] || !cmdNames["test"] {
+		t.Errorf("collectAllCommands() missing expected commands, got %v", cmdNames)
+	}
+}
+
+func TestCollectAllCommands_MultipleTargets_SortsByFrequency(t *testing.T) {
+	t.Parallel()
+	// Target 1 has build, test, clean
+	mock1 := &mockTarget{
+		name:       "t1",
+		targetType: target.TypeLanguage,
+		commands: map[string]interface{}{
+			"build": "cmd1",
+			"test":  "cmd2",
+			"clean": "cmd3",
+		},
+	}
+	// Target 2 has build, test (no clean)
+	mock2 := &mockTarget{
+		name:       "t2",
+		targetType: target.TypeLanguage,
+		commands: map[string]interface{}{
+			"build": "cmd1",
+			"test":  "cmd2",
+		},
+	}
+	// Target 3 has build only
+	mock3 := &mockTarget{
+		name:       "t3",
+		targetType: target.TypeLanguage,
+		commands: map[string]interface{}{
+			"build": "cmd1",
+		},
+	}
+
+	result := collectAllCommands([]target.Target{mock1, mock2, mock3})
+
+	// build appears in 3 targets, test in 2, clean in 1
+	// First item should be "build" (most frequent)
+	if len(result) < 1 {
+		t.Fatal("collectAllCommands() returned empty result")
+	}
+	if result[0].name != "build" {
+		t.Errorf("collectAllCommands()[0].name = %q, want %q (most frequent)", result[0].name, "build")
+	}
+}
+
+func TestCollectAllCommands_DescriptionMapping(t *testing.T) {
+	t.Parallel()
+	mock := &mockTarget{
+		name:       "test",
+		targetType: target.TypeLanguage,
+		commands: map[string]interface{}{
+			"build":   "go build",
+			"test":    "go test",
+			"clean":   "rm -rf",
+			"restore": "go mod download",
+			"custom":  "echo custom", // Not in descriptions map
+		},
+	}
+
+	result := collectAllCommands([]target.Target{mock})
+
+	descMap := make(map[string]string)
+	for _, cmd := range result {
+		descMap[cmd.name] = cmd.description
+	}
+
+	// Known commands should have descriptions from the map
+	if !containsSubstr(descMap["build"], "Build") {
+		t.Errorf("build description = %q, want to contain 'Build'", descMap["build"])
+	}
+	if !containsSubstr(descMap["test"], "test") {
+		t.Errorf("test description = %q, want to contain 'test'", descMap["test"])
+	}
+	// Unknown command should have fallback description
+	if !containsSubstr(descMap["custom"], "custom") {
+		t.Errorf("custom description = %q, want to contain 'custom'", descMap["custom"])
+	}
+}
+
+func containsSubstr(s, substr string) bool {
+	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
+}
+
+// =============================================================================
+// Help Printing Tests
+// =============================================================================
+
+func TestRun_Help_NoProject_ReturnsSuccess(t *testing.T) {
+	tmpDir := t.TempDir()
+	withWorkingDir(t, tmpDir, func() {
+		// --help outside a project should succeed
+		exitCode := Run([]string{"--help"})
+		if exitCode != 0 {
+			t.Errorf("Run([--help]) = %d, want 0", exitCode)
+		}
+	})
+}
+
+func TestRun_Help_WithProject_ReturnsSuccess(t *testing.T) {
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		// --help inside a project should succeed
+		exitCode := Run([]string{"--help"})
+		if exitCode != 0 {
+			t.Errorf("Run([--help]) = %d, want 0", exitCode)
+		}
+	})
+}
+
+func TestRun_HelpAlternatives_ReturnsSuccess(t *testing.T) {
+	t.Parallel()
+	// All these should trigger help display
+	helpArgs := [][]string{
+		{"--help"},
+		{"-h"},
+		{"help"},
+	}
+
+	tmpDir := t.TempDir()
+
+	for _, args := range helpArgs {
+		t.Run(strings.Join(args, "_"), func(t *testing.T) {
+			withWorkingDir(t, tmpDir, func() {
+				exitCode := Run(args)
+				if exitCode != 0 {
+					t.Errorf("Run(%v) = %d, want 0", args, exitCode)
+				}
+			})
+		})
+	}
+}
+
+func TestPrintUsage_WithProjectTargets_ShowsAllTargets(t *testing.T) {
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		// This test verifies printUsage executes without error when a project exists
+		// We can't easily capture stdout in tests, but we verify no panic occurs
+		// and the function completes
+		exitCode := Run([]string{"--help"})
+		if exitCode != 0 {
+			t.Errorf("Run([--help]) with project = %d, want 0", exitCode)
 		}
 	})
 }

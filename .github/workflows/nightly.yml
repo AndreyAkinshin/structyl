@@ -24,13 +24,8 @@ jobs:
 
       - name: Set up mise
         uses: jdx/mise-action@v2
-
-      - name: Delete existing nightly release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Delete the release (this also frees up the tag for reuse)
-          gh release delete nightly --yes --cleanup-tag || true
+        with:
+          install_args: "go@1.24"
 
       - name: Get version info
         id: version
@@ -69,6 +64,13 @@ jobs:
           rm -f checksums.txt
           sha256sum structyl_nightly_* > checksums.txt
           cat checksums.txt
+
+      - name: Delete existing nightly release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Only delete after successful build to preserve old release on failure
+          gh release delete nightly --yes --cleanup-tag || true
 
       - name: Create nightly release
         env:

@@ -36,6 +36,54 @@ func TestNew(t *testing.T) {
 	}
 }
 
+func TestNewWithWriters(t *testing.T) {
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+
+	w := NewWithWriters(stdout, stderr, true)
+	if w == nil {
+		t.Fatal("NewWithWriters() returned nil")
+	}
+	if w.out != stdout {
+		t.Error("out writer not set correctly")
+	}
+	if w.err != stderr {
+		t.Error("err writer not set correctly")
+	}
+	if !w.color {
+		t.Error("color should be true when passed true")
+	}
+}
+
+func TestNewWithWriters_NoColor(t *testing.T) {
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+
+	w := NewWithWriters(stdout, stderr, false)
+	if w.color {
+		t.Error("color should be false when passed false")
+	}
+}
+
+func TestNewWithWriters_WritesToCustomWriters(t *testing.T) {
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+
+	w := NewWithWriters(stdout, stderr, false)
+
+	// Write to stdout via Println
+	w.Println("test message")
+	if !strings.Contains(stdout.String(), "test message") {
+		t.Errorf("Println() did not write to custom stdout, got %q", stdout.String())
+	}
+
+	// Write to stderr via ErrorPrefix
+	w.ErrorPrefix("test error")
+	if !strings.Contains(stderr.String(), "test error") {
+		t.Errorf("ErrorPrefix() did not write to custom stderr, got %q", stderr.String())
+	}
+}
+
 func TestWriter_SetQuiet(t *testing.T) {
 	w, _, _ := newTestWriter()
 

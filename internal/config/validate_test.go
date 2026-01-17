@@ -49,31 +49,35 @@ func TestValidateProjectName_Invalid(t *testing.T) {
 	}
 }
 
-func TestValidateProjectName_ExactlyMaxLength(t *testing.T) {
-	// Exactly 128 characters - should be valid
-	name := "a"
-	for i := 1; i < 128; i++ {
-		name += "a"
+func TestValidateProjectName_LengthBoundaries(t *testing.T) {
+	tests := []struct {
+		length  int
+		wantErr bool
+		desc    string
+	}{
+		{127, false, "one below max"},
+		{128, false, "exactly max"},
+		{129, true, "one above max"},
 	}
-	if len(name) != 128 {
-		t.Fatalf("test setup error: name length = %d, want 128", len(name))
-	}
-	if err := ValidateProjectName(name); err != nil {
-		t.Errorf("ValidateProjectName() = %v, want nil for exactly 128 chars", err)
-	}
-}
 
-func TestValidateProjectName_TooLong(t *testing.T) {
-	// 129 characters - should be invalid
-	name := "a"
-	for i := 1; i < 129; i++ {
-		name += "a"
-	}
-	if len(name) != 129 {
-		t.Fatalf("test setup error: name length = %d, want 129", len(name))
-	}
-	if err := ValidateProjectName(name); err == nil {
-		t.Errorf("ValidateProjectName() = nil, want error for name > 128 chars")
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			name := ""
+			for i := 0; i < tt.length; i++ {
+				name += "a"
+			}
+			if len(name) != tt.length {
+				t.Fatalf("test setup error: name length = %d, want %d", len(name), tt.length)
+			}
+
+			err := ValidateProjectName(name)
+			if tt.wantErr && err == nil {
+				t.Errorf("ValidateProjectName(%d chars) = nil, want error", tt.length)
+			}
+			if !tt.wantErr && err != nil {
+				t.Errorf("ValidateProjectName(%d chars) = %v, want nil", tt.length, err)
+			}
+		})
 	}
 }
 
@@ -181,20 +185,6 @@ func TestValidate_ValidConfig(t *testing.T) {
 	}
 	if len(warnings) != 0 {
 		t.Errorf("Validate() warnings = %v, want empty", warnings)
-	}
-}
-
-func TestValidateProjectName_Boundary127Chars(t *testing.T) {
-	// Exactly 127 characters - should be valid (one below max)
-	name := ""
-	for i := 0; i < 127; i++ {
-		name += "a"
-	}
-	if len(name) != 127 {
-		t.Fatalf("test setup error: name length = %d, want 127", len(name))
-	}
-	if err := ValidateProjectName(name); err != nil {
-		t.Errorf("ValidateProjectName() = %v, want nil for 127 chars", err)
 	}
 }
 

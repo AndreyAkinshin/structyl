@@ -40,7 +40,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"dotnet": {
 				Mise: &MiseConfig{
 					PrimaryTool: "dotnet",
-					Version:     "8.0",
+					Version:     "10.0",
 				},
 				Commands: map[string]interface{}{
 					"clean":         "dotnet clean",
@@ -71,7 +71,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"go": {
 				Mise: &MiseConfig{
 					PrimaryTool: "go",
-					Version:     "1.22",
+					Version:     "1.24",
 					ExtraTools: map[string]string{
 						"golangci-lint": "latest",
 					},
@@ -86,7 +86,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"test:verbose":  "go test -v ./...",
 					"test:quiet":    "go test ./...",
 					"test:coverage": "go test -cover ./...",
-					"check":         []interface{}{"lint", "vet"},
+					"check":         []interface{}{"lint", "format-check"},
 					"lint":          "golangci-lint run",
 					"vet":           "go vet ./...",
 					"format":        "go fmt ./...",
@@ -103,7 +103,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"npm": {
 				Mise: &MiseConfig{
 					PrimaryTool: "node",
-					Version:     "20",
+					Version:     "22",
 				},
 				Commands: map[string]interface{}{
 					"clean":         "npm run clean",
@@ -130,9 +130,9 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"pnpm": {
 				Mise: &MiseConfig{
 					PrimaryTool: "node",
-					Version:     "20",
+					Version:     "22",
 					ExtraTools: map[string]string{
-						"pnpm": "9",
+						"pnpm": "10",
 					},
 				},
 				Commands: map[string]interface{}{
@@ -160,7 +160,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"yarn": {
 				Mise: &MiseConfig{
 					PrimaryTool: "node",
-					Version:     "20",
+					Version:     "22",
 				},
 				Commands: map[string]interface{}{
 					"clean":         "yarn clean",
@@ -214,7 +214,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"python": {
 				Mise: &MiseConfig{
 					PrimaryTool: "python",
-					Version:     "3.12",
+					Version:     "3.13",
 				},
 				Commands: map[string]interface{}{
 					"clean":         "rm -rf dist/ build/ *.egg-info **/__pycache__/",
@@ -222,7 +222,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"build":         "python -m build",
 					"test":          "pytest",
 					"test:coverage": "pytest --cov",
-					"check":         []interface{}{"lint", "typecheck"},
+					"check":         []interface{}{"lint", "format-check"},
 					"lint":          "ruff check .",
 					"typecheck":     "mypy .",
 					"format":        "ruff format .",
@@ -239,9 +239,9 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"uv": {
 				Mise: &MiseConfig{
 					PrimaryTool: "python",
-					Version:     "3.12",
+					Version:     "3.13",
 					ExtraTools: map[string]string{
-						"uv":   "0.5",
+						"uv":   "0.6",
 						"ruff": "latest",
 					},
 				},
@@ -251,7 +251,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"build":         "uv build",
 					"test":          "uv run pytest",
 					"test:coverage": "uv run pytest --cov",
-					"check":         []interface{}{"lint", "typecheck"},
+					"check":         []interface{}{"lint", "format-check"},
 					"lint":          "uv run ruff check .",
 					"typecheck":     "uv run mypy .",
 					"format":        "uv run ruff format .",
@@ -268,7 +268,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"poetry": {
 				Mise: &MiseConfig{
 					PrimaryTool: "python",
-					Version:     "3.12",
+					Version:     "3.13",
 				},
 				Commands: map[string]interface{}{
 					"clean":         "rm -rf dist/",
@@ -276,7 +276,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 					"build":         "poetry build",
 					"test":          "poetry run pytest",
 					"test:coverage": "poetry run pytest --cov",
-					"check":         []interface{}{"lint", "typecheck"},
+					"check":         []interface{}{"lint", "format-check"},
 					"lint":          "poetry run ruff check .",
 					"typecheck":     "poetry run mypy .",
 					"format":        "poetry run ruff format .",
@@ -293,7 +293,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"gradle": {
 				Mise: &MiseConfig{
 					PrimaryTool: "java",
-					Version:     "temurin-21",
+					Version:     "temurin-23",
 				},
 				Commands: map[string]interface{}{
 					"clean":         "gradle clean",
@@ -317,7 +317,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"maven": {
 				Mise: &MiseConfig{
 					PrimaryTool: "java",
-					Version:     "temurin-21",
+					Version:     "temurin-23",
 				},
 				Commands: map[string]interface{}{
 					"clean":         "mvn clean",
@@ -447,7 +447,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"bundler": {
 				Mise: &MiseConfig{
 					PrimaryTool: "ruby",
-					Version:     "3.3",
+					Version:     "3.4",
 				},
 				Commands: map[string]interface{}{
 					"clean":         "bundle clean",
@@ -470,7 +470,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"composer": {
 				Mise: &MiseConfig{
 					PrimaryTool: "php",
-					Version:     "8.3",
+					Version:     "8.4",
 				},
 				Commands: map[string]interface{}{
 					"clean":         nil,
@@ -491,7 +491,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"mix": {
 				Mise: &MiseConfig{
 					PrimaryTool: "elixir",
-					Version:     "1.16",
+					Version:     "1.18",
 				},
 				Commands: map[string]interface{}{
 					"clean":         "mix clean",
@@ -515,7 +515,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"sbt": {
 				Mise: &MiseConfig{
 					PrimaryTool: "java",
-					Version:     "temurin-21",
+					Version:     "temurin-23",
 					ExtraTools: map[string]string{
 						"sbt": "latest",
 					},
@@ -541,7 +541,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"cabal": {
 				Mise: &MiseConfig{
 					PrimaryTool: "ghc",
-					Version:     "9.8",
+					Version:     "9.12",
 				},
 				Commands: map[string]interface{}{
 					"clean":         "cabal clean",
@@ -563,7 +563,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"stack": {
 				Mise: &MiseConfig{
 					PrimaryTool: "ghc",
-					Version:     "9.8",
+					Version:     "9.12",
 				},
 				Commands: map[string]interface{}{
 					"clean":         "stack clean",
@@ -585,7 +585,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"dune": {
 				Mise: &MiseConfig{
 					PrimaryTool: "ocaml",
-					Version:     "5.1",
+					Version:     "5.3",
 				},
 				Commands: map[string]interface{}{
 					"clean":         "dune clean",
@@ -606,7 +606,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"lein": {
 				Mise: &MiseConfig{
 					PrimaryTool: "java",
-					Version:     "temurin-21",
+					Version:     "temurin-23",
 					ExtraTools: map[string]string{
 						"leiningen": "latest",
 					},
@@ -651,7 +651,7 @@ func GetDefaultToolchains() *ToolchainsFile {
 			"rebar3": {
 				Mise: &MiseConfig{
 					PrimaryTool: "erlang",
-					Version:     "26",
+					Version:     "27",
 				},
 				Commands: map[string]interface{}{
 					"clean":         "rebar3 clean",

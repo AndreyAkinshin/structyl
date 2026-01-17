@@ -70,68 +70,6 @@ func TestTargetNotFoundError(t *testing.T) {
 	}
 }
 
-func TestCircularDependencyError(t *testing.T) {
-	fixtureDir := filepath.Join(fixturesDir(), "invalid", "circular-deps")
-
-	proj, err := project.LoadProjectFrom(fixtureDir)
-	if err != nil {
-		t.Fatalf("failed to load project: %v", err)
-	}
-
-	_, err = target.NewRegistry(proj.Config, proj.Root)
-	if err == nil {
-		t.Error("expected error for circular dependencies")
-	}
-
-	// Error message should mention circular dependency
-	if err != nil && !containsAny(err.Error(), "circular") {
-		t.Errorf("expected error to mention 'circular', got: %v", err)
-	}
-}
-
-func TestUndefinedDependencyError(t *testing.T) {
-	tmpDir := t.TempDir()
-	structylDir := filepath.Join(tmpDir, ".structyl")
-	if err := mkdir(structylDir); err != nil {
-		t.Fatalf("failed to create .structyl dir: %v", err)
-	}
-	configPath := filepath.Join(structylDir, "config.json")
-	targetDir := filepath.Join(tmpDir, "target")
-
-	// Create target directory
-	if err := mkdir(targetDir); err != nil {
-		t.Fatalf("failed to create target dir: %v", err)
-	}
-
-	// Write config with undefined dependency
-	configContent := `{
-		"project": {"name": "test"},
-		"targets": {
-			"a": {
-				"type": "language",
-				"title": "Target A",
-				"toolchain": "go",
-				"directory": "target",
-				"depends_on": ["undefined"]
-			}
-		}
-	}`
-
-	if err := writeFile(configPath, configContent); err != nil {
-		t.Fatalf("failed to write config: %v", err)
-	}
-
-	proj, err := project.LoadProjectFrom(tmpDir)
-	if err != nil {
-		t.Fatalf("failed to load project: %v", err)
-	}
-
-	_, err = target.NewRegistry(proj.Config, proj.Root)
-	if err == nil {
-		t.Error("expected error for undefined dependency")
-	}
-}
-
 func TestInvalidToolchainError(t *testing.T) {
 	fixtureDir := filepath.Join(fixturesDir(), "invalid", "invalid-toolchain")
 

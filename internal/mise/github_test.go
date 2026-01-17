@@ -10,6 +10,7 @@ import (
 )
 
 func TestGenerateGitHubWorkflow_Basic(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Targets: map[string]config.TargetConfig{
 			"rs": {Toolchain: "cargo", Title: "Rust"},
@@ -46,6 +47,7 @@ func TestGenerateGitHubWorkflow_Basic(t *testing.T) {
 }
 
 func TestGenerateGitHubWorkflow_Empty(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Targets: map[string]config.TargetConfig{},
 	}
@@ -66,6 +68,7 @@ func TestGenerateGitHubWorkflow_Empty(t *testing.T) {
 }
 
 func TestGenerateGitHubWorkflow_UnsupportedToolchain(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Targets: map[string]config.TargetConfig{
 			"custom": {Toolchain: "make", Title: "Custom"}, // Unsupported
@@ -84,6 +87,7 @@ func TestGenerateGitHubWorkflow_UnsupportedToolchain(t *testing.T) {
 }
 
 func TestGenerateGitHubWorkflow_UsesTargetTitle(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Targets: map[string]config.TargetConfig{
 			"rs": {Toolchain: "cargo", Title: "Rust Library"},
@@ -101,6 +105,7 @@ func TestGenerateGitHubWorkflow_UsesTargetTitle(t *testing.T) {
 }
 
 func TestGenerateGitHubWorkflow_FallbackToTargetName(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Targets: map[string]config.TargetConfig{
 			"rs": {Toolchain: "cargo"}, // No Title set
@@ -118,6 +123,7 @@ func TestGenerateGitHubWorkflow_FallbackToTargetName(t *testing.T) {
 }
 
 func TestWriteGitHubWorkflow(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 
 	cfg := &config.Config{
@@ -161,6 +167,7 @@ func TestWriteGitHubWorkflow(t *testing.T) {
 }
 
 func TestGitHubWorkflowExists(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 
 	// Should not exist initially
@@ -184,6 +191,7 @@ func TestGitHubWorkflowExists(t *testing.T) {
 }
 
 func TestGetGitHubWorkflowPath(t *testing.T) {
+	t.Parallel()
 	path := GetGitHubWorkflowPath("/project")
 
 	expected := filepath.Join("/project", ".github", "workflows", "ci.yml")
@@ -193,6 +201,7 @@ func TestGetGitHubWorkflowPath(t *testing.T) {
 }
 
 func TestGenerateGitHubWorkflow_Deterministic(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Targets: map[string]config.TargetConfig{
 			"zz": {Toolchain: "cargo"},

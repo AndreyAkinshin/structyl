@@ -83,6 +83,30 @@ func TestInvalidToolchainError(t *testing.T) {
 	}
 }
 
+func TestMalformedJSONFixtureError(t *testing.T) {
+	fixtureDir := filepath.Join(fixturesDir(), "invalid", "malformed-json")
+
+	_, err := project.LoadProjectFrom(fixtureDir)
+	if err == nil {
+		t.Error("expected JSON parse error when loading malformed config")
+	}
+	// Verify it's a parse error, not a file-not-found error
+	if err != nil {
+		errStr := err.Error()
+		// JSON parse errors typically contain these phrases
+		isParseError := false
+		for _, phrase := range []string{"invalid", "unexpected", "syntax", "parse"} {
+			if containsIgnoreCase(errStr, phrase) {
+				isParseError = true
+				break
+			}
+		}
+		if !isParseError {
+			t.Errorf("expected JSON parse error, got: %v", err)
+		}
+	}
+}
+
 func TestDockerUnavailableError(t *testing.T) {
 	// This tests the error type, not actual Docker availability
 	err := &runner.DockerUnavailableError{}
@@ -134,5 +158,36 @@ func writeFile(path, content string) error {
 
 func mkdir(path string) error {
 	return os.MkdirAll(path, 0755)
+}
+
+func containsIgnoreCase(s, substr string) bool {
+	return len(s) >= len(substr) &&
+		(s == substr ||
+			len(substr) == 0 ||
+			(len(s) > 0 && containsIgnoreCaseImpl(s, substr)))
+}
+
+func containsIgnoreCaseImpl(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		match := true
+		for j := 0; j < len(substr); j++ {
+			sc := s[i+j]
+			pc := substr[j]
+			if sc >= 'A' && sc <= 'Z' {
+				sc += 'a' - 'A'
+			}
+			if pc >= 'A' && pc <= 'Z' {
+				pc += 'a' - 'A'
+			}
+			if sc != pc {
+				match = false
+				break
+			}
+		}
+		if match {
+			return true
+		}
+	}
+	return false
 }
 

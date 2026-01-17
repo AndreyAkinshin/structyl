@@ -1,0 +1,10 @@
+{
+  "project": {
+    "name": "test"
+  },
+  "targets": {
+    "broken": {
+      "toolchain": "go"
+    // Missing closing brace - syntax error
+  }
+}

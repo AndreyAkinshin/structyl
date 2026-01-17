@@ -5,6 +5,9 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/AndreyAkinshin/structyl/internal/testparser"
 )
 
 // newTestWriter creates a Writer with captured output for testing.
@@ -428,5 +431,955 @@ func TestWriter_Table_RowShorterThanHeaders(t *testing.T) {
 	output := stdout.String()
 	if !strings.Contains(output, "1") {
 		t.Error("Table() should handle short rows gracefully")
+	}
+}
+
+// Tests for Help methods
+
+func TestWriter_HelpTitle(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "structyl v1.0\n"},
+		{"with color", true, "\033[1m\033[36mstructyl v1.0\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.HelpTitle("structyl v1.0")
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("HelpTitle() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_HelpSection(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "\nCommands:\n"},
+		{"with color", true, "\n\033[1m\033[33mCommands:\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.HelpSection("Commands:")
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("HelpSection() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_HelpCommand(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		cmd    string
+		desc   string
+		width  int
+		expect string
+	}{
+		{"without color", false, "build", "Build targets", 10, "  build       Build targets\n"},
+		{"with color", true, "build", "Build targets", 10, "  \033[1m\033[36mbuild\033[0m       \033[2mBuild targets\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.HelpCommand(tt.cmd, tt.desc, tt.width)
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("HelpCommand() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_HelpCommand_WithPlaceholder(t *testing.T) {
+	w, stdout, _ := newTestWriter()
+	w.color = true
+
+	w.HelpCommand("run <task>", "Run a task", 12)
+
+	output := stdout.String()
+	// Should contain the placeholder highlighting
+	if !strings.Contains(output, "\033[32m<task>\033[0m") {
+		t.Errorf("HelpCommand() should highlight placeholder, got %q", output)
+	}
+}
+
+func TestWriter_HelpSubCommand(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "    --verbose  Enable verbose output\n"},
+		{"with color", true, "    \033[33m--verbose\033[0m  \033[2mEnable verbose output\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.HelpSubCommand("--verbose", "Enable verbose output", 9)
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("HelpSubCommand() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_HelpFlag(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "  --docker    Run in Docker\n"},
+		{"with color", true, "  \033[33m--docker\033[0m    \033[2mRun in Docker\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.HelpFlag("--docker", "Run in Docker", 10)
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("HelpFlag() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_HelpFlag_WithPlaceholder(t *testing.T) {
+	w, stdout, _ := newTestWriter()
+	w.color = true
+
+	w.HelpFlag("--target <name>", "Target name", 16)
+
+	output := stdout.String()
+	// Should contain the placeholder highlighting
+	if !strings.Contains(output, "\033[32m<name>\033[0m") {
+		t.Errorf("HelpFlag() should highlight placeholder, got %q", output)
+	}
+}
+
+func TestWriter_HelpExample(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		cmd    string
+		desc   string
+		expect string
+	}{
+		{"without color no desc", false, "structyl build", "", "  structyl build\n"},
+		{"without color with desc", false, "structyl build", "Build all", "  structyl build\n      Build all\n"},
+		{"with color no desc", true, "structyl build", "", "  \033[36mstructyl build\033[0m\n"},
+		{"with color with desc", true, "structyl build", "Build all", "  \033[36mstructyl build\033[0m\n      \033[2mBuild all\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.HelpExample(tt.cmd, tt.desc)
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("HelpExample() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_HelpUsage(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		usage  string
+		expect string
+	}{
+		{"without color", false, "structyl <command>", "  structyl <command>\n"},
+		{"with color", true, "structyl <command>", "  structyl \033[0m\033[32m<command>\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.HelpUsage(tt.usage)
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("HelpUsage() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_HelpEnvVar(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "  STRUCTYL_ROOT    Project root path\n"},
+		{"with color", true, "  \033[33mSTRUCTYL_ROOT  \033[0m  \033[2mProject root path\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.HelpEnvVar("STRUCTYL_ROOT", "Project root path", 15)
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("HelpEnvVar() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+// Tests for Summary methods
+
+func TestWriter_SummaryHeader(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "\n=== Build Summary ===\n\n"},
+		{"with color", true, "\n\033[1m\033[36m=== Build Summary ===\033[0m\n\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.SummaryHeader("Build Summary")
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("SummaryHeader() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_SummaryItem(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "  Duration: 1.5s\n"},
+		{"with color", true, "  \033[2mDuration:\033[0m 1.5s\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.SummaryItem("Duration", "1.5s")
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("SummaryItem() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_SummaryPassed(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "  Passed: 5\n"},
+		{"with color", true, "  \033[2mPassed:\033[0m \033[32m5\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.SummaryPassed("Passed", "5")
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("SummaryPassed() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_SummaryFailed(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "  Failed: 2\n"},
+		{"with color", true, "  \033[2mFailed:\033[0m \033[31m2\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.SummaryFailed("Failed", "2")
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("SummaryFailed() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_SummaryAction(t *testing.T) {
+	tests := []struct {
+		name    string
+		color   bool
+		success bool
+		errMsg  string
+		expect  string
+	}{
+		{"success without color", false, true, "", "    + build        1.5s\n"},
+		{"success with color", true, true, "", "    \033[32m✓\033[0m build        \033[2m1.5s\033[0m\n"},
+		{"failure without color", false, false, "", "    x build        1.5s\n"},
+		{"failure with color", true, false, "", "    \033[31m✗\033[0m build        \033[2m1.5s\033[0m\n"},
+		{"failure with error without color", false, false, "exit 1", "    x build        1.5s  (exit 1)\n"},
+		{"failure with error with color", true, false, "exit 1", "    \033[31m✗\033[0m build        \033[2m1.5s\033[0m  \033[2m(exit 1)\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.SummaryAction("build", tt.success, "1.5s", tt.errMsg)
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("SummaryAction() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_SummarySectionLabel(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "  Tasks:\n"},
+		{"with color", true, "  \033[2mTasks:\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.SummarySectionLabel("Tasks:")
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("SummarySectionLabel() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+// Tests for Step/Action methods
+
+func TestWriter_Step(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "1. Build the project\n"},
+		{"with color", true, "\033[36m1.\033[0m Build the project\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.Step(1, "Build the %s", "project")
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("Step() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_StepDetail(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "   - Running tests\n"},
+		{"with color", true, "   \033[2m- Running tests\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.StepDetail("Running %s", "tests")
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("StepDetail() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_Action(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "Building rs target\n"},
+		{"with color", true, "\033[36mBuilding rs target\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.Action("Building %s target", "rs")
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("Action() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+// Tests for Status methods
+
+func TestWriter_ErrorPrefix(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "structyl: target not found\n"},
+		{"with color", true, "\033[31mstructyl:\033[0m target not found\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, _, stderr := newTestWriter()
+			w.color = tt.color
+
+			w.ErrorPrefix("target not %s", "found")
+
+			if got := stderr.String(); got != tt.expect {
+				t.Errorf("ErrorPrefix() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_WarningSimple(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "warning: deprecated feature\n"},
+		{"with color", true, "\033[33mwarning:\033[0m deprecated feature\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, _, stderr := newTestWriter()
+			w.color = tt.color
+
+			w.WarningSimple("deprecated %s", "feature")
+
+			if got := stderr.String(); got != tt.expect {
+				t.Errorf("WarningSimple() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_FinalSuccess(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "\nAll 3 tasks passed.\n"},
+		{"with color", true, "\n\033[32mAll 3 tasks passed.\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.FinalSuccess("All %d tasks passed.", 3)
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("FinalSuccess() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_FinalFailure(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "\n2 of 5 tasks failed.\n"},
+		{"with color", true, "\n\033[31m2 of 5 tasks failed.\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.FinalFailure("%d of %d tasks failed.", 2, 5)
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("FinalFailure() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_ValidationSuccess(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "Config is valid\n"},
+		{"with color", true, "\033[32m✓\033[0m Config is valid\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.ValidationSuccess("Config is %s", "valid")
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("ValidationSuccess() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_Hint(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "Run 'structyl help' for more info\n"},
+		{"with color", true, "\033[2mRun 'structyl help' for more info\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.Hint("Run 'structyl help' for more %s", "info")
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("Hint() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+// Tests for DryRun/Phase/Target methods
+
+func TestWriter_DryRunStart(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "\n=== DRY RUN ===\n\n"},
+		{"with color", true, "\n\033[1m\033[33m=== DRY RUN ===\033[0m\n\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.DryRunStart()
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("DryRunStart() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_DryRunEnd(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "\n=== END DRY RUN ===\n"},
+		{"with color", true, "\n\033[1m\033[33m=== END DRY RUN ===\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.DryRunEnd()
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("DryRunEnd() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_PhaseHeader(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "\n=== Build Phase ===\n"},
+		{"with color", true, "\n\033[1m\033[34m=== Build Phase ===\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.PhaseHeader("Build Phase")
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("PhaseHeader() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_TargetInfo(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "rs (language): Rust Library\n"},
+		{"with color", true, "\033[36m\033[1mrs\033[0m (language): Rust Library\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.TargetInfo("rs", "language", "Rust Library")
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("TargetInfo() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_TargetDetail(t *testing.T) {
+	tests := []struct {
+		name   string
+		color  bool
+		expect string
+	}{
+		{"without color", false, "  Directory: ./src/rs\n"},
+		{"with color", true, "  \033[2mDirectory:\033[0m ./src/rs\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, stdout, _ := newTestWriter()
+			w.color = tt.color
+
+			w.TargetDetail("Directory", "./src/rs")
+
+			if got := stdout.String(); got != tt.expect {
+				t.Errorf("TargetDetail() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+// Tests for Utility functions
+
+func TestFormatTestCounts(t *testing.T) {
+	tests := []struct {
+		name   string
+		counts *testparser.TestCounts
+		expect string
+	}{
+		{"nil counts", nil, ""},
+		{"not parsed", &testparser.TestCounts{Parsed: false}, ""},
+		{"passed only", &testparser.TestCounts{Parsed: true, Passed: 10}, "10 passed"},
+		{"passed and failed", &testparser.TestCounts{Parsed: true, Passed: 8, Failed: 2}, "8 passed, 2 failed"},
+		{"all counts", &testparser.TestCounts{Parsed: true, Passed: 5, Failed: 2, Skipped: 3}, "5 passed, 2 failed, 3 skipped"},
+		{"passed and skipped", &testparser.TestCounts{Parsed: true, Passed: 7, Skipped: 1}, "7 passed, 1 skipped"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := FormatTestCounts(tt.counts)
+			if got != tt.expect {
+				t.Errorf("FormatTestCounts() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestFormatDuration(t *testing.T) {
+	tests := []struct {
+		name     string
+		duration time.Duration
+		expect   string
+	}{
+		{"milliseconds", 500 * time.Millisecond, "500ms"},
+		{"under second", 999 * time.Millisecond, "999ms"},
+		{"one second", time.Second, "1.0s"},
+		{"seconds", 5500 * time.Millisecond, "5.5s"},
+		{"under minute", 59 * time.Second, "59.0s"},
+		{"one minute", time.Minute, "1m0s"},
+		{"minutes and seconds", 2*time.Minute + 30*time.Second, "2m30s"},
+		{"exact minutes", 5 * time.Minute, "5m0s"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := FormatDuration(tt.duration)
+			if got != tt.expect {
+				t.Errorf("FormatDuration(%v) = %q, want %q", tt.duration, got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_ColorPlaceholders(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  string
+		expect string
+	}{
+		{"no placeholders", "build all", "build all"},
+		{"single placeholder", "<target>", "\033[0m\033[32m<target>\033[0m"},
+		{"placeholder in text", "run <task> now", "run \033[0m\033[32m<task>\033[0m now"},
+		{"multiple placeholders", "<cmd> <arg>", "\033[0m\033[32m<cmd>\033[0m \033[0m\033[32m<arg>\033[0m"},
+		{"unclosed bracket", "test < value", "test < value"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w, _, _ := newTestWriter()
+			w.color = true
+
+			got := w.colorPlaceholders(tt.input)
+			if got != tt.expect {
+				t.Errorf("colorPlaceholders(%q) = %q, want %q", tt.input, got, tt.expect)
+			}
+		})
+	}
+}
+
+// Tests for PrintTaskSummary
+
+func TestWriter_PrintTaskSummary_AllPassed(t *testing.T) {
+	w, stdout, _ := newTestWriter()
+
+	summary := &TaskRunSummary{
+		Tasks: []TaskResult{
+			{Name: "build", Success: true, Duration: time.Second},
+			{Name: "test", Success: true, Duration: 2 * time.Second},
+		},
+		TotalDuration: 3 * time.Second,
+		Passed:        2,
+		Failed:        0,
+		TestCounts:    nil,
+	}
+
+	w.PrintTaskSummary("CI", summary)
+
+	output := stdout.String()
+
+	// Should contain summary header
+	if !strings.Contains(output, "CI Summary") {
+		t.Error("PrintTaskSummary() missing summary header")
+	}
+
+	// Should contain task names
+	if !strings.Contains(output, "build") {
+		t.Error("PrintTaskSummary() missing task 'build'")
+	}
+	if !strings.Contains(output, "test") {
+		t.Error("PrintTaskSummary() missing task 'test'")
+	}
+
+	// Should contain success indicators
+	if !strings.Contains(output, "+") {
+		t.Error("PrintTaskSummary() missing success indicators")
+	}
+
+	// Should contain passed count
+	if !strings.Contains(output, "2") {
+		t.Error("PrintTaskSummary() missing passed count")
+	}
+
+	// Should contain success message
+	if !strings.Contains(output, "completed successfully") {
+		t.Error("PrintTaskSummary() missing success message")
+	}
+}
+
+func TestWriter_PrintTaskSummary_WithFailures(t *testing.T) {
+	w, stdout, _ := newTestWriter()
+
+	summary := &TaskRunSummary{
+		Tasks: []TaskResult{
+			{Name: "build", Success: true, Duration: time.Second},
+			{Name: "test", Success: false, Duration: 2 * time.Second, Error: errors.New("exit 1")},
+		},
+		TotalDuration: 3 * time.Second,
+		Passed:        1,
+		Failed:        1,
+		TestCounts:    nil,
+	}
+
+	w.PrintTaskSummary("CI", summary)
+
+	output := stdout.String()
+
+	// Should contain failure indicator
+	if !strings.Contains(output, "x") {
+		t.Error("PrintTaskSummary() missing failure indicator")
+	}
+
+	// Should contain failed task name in failure message
+	if !strings.Contains(output, "test") {
+		t.Error("PrintTaskSummary() missing failed task name")
+	}
+
+	// Should contain failure message
+	if !strings.Contains(output, "failed") {
+		t.Error("PrintTaskSummary() missing failure message")
+	}
+}
+
+func TestWriter_PrintTaskSummary_WithTestCounts(t *testing.T) {
+	w, stdout, _ := newTestWriter()
+
+	taskCounts := &testparser.TestCounts{
+		Parsed:  true,
+		Passed:  10,
+		Failed:  2,
+		Skipped: 1,
+	}
+
+	summary := &TaskRunSummary{
+		Tasks: []TaskResult{
+			{
+				Name:       "test",
+				Success:    false,
+				Duration:   time.Second,
+				TestCounts: taskCounts,
+			},
+		},
+		TotalDuration: time.Second,
+		Passed:        0,
+		Failed:        1,
+		TestCounts:    taskCounts,
+	}
+
+	w.PrintTaskSummary("Test", summary)
+
+	output := stdout.String()
+
+	// Should contain test counts
+	if !strings.Contains(output, "10 passed") {
+		t.Error("PrintTaskSummary() missing passed test count")
+	}
+	if !strings.Contains(output, "2 failed") {
+		t.Error("PrintTaskSummary() missing failed test count")
+	}
+	if !strings.Contains(output, "1 skipped") {
+		t.Error("PrintTaskSummary() missing skipped test count")
+	}
+}
+
+func TestWriter_PrintTaskSummary_EmptyTasks(t *testing.T) {
+	w, stdout, _ := newTestWriter()
+
+	summary := &TaskRunSummary{
+		Tasks:         []TaskResult{},
+		TotalDuration: 0,
+		Passed:        0,
+		Failed:        0,
+		TestCounts:    nil,
+	}
+
+	w.PrintTaskSummary("Empty", summary)
+
+	output := stdout.String()
+
+	// Should still print summary header
+	if !strings.Contains(output, "Empty Summary") {
+		t.Error("PrintTaskSummary() missing summary header for empty tasks")
+	}
+
+	// Should show 0 tasks
+	if !strings.Contains(output, "0") {
+		t.Error("PrintTaskSummary() should show 0 for empty tasks")
 	}
 }

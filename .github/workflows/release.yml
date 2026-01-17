@@ -24,8 +24,6 @@ jobs:
 
       - name: Set up mise
         uses: jdx/mise-action@v2
-        with:
-          install_args: "go@1.24"
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6

@@ -17,15 +17,12 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        go-version: ['1.24']
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up mise
         uses: jdx/mise-action@v2
-        with:
-          install_args: "go@${{ matrix.go-version }}"
 
       - name: Download dependencies
         run: go mod download
@@ -48,8 +45,6 @@ jobs:
 
       - name: Set up mise
         uses: jdx/mise-action@v2
-        with:
-          install_args: "go@1.24 golangci-lint"
 
       - name: Run golangci-lint
         run: golangci-lint run
@@ -67,8 +62,6 @@ jobs:
 
       - name: Set up mise
         uses: jdx/mise-action@v2
-        with:
-          install_args: "go@1.24"
 
       - name: Build
         run: go build -v ./cmd/structyl

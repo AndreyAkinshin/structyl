@@ -70,7 +70,7 @@ func GenerateMiseTomlWithToolchains(cfg *config.Config, loaded *toolchain.Toolch
 // commandsToGenerate lists the commands to generate mise tasks for.
 var commandsToGenerate = []string{
 	"clean", "restore", "build", "build:release", "test", "check",
-	"lint", "format", "format-check", "bench", "demo", "doc", "pack",
+	"lint", "vet", "format", "format-check", "bench", "demo", "doc", "pack",
 }
 
 // aggregateCommands are commands that get aggregate tasks across all targets.

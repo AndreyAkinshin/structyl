@@ -229,8 +229,9 @@ func installVersion(ver string) error {
 	}
 
 	// On Unix, use curl and sh
-	curlCmd := fmt.Sprintf("curl -fsSL %s | sh -s -- --version %s", installScriptURL, ver)
-	cmd := exec.Command("sh", "-c", curlCmd)
+	// Use pipefail to ensure the command fails if curl fails
+	curlCmd := fmt.Sprintf("set -o pipefail; curl -fsSL %s | sh -s -- --version %s", installScriptURL, ver)
+	cmd := exec.Command("bash", "-c", curlCmd)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()

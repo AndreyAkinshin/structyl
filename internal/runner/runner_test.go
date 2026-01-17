@@ -35,7 +35,16 @@ func (m *mockTarget) Directory() string {
 	return m.name
 }
 func (m *mockTarget) Cwd() string             { return m.name }
-func (m *mockTarget) Commands() []string      { return nil }
+func (m *mockTarget) Commands() []string {
+	if m.commands == nil {
+		return nil
+	}
+	cmds := make([]string, 0, len(m.commands))
+	for k := range m.commands {
+		cmds = append(cmds, k)
+	}
+	return cmds
+}
 func (m *mockTarget) DependsOn() []string     { return nil }
 func (m *mockTarget) Env() map[string]string  { return nil }
 func (m *mockTarget) Vars() map[string]string { return nil }

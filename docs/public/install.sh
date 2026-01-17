@@ -327,10 +327,16 @@ main() {
     info "Installing version: $VERSION"
 
     # Determine if this is a nightly build
+    # Handles: "nightly", "X.Y.Z-nightly+SHA", "nightly-SNAPSHOT-SHA"
     IS_NIGHTLY=false
-    if [ "$VERSION" = "nightly" ]; then
-        IS_NIGHTLY=true
-    fi
+    case "$VERSION" in
+        nightly)
+            IS_NIGHTLY=true
+            ;;
+        *-nightly*|*-SNAPSHOT-*)
+            IS_NIGHTLY=true
+            ;;
+    esac
 
     # Check if already installed (skip for nightly - always update)
     VERSION_DIR="$VERSIONS_DIR/$VERSION"

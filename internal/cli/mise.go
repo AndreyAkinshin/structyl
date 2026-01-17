@@ -121,7 +121,7 @@ func cmdGitHub(args []string, opts *GlobalOptions) int {
 		// Print summary of jobs
 		var targetNames []string
 		for name, targetCfg := range proj.Config.Targets {
-			if mise.IsToolchainSupported(targetCfg.Toolchain) {
+			if mise.IsToolchainSupported(targetCfg.Toolchain, proj.Toolchains) {
 				targetNames = append(targetNames, name)
 			}
 		}

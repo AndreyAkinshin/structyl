@@ -24,6 +24,11 @@ var SetupScriptSh string
 //go:embed setup_template.ps1
 var SetupScriptPs1 string
 
+// ToolchainsTemplate contains the toolchains.json template.
+//
+//go:embed toolchains_template.json
+var ToolchainsTemplate string
+
 // initOptions holds parsed init command options.
 type initOptions struct {
 	Mise bool // Generate/regenerate .mise.toml
@@ -151,6 +156,16 @@ func cmdInit(args []string) int {
 			fmt.Fprintf(os.Stderr, "structyl: warning: could not create AGENTS.md: %v\n", err)
 		} else {
 			created = append(created, ".structyl/AGENTS.md")
+		}
+	}
+
+	// Write .structyl/toolchains.json - only if missing
+	toolchainsPath := filepath.Join(structylDir, project.ToolchainsFileName)
+	if _, err := os.Stat(toolchainsPath); os.IsNotExist(err) {
+		if err := os.WriteFile(toolchainsPath, []byte(ToolchainsTemplate), 0644); err != nil {
+			fmt.Fprintf(os.Stderr, "structyl: warning: could not create toolchains.json: %v\n", err)
+		} else {
+			created = append(created, ".structyl/toolchains.json")
 		}
 	}
 

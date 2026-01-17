@@ -1,0 +1,565 @@
+{
+  "$schema": "https://structyl.akinshin.dev/schemas/toolchains.json",
+  "version": "1.0",
+  "toolchains": {
+    "cargo": {
+      "mise": {
+        "primary_tool": "rust",
+        "version": "stable"
+      },
+      "commands": {
+        "clean": "cargo clean",
+        "restore": null,
+        "build": "cargo build",
+        "build:release": "cargo build --release",
+        "test": "cargo test",
+        "check": ["lint", "format-check"],
+        "lint": "cargo clippy -- -D warnings",
+        "format": "cargo fmt",
+        "format-check": "cargo fmt --check",
+        "bench": "cargo bench",
+        "pack": "cargo package",
+        "doc": "cargo doc --no-deps",
+        "demo": "cargo run --example demo"
+      }
+    },
+    "dotnet": {
+      "mise": {
+        "primary_tool": "dotnet",
+        "version": "8.0"
+      },
+      "commands": {
+        "clean": "dotnet clean",
+        "restore": "dotnet restore",
+        "build": "dotnet build",
+        "build:release": "dotnet build -c Release",
+        "test": "dotnet test",
+        "check": "dotnet format --verify-no-changes",
+        "lint": "dotnet format --verify-no-changes",
+        "format": "dotnet format",
+        "format-check": "dotnet format --verify-no-changes",
+        "bench": null,
+        "pack": "dotnet pack",
+        "doc": null,
+        "demo": "dotnet run --project Demo"
+      }
+    },
+    "go": {
+      "mise": {
+        "primary_tool": "go",
+        "version": "1.22",
+        "extra_tools": {
+          "golangci-lint": "latest"
+        }
+      },
+      "commands": {
+        "clean": "go clean",
+        "restore": "go mod download",
+        "build": "go build ./...",
+        "test": "go test ./...",
+        "check": ["lint", "vet"],
+        "lint": "golangci-lint run",
+        "vet": "go vet ./...",
+        "format": "go fmt ./...",
+        "format-check": "test -z \"$(gofmt -l .)\"",
+        "bench": "go test -bench=. ./...",
+        "pack": null,
+        "doc": "go doc ./...",
+        "demo": "go run ./cmd/demo"
+      }
+    },
+    "npm": {
+      "mise": {
+        "primary_tool": "node",
+        "version": "20"
+      },
+      "commands": {
+        "clean": "npm run clean",
+        "restore": "npm ci",
+        "build": "npm run build",
+        "test": "npm test",
+        "check": ["lint", "typecheck", "format-check"],
+        "lint": "npm run lint",
+        "typecheck": "npm run typecheck",
+        "format": "npm run format",
+        "format-check": "npm run format:check",
+        "bench": null,
+        "pack": "npm pack",
+        "doc": null,
+        "demo": "npm run demo"
+      }
+    },
+    "pnpm": {
+      "mise": {
+        "primary_tool": "node",
+        "version": "20",
+        "extra_tools": {
+          "pnpm": "9"
+        }
+      },
+      "commands": {
+        "clean": "pnpm run clean",
+        "restore": "pnpm install --frozen-lockfile",
+        "build": "pnpm build",
+        "test": "pnpm test",
+        "check": ["lint", "typecheck", "format-check"],
+        "lint": "pnpm lint",
+        "typecheck": "pnpm typecheck",
+        "format": "pnpm format",
+        "format-check": "pnpm format:check",
+        "bench": null,
+        "pack": "pnpm pack",
+        "doc": null,
+        "demo": "pnpm run demo"
+      }
+    },
+    "yarn": {
+      "mise": {
+        "primary_tool": "node",
+        "version": "20"
+      },
+      "commands": {
+        "clean": "yarn clean",
+        "restore": "yarn install --frozen-lockfile",
+        "build": "yarn build",
+        "test": "yarn test",
+        "check": ["lint", "typecheck", "format-check"],
+        "lint": "yarn lint",
+        "typecheck": "yarn typecheck",
+        "format": "yarn format",
+        "format-check": "yarn format:check",
+        "bench": null,
+        "pack": "yarn pack",
+        "doc": null,
+        "demo": "yarn run demo"
+      }
+    },
+    "bun": {
+      "mise": {
+        "primary_tool": "bun",
+        "version": "latest"
+      },
+      "commands": {
+        "clean": "bun run clean",
+        "restore": "bun install --frozen-lockfile",
+        "build": "bun run build",
+        "test": "bun test",
+        "check": ["lint", "typecheck", "format-check"],
+        "lint": "bun run lint",
+        "typecheck": "bun run typecheck",
+        "format": "bun run format",
+        "format-check": "bun run format:check",
+        "bench": null,
+        "pack": "bun pm pack",
+        "doc": null,
+        "demo": "bun run demo"
+      }
+    },
+    "python": {
+      "mise": {
+        "primary_tool": "python",
+        "version": "3.12"
+      },
+      "commands": {
+        "clean": "rm -rf dist/ build/ *.egg-info **/__pycache__/",
+        "restore": "pip install -e .",
+        "build": "python -m build",
+        "test": "pytest",
+        "check": ["lint", "typecheck"],
+        "lint": "ruff check .",
+        "typecheck": "mypy .",
+        "format": "ruff format .",
+        "format-check": "ruff format --check .",
+        "bench": null,
+        "pack": "python -m build",
+        "doc": null,
+        "demo": "python demo.py"
+      }
+    },
+    "uv": {
+      "mise": {
+        "primary_tool": "python",
+        "version": "3.12",
+        "extra_tools": {
+          "uv": "0.5",
+          "ruff": "latest"
+        }
+      },
+      "commands": {
+        "clean": "rm -rf dist/ build/ *.egg-info .venv/",
+        "restore": "uv sync --all-extras",
+        "build": "uv build",
+        "test": "uv run pytest",
+        "check": ["lint", "typecheck"],
+        "lint": "uv run ruff check .",
+        "typecheck": "uv run mypy .",
+        "format": "uv run ruff format .",
+        "format-check": "uv run ruff format --check .",
+        "bench": null,
+        "pack": "uv build",
+        "doc": null,
+        "demo": "uv run python demo.py"
+      }
+    },
+    "poetry": {
+      "mise": {
+        "primary_tool": "python",
+        "version": "3.12"
+      },
+      "commands": {
+        "clean": "rm -rf dist/",
+        "restore": "poetry install",
+        "build": "poetry build",
+        "test": "poetry run pytest",
+        "check": ["lint", "typecheck"],
+        "lint": "poetry run ruff check .",
+        "typecheck": "poetry run mypy .",
+        "format": "poetry run ruff format .",
+        "format-check": "poetry run ruff format --check .",
+        "bench": null,
+        "pack": "poetry build",
+        "doc": null,
+        "demo": "poetry run python demo.py"
+      }
+    },
+    "gradle": {
+      "mise": {
+        "primary_tool": "java",
+        "version": "temurin-21"
+      },
+      "commands": {
+        "clean": "gradle clean",
+        "restore": null,
+        "build": "gradle build -x test",
+        "test": "gradle test",
+        "check": "gradle check -x test",
+        "lint": "gradle check -x test",
+        "format": "gradle spotlessApply",
+        "format-check": "gradle spotlessCheck",
+        "bench": null,
+        "pack": "gradle jar",
+        "doc": "gradle javadoc",
+        "demo": "gradle run"
+      }
+    },
+    "maven": {
+      "mise": {
+        "primary_tool": "java",
+        "version": "temurin-21"
+      },
+      "commands": {
+        "clean": "mvn clean",
+        "restore": "mvn dependency:resolve",
+        "build": "mvn compile",
+        "test": "mvn test",
+        "check": "mvn verify -DskipTests",
+        "lint": "mvn checkstyle:check",
+        "format": "mvn spotless:apply",
+        "format-check": "mvn spotless:check",
+        "bench": null,
+        "pack": "mvn package -DskipTests",
+        "doc": "mvn javadoc:javadoc",
+        "demo": "mvn exec:java"
+      }
+    },
+    "make": {
+      "commands": {
+        "clean": "make clean",
+        "restore": null,
+        "build": "make",
+        "build:release": "make release",
+        "test": "make test",
+        "check": "make check",
+        "lint": "make lint",
+        "format": "make format",
+        "format-check": null,
+        "bench": "make bench",
+        "pack": "make dist",
+        "doc": "make doc",
+        "demo": "make demo"
+      }
+    },
+    "cmake": {
+      "mise": {
+        "primary_tool": "cmake",
+        "version": "latest"
+      },
+      "commands": {
+        "clean": "cmake --build build --target clean",
+        "restore": "cmake -B build -S .",
+        "build": "cmake --build build",
+        "test": "ctest --test-dir build",
+        "check": null,
+        "lint": "cmake --build build --target lint",
+        "format": "cmake --build build --target format",
+        "format-check": "cmake --build build --target format-check",
+        "bench": null,
+        "pack": "cmake --build build --target package",
+        "doc": "cmake --build build --target doc",
+        "demo": "cmake --build build --target demo && ./build/demo"
+      }
+    },
+    "swift": {
+      "mise": {
+        "primary_tool": "swift",
+        "version": "latest"
+      },
+      "commands": {
+        "clean": "swift package clean",
+        "restore": "swift package resolve",
+        "build": "swift build",
+        "build:release": "swift build -c release",
+        "test": "swift test",
+        "check": null,
+        "lint": "swiftlint",
+        "format": "swiftformat .",
+        "format-check": "swiftformat --lint .",
+        "bench": null,
+        "pack": null,
+        "doc": null,
+        "demo": "swift run Demo"
+      }
+    },
+    "r": {
+      "mise": {
+        "primary_tool": "r",
+        "version": "4.4"
+      },
+      "commands": {
+        "clean": "rm -rf *.tar.gz *.Rcheck/",
+        "restore": null,
+        "build": "R CMD build .",
+        "test": "Rscript -e \"devtools::test()\"",
+        "check": "R CMD check --no-manual --no-tests *.tar.gz",
+        "lint": "Rscript -e \"lintr::lint_package()\"",
+        "format": "Rscript -e \"styler::style_pkg()\"",
+        "format-check": "Rscript -e \"styler::style_pkg(dry='on')\"",
+        "bench": null,
+        "pack": "R CMD build .",
+        "doc": "Rscript -e \"roxygen2::roxygenise()\"",
+        "demo": "Rscript demo.R"
+      }
+    },
+    "deno": {
+      "mise": {
+        "primary_tool": "deno",
+        "version": "latest"
+      },
+      "commands": {
+        "clean": null,
+        "restore": "deno install",
+        "build": null,
+        "test": "deno test",
+        "check": ["lint", "typecheck"],
+        "lint": "deno lint",
+        "typecheck": "deno check **/*.ts",
+        "format": "deno fmt",
+        "format-check": "deno fmt --check",
+        "bench": "deno bench",
+        "doc": "deno doc",
+        "demo": "deno run demo.ts"
+      }
+    },
+    "bundler": {
+      "mise": {
+        "primary_tool": "ruby",
+        "version": "3.3"
+      },
+      "commands": {
+        "clean": "bundle clean",
+        "restore": "bundle install",
+        "build": "bundle exec rake build",
+        "test": "bundle exec rake test",
+        "check": ["lint"],
+        "lint": "bundle exec rubocop",
+        "format": "bundle exec rubocop -a",
+        "format-check": "bundle exec rubocop --format offenses --fail-level convention",
+        "bench": null,
+        "pack": "gem build *.gemspec",
+        "doc": "bundle exec yard doc",
+        "demo": "bundle exec ruby demo.rb"
+      }
+    },
+    "composer": {
+      "mise": {
+        "primary_tool": "php",
+        "version": "8.3"
+      },
+      "commands": {
+        "clean": null,
+        "restore": "composer install",
+        "build": null,
+        "test": "composer test",
+        "check": ["lint"],
+        "lint": "composer run-script lint",
+        "format": "composer run-script format",
+        "format-check": "composer run-script format:check",
+        "bench": null,
+        "doc": null,
+        "demo": "php demo.php"
+      }
+    },
+    "mix": {
+      "mise": {
+        "primary_tool": "elixir",
+        "version": "1.16"
+      },
+      "commands": {
+        "clean": "mix clean",
+        "restore": "mix deps.get",
+        "build": "mix compile",
+        "test": "mix test",
+        "check": ["lint", "typecheck"],
+        "lint": "mix credo",
+        "typecheck": "mix dialyzer",
+        "format": "mix format",
+        "format-check": "mix format --check-formatted",
+        "bench": null,
+        "doc": "mix docs",
+        "demo": "mix run demo.exs"
+      }
+    },
+    "sbt": {
+      "mise": {
+        "primary_tool": "java",
+        "version": "temurin-21",
+        "extra_tools": {
+          "sbt": "latest"
+        }
+      },
+      "commands": {
+        "clean": "sbt clean",
+        "restore": "sbt update",
+        "build": "sbt compile",
+        "test": "sbt test",
+        "check": "sbt scalafmtCheck",
+        "lint": "sbt scalafmtCheck",
+        "format": "sbt scalafmt",
+        "format-check": "sbt scalafmtCheck",
+        "bench": null,
+        "pack": "sbt package",
+        "doc": "sbt doc",
+        "demo": "sbt run"
+      }
+    },
+    "cabal": {
+      "mise": {
+        "primary_tool": "ghc",
+        "version": "9.8"
+      },
+      "commands": {
+        "clean": "cabal clean",
+        "restore": "cabal update",
+        "build": "cabal build",
+        "test": "cabal test",
+        "check": "cabal check",
+        "lint": "hlint .",
+        "format": "ormolu --mode inplace $(find . -name '*.hs')",
+        "format-check": "ormolu --mode check $(find . -name '*.hs')",
+        "bench": "cabal bench",
+        "doc": "cabal haddock",
+        "demo": "cabal run"
+      }
+    },
+    "stack": {
+      "mise": {
+        "primary_tool": "ghc",
+        "version": "9.8"
+      },
+      "commands": {
+        "clean": "stack clean",
+        "restore": "stack setup",
+        "build": "stack build",
+        "test": "stack test",
+        "check": null,
+        "lint": "stack exec -- hlint .",
+        "format": "stack exec -- ormolu --mode inplace $(find . -name '*.hs')",
+        "format-check": "stack exec -- ormolu --mode check $(find . -name '*.hs')",
+        "bench": "stack bench",
+        "doc": "stack haddock",
+        "demo": "stack run"
+      }
+    },
+    "dune": {
+      "mise": {
+        "primary_tool": "ocaml",
+        "version": "5.1"
+      },
+      "commands": {
+        "clean": "dune clean",
+        "restore": "opam install . --deps-only",
+        "build": "dune build",
+        "test": "dune runtest",
+        "check": null,
+        "lint": null,
+        "format": "dune fmt",
+        "format-check": "dune fmt --preview",
+        "bench": null,
+        "doc": "dune build @doc",
+        "demo": "dune exec demo"
+      }
+    },
+    "lein": {
+      "mise": {
+        "primary_tool": "java",
+        "version": "temurin-21",
+        "extra_tools": {
+          "leiningen": "latest"
+        }
+      },
+      "commands": {
+        "clean": "lein clean",
+        "restore": "lein deps",
+        "build": "lein compile",
+        "test": "lein test",
+        "check": "lein check",
+        "lint": "lein eastwood",
+        "format": "lein cljfmt fix",
+        "format-check": "lein cljfmt check",
+        "bench": null,
+        "pack": "lein jar",
+        "doc": "lein codox",
+        "demo": "lein run"
+      }
+    },
+    "zig": {
+      "mise": {
+        "primary_tool": "zig",
+        "version": "latest"
+      },
+      "commands": {
+        "clean": null,
+        "restore": null,
+        "build": "zig build",
+        "build:release": "zig build -Doptimize=ReleaseFast",
+        "test": "zig build test",
+        "check": null,
+        "lint": null,
+        "format": "zig fmt .",
+        "format-check": "zig fmt --check .",
+        "bench": null,
+        "demo": "zig build run"
+      }
+    },
+    "rebar3": {
+      "mise": {
+        "primary_tool": "erlang",
+        "version": "26"
+      },
+      "commands": {
+        "clean": "rebar3 clean",
+        "restore": "rebar3 get-deps",
+        "build": "rebar3 compile",
+        "test": "rebar3 eunit",
+        "check": "rebar3 dialyzer",
+        "lint": "rebar3 lint",
+        "format": "rebar3 format",
+        "format-check": null,
+        "bench": null,
+        "pack": "rebar3 tar",
+        "doc": "rebar3 edoc",
+        "demo": "rebar3 shell"
+      }
+    }
+  }
+}

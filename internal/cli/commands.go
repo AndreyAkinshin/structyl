@@ -6,11 +6,14 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
 	"github.com/AndreyAkinshin/structyl/internal/mise"
 	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/project"
 	"github.com/AndreyAkinshin/structyl/internal/release"
-	"github.com/AndreyAkinshin/structyl/internal/runner"    //nolint:staticcheck // SA1019: intentionally using deprecated package for backwards compatibility
+	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: intentionally using deprecated package for backwards compatibility
 	"github.com/AndreyAkinshin/structyl/internal/target"
 	"github.com/AndreyAkinshin/structyl/internal/testparser"
 )
@@ -854,9 +857,10 @@ func printUnifiedUsage(cmd string) {
 	w.HelpFlag("-h, --help", "Show this help", 14)
 
 	w.HelpSection("Examples:")
-	w.HelpExample(fmt.Sprintf("structyl %s", cmd), fmt.Sprintf("%s all targets", strings.Title(cmd)))
-	w.HelpExample(fmt.Sprintf("structyl %s go", cmd), fmt.Sprintf("%s Go target only", strings.Title(cmd)))
-	w.HelpExample(fmt.Sprintf("structyl %s --docker", cmd), fmt.Sprintf("%s all targets in Docker", strings.Title(cmd)))
+	titleCase := cases.Title(language.English)
+	w.HelpExample(fmt.Sprintf("structyl %s", cmd), fmt.Sprintf("%s all targets", titleCase.String(cmd)))
+	w.HelpExample(fmt.Sprintf("structyl %s go", cmd), fmt.Sprintf("%s Go target only", titleCase.String(cmd)))
+	w.HelpExample(fmt.Sprintf("structyl %s --docker", cmd), fmt.Sprintf("%s all targets in Docker", titleCase.String(cmd)))
 	w.Println("")
 }
 

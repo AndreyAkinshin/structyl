@@ -50,7 +50,7 @@ jobs:
         uses: jdx/mise-action@v2
 
       - name: Run golangci-lint
-        run: golangci-lint run --out-format=colored-line-number
+        run: golangci-lint run
 
   build:
     name: Build

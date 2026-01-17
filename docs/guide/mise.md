@@ -196,7 +196,7 @@ run = "go test ./..."
 [tasks."lint:go"]
 description = "Lint for go target"
 dir = "go"
-run = "golangci-lint run --out-format=colored-line-number"
+run = "golangci-lint run"
 
 [tasks."check:go"]
 description = "Check for go target"

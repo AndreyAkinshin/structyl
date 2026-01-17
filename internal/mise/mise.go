@@ -328,7 +328,7 @@ var builtinToolchainCommands = map[string]map[string]interface{}{
 		"build":         "go build ./...",
 		"test":          "go test ./...",
 		"check":         []interface{}{"lint"},
-		"lint":          "golangci-lint run --out-format=colored-line-number",
+		"lint":          "golangci-lint run",
 		"format":        "go fmt ./...",
 		"format-check":  `test -z "$(gofmt -l .)"`,
 		"bench":         "go test -bench=. ./...",

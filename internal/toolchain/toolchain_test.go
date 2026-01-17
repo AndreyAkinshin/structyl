@@ -110,7 +110,14 @@ func TestList(t *testing.T) {
 func TestBuiltinToolchains_HaveStandardCommands(t *testing.T) {
 	standardCommands := []string{"build", "test", "clean"}
 
-	for name, tc := range builtinToolchains {
+	// Use List() for deterministic iteration order
+	names := List()
+	for _, name := range names {
+		tc, ok := Get(name)
+		if !ok {
+			t.Errorf("toolchain %q from List() not found via Get()", name)
+			continue
+		}
 		for _, cmd := range standardCommands {
 			if !tc.HasCommand(cmd) {
 				t.Errorf("toolchain %q missing standard command %q", name, cmd)

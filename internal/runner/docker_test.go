@@ -513,3 +513,135 @@ func TestBuildRunArgs_ShellWrapperPlatformSpecific(t *testing.T) {
 		}
 	}
 }
+
+// =============================================================================
+// NewDockerRunnerWithConfig Tests
+// =============================================================================
+
+func TestNewDockerRunnerWithConfig_NilConfig(t *testing.T) {
+	runner := NewDockerRunnerWithConfig("/project", nil)
+
+	if runner == nil {
+		t.Fatal("NewDockerRunnerWithConfig(nil) returned nil")
+	}
+	if runner.projectRoot != "/project" {
+		t.Errorf("projectRoot = %q, want %q", runner.projectRoot, "/project")
+	}
+	if runner.config != nil {
+		t.Error("config should be nil when input is nil")
+	}
+	if runner.projectConfig != nil {
+		t.Error("projectConfig should be nil when input is nil")
+	}
+	// Should use default compose file
+	if runner.composeFile != "docker-compose.yml" {
+		t.Errorf("composeFile = %q, want default %q", runner.composeFile, "docker-compose.yml")
+	}
+}
+
+func TestNewDockerRunnerWithConfig_WithDockerConfig(t *testing.T) {
+	cfg := &config.Config{
+		Docker: &config.DockerConfig{
+			ComposeFile: "custom-compose.yml",
+		},
+	}
+
+	runner := NewDockerRunnerWithConfig("/project", cfg)
+
+	if runner.config != cfg.Docker {
+		t.Error("config should reference the Docker config from input")
+	}
+	if runner.projectConfig != cfg {
+		t.Error("projectConfig should reference the full config")
+	}
+	if runner.composeFile != "custom-compose.yml" {
+		t.Errorf("composeFile = %q, want %q", runner.composeFile, "custom-compose.yml")
+	}
+}
+
+func TestNewDockerRunnerWithConfig_ConfigWithoutDocker(t *testing.T) {
+	cfg := &config.Config{
+		Docker: nil, // No Docker config
+	}
+
+	runner := NewDockerRunnerWithConfig("/project", cfg)
+
+	if runner.config != nil {
+		t.Error("config should be nil when Docker config is nil")
+	}
+	if runner.projectConfig != cfg {
+		t.Error("projectConfig should still reference the full config")
+	}
+	if runner.composeFile != "docker-compose.yml" {
+		t.Errorf("composeFile = %q, want default %q", runner.composeFile, "docker-compose.yml")
+	}
+}
+
+func TestNewDockerRunnerWithConfig_StoresProjectConfig(t *testing.T) {
+	cfg := &config.Config{
+		Project: config.ProjectConfig{Name: "test-project"},
+		Targets: map[string]config.TargetConfig{
+			"go": {Type: "language", Title: "Go"},
+		},
+	}
+
+	runner := NewDockerRunnerWithConfig("/project", cfg)
+
+	if runner.projectConfig == nil {
+		t.Fatal("projectConfig should not be nil")
+	}
+	if runner.projectConfig.Project.Name != "test-project" {
+		t.Errorf("projectConfig.Project.Name = %q, want %q",
+			runner.projectConfig.Project.Name, "test-project")
+	}
+}
+
+// =============================================================================
+// getDockerfilePath Tests
+// =============================================================================
+
+func TestGetDockerfilePath_DefaultDirectory(t *testing.T) {
+	runner := NewDockerRunnerWithConfig("/project", nil)
+
+	targetCfg := config.TargetConfig{
+		Directory: "", // Empty means use target name as directory
+	}
+
+	path := runner.getDockerfilePath("myapp", targetCfg)
+
+	expected := "/project/myapp/Dockerfile"
+	if path != expected {
+		t.Errorf("getDockerfilePath() = %q, want %q", path, expected)
+	}
+}
+
+func TestGetDockerfilePath_CustomDirectory(t *testing.T) {
+	runner := NewDockerRunnerWithConfig("/project", nil)
+
+	targetCfg := config.TargetConfig{
+		Directory: "services/api",
+	}
+
+	path := runner.getDockerfilePath("myapp", targetCfg)
+
+	expected := "/project/services/api/Dockerfile"
+	if path != expected {
+		t.Errorf("getDockerfilePath() = %q, want %q", path, expected)
+	}
+}
+
+func TestGetDockerfilePath_RootDirectory(t *testing.T) {
+	runner := NewDockerRunnerWithConfig("/project", nil)
+
+	targetCfg := config.TargetConfig{
+		Directory: ".",
+	}
+
+	path := runner.getDockerfilePath("main", targetCfg)
+
+	// filepath.Join cleans the path, so /project/. becomes /project
+	expected := "/project/Dockerfile"
+	if path != expected {
+		t.Errorf("getDockerfilePath() = %q, want %q", path, expected)
+	}
+}

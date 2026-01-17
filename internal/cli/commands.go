@@ -120,7 +120,7 @@ func ensureMiseConfig(proj *project.Project, force bool) error {
 	}
 
 	if force || autoGen || !mise.MiseTomlExists(proj.Root) {
-		_, err := mise.WriteMiseToml(proj.Root, proj.Config, true)
+		_, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, true)
 		if err != nil {
 			return fmt.Errorf("failed to generate .mise.toml: %w", err)
 		}
@@ -665,8 +665,8 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 		return exitCode
 	}
 
-	// Generate .mise.toml
-	created, err := mise.WriteMiseToml(proj.Root, proj.Config, force || true) // Always force on explicit sync
+	// Generate .mise.toml using loaded toolchains
+	created, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, force || true) // Always force on explicit sync
 	if err != nil {
 		out.ErrorPrefix("mise sync: %v", err)
 		return 1
@@ -678,8 +678,8 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 		out.Info(".mise.toml is up to date")
 	}
 
-	// Print summary
-	tools := mise.GetAllToolsFromConfig(proj.Config)
+	// Print summary using loaded toolchains
+	tools := mise.GetAllToolsWithToolchains(proj.Config, proj.Toolchains)
 	if len(tools) > 0 {
 		out.HelpSection("Tools:")
 		for name, version := range tools {

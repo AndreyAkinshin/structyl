@@ -7,6 +7,7 @@ type Config struct {
 	Version       *VersionConfig             `json:"version,omitempty"`
 	Targets       map[string]TargetConfig    `json:"targets,omitempty"`
 	Toolchains    map[string]ToolchainConfig `json:"toolchains,omitempty"`
+	Mise          *MiseConfig                `json:"mise,omitempty"`
 	Tests         *TestsConfig               `json:"tests,omitempty"`
 	Documentation *DocsConfig                `json:"documentation,omitempty"`
 	Docker        *DockerConfig              `json:"docker,omitempty"`
@@ -39,22 +40,31 @@ type VersionFileConfig struct {
 
 // TargetConfig defines a build target (language or auxiliary).
 type TargetConfig struct {
-	Type      string                 `json:"type"`
-	Title     string                 `json:"title"`
-	Toolchain string                 `json:"toolchain,omitempty"`
-	Directory string                 `json:"directory,omitempty"`
-	Cwd       string                 `json:"cwd,omitempty"`
-	Commands  map[string]interface{} `json:"commands,omitempty"`
-	Vars      map[string]string      `json:"vars,omitempty"`
-	Env       map[string]string      `json:"env,omitempty"`
-	DependsOn []string               `json:"depends_on,omitempty"`
-	DemoPath  string                 `json:"demo_path,omitempty"`
+	Type             string                 `json:"type"`
+	Title            string                 `json:"title"`
+	Toolchain        string                 `json:"toolchain,omitempty"`
+	ToolchainVersion string                 `json:"toolchain_version,omitempty"` // Override mise tool version
+	Directory        string                 `json:"directory,omitempty"`
+	Cwd              string                 `json:"cwd,omitempty"`
+	Commands         map[string]interface{} `json:"commands,omitempty"`
+	Vars             map[string]string      `json:"vars,omitempty"`
+	Env              map[string]string      `json:"env,omitempty"`
+	DependsOn        []string               `json:"depends_on,omitempty"`
+	DemoPath         string                 `json:"demo_path,omitempty"`
 }
 
 // ToolchainConfig defines a custom toolchain.
 type ToolchainConfig struct {
 	Extends  string                 `json:"extends,omitempty"`
+	Version  string                 `json:"version,omitempty"` // Mise tool version for this toolchain
 	Commands map[string]interface{} `json:"commands,omitempty"`
+}
+
+// MiseConfig configures mise integration.
+type MiseConfig struct {
+	Enabled      bool              `json:"enabled,omitempty"`       // Enable mise integration (default: true)
+	AutoGenerate bool              `json:"auto_generate,omitempty"` // Regenerate .mise.toml before each run
+	ExtraTools   map[string]string `json:"extra_tools,omitempty"`   // Additional mise tools to install
 }
 
 // TestsConfig configures the reference test system.

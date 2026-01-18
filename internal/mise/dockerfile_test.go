@@ -221,7 +221,9 @@ func TestGetDockerfilePath(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			path := GetDockerfilePath("/project", tt.targetName, tt.targetCfg)
-			if !strings.HasSuffix(path, tt.wantSuffix) {
+			// Normalize path separators for cross-platform comparison
+			normalizedPath := filepath.ToSlash(path)
+			if !strings.HasSuffix(normalizedPath, tt.wantSuffix) {
 				t.Errorf("GetDockerfilePath() = %q, want suffix %q", path, tt.wantSuffix)
 			}
 		})

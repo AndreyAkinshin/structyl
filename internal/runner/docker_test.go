@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"path/filepath"
 	"runtime"
 	"testing"
 
@@ -630,7 +631,8 @@ func TestGetDockerfilePath_DefaultDirectory(t *testing.T) {
 
 	path := runner.getDockerfilePath("myapp", targetCfg)
 
-	expected := "/project/myapp/Dockerfile"
+	// Use filepath.FromSlash for cross-platform path comparison
+	expected := filepath.FromSlash("/project/myapp/Dockerfile")
 	if path != expected {
 		t.Errorf("getDockerfilePath() = %q, want %q", path, expected)
 	}
@@ -646,7 +648,8 @@ func TestGetDockerfilePath_CustomDirectory(t *testing.T) {
 
 	path := runner.getDockerfilePath("myapp", targetCfg)
 
-	expected := "/project/services/api/Dockerfile"
+	// Use filepath.FromSlash for cross-platform path comparison
+	expected := filepath.FromSlash("/project/services/api/Dockerfile")
 	if path != expected {
 		t.Errorf("getDockerfilePath() = %q, want %q", path, expected)
 	}
@@ -663,7 +666,8 @@ func TestGetDockerfilePath_RootDirectory(t *testing.T) {
 	path := runner.getDockerfilePath("main", targetCfg)
 
 	// filepath.Join cleans the path, so /project/. becomes /project
-	expected := "/project/Dockerfile"
+	// Use filepath.FromSlash for cross-platform path comparison
+	expected := filepath.FromSlash("/project/Dockerfile")
 	if path != expected {
 		t.Errorf("getDockerfilePath() = %q, want %q", path, expected)
 	}

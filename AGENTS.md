@@ -319,7 +319,9 @@ errors.GetExitCode(err) int                         // Get exit code
 
 ### Built-in Toolchains
 
-Defined in `internal/toolchain/builtin.go`:
+Defined in `internal/toolchain/defaults.go`. There are **27 built-in toolchains**.
+
+**Common toolchains:**
 
 | Name | Ecosystem | Marker Files |
 |------|-----------|--------------|
@@ -329,15 +331,19 @@ Defined in `internal/toolchain/builtin.go`:
 | `npm` | Node.js | `package.json` |
 | `pnpm` | Node.js | `pnpm-lock.yaml` |
 | `yarn` | Node.js | `yarn.lock` |
-| `bun` | Node.js | `bun.lockb` |
+| `bun` | Bun | `bun.lockb` |
 | `python` | Python | `pyproject.toml`, `setup.py` |
 | `uv` | Python | `uv.lock` |
 | `poetry` | Python | `poetry.lock` |
-| `gradle` | Kotlin/Java | `build.gradle.kts`, `build.gradle` |
-| `maven` | Java | `pom.xml` |
+| `gradle` | JVM | `build.gradle.kts`, `build.gradle` |
+| `maven` | JVM | `pom.xml` |
 | `swift` | Swift | `Package.swift` |
 | `cmake` | C/C++ | `CMakeLists.txt` |
-| `make` | Any | `Makefile` |
+| `make` | Generic | `Makefile` |
+
+**Additional toolchains:** `deno`, `r`, `bundler`, `composer`, `mix`, `sbt`, `cabal`, `stack`, `dune`, `lein`, `zig`, `rebar3`
+
+For complete command mappings, see [docs/specs/toolchains.md](docs/specs/toolchains.md).
 
 ### Toolchain Resolution
 

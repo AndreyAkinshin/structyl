@@ -263,7 +263,7 @@ func printProjectHelp(w *output.Writer, proj *project.Project) {
 	w.HelpCommand("github", "Generate GitHub Actions CI workflow", 12)
 
 	w.HelpSection("Mise Commands:")
-	w.HelpCommand("mise sync", "Regenerate .mise.toml from config", 12)
+	w.HelpCommand("mise sync", "Regenerate mise.toml from config", 12)
 
 	w.HelpSection("Utility Commands:")
 	w.HelpCommand("targets", "List all configured targets", 10)
@@ -314,7 +314,7 @@ func printGenericHelp(w *output.Writer) {
 	w.HelpCommand("github", "Generate GitHub Actions CI workflow", 12)
 
 	w.HelpSection("Mise Commands:")
-	w.HelpCommand("mise sync", "Regenerate .mise.toml from config", 12)
+	w.HelpCommand("mise sync", "Regenerate mise.toml from config", 12)
 
 	w.HelpSection("Utility Commands:")
 	w.HelpCommand("targets", "List all configured targets", 10)

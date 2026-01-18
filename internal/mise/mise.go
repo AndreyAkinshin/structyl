@@ -11,13 +11,13 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
 
-// MiseConfig represents a .mise.toml configuration.
+// MiseConfig represents a mise.toml configuration.
 type MiseConfig struct {
 	Tools map[string]string
 	Tasks map[string]MiseTask
 }
 
-// MiseTask represents a task in .mise.toml.
+// MiseTask represents a task in mise.toml.
 type MiseTask struct {
 	Description string
 	Run         string            // Direct shell command
@@ -28,19 +28,20 @@ type MiseTask struct {
 }
 
 // RunStep represents a step in a sequential run.
-// Either Task (single task) or Tasks (parallel tasks) should be set.
+// Either Run (shell command), Task (single task), or Tasks (parallel tasks) should be set.
 type RunStep struct {
+	Run   string   // Direct shell command
 	Task  string   // Single task to run
 	Tasks []string // Multiple tasks to run in parallel
 }
 
-// GenerateMiseToml generates the content of a .mise.toml file.
+// GenerateMiseToml generates the content of a mise.toml file.
 // Deprecated: Use GenerateMiseTomlWithToolchains for loaded toolchains configuration.
 func GenerateMiseToml(cfg *config.Config) (string, error) {
 	return GenerateMiseTomlWithToolchains(cfg, nil)
 }
 
-// GenerateMiseTomlWithToolchains generates the content of a .mise.toml file
+// GenerateMiseTomlWithToolchains generates the content of a mise.toml file
 // using the loaded toolchains configuration.
 func GenerateMiseTomlWithToolchains(cfg *config.Config, loaded *toolchain.ToolchainsFile) (string, error) {
 	var b strings.Builder
@@ -171,18 +172,25 @@ func generateTasksWithToolchains(cfg *config.Config, loaded *toolchain.Toolchain
 				commandTargets[cmdName] = append(commandTargets[cmdName], targetName)
 
 			case []interface{}:
-				// List of other commands to depend on
-				var deps []string
-				for _, dep := range v {
-					if depStr, ok := dep.(string); ok {
-						deps = append(deps, fmt.Sprintf("%s:%s", depStr, targetName))
+				// List of shell commands to run sequentially
+				var steps []RunStep
+				for _, item := range v {
+					if cmdStr, ok := item.(string); ok {
+						steps = append(steps, RunStep{Run: cmdStr})
 					}
 				}
-				if len(deps) > 0 {
-					tasks[taskName] = MiseTask{
+				if len(steps) > 0 {
+					task := MiseTask{
 						Description: fmt.Sprintf("%s for %s target", capitalize(cmdName), targetName),
-						DependsOn:   deps,
+						RunSequence: steps,
 					}
+					if dir != "" {
+						task.Dir = dir
+					}
+					if len(targetCfg.Env) > 0 {
+						task.Env = targetCfg.Env
+					}
+					tasks[taskName] = task
 					commandTargets[cmdName] = append(commandTargets[cmdName], targetName)
 				}
 
@@ -340,7 +348,10 @@ func writeTasks(b *strings.Builder, tasks map[string]MiseTask) {
 			// Format run as array of sequential steps
 			b.WriteString("run = [\n")
 			for _, step := range task.RunSequence {
-				if step.Task != "" {
+				if step.Run != "" {
+					// Direct shell command
+					fmt.Fprintf(b, "    %q,\n", step.Run)
+				} else if step.Task != "" {
 					fmt.Fprintf(b, "    { task = %q },\n", step.Task)
 				} else if len(step.Tasks) > 0 {
 					tasks := make([]string, len(step.Tasks))
@@ -358,7 +369,7 @@ func writeTasks(b *strings.Builder, tasks map[string]MiseTask) {
 	}
 }
 
-// WriteMiseToml generates and writes a .mise.toml file to the project root.
+// WriteMiseToml generates and writes a mise.toml file to the project root.
 // Returns true if a new file was created, false if it already exists.
 // Use force=true to overwrite an existing file.
 // Deprecated: Use WriteMiseTomlWithToolchains for loaded toolchains configuration.
@@ -366,12 +377,12 @@ func WriteMiseToml(projectRoot string, cfg *config.Config, force bool) (bool, er
 	return WriteMiseTomlWithToolchains(projectRoot, cfg, nil, force)
 }
 
-// WriteMiseTomlWithToolchains generates and writes a .mise.toml file to the project root
+// WriteMiseTomlWithToolchains generates and writes a mise.toml file to the project root
 // using the loaded toolchains configuration.
 // Returns true if a new file was created, false if it already exists.
 // Use force=true to overwrite an existing file.
 func WriteMiseTomlWithToolchains(projectRoot string, cfg *config.Config, loaded *toolchain.ToolchainsFile, force bool) (bool, error) {
-	outputPath := filepath.Join(projectRoot, ".mise.toml")
+	outputPath := filepath.Join(projectRoot, "mise.toml")
 
 	// Check if file already exists
 	if !force {
@@ -382,19 +393,19 @@ func WriteMiseTomlWithToolchains(projectRoot string, cfg *config.Config, loaded 
 
 	content, err := GenerateMiseTomlWithToolchains(cfg, loaded)
 	if err != nil {
-		return false, fmt.Errorf("failed to generate .mise.toml: %w", err)
+		return false, fmt.Errorf("failed to generate mise.toml: %w", err)
 	}
 
 	if err := os.WriteFile(outputPath, []byte(content), 0644); err != nil {
-		return false, fmt.Errorf("failed to write .mise.toml: %w", err)
+		return false, fmt.Errorf("failed to write mise.toml: %w", err)
 	}
 
 	return true, nil
 }
 
-// MiseTomlExists checks if a .mise.toml file exists in the project root.
+// MiseTomlExists checks if a mise.toml file exists in the project root.
 func MiseTomlExists(projectRoot string) bool {
-	path := filepath.Join(projectRoot, ".mise.toml")
+	path := filepath.Join(projectRoot, "mise.toml")
 	_, err := os.Stat(path)
 	return err == nil
 }

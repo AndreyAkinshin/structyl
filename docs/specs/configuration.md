@@ -236,7 +236,7 @@ Mise build tool integration configuration.
 | Field          | Type              | Default | Description                          |
 | -------------- | ----------------- | ------- | ------------------------------------ |
 | `enabled`      | boolean           | `true`  | Enable mise integration              |
-| `auto_generate`| boolean           | `false` | Regenerate `.mise.toml` before runs  |
+| `auto_generate`| boolean           | `false` | Regenerate `mise.toml` before runs  |
 | `extra_tools`  | map[string]string | `{}`    | Additional mise tools to install     |
 
 ### `release`

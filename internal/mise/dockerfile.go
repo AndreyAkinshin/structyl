@@ -26,7 +26,7 @@ ENV PATH="/root/.local/bin:$PATH"
 
 # Copy mise configuration and install tools
 WORKDIR /workspace
-COPY .mise.toml .mise.toml
+COPY mise.toml mise.toml
 RUN mise trust && mise install
 
 # Set working directory to target

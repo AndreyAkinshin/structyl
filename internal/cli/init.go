@@ -32,7 +32,7 @@ var ToolchainsTemplate string
 
 // initOptions holds parsed init command options.
 type initOptions struct {
-	Mise bool // Generate/regenerate .mise.toml
+	Mise bool // Generate/regenerate mise.toml
 }
 
 // cmdInit initializes a new structyl project or updates an existing one.
@@ -212,13 +212,13 @@ func cmdInit(args []string) int {
 	// Update or create .gitignore
 	updateGitignore(cwd)
 
-	// Handle --mise flag: generate/regenerate .mise.toml
+	// Handle --mise flag: generate/regenerate mise.toml
 	if opts.Mise {
 		miseCreated, err := mise.WriteMiseToml(cwd, cfg, true) // force=true to regenerate
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: warning: could not create .mise.toml: %v\n", err)
+			fmt.Fprintf(os.Stderr, "structyl: warning: could not create mise.toml: %v\n", err)
 		} else if miseCreated {
-			created = append(created, ".mise.toml")
+			created = append(created, "mise.toml")
 		}
 	}
 
@@ -367,7 +367,7 @@ func updateGitignore(root string) {
 	entries := []string{
 		"# Structyl",
 		"artifacts/",
-		".mise.toml",
+		"mise.toml",
 	}
 
 	existingContent := ""
@@ -430,7 +430,7 @@ func printInitUsage() {
 	w.Println("  On existing projects, offers to update AGENTS.md and toolchains.json.")
 
 	w.HelpSection("Options:")
-	w.HelpFlag("--mise", "Generate/regenerate .mise.toml configuration", 10)
+	w.HelpFlag("--mise", "Generate/regenerate mise.toml configuration", 10)
 	w.HelpFlag("-h, --help", "Show this help", 10)
 
 	w.HelpSection("Examples:")

@@ -152,7 +152,7 @@ Configure mise integration (enabled by default).
 | Field           | Default | Description                           |
 | --------------- | ------- | ------------------------------------- |
 | `enabled`       | `true`  | Enable mise integration               |
-| `auto_generate` | `true`  | Regenerate .mise.toml before each run |
+| `auto_generate` | `true`  | Regenerate mise.toml before each run |
 | `extra_tools`   | `{}`    | Additional mise tools to install      |
 
 See [Mise Integration](./mise) for details.

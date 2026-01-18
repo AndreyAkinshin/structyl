@@ -32,9 +32,9 @@ func cmdDockerfile(args []string, opts *GlobalOptions) int {
 		return exitCode
 	}
 
-	// First ensure .mise.toml exists
+	// First ensure mise.toml exists
 	if !mise.MiseTomlExists(proj.Root) {
-		out.WarningSimple(".mise.toml not found - run 'structyl init --mise' first")
+		out.WarningSimple("mise.toml not found - run 'structyl init --mise' first")
 	}
 
 	results, err := mise.WriteAllDockerfiles(proj.Root, proj.Config, force)
@@ -98,9 +98,9 @@ func cmdGitHub(args []string, opts *GlobalOptions) int {
 		return exitCode
 	}
 
-	// First ensure .mise.toml exists
+	// First ensure mise.toml exists
 	if !mise.MiseTomlExists(proj.Root) {
-		out.WarningSimple(".mise.toml not found - run 'structyl init --mise' first")
+		out.WarningSimple("mise.toml not found - run 'structyl init --mise' first")
 	}
 
 	// Check if file already exists (and not forcing)

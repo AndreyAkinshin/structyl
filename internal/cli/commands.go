@@ -112,7 +112,7 @@ func isMiseEnabled(proj *project.Project) bool {
 	return proj.Config.Mise.Enabled || proj.Config.Mise == nil
 }
 
-// ensureMiseConfig ensures .mise.toml is up-to-date.
+// ensureMiseConfig ensures mise.toml is up-to-date.
 // If auto_generate is enabled, regenerates the file.
 // If force is true, always regenerates.
 func ensureMiseConfig(proj *project.Project, force bool) error {
@@ -125,7 +125,7 @@ func ensureMiseConfig(proj *project.Project, force bool) error {
 	if force || autoGen || !mise.MiseTomlExists(proj.Root) {
 		_, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, true)
 		if err != nil {
-			return fmt.Errorf("failed to generate .mise.toml: %w", err)
+			return fmt.Errorf("failed to generate mise.toml: %w", err)
 		}
 	}
 
@@ -243,7 +243,7 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 			return 1
 		}
 
-		// Ensure .mise.toml is up-to-date
+		// Ensure mise.toml is up-to-date
 		if err := ensureMiseConfig(proj, false); err != nil {
 			out.ErrorPrefix("%v", err)
 			return 1
@@ -525,7 +525,7 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 			return 1
 		}
 
-		// Ensure .mise.toml is up-to-date
+		// Ensure mise.toml is up-to-date
 		if err := ensureMiseConfig(proj, false); err != nil {
 			out.ErrorPrefix("%v", err)
 			return 1
@@ -625,7 +625,7 @@ func cmdMise(args []string, opts *GlobalOptions) int {
 	}
 }
 
-// cmdMiseSync regenerates the .mise.toml file.
+// cmdMiseSync regenerates the mise.toml file.
 func cmdMiseSync(args []string, opts *GlobalOptions) int {
 	if wantsHelp(args) {
 		printMiseSyncUsage()
@@ -651,7 +651,7 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 		return exitCode
 	}
 
-	// Generate .mise.toml using loaded toolchains
+	// Generate mise.toml using loaded toolchains
 	created, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, force || true) // Always force on explicit sync
 	if err != nil {
 		out.ErrorPrefix("mise sync: %v", err)
@@ -659,9 +659,9 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 	}
 
 	if created {
-		out.Success("Generated .mise.toml")
+		out.Success("Generated mise.toml")
 	} else {
-		out.Info(".mise.toml is up to date")
+		out.Info("mise.toml is up to date")
 	}
 
 	// Print summary using loaded toolchains
@@ -935,14 +935,14 @@ func printMiseUsage() {
 	w.HelpUsage("structyl mise <subcommand>")
 
 	w.HelpSection("Subcommands:")
-	w.HelpCommand("sync", "Regenerate .mise.toml from project configuration", 6)
+	w.HelpCommand("sync", "Regenerate mise.toml from project configuration", 6)
 
 	w.HelpSection("Options:")
 	w.HelpFlag("-h, --help", "Show this help", 10)
 
 	w.HelpSection("Examples:")
-	w.HelpExample("structyl mise sync", "Regenerate .mise.toml")
-	w.HelpExample("structyl mise sync --force", "Force regenerate .mise.toml")
+	w.HelpExample("structyl mise sync", "Regenerate mise.toml")
+	w.HelpExample("structyl mise sync --force", "Force regenerate mise.toml")
 	w.Println("")
 }
 
@@ -950,13 +950,13 @@ func printMiseUsage() {
 func printMiseSyncUsage() {
 	w := output.New()
 
-	w.HelpTitle("structyl mise sync - regenerate .mise.toml")
+	w.HelpTitle("structyl mise sync - regenerate mise.toml")
 
 	w.HelpSection("Usage:")
 	w.HelpUsage("structyl mise sync [--force]")
 
 	w.HelpSection("Description:")
-	w.Println("  Regenerates the .mise.toml file from project configuration.")
+	w.Println("  Regenerates the mise.toml file from project configuration.")
 	w.Println("  This file defines tasks and tools for the mise task runner.")
 
 	w.HelpSection("Options:")
@@ -964,8 +964,8 @@ func printMiseSyncUsage() {
 	w.HelpFlag("-h, --help", "Show this help", 10)
 
 	w.HelpSection("Examples:")
-	w.HelpExample("structyl mise sync", "Regenerate .mise.toml")
-	w.HelpExample("structyl mise sync --force", "Force regenerate .mise.toml")
+	w.HelpExample("structyl mise sync", "Regenerate mise.toml")
+	w.HelpExample("structyl mise sync --force", "Force regenerate mise.toml")
 	w.Println("")
 }
 

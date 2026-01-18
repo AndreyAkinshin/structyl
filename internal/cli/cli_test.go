@@ -889,10 +889,10 @@ func TestCmdInit_WithMiseFlag_CreatesMiseToml(t *testing.T) {
 			return
 		}
 
-		// Verify .mise.toml was created
-		miseTomlPath := filepath.Join(root, ".mise.toml")
+		// Verify mise.toml was created
+		miseTomlPath := filepath.Join(root, "mise.toml")
 		if _, err := os.Stat(miseTomlPath); os.IsNotExist(err) {
-			t.Error(".mise.toml was not created")
+			t.Error("mise.toml was not created")
 		}
 	})
 }

@@ -57,7 +57,7 @@ structyl/
 │   ├── errors/                  # Error definitions
 │   │   └── ...                  # Structured error types
 │   ├── mise/                    # Mise task runner integration
-│   │   └── ...                  # .mise.toml generation
+│   │   └── ...                  # mise.toml generation
 │   ├── release/                 # Release management
 │   │   └── ...                  # Git tag/push operations
 │   └── testing/                 # Test utilities

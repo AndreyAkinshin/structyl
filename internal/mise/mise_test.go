@@ -131,7 +131,7 @@ func TestWriteMiseToml(t *testing.T) {
 	}
 
 	// Verify file exists and has content
-	content, err := os.ReadFile(filepath.Join(tmpDir, ".mise.toml"))
+	content, err := os.ReadFile(filepath.Join(tmpDir, "mise.toml"))
 	if err != nil {
 		t.Fatalf("ReadFile error = %v", err)
 	}
@@ -150,7 +150,7 @@ func TestMiseTomlExists(t *testing.T) {
 	}
 
 	// Create file
-	err := os.WriteFile(filepath.Join(tmpDir, ".mise.toml"), []byte("[tools]"), 0644)
+	err := os.WriteFile(filepath.Join(tmpDir, "mise.toml"), []byte("[tools]"), 0644)
 	if err != nil {
 		t.Fatalf("WriteFile error = %v", err)
 	}

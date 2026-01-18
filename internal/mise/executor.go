@@ -41,7 +41,7 @@ func (e *Executor) RunTask(ctx context.Context, task string, args []string) erro
 // buildRunArgs constructs the command arguments for mise run.
 // The skipDeps parameter is kept for API compatibility but is not used,
 // as mise does not support a --no-deps flag. Dependencies are managed
-// through task definitions in .mise.toml (via depends and run arrays).
+// through task definitions in mise.toml (via depends and run arrays).
 func buildRunArgs(task string, args []string, skipDeps bool) []string {
 	// Note: mise doesn't have a --no-deps flag. Dependencies are handled
 	// by the task definition itself (depends array for parallel, run array

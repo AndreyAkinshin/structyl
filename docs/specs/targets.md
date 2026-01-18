@@ -1,5 +1,7 @@
 # Targets
 
+> **Terminology:** This specification uses [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) keywords (MUST, SHOULD, MAY, etc.) to indicate requirement levels.
+
 This document describes the target system in Structyl.
 
 ## Overview

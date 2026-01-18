@@ -56,8 +56,8 @@ mise tasks
               ┌──────────────────┼──────────────────┐
               ▼                  ▼                  ▼
 ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-│internal/toolchain│  │  internal/docker │  │  internal/output │
-│ (Presets, Detect)│  │  (Compose, Run)  │  │  (Formatting)    │
+│internal/toolchain│  │  internal/runner │  │  internal/output │
+│ (Presets, Detect)│  │  (Docker, Run)   │  │  (Formatting)    │
 └──────────────────┘  └──────────────────┘  └──────────────────┘
 ```
 
@@ -125,13 +125,13 @@ structyl/
 │       ├── multi-language/     # Multiple targets with dependencies
 │       ├── with-docker/        # Docker configuration
 │       └── invalid/            # Invalid configs for error testing
-├── specs/                      # Specification documents
+├── docs/specs/                 # Specification documents
 │   ├── configuration.md
 │   ├── commands.md
 │   ├── toolchains.md
 │   └── ...
 ├── go.mod                      # Go module (github.com/AndreyAkinshin/structyl)
-└── go.sum                      # Dependency lock (only yaml.v3)
+└── go.sum                      # Dependency lock (yaml.v3, golang.org/x/text)
 ```
 
 ## Key Interfaces
@@ -248,9 +248,10 @@ type TargetConfig struct {
 // internal/errors/errors.go
 
 const (
-    ExitSuccess      = 0  // Success
-    ExitRuntimeError = 1  // Command failed, target error
-    ExitConfigError  = 2  // Invalid configuration
+    ExitSuccess          = 0  // Success
+    ExitRuntimeError     = 1  // Command failed, target error
+    ExitConfigError      = 2  // Invalid configuration
+    ExitEnvironmentError = 3  // Environment error (Docker not available, etc.)
 )
 
 type ErrorKind int
@@ -259,6 +260,7 @@ const (
     KindConfig
     KindNotFound
     KindValidation
+    KindEnvironment
 )
 
 type StructylError struct {
@@ -273,14 +275,16 @@ type StructylError struct {
 ### Error Constructors
 
 ```go
-errors.New(message string) *StructylError           // Runtime error
-errors.Newf(format string, args...) *StructylError  // Formatted runtime
-errors.Config(message string) *StructylError        // Config error
-errors.Configf(format, args...) *StructylError      // Formatted config
-errors.Wrap(err, message) *StructylError            // Wrap with context
-errors.TargetError(target, cmd, msg) *StructylError // Target-specific
-errors.NotFound(what, name) *StructylError          // Not found
-errors.GetExitCode(err) int                         // Get exit code
+errors.New(message string) *StructylError               // Runtime error
+errors.Newf(format string, args...) *StructylError      // Formatted runtime
+errors.Config(message string) *StructylError            // Config error
+errors.Configf(format, args...) *StructylError          // Formatted config
+errors.Environment(message string) *StructylError       // Environment error
+errors.Environmentf(format, args...) *StructylError     // Formatted environment
+errors.Wrap(err, message) *StructylError                // Wrap with context
+errors.TargetError(target, cmd, msg) *StructylError     // Target-specific
+errors.NotFound(what, name) *StructylError              // Not found
+errors.GetExitCode(err) int                             // Get exit code
 ```
 
 ## Execution Flow
@@ -674,7 +678,7 @@ mise run test:cover
 
 ## Specification Documents
 
-For detailed behavior specifications, see `specs/`:
+For detailed behavior specifications, see `docs/specs/`:
 
 | Document                | Content                          |
 | ----------------------- | -------------------------------- |

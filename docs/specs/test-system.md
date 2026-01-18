@@ -238,11 +238,11 @@ Configure tolerance in `.structyl/config.json`:
 
 ### Tolerance Modes
 
-| Mode       | Formula                    | Use Case       |
-| ---------- | -------------------------- | -------------- | ------------ | ------------ | --- | --- | -------------- | --------------- |
-| `absolute` | `                          | a - b          | < tolerance` | Small values |
-| `relative` | `                          | a - b          | / max(       | a            | ,   | b   | ) < tolerance` | General purpose |
-| `ulp`      | ULP difference < tolerance | IEEE precision |
+| Mode       | Formula                                       | Use Case        |
+| ---------- | --------------------------------------------- | --------------- |
+| `absolute` | `\|a - b\| < tolerance`                       | Small values    |
+| `relative` | `\|a - b\| / max(\|a\|, \|b\|) < tolerance`   | General purpose |
+| `ulp`      | ULP difference < tolerance                    | IEEE precision  |
 
 **Note:** For `relative` mode, when both values are exactly 0.0, the comparison succeeds (they are equal). This avoids division by zero.
 

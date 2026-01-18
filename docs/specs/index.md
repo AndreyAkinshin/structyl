@@ -108,7 +108,7 @@ This specification defines Structyl v1.0. The following are explicitly **in scop
 - Shared reference test system
 - Version management and propagation
 - Docker-based isolated builds
-- README documentation generation
+- README documentation generation (planned, not yet implemented)
 - Local CI simulation
 - Package publishing
 

@@ -10,7 +10,6 @@ Structyl uses standard exit codes to indicate the result of commands.
 | `1` | Failure | Build, test, or command failed |
 | `2` | Configuration Error | Invalid configuration |
 | `3` | Environment Error | Missing external dependency |
-| `4` | Internal Error | Bug in Structyl |
 
 ## Understanding Exit Codes
 
@@ -68,10 +67,6 @@ An external system or resource is unavailable.
 structyl: error: Docker is not available
   Install from: https://docs.docker.com/get-docker/
 ```
-
-### Code 4 - Internal Error
-
-A bug in Structyl itself. Please report this issue.
 
 ## Scripting with Exit Codes
 
@@ -148,7 +143,6 @@ structyl: error: invalid configuration
 | `-q` | Errors only |
 | (default) | Errors + summary |
 | `-v` | Full output from all targets |
-| `--debug` | Internal debugging information |
 
 ## Recovery Strategies
 

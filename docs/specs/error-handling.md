@@ -12,7 +12,6 @@ This document defines error handling semantics for Structyl.
 | `1` | Failure | Build, test, or command failure (expected runtime failure) | Compilation error, test assertion failed, build script returned non-zero |
 | `2` | Configuration Error | Invalid configuration, schema violation, or semantic validation error | Malformed JSON, missing required field, circular dependency, invalid version format, pattern not found |
 | `3` | Environment Error | External system unavailable, I/O failure, or missing runtime dependency | Docker not running, file permission denied, network timeout, cannot read file |
-| `4` | Internal Error | Bug in Structyl itself | Panic, unexpected nil, invariant violation |
 
 ### Exit Code Categories
 
@@ -162,7 +161,6 @@ structyl: error: invalid configuration
 | Quiet | `-q` | Errors only |
 | Normal | (default) | Errors + summary |
 | Verbose | `-v` | Full output from all targets |
-| Debug | `--debug` | Internal debugging information |
 
 ## Command Exit Codes
 

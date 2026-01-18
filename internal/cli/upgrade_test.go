@@ -502,9 +502,14 @@ func TestCmdUpgrade_NightlyVersion_Success(t *testing.T) {
 	installVersionFunc = mockInstaller(false)
 	defer func() { installVersionFunc = originalInstaller }()
 
-	// Mock isVersionInstalled to return false so installation is attempted
+	// Mock isVersionInstalled: first call returns false (triggers install),
+	// second call returns true (version is now installed)
 	originalIsInstalled := isVersionInstalledFunc
-	isVersionInstalledFunc = func(ver string) bool { return false }
+	callCount := 0
+	isVersionInstalledFunc = func(ver string) bool {
+		callCount++
+		return callCount > 1 // false on first call, true on subsequent calls
+	}
 	defer func() { isVersionInstalledFunc = originalIsInstalled }()
 
 	root := createTestProjectWithVersion(t, "1.0.0")
@@ -522,6 +527,59 @@ func TestCmdUpgrade_NightlyVersion_Success(t *testing.T) {
 		// The version should be resolved to actual nightly format (e.g., "X.Y.Z-nightly+SHA")
 		if ver != "0.1.0-nightly+abc1234" {
 			t.Errorf("pinned version = %q, want %q", ver, "0.1.0-nightly+abc1234")
+		}
+	})
+}
+
+// TestCmdUpgrade_NightlyVersionMismatch tests the case where the nightly artifact
+// contains a different version than what was reported in the release metadata.
+// This can happen when the release body is updated but the artifact is stale.
+func TestCmdUpgrade_NightlyVersionMismatch(t *testing.T) {
+	// Mock the nightly API to return version from release body
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		// Release body says version is 0.1.0-nightly+abc1234
+		w.Write([]byte(`{"tag_name": "nightly", "body": "**Version:** ` + "`" + `0.1.0-nightly+abc1234` + "`" + `"}`))
+	}))
+	defer server.Close()
+
+	originalNightlyURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalNightlyURL }()
+
+	// Mock the installer to succeed
+	originalInstaller := installVersionFunc
+	installVersionFunc = mockInstaller(false)
+	defer func() { installVersionFunc = originalInstaller }()
+
+	// Mock isVersionInstalled to always return false (the requested version is never found
+	// because the artifact installed a different version)
+	originalIsInstalled := isVersionInstalledFunc
+	isVersionInstalledFunc = func(ver string) bool { return false }
+	defer func() { isVersionInstalledFunc = originalIsInstalled }()
+
+	// Mock findLatestInstalledNightly to return the actual version that was installed
+	// (different from what the release body reported)
+	originalFindNightly := findLatestInstalledNightlyFunc
+	findLatestInstalledNightlyFunc = func() string { return "nightly-SNAPSHOT-xyz789" }
+	defer func() { findLatestInstalledNightlyFunc = originalFindNightly }()
+
+	root := createTestProjectWithVersion(t, "1.0.0")
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"nightly"})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([nightly]) = %d, want 0", exitCode)
+		}
+
+		// Verify version was updated to the ACTUAL installed version,
+		// not the version from release metadata
+		ver, err := readPinnedVersion(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if ver != "nightly-SNAPSHOT-xyz789" {
+			t.Errorf("pinned version = %q, want %q (actual installed version)", ver, "nightly-SNAPSHOT-xyz789")
 		}
 	})
 }
@@ -874,6 +932,16 @@ func TestCmdUpgrade_NightlyToNightly_Success(t *testing.T) {
 	installVersionFunc = mockInstaller(false)
 	defer func() { installVersionFunc = originalInstaller }()
 
+	// Mock isVersionInstalled: first call returns false (triggers install),
+	// second call returns true (version is now installed)
+	originalIsInstalled := isVersionInstalledFunc
+	callCount := 0
+	isVersionInstalledFunc = func(ver string) bool {
+		callCount++
+		return callCount > 1
+	}
+	defer func() { isVersionInstalledFunc = originalIsInstalled }()
+
 	// Create a project with an old nightly version
 	root := createTestProjectWithVersion(t, "0.1.0-nightly+abc1234")
 
@@ -1035,6 +1103,16 @@ func TestCmdUpgrade_StableToNightly_Success(t *testing.T) {
 	installVersionFunc = mockInstaller(false)
 	defer func() { installVersionFunc = originalInstaller }()
 
+	// Mock isVersionInstalled: first call returns false (triggers install),
+	// second call returns true (version is now installed)
+	originalIsInstalled := isVersionInstalledFunc
+	callCount := 0
+	isVersionInstalledFunc = func(ver string) bool {
+		callCount++
+		return callCount > 1
+	}
+	defer func() { isVersionInstalledFunc = originalIsInstalled }()
+
 	// Create a project with a stable version
 	root := createTestProjectWithVersion(t, "1.0.0")
 
@@ -1130,6 +1208,16 @@ func TestCmdUpgrade_SNAPSHOTVersion_Success(t *testing.T) {
 	originalInstaller := installVersionFunc
 	installVersionFunc = mockInstaller(false)
 	defer func() { installVersionFunc = originalInstaller }()
+
+	// Mock isVersionInstalled: first call returns false (triggers install),
+	// second call returns true (version is now installed)
+	originalIsInstalled := isVersionInstalledFunc
+	callCount := 0
+	isVersionInstalledFunc = func(ver string) bool {
+		callCount++
+		return callCount > 1
+	}
+	defer func() { isVersionInstalledFunc = originalIsInstalled }()
 
 	// Create a project with an old SNAPSHOT version
 	root := createTestProjectWithVersion(t, "nightly-SNAPSHOT-xyz5678")

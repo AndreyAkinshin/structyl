@@ -27,6 +27,9 @@ var (
 	// isVersionInstalledFunc checks if a version is installed.
 	// Can be overridden in tests.
 	isVersionInstalledFunc = isVersionInstalledReal
+	// findLatestInstalledNightlyFunc finds the most recently installed nightly version.
+	// Can be overridden in tests.
+	findLatestInstalledNightlyFunc = findLatestInstalledNightlyReal
 )
 
 const (
@@ -198,7 +201,22 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 			w.Println("You can try installing manually with: .structyl/setup.sh")
 			return 1
 		}
-		w.Println("Successfully installed version %s", targetVersion)
+
+		// For nightly builds, the install script may detect and install a different
+		// version than requested (the actual version embedded in the binary).
+		// Verify the target version exists; if not, find what was actually installed.
+		if isNightlyVersion(targetVersion) && !isVersionInstalledFunc(targetVersion) {
+			actualVersion := findLatestInstalledNightlyFunc()
+			if actualVersion != "" {
+				w.Println("Successfully installed version %s", actualVersion)
+				targetVersion = actualVersion
+			} else {
+				fmt.Fprintf(os.Stderr, "structyl: error: installation completed but version not found on disk\n")
+				return 1
+			}
+		} else {
+			w.Println("Successfully installed version %s", targetVersion)
+		}
 		w.Println("")
 	}
 
@@ -403,6 +421,43 @@ func isVersionInstalledReal(ver string) bool {
 		return false
 	}
 	return info.IsDir()
+}
+
+// findLatestInstalledNightlyReal finds the most recently installed nightly version.
+// Returns empty string if no nightly version is found.
+func findLatestInstalledNightlyReal() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	versionsDir := filepath.Join(homeDir, ".structyl", "versions")
+	entries, err := os.ReadDir(versionsDir)
+	if err != nil {
+		return ""
+	}
+
+	var latestNightly string
+	var latestModTime time.Time
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if !isNightlyVersion(name) {
+			continue
+		}
+		info, err := entry.Info()
+		if err != nil {
+			continue
+		}
+		if latestNightly == "" || info.ModTime().After(latestModTime) {
+			latestNightly = name
+			latestModTime = info.ModTime()
+		}
+	}
+
+	return latestNightly
 }
 
 // printUpgradeUsage prints the help text for the upgrade command.

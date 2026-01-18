@@ -821,6 +821,10 @@ func TestExtractCommandName(t *testing.T) {
 		{"npm", "npm"},
 		{"", ""},
 		{"   spaced   command", "spaced"},
+		// Quoted expressions (PowerShell string output) should return empty
+		{`"hello" | Out-File test.txt`, ""},
+		{`'hello' | Out-File test.txt`, ""},
+		{`"$env:VAR" > file.txt`, ""},
 	}
 
 	for _, tc := range tests {

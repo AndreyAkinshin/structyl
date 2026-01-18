@@ -294,8 +294,17 @@ func copyMap(m map[string]string) map[string]string {
 
 // extractCommandName extracts the executable name (first word) from a shell command string.
 // For example, "golangci-lint run" returns "golangci-lint".
+// Returns empty string for shell expressions that start with quotes (e.g., PowerShell string output).
 func extractCommandName(cmdStr string) string {
-	fields := strings.Fields(cmdStr)
+	trimmed := strings.TrimSpace(cmdStr)
+	if len(trimmed) == 0 {
+		return ""
+	}
+	// Shell/PowerShell string expressions start with quotes - these are always valid
+	if trimmed[0] == '"' || trimmed[0] == '\'' {
+		return ""
+	}
+	fields := strings.Fields(trimmed)
 	if len(fields) == 0 {
 		return ""
 	}

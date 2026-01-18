@@ -630,8 +630,8 @@ func TestExecute_WithEnv_SetsEnvironment(t *testing.T) {
 	// Use platform-specific command syntax
 	var echoCmd string
 	if runtime.GOOS == "windows" {
-		// PowerShell: use string interpolation with redirection operator
-		echoCmd = fmt.Sprintf(`"$env:TARGET_VAR $env:OPTS_VAR" > '%s'`, outputFile)
+		// PowerShell: pipe to Out-File for reliable file writing
+		echoCmd = fmt.Sprintf(`"$env:TARGET_VAR $env:OPTS_VAR" | Out-File -FilePath '%s' -Encoding utf8`, outputFile)
 	} else {
 		echoCmd = "echo $TARGET_VAR $OPTS_VAR > " + outputFile
 	}
@@ -686,9 +686,9 @@ func TestExecute_CompositeCommand_ExecutesInOrder(t *testing.T) {
 	// Use platform-specific commands for appending to file
 	var firstCmd, secondCmd string
 	if runtime.GOOS == "windows" {
-		// PowerShell: use string with append redirection operator
-		firstCmd = fmt.Sprintf(`'first' >> '%s'`, outputFile)
-		secondCmd = fmt.Sprintf(`'second' >> '%s'`, outputFile)
+		// PowerShell: pipe to Out-File for reliable file writing
+		firstCmd = fmt.Sprintf(`'first' | Out-File -FilePath '%s' -Encoding utf8`, outputFile)
+		secondCmd = fmt.Sprintf(`'second' | Out-File -FilePath '%s' -Append -Encoding utf8`, outputFile)
 	} else {
 		firstCmd = "echo first >> " + outputFile
 		secondCmd = "echo second >> " + outputFile

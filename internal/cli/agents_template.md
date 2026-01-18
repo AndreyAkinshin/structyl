@@ -159,7 +159,7 @@ Commands can be defined as shell strings, arrays, or objects.
 ```json
 {
   "commands": {
-    "check": ["lint", "format-check"],
+    "check": ["cargo clippy -- -D warnings", "cargo fmt --check"],
     "ci": ["restore", "check", "build", "test"]
   }
 }

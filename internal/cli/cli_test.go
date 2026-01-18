@@ -1814,8 +1814,8 @@ func TestPrintUnifiedUsage_AllCommands(t *testing.T) {
 	// Test that printUnifiedUsage executes without panic for all known commands
 	commands := []string{
 		"build", "build:release", "test", "test:coverage",
-		"clean", "restore", "check", "format", "format-check",
-		"lint", "bench", "demo", "doc", "pack",
+		"clean", "restore", "check", "check:fix",
+		"bench", "demo", "doc", "pack",
 	}
 
 	for _, cmd := range commands {

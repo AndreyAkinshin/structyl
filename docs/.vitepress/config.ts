@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import { toolchainCommandsPlugin } from './markdown/toolchainCommands'
 
 export default defineConfig({
   title: 'Structyl',
@@ -7,6 +8,12 @@ export default defineConfig({
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }],
   ],
+
+  markdown: {
+    config: (md) => {
+      md.use(toolchainCommandsPlugin)
+    }
+  },
 
   themeConfig: {
     logo: '/logo.svg',

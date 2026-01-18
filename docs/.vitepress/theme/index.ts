@@ -7,6 +7,7 @@ import InstallTabs from './components/InstallTabs.vue'
 import CodeBlock from './components/CodeBlock.vue'
 import ToolchainCommands from './components/ToolchainCommands.vue'
 import ToolchainOverview from './components/ToolchainOverview.vue'
+import StandardCommands from './components/StandardCommands.vue'
 
 export default {
   extends: DefaultTheme,
@@ -15,5 +16,6 @@ export default {
     app.component('CodeBlock', CodeBlock)
     app.component('ToolchainCommands', ToolchainCommands)
     app.component('ToolchainOverview', ToolchainOverview)
+    app.component('StandardCommands', StandardCommands)
   }
 } satisfies Theme

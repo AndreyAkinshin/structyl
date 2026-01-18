@@ -33,9 +33,10 @@ type VersionConfig struct {
 
 // VersionFileConfig defines a version file update rule.
 type VersionFileConfig struct {
-	Path    string `json:"path"`
-	Pattern string `json:"pattern"`
-	Replace string `json:"replace"`
+	Path       string `json:"path"`
+	Pattern    string `json:"pattern"`
+	Replace    string `json:"replace"`
+	ReplaceAll bool   `json:"replace_all,omitempty"`
 }
 
 // TargetConfig defines a build target (language or auxiliary).
@@ -77,7 +78,8 @@ type TestsConfig struct {
 // ComparisonConfig defines test result comparison settings.
 type ComparisonConfig struct {
 	FloatTolerance float64 `json:"float_tolerance,omitempty"`
-	ToleranceMode  string  `json:"tolerance_mode,omitempty"`
+	ToleranceMode  string  `json:"tolerance_mode,omitempty"`  // "relative", "absolute", or "ulp"
+	ArrayOrder     string  `json:"array_order,omitempty"`     // "strict" or "unordered"
 	NaNEqualsNaN   bool    `json:"nan_equals_nan,omitempty"`
 }
 
@@ -163,4 +165,16 @@ const (
 	ToleranceModeRelative ToleranceMode = "relative"
 	// ToleranceModeAbsolute uses absolute tolerance.
 	ToleranceModeAbsolute ToleranceMode = "absolute"
+	// ToleranceModeULP uses ULP (Units in Last Place) tolerance for IEEE 754 precision.
+	ToleranceModeULP ToleranceMode = "ulp"
+)
+
+// ArrayOrder represents how array elements are compared.
+type ArrayOrder string
+
+const (
+	// ArrayOrderStrict requires elements to match in order.
+	ArrayOrderStrict ArrayOrder = "strict"
+	// ArrayOrderUnordered allows elements to match in any order (set comparison).
+	ArrayOrderUnordered ArrayOrder = "unordered"
 )

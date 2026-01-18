@@ -70,6 +70,7 @@ func TestStructylError_ExitCode(t *testing.T) {
 		{"config", KindConfig, ExitConfigError},
 		{"validation", KindValidation, ExitConfigError},
 		{"not found", KindNotFound, ExitRuntimeError},
+		{"environment", KindEnvironment, ExitEnvironmentError},
 	}
 
 	for _, tt := range tests {
@@ -125,6 +126,32 @@ func TestConfigf(t *testing.T) {
 		t.Errorf("Kind = %v, want %v", err.Kind, KindConfig)
 	}
 	expected := `field "name": is required`
+	if err.Message != expected {
+		t.Errorf("Message = %q, want %q", err.Message, expected)
+	}
+}
+
+func TestEnvironment(t *testing.T) {
+	err := Environment("Docker not available")
+
+	if err.Kind != KindEnvironment {
+		t.Errorf("Kind = %v, want %v", err.Kind, KindEnvironment)
+	}
+	if err.Message != "Docker not available" {
+		t.Errorf("Message = %q, want %q", err.Message, "Docker not available")
+	}
+	if err.ExitCode() != ExitEnvironmentError {
+		t.Errorf("ExitCode() = %d, want %d", err.ExitCode(), ExitEnvironmentError)
+	}
+}
+
+func TestEnvironmentf(t *testing.T) {
+	err := Environmentf("tool %q not found in PATH", "docker")
+
+	if err.Kind != KindEnvironment {
+		t.Errorf("Kind = %v, want %v", err.Kind, KindEnvironment)
+	}
+	expected := `tool "docker" not found in PATH`
 	if err.Message != expected {
 		t.Errorf("Message = %q, want %q", err.Message, expected)
 	}
@@ -193,6 +220,7 @@ func TestGetExitCode(t *testing.T) {
 		{"StructylError runtime", New("runtime"), ExitRuntimeError},
 		{"StructylError config", Config("config"), ExitConfigError},
 		{"StructylError validation", &StructylError{Kind: KindValidation}, ExitConfigError},
+		{"StructylError environment", Environment("env"), ExitEnvironmentError},
 		{"generic error", errors.New("generic"), ExitRuntimeError},
 	}
 
@@ -207,7 +235,7 @@ func TestGetExitCode(t *testing.T) {
 
 func TestErrorKindConstants(t *testing.T) {
 	// Verify error kinds have distinct values
-	kinds := []ErrorKind{KindRuntime, KindConfig, KindNotFound, KindValidation}
+	kinds := []ErrorKind{KindRuntime, KindConfig, KindNotFound, KindValidation, KindEnvironment}
 	seen := make(map[ErrorKind]bool)
 
 	for _, k := range kinds {
@@ -228,5 +256,8 @@ func TestExitCodeConstants(t *testing.T) {
 	}
 	if ExitConfigError != 2 {
 		t.Errorf("ExitConfigError = %d, want 2", ExitConfigError)
+	}
+	if ExitEnvironmentError != 3 {
+		t.Errorf("ExitEnvironmentError = %d, want 3", ExitEnvironmentError)
 	}
 }

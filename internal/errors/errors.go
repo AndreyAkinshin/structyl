@@ -7,9 +7,10 @@ import (
 
 // Exit codes as defined in the specification.
 const (
-	ExitSuccess      = 0 // Success
-	ExitRuntimeError = 1 // Runtime error (command failed, etc.)
-	ExitConfigError  = 2 // Configuration error (invalid config, etc.)
+	ExitSuccess          = 0 // Success
+	ExitRuntimeError     = 1 // Runtime error (command failed, etc.)
+	ExitConfigError      = 2 // Configuration error (invalid config, etc.)
+	ExitEnvironmentError = 3 // Environment error (Docker not available, missing dependency, etc.)
 )
 
 // ErrorKind represents the type of error.
@@ -20,6 +21,7 @@ const (
 	KindConfig
 	KindNotFound
 	KindValidation
+	KindEnvironment
 )
 
 // StructylError is the base error type for Structyl.
@@ -50,6 +52,8 @@ func (e *StructylError) ExitCode() int {
 	switch e.Kind {
 	case KindConfig, KindValidation:
 		return ExitConfigError
+	case KindEnvironment:
+		return ExitEnvironmentError
 	default:
 		return ExitRuntimeError
 	}
@@ -79,6 +83,19 @@ func Config(message string) *StructylError {
 // Configf creates a new configuration error with formatting.
 func Configf(format string, args ...interface{}) *StructylError {
 	return Config(fmt.Sprintf(format, args...))
+}
+
+// Environment creates a new environment error.
+func Environment(message string) *StructylError {
+	return &StructylError{
+		Kind:    KindEnvironment,
+		Message: message,
+	}
+}
+
+// Environmentf creates a new environment error with formatting.
+func Environmentf(format string, args ...interface{}) *StructylError {
+	return Environment(fmt.Sprintf(format, args...))
 }
 
 // Wrap wraps an error with additional context.

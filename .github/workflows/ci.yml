@@ -24,8 +24,34 @@ jobs:
       - name: Set up mise
         uses: jdx/mise-action@v2
 
-      - name: Run CI
-        run: mise run ci
+      - name: Download dependencies
+        run: mise run deps
+
+      - name: Run linter
+        run: mise run lint
+
+      - name: Run tests
+        id: test
+        shell: bash
+        run: |
+          set +e
+          go test -json -race ./... 2>&1 | tee test-output.json
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Test summary
+        if: always() && steps.test.outcome != 'skipped'
+        run: go run ./cmd/structyl test-summary test-output.json
+
+      - name: Check test result
+        if: always() && steps.test.outcome != 'skipped'
+        shell: bash
+        run: |
+          if [ "${{ steps.test.outputs.exit_code }}" != "0" ]; then
+            exit 1
+          fi
+
+      - name: Build
+        run: mise run build
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

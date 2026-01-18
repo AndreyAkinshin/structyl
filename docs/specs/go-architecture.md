@@ -287,16 +287,18 @@ go test -race ./...
 
 Minimal external dependencies:
 
+**Standard library (heavily used):**
+
 | Package         | Purpose                      |
 | --------------- | ---------------------------- |
-| `encoding/json` | JSON parsing (stdlib)        |
-| `os/exec`       | Command execution (stdlib)   |
-| `path/filepath` | Path handling (stdlib)       |
-| `text/template` | Template processing (stdlib) |
+| `encoding/json` | JSON parsing                 |
+| `os/exec`       | Command execution            |
+| `path/filepath` | Path handling                |
+| `text/template` | Template processing          |
 
-No external dependency for core functionality. Optional:
+**External dependencies:**
 
-| Package                  | Purpose                    |
-| ------------------------ | -------------------------- |
-| `github.com/spf13/cobra` | CLI framework (optional)   |
-| `github.com/fatih/color` | Terminal colors (optional) |
+| Package                | Purpose                    |
+| ---------------------- | -------------------------- |
+| `gopkg.in/yaml.v3`     | YAML parsing               |
+| `golang.org/x/text`    | Text processing            |

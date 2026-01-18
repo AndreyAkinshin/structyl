@@ -405,10 +405,15 @@ func TestInterpolateVars_MixedVariables(t *testing.T) {
 }
 
 func TestResolveCommandVariant(t *testing.T) {
+	// Use a target with explicit verbose/quiet variants to test the resolution logic
 	cfg := config.TargetConfig{
-		Type:      "language",
-		Title:     "Test",
-		Toolchain: "go",
+		Type:  "language",
+		Title: "Test",
+		Commands: map[string]interface{}{
+			"test":         "go test ./...",
+			"test:verbose": "go test -v ./...",
+			"clean":        "go clean",
+		},
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})

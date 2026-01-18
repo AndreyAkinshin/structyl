@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bufio"
 	_ "embed"
 	"encoding/json"
 	"fmt"
@@ -66,8 +67,9 @@ func cmdInit(args []string) int {
 	structylDir := filepath.Join(cwd, project.ConfigDirName)
 	configPath := filepath.Join(structylDir, project.ConfigFileName)
 
-	// Track what we create
+	// Track what we create and update
 	var created []string
+	var updated []string
 	isNewProject := false
 
 	// Create .structyl directory
@@ -149,7 +151,7 @@ func cmdInit(args []string) int {
 		}
 	}
 
-	// Write .structyl/AGENTS.md - only if missing
+	// Write .structyl/AGENTS.md - create if missing, or ask to update on existing projects
 	agentsPath := filepath.Join(structylDir, AgentsPromptFileName)
 	if _, err := os.Stat(agentsPath); os.IsNotExist(err) {
 		if err := os.WriteFile(agentsPath, []byte(AgentsPromptContent), 0644); err != nil {
@@ -157,15 +159,33 @@ func cmdInit(args []string) int {
 		} else {
 			created = append(created, ".structyl/AGENTS.md")
 		}
+	} else if !isNewProject {
+		// File exists on existing project - ask to update
+		if promptConfirm("Update .structyl/AGENTS.md with latest template?") {
+			if err := os.WriteFile(agentsPath, []byte(AgentsPromptContent), 0644); err != nil {
+				fmt.Fprintf(os.Stderr, "structyl: warning: could not update AGENTS.md: %v\n", err)
+			} else {
+				updated = append(updated, ".structyl/AGENTS.md")
+			}
+		}
 	}
 
-	// Write .structyl/toolchains.json - only if missing
+	// Write .structyl/toolchains.json - create if missing, or ask to update on existing projects
 	toolchainsPath := filepath.Join(structylDir, project.ToolchainsFileName)
 	if _, err := os.Stat(toolchainsPath); os.IsNotExist(err) {
 		if err := os.WriteFile(toolchainsPath, []byte(ToolchainsTemplate), 0644); err != nil {
 			fmt.Fprintf(os.Stderr, "structyl: warning: could not create toolchains.json: %v\n", err)
 		} else {
 			created = append(created, ".structyl/toolchains.json")
+		}
+	} else if !isNewProject {
+		// File exists on existing project - ask to update
+		if promptConfirm("Update .structyl/toolchains.json with latest template?") {
+			if err := os.WriteFile(toolchainsPath, []byte(ToolchainsTemplate), 0644); err != nil {
+				fmt.Fprintf(os.Stderr, "structyl: warning: could not update toolchains.json: %v\n", err)
+			} else {
+				updated = append(updated, ".structyl/toolchains.json")
+			}
 		}
 	}
 
@@ -212,7 +232,7 @@ func cmdInit(args []string) int {
 				w.Println("  - %s (%s)", name, t.Title)
 			}
 		}
-	} else if len(created) > 0 {
+	} else if len(created) > 0 || len(updated) > 0 {
 		w.Success("Updated Structyl project")
 	} else {
 		w.Info("Project already initialized (nothing to do)")
@@ -221,6 +241,13 @@ func cmdInit(args []string) int {
 	if len(created) > 0 {
 		w.HelpSection("Created:")
 		for _, f := range created {
+			w.Println("  - %s", f)
+		}
+	}
+
+	if len(updated) > 0 {
+		w.HelpSection("Updated:")
+		for _, f := range updated {
 			w.Println("  - %s", f)
 		}
 	}
@@ -400,7 +427,7 @@ func printInitUsage() {
 	w.Println("  Initializes a new structyl project in the current directory.")
 	w.Println("  Creates .structyl/config.json, VERSION file, and setup scripts.")
 	w.Println("  Auto-detects existing language directories (rs, go, cs, py, etc.).")
-	w.Println("  This command is idempotent - it only creates files that don't exist.")
+	w.Println("  On existing projects, offers to update AGENTS.md and toolchains.json.")
 
 	w.HelpSection("Options:")
 	w.HelpFlag("--mise", "Generate/regenerate .mise.toml configuration", 10)
@@ -410,4 +437,18 @@ func printInitUsage() {
 	w.HelpExample("structyl init", "Initialize new project")
 	w.HelpExample("structyl init --mise", "Initialize with mise configuration")
 	w.Println("")
+}
+
+// promptConfirm asks the user a yes/no question and returns true if they confirm.
+func promptConfirm(question string) bool {
+	fmt.Printf("%s [y/N] ", question)
+
+	reader := bufio.NewReader(os.Stdin)
+	response, err := reader.ReadString('\n')
+	if err != nil {
+		return false
+	}
+
+	response = strings.TrimSpace(strings.ToLower(response))
+	return response == "y" || response == "yes"
 }

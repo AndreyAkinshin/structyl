@@ -198,9 +198,14 @@ description = "Lint for go target"
 dir = "go"
 run = "golangci-lint run"
 
+[tasks."vet:go"]
+description = "Vet for go target"
+dir = "go"
+run = "go vet ./..."
+
 [tasks."check:go"]
 description = "Check for go target"
-depends = ["lint:go"]
+depends = ["lint:go", "vet:go"]
 
 [tasks."ci:go"]
 description = "Run CI for go target"
@@ -261,17 +266,17 @@ Structyl automatically maps toolchains to mise tools:
 | Toolchain | Mise Tools |
 |-----------|------------|
 | `cargo` | `rust = "stable"` |
-| `dotnet` | `dotnet = "8.0"` |
-| `go` | `go = "1.22"`, `golangci-lint = "latest"` |
-| `npm` | `node = "20"` |
-| `pnpm` | `node = "20"`, `pnpm = "9"` |
-| `yarn` | `node = "20"` |
+| `dotnet` | `dotnet = "10.0"` |
+| `go` | `go = "1.24"`, `golangci-lint = "latest"` |
+| `npm` | `node = "22"` |
+| `pnpm` | `node = "22"`, `pnpm = "10"` |
+| `yarn` | `node = "22"` |
 | `bun` | `bun = "latest"` |
-| `python` | `python = "3.12"` |
-| `uv` | `python = "3.12"`, `uv = "0.5"`, `ruff = "latest"` |
-| `poetry` | `python = "3.12"` |
-| `gradle` | `java = "temurin-21"` |
-| `maven` | `java = "temurin-21"` |
+| `python` | `python = "3.13"` |
+| `uv` | `python = "3.13"`, `uv = "0.6"`, `ruff = "latest"` |
+| `poetry` | `python = "3.13"` |
+| `gradle` | `java = "temurin-23"` |
+| `maven` | `java = "temurin-23"` |
 | `deno` | `deno = "latest"` |
 | `swift` | `swift = "latest"` |
 

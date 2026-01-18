@@ -1,8 +1,10 @@
 # Documentation Generation
 
+> **Status:** This feature is specified but not yet implemented.
+
 > **Terminology:** This specification uses [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) keywords (MUST, SHOULD, MAY, etc.) to indicate requirement levels.
 
-This document describes Structyl's documentation generation capabilities.
+This document describes Structyl's planned documentation generation capabilities.
 
 ## Scope (v1.0)
 

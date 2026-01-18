@@ -144,7 +144,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `test` | `go test ./...` |
 | `test:verbose` | `go test -v ./...` |
 | `test:coverage` | `go test -cover ./...` |
-| `check` | `["lint", "format-check"]` |
+| `check` | `["lint", "vet"]` |
 | `lint` | `golangci-lint run` |
 | `vet` | `go vet ./...` |
 | `format` | `go fmt ./...` |
@@ -258,7 +258,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `build` | `python -m build` |
 | `test` | `pytest` |
 | `test:coverage` | `pytest --cov` |
-| `check` | `["lint", "format-check"]` |
+| `check` | `["lint", "typecheck"]` |
 | `lint` | `ruff check .` |
 | `typecheck` | `mypy .` |
 | `format` | `ruff format .` |
@@ -282,7 +282,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `build` | `uv build` |
 | `test` | `uv run pytest` |
 | `test:coverage` | `uv run pytest --cov` |
-| `check` | `["lint", "format-check"]` |
+| `check` | `["lint", "typecheck"]` |
 | `lint` | `uv run ruff check .` |
 | `typecheck` | `uv run mypy .` |
 | `format` | `uv run ruff format .` |
@@ -304,7 +304,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `build` | `poetry build` |
 | `test` | `poetry run pytest` |
 | `test:coverage` | `poetry run pytest --cov` |
-| `check` | `["lint", "format-check"]` |
+| `check` | `["lint", "typecheck"]` |
 | `lint` | `poetry run ruff check .` |
 | `typecheck` | `poetry run mypy .` |
 | `format` | `poetry run ruff format .` |

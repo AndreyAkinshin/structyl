@@ -13,7 +13,9 @@
     "bench": { "description": "Run benchmarks" },
     "demo": { "description": "Run demos" },
     "doc": { "description": "Generate documentation" },
-    "pack": { "description": "Create package" }
+    "pack": { "description": "Create package" },
+    "publish": { "description": "Publish package to registry" },
+    "publish:dry": { "description": "Dry-run publish (validate without uploading)" }
   },
   "aggregateCommands": [
     "clean", "restore", "build", "build:release", "test", "check", "check:fix"
@@ -39,7 +41,9 @@
         "bench": "cargo bench",
         "pack": "cargo package",
         "doc": "cargo doc --no-deps",
-        "demo": "cargo run --example demo"
+        "demo": "cargo run --example demo",
+        "publish": "cargo publish",
+        "publish:dry": "cargo publish --dry-run"
       }
     },
     "dotnet": {
@@ -58,7 +62,9 @@
         "bench": null,
         "pack": "dotnet pack",
         "doc": null,
-        "demo": "dotnet run --project Demo"
+        "demo": "dotnet run --project Demo",
+        "publish": "dotnet nuget push",
+        "publish:dry": null
       }
     },
     "go": {
@@ -79,7 +85,9 @@
         "bench": "go test -bench=. ./...",
         "pack": null,
         "doc": "go doc ./...",
-        "demo": "go run ./cmd/demo"
+        "demo": "go run ./cmd/demo",
+        "publish": null,
+        "publish:dry": null
       }
     },
     "npm": {
@@ -97,7 +105,9 @@
         "bench": null,
         "pack": "npm pack",
         "doc": null,
-        "demo": "npm run demo"
+        "demo": "npm run demo",
+        "publish": "npm publish",
+        "publish:dry": "npm publish --dry-run"
       }
     },
     "pnpm": {
@@ -118,7 +128,9 @@
         "bench": null,
         "pack": "pnpm pack",
         "doc": null,
-        "demo": "pnpm run demo"
+        "demo": "pnpm run demo",
+        "publish": "pnpm publish",
+        "publish:dry": "pnpm publish --dry-run"
       }
     },
     "yarn": {
@@ -136,7 +148,9 @@
         "bench": null,
         "pack": "yarn pack",
         "doc": null,
-        "demo": "yarn run demo"
+        "demo": "yarn run demo",
+        "publish": "yarn npm publish",
+        "publish:dry": "yarn npm publish --dry-run"
       }
     },
     "bun": {
@@ -154,7 +168,9 @@
         "bench": null,
         "pack": "bun pm pack",
         "doc": null,
-        "demo": "bun run demo"
+        "demo": "bun run demo",
+        "publish": "bun publish",
+        "publish:dry": "bun publish --dry-run"
       }
     },
     "python": {
@@ -172,7 +188,9 @@
         "bench": null,
         "pack": "python -m build",
         "doc": null,
-        "demo": "python demo.py"
+        "demo": "python demo.py",
+        "publish": "twine upload dist/*",
+        "publish:dry": null
       }
     },
     "uv": {
@@ -194,7 +212,9 @@
         "bench": null,
         "pack": "uv build",
         "doc": null,
-        "demo": "uv run python demo.py"
+        "demo": "uv run python demo.py",
+        "publish": "uv publish",
+        "publish:dry": null
       }
     },
     "poetry": {
@@ -212,7 +232,9 @@
         "bench": null,
         "pack": "poetry build",
         "doc": null,
-        "demo": "poetry run python demo.py"
+        "demo": "poetry run python demo.py",
+        "publish": "poetry publish",
+        "publish:dry": "poetry publish --dry-run"
       }
     },
     "gradle": {
@@ -230,7 +252,9 @@
         "bench": null,
         "pack": "gradle jar",
         "doc": "gradle javadoc",
-        "demo": "gradle run"
+        "demo": "gradle run",
+        "publish": "gradle publish",
+        "publish:dry": null
       }
     },
     "maven": {
@@ -248,7 +272,9 @@
         "bench": null,
         "pack": "mvn package -DskipTests",
         "doc": "mvn javadoc:javadoc",
-        "demo": "mvn exec:java"
+        "demo": "mvn exec:java",
+        "publish": "mvn deploy",
+        "publish:dry": null
       }
     },
     "make": {
@@ -263,7 +289,9 @@
         "bench": "make bench",
         "pack": "make dist",
         "doc": "make doc",
-        "demo": "make demo"
+        "demo": "make demo",
+        "publish": "make publish",
+        "publish:dry": "make publish-dry"
       }
     },
     "cmake": {
@@ -281,7 +309,9 @@
         "bench": null,
         "pack": "cmake --build build --target package",
         "doc": "cmake --build build --target doc",
-        "demo": "cmake --build build --target demo && ./build/demo"
+        "demo": "cmake --build build --target demo && ./build/demo",
+        "publish": null,
+        "publish:dry": null
       }
     },
     "swift": {
@@ -300,7 +330,9 @@
         "bench": null,
         "pack": null,
         "doc": null,
-        "demo": "swift run Demo"
+        "demo": "swift run Demo",
+        "publish": null,
+        "publish:dry": null
       }
     },
     "r": {
@@ -318,7 +350,9 @@
         "bench": null,
         "pack": "R CMD build .",
         "doc": "Rscript -e \"roxygen2::roxygenise()\"",
-        "demo": "Rscript demo.R"
+        "demo": "Rscript demo.R",
+        "publish": "Rscript -e \"devtools::release()\"",
+        "publish:dry": null
       }
     },
     "deno": {
@@ -335,7 +369,9 @@
         "check:fix": "deno fmt",
         "bench": "deno bench",
         "doc": "deno doc",
-        "demo": "deno run demo.ts"
+        "demo": "deno run demo.ts",
+        "publish": "deno publish",
+        "publish:dry": "deno publish --dry-run"
       }
     },
     "bundler": {
@@ -353,7 +389,9 @@
         "bench": null,
         "pack": "gem build *.gemspec",
         "doc": "bundle exec yard doc",
-        "demo": "bundle exec ruby demo.rb"
+        "demo": "bundle exec ruby demo.rb",
+        "publish": "gem push *.gem",
+        "publish:dry": null
       }
     },
     "composer": {
@@ -370,7 +408,9 @@
         "check:fix": "composer run-script format",
         "bench": null,
         "doc": null,
-        "demo": "php demo.php"
+        "demo": "php demo.php",
+        "publish": null,
+        "publish:dry": null
       }
     },
     "mix": {
@@ -387,7 +427,9 @@
         "check:fix": "mix format",
         "bench": null,
         "doc": "mix docs",
-        "demo": "mix run demo.exs"
+        "demo": "mix run demo.exs",
+        "publish": "mix hex.publish",
+        "publish:dry": "mix hex.publish --dry-run"
       }
     },
     "sbt": {
@@ -408,7 +450,9 @@
         "bench": null,
         "pack": "sbt package",
         "doc": "sbt doc",
-        "demo": "sbt run"
+        "demo": "sbt run",
+        "publish": "sbt publish",
+        "publish:dry": null
       }
     },
     "cabal": {
@@ -425,7 +469,9 @@
         "check:fix": "ormolu --mode inplace $(find . -name '*.hs')",
         "bench": "cabal bench",
         "doc": "cabal haddock",
-        "demo": "cabal run"
+        "demo": "cabal run",
+        "publish": "cabal upload",
+        "publish:dry": "cabal upload --candidate"
       }
     },
     "stack": {
@@ -442,7 +488,9 @@
         "check:fix": "stack exec -- ormolu --mode inplace $(find . -name '*.hs')",
         "bench": "stack bench",
         "doc": "stack haddock",
-        "demo": "stack run"
+        "demo": "stack run",
+        "publish": "stack upload",
+        "publish:dry": "stack upload --candidate"
       }
     },
     "dune": {
@@ -459,7 +507,9 @@
         "check:fix": "dune fmt",
         "bench": null,
         "doc": "dune build @doc",
-        "demo": "dune exec demo"
+        "demo": "dune exec demo",
+        "publish": "opam publish",
+        "publish:dry": null
       }
     },
     "lein": {
@@ -480,7 +530,9 @@
         "bench": null,
         "pack": "lein jar",
         "doc": "lein codox",
-        "demo": "lein run"
+        "demo": "lein run",
+        "publish": "lein deploy clojars",
+        "publish:dry": null
       }
     },
     "zig": {
@@ -497,7 +549,9 @@
         "check": "zig fmt --check .",
         "check:fix": "zig fmt .",
         "bench": null,
-        "demo": "zig build run"
+        "demo": "zig build run",
+        "publish": null,
+        "publish:dry": null
       }
     },
     "rebar3": {
@@ -515,7 +569,9 @@
         "bench": null,
         "pack": "rebar3 tar",
         "doc": "rebar3 edoc",
-        "demo": "rebar3 shell"
+        "demo": "rebar3 shell",
+        "publish": "rebar3 hex publish",
+        "publish:dry": "rebar3 hex publish --dry-run"
       }
     }
   }

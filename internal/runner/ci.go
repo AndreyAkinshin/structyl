@@ -61,9 +61,9 @@ func (r *Runner) RunCI(ctx context.Context, opts CIOptions) (*CIResult, error) {
 	}
 
 	// Determine pipeline phases based on release mode
-	pipeline := []string{"clean", "init", "check", "build", "test"}
+	pipeline := []string{"clean", "restore", "check", "build", "test"}
 	if opts.Release {
-		pipeline = []string{"clean", "init", "check", "build:release", "test"}
+		pipeline = []string{"clean", "restore", "check", "build:release", "test"}
 	}
 
 	// Get targets
@@ -311,7 +311,7 @@ func FormatDuration(d time.Duration) string {
 // PhaseOrder returns the standard CI phase order.
 func PhaseOrder(release bool) []string {
 	if release {
-		return []string{"clean", "init", "check", "build:release", "test"}
+		return []string{"clean", "restore", "check", "build:release", "test"}
 	}
-	return []string{"clean", "init", "check", "build", "test"}
+	return []string{"clean", "restore", "check", "build", "test"}
 }

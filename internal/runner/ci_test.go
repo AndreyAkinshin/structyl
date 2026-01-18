@@ -38,7 +38,7 @@ func TestFormatDuration_Minutes(t *testing.T) {
 func TestPhaseOrder_Debug(t *testing.T) {
 	phases := PhaseOrder(false)
 
-	expected := []string{"clean", "init", "check", "build", "test"}
+	expected := []string{"clean", "restore", "check", "build", "test"}
 	if len(phases) != len(expected) {
 		t.Errorf("PhaseOrder(false) returned %d phases, want %d", len(phases), len(expected))
 	}
@@ -384,7 +384,7 @@ func TestRunCI_ContinueOnError_RunsAllPhases(t *testing.T) {
 	result, _ := runner.RunCI(ctx, CIOptions{Continue: true})
 
 	// With Continue=true, should have all standard phases
-	expectedPhases := []string{"clean", "init", "check", "build", "test"}
+	expectedPhases := []string{"clean", "restore", "check", "build", "test"}
 	// Count phases (they may appear twice - once for aux, once for lang)
 	phaseNames := make(map[string]bool)
 	for _, phase := range result.PhaseResults {

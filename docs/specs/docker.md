@@ -92,17 +92,19 @@ Each target needs a Dockerfile. Options:
 
 ### 1. Built-in Templates (Default)
 
-Structyl provides default Dockerfiles for common languages:
+Structyl provides default Dockerfiles for common languages. Base image versions are derived from mise toolchain configurations (see [toolchains.md](toolchains.md)):
 
-| Language   | Base Image                         |
-| ---------- | ---------------------------------- |
-| C#         | `mcr.microsoft.com/dotnet/sdk:8.0` |
-| Go         | `golang:1.22`                      |
-| Kotlin     | `gradle:8-jdk21`                   |
-| Python     | `python:3.12-slim`                 |
-| R          | `rocker/verse:latest`              |
-| Rust       | `rust:1.75`                        |
-| TypeScript | `node:20-slim`                     |
+| Language   | Base Image (varies by mise config)     |
+| ---------- | -------------------------------------- |
+| C#         | `mcr.microsoft.com/dotnet/sdk:10.0`    |
+| Go         | `golang:1.24`                          |
+| Kotlin     | `gradle:8-jdk23`                       |
+| Python     | `python:3.13-slim`                     |
+| R          | `rocker/verse:4.4`                     |
+| Rust       | `rust:stable`                          |
+| TypeScript | `node:22-slim`                         |
+
+> **Note**: These versions are indicative. Actual versions are determined by the toolchain's `mise` configuration. See [toolchains.md](toolchains.md) for current defaults.
 
 ### 2. Custom Dockerfile
 
@@ -256,7 +258,7 @@ ENV CARGO_HOME=/tmp/.cargo
 ### Go
 
 ```dockerfile
-FROM golang:1.22
+FROM golang:1.24
 
 WORKDIR /workspace/go
 ENV GOCACHE=/tmp/.cache
@@ -272,24 +274,46 @@ ENV GOPATH=/tmp/go
     "env_var": "STRUCTYL_DOCKER",
     "services": {
       "<target>": {
-        "base_image": "image:tag",
-        "dockerfile": "path/to/Dockerfile",
+        "base_image": "image:tag"
+      }
+    },
+    "targets": {
+      "<target>": {
         "platform": "linux/amd64",
-        "volumes": ["additional:/mounts"]
+        "cache_volume": "/tmp/.cache",
+        "entrypoint": "/bin/bash",
+        "environment": {
+          "CI": "true"
+        }
       }
     }
   }
 }
 ```
 
-| Field                          | Description                   | Default               |
-| ------------------------------ | ----------------------------- | --------------------- |
-| `compose_file`                 | Path to compose file          | `docker-compose.yml`  |
-| `env_var`                      | Env var to enable Docker mode | `STRUCTYL_DOCKER`     |
-| `services.<target>.base_image` | Base Docker image             | Language-specific     |
-| `services.<target>.dockerfile` | Custom Dockerfile path        | `<target>/Dockerfile` |
-| `services.<target>.platform`   | Target platform               | Host platform         |
-| `services.<target>.volumes`    | Additional volume mounts      | `[]`                  |
+### Top-Level Fields
+
+| Field          | Description                   | Default               |
+| -------------- | ----------------------------- | --------------------- |
+| `compose_file` | Path to compose file          | `docker-compose.yml`  |
+| `env_var`      | Env var to enable Docker mode | `STRUCTYL_DOCKER`     |
+| `services`     | Service base image overrides  | `{}`                  |
+| `targets`      | Target-specific Docker config | `{}`                  |
+
+### services.\<target\>
+
+| Field        | Description       | Default           |
+| ------------ | ----------------- | ----------------- |
+| `base_image` | Base Docker image | Language-specific |
+
+### targets.\<target\>
+
+| Field         | Description                   | Default       |
+| ------------- | ----------------------------- | ------------- |
+| `platform`    | Target platform               | Host platform |
+| `cache_volume`| Volume for build cache        | None          |
+| `entrypoint`  | Container entrypoint override | None          |
+| `environment` | Additional environment vars   | `{}`          |
 
 ## Troubleshooting
 

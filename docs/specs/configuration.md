@@ -217,6 +217,114 @@ Docker configuration. See [docker.md](docker.md) for details.
 }
 ```
 
+### `mise`
+
+Mise build tool integration configuration.
+
+```json
+{
+  "mise": {
+    "enabled": true,
+    "auto_generate": false,
+    "extra_tools": {
+      "golangci-lint": "latest"
+    }
+  }
+}
+```
+
+| Field          | Type              | Default | Description                          |
+| -------------- | ----------------- | ------- | ------------------------------------ |
+| `enabled`      | boolean           | `true`  | Enable mise integration              |
+| `auto_generate`| boolean           | `false` | Regenerate `.mise.toml` before runs  |
+| `extra_tools`  | map[string]string | `{}`    | Additional mise tools to install     |
+
+### `release`
+
+Release workflow configuration.
+
+```json
+{
+  "release": {
+    "tag_format": "v{version}",
+    "extra_tags": ["go/v{version}"],
+    "pre_commands": ["structyl docs generate"],
+    "remote": "origin",
+    "branch": "main"
+  }
+}
+```
+
+| Field          | Type     | Default        | Description                           |
+| -------------- | -------- | -------------- | ------------------------------------- |
+| `tag_format`   | string   | `v{version}`   | Git tag format (`{version}` replaced) |
+| `extra_tags`   | string[] | `[]`           | Additional tags to create             |
+| `pre_commands` | string[] | `[]`           | Commands to run before release        |
+| `remote`       | string   | `origin`       | Git remote for push                   |
+| `branch`       | string   | `main`         | Branch to release from                |
+
+### `ci`
+
+Custom CI pipeline configuration. Overrides the default `ci` command steps.
+
+```json
+{
+  "ci": {
+    "steps": [
+      {
+        "name": "restore",
+        "target": "all",
+        "command": "restore"
+      },
+      {
+        "name": "lint",
+        "target": "all",
+        "command": "check",
+        "depends_on": ["restore"]
+      }
+    ]
+  }
+}
+```
+
+| Field                      | Type     | Default   | Description                          |
+| -------------------------- | -------- | --------- | ------------------------------------ |
+| `steps`                    | array    | `[]`      | CI pipeline step definitions         |
+| `steps[].name`             | string   | Required  | Step name for display and references |
+| `steps[].target`           | string   | Required  | Target name or `"all"`               |
+| `steps[].command`          | string   | Required  | Command to execute                   |
+| `steps[].flags`            | string[] | `[]`      | Additional command flags             |
+| `steps[].depends_on`       | string[] | `[]`      | Step names that must complete first  |
+| `steps[].continue_on_error`| boolean  | `false`   | Continue pipeline if step fails      |
+
+### `artifacts`
+
+Artifact collection configuration for CI builds.
+
+```json
+{
+  "artifacts": {
+    "output_dir": "artifacts",
+    "targets": {
+      "cs": [
+        { "source": "bin/Release/*.nupkg", "destination": "nuget" }
+      ],
+      "py": [
+        { "source": "dist/*.whl", "destination": "wheels" }
+      ]
+    }
+  }
+}
+```
+
+| Field                       | Type     | Default     | Description                            |
+| --------------------------- | -------- | ----------- | -------------------------------------- |
+| `output_dir`                | string   | `artifacts` | Base output directory for artifacts    |
+| `targets`                   | object   | `{}`        | Per-target artifact specifications     |
+| `targets[target][].source`  | string   | Required    | Glob pattern for source files          |
+| `targets[target][].destination` | string | `""`      | Subdirectory within output_dir         |
+| `targets[target][].rename`  | string   | None        | Rename pattern for collected files     |
+
 ## Minimal Configuration
 
 The smallest valid configuration:

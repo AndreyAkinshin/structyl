@@ -140,11 +140,12 @@ Structyl detects `Cargo.toml` in `rs/` and uses the `cargo` toolchain.
 
 ### Configuration Fields
 
-| Field       | Type   | Default              | Description                                           |
-| ----------- | ------ | -------------------- | ----------------------------------------------------- |
-| `type`      | string | Inferred (see below) | `"language"` or `"auxiliary"`                         |
-| `title`     | string | Required             | Display name (1-64 characters, non-empty)             |
-| `toolchain` | string | Auto-detect          | Toolchain preset (see [toolchains.md](toolchains.md)) |
+| Field               | Type   | Default              | Description                                           |
+| ------------------- | ------ | -------------------- | ----------------------------------------------------- |
+| `type`              | string | Inferred (see below) | `"language"` or `"auxiliary"`                         |
+| `title`             | string | Required             | Display name (1-64 characters, non-empty)             |
+| `toolchain`         | string | Auto-detect          | Toolchain preset (see [toolchains.md](toolchains.md)) |
+| `toolchain_version` | string | None                 | Override mise tool version for this target            |
 
 **Type Inference:**
 

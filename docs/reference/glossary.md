@@ -35,6 +35,7 @@ A target with `type: "language"`. Represents a library implementation in a speci
 ### Marker File
 
 A file indicating a toolchain. Examples:
+
 - `Cargo.toml` → cargo
 - `go.mod` → go
 - `package.json` → npm
@@ -77,13 +78,13 @@ The file containing the project version. Default: `VERSION`.
 
 ## Abbreviations
 
-| Abbreviation | Meaning |
-|--------------|---------|
-| CI | Continuous Integration |
-| CWD | Current Working Directory |
-| RE2 | Regular Expression 2 (Google's regex engine) |
-| SPDX | Software Package Data Exchange |
-| ULP | Unit in the Last Place (floating-point precision) |
+| Abbreviation | Meaning                                           |
+| ------------ | ------------------------------------------------- |
+| CI           | Continuous Integration                            |
+| CWD          | Current Working Directory                         |
+| RE2          | Regular Expression 2 (Google's regex engine)      |
+| SPDX         | Software Package Data Exchange                    |
+| ULP          | Unit in the Last Place (floating-point precision) |
 
 ## See Also
 

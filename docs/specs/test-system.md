@@ -25,12 +25,13 @@ Every test file has `input` and `output`:
 
 ### Test Case Schema
 
-| Field | Required | Type | Description |
-|-------|----------|------|-------------|
-| `input` | Yes | object | Input parameters for the function under test |
-| `output` | Yes | any | Expected output value |
+| Field    | Required | Type   | Description                                  |
+| -------- | -------- | ------ | -------------------------------------------- |
+| `input`  | Yes      | object | Input parameters for the function under test |
+| `output` | Yes      | any    | Expected output value                        |
 
 **Validation Rules:**
+
 - Missing `input` field: Load fails with `test case {suite}/{name}: missing required field "input"`
 - Missing `output` field: Load fails with `test case {suite}/{name}: missing required field "output"`
 - Unknown fields (e.g., `description`, `skip`, `tags`) are silently ignored
@@ -40,16 +41,17 @@ Every test file has `input` and `output`:
 
 Test loading is **all-or-nothing per suite**:
 
-| Condition | Behavior | Exit Code |
-|-----------|----------|-----------|
-| JSON parse error | Suite load fails | 2 |
-| Missing required field (`input` or `output`) | Suite load fails | 2 |
-| Referenced `$file` not found | Suite load fails | 2 |
-| Referenced `$file` path escapes suite directory (`../`) | Suite load fails | 2 |
+| Condition                                               | Behavior         | Exit Code |
+| ------------------------------------------------------- | ---------------- | --------- |
+| JSON parse error                                        | Suite load fails | 2         |
+| Missing required field (`input` or `output`)            | Suite load fails | 2         |
+| Referenced `$file` not found                            | Suite load fails | 2         |
+| Referenced `$file` path escapes suite directory (`../`) | Suite load fails | 2         |
 
 Loading failures are **configuration errors** (exit code 2), distinct from **test execution failures** (exit code 1). A loading failure prevents any tests in that suite from executing.
 
 **Error message format:**
+
 ```
 structyl: error: test suite "{suite}": {reason}
   file: {path}
@@ -103,10 +105,10 @@ For binary data (images, files), use the `$file` syntax:
 ```json
 {
   "input": {
-    "data": {"$file": "input.bin"},
+    "data": { "$file": "input.bin" },
     "format": "raw"
   },
-  "output": {"$file": "expected.bin"}
+  "output": { "$file": "expected.bin" }
 }
 ```
 
@@ -115,31 +117,34 @@ For binary data (images, files), use the `$file` syntax:
 A file reference is a JSON object with exactly one key `$file`:
 
 ```json
-{"$file": "<relative-path>"}
+{ "$file": "<relative-path>" }
 ```
 
 **Validation rules:**
+
 - The object MUST have exactly one key: `$file`
 - The value MUST be a non-empty string
 - Objects with `$file` and other keys are invalid
 
-| Example | Valid | Reason |
-|---------|-------|--------|
-| `{"$file": "input.bin"}` | ✓ | Correct format |
-| `{"$file": "data/input.bin"}` | ✓ | Subdirectory allowed |
-| `{"$file": ""}` | ✗ | Empty path |
-| `{"$file": "../input.bin"}` | ✗ | Parent reference not allowed |
-| `{"$file": "x.bin", "extra": 1}` | ✗ | Extra keys not allowed |
-| `{"FILE": "input.bin"}` | ✗ | Wrong key (case-sensitive) |
+| Example                          | Valid | Reason                       |
+| -------------------------------- | ----- | ---------------------------- |
+| `{"$file": "input.bin"}`         | ✓     | Correct format               |
+| `{"$file": "data/input.bin"}`    | ✓     | Subdirectory allowed         |
+| `{"$file": ""}`                  | ✗     | Empty path                   |
+| `{"$file": "../input.bin"}`      | ✗     | Parent reference not allowed |
+| `{"$file": "x.bin", "extra": 1}` | ✗     | Extra keys not allowed       |
+| `{"FILE": "input.bin"}`          | ✗     | Wrong key (case-sensitive)   |
 
 **Path Resolution:** Paths in `$file` references are resolved relative to the directory containing the JSON test file.
 
 Example:
+
 - Test file: `tests/image-processing/resize-test.json`
 - Reference: `{"$file": "input.bin"}`
 - Resolved path: `tests/image-processing/input.bin`
 
 Subdirectory references are permitted:
+
 - Reference: `{"$file": "data/input.bin"}`
 - Resolved path: `tests/image-processing/data/input.bin`
 
@@ -160,6 +165,7 @@ tests/
 Binary outputs (referenced via `$file`) are compared **byte-for-byte exactly**. No tolerance is applied.
 
 For outputs requiring approximate comparison (e.g., images with compression artifacts), test authors MUST either:
+
 1. Use deterministic output formats (e.g., uncompressed BMP instead of JPEG)
 2. Pre-process outputs to a canonical form before comparison
 3. Extract comparable numeric values into the JSON `output` field instead
@@ -179,15 +185,16 @@ Structyl does not provide perceptual or fuzzy binary comparison.
 
 The `tests.pattern` field uses [doublestar](https://github.com/bmatcuk/doublestar) glob syntax:
 
-| Pattern | Matches |
-|---------|---------|
-| `*` | Any sequence of non-separator characters |
-| `**` | Any sequence including path separators (recursive) |
-| `?` | Any single non-separator character |
-| `[abc]` | Any character in the set |
-| `[a-z]` | Any character in the range |
+| Pattern | Matches                                            |
+| ------- | -------------------------------------------------- |
+| `*`     | Any sequence of non-separator characters           |
+| `**`    | Any sequence including path separators (recursive) |
+| `?`     | Any single non-separator character                 |
+| `[abc]` | Any character in the set                           |
+| `[a-z]` | Any character in the range                         |
 
 Examples:
+
 - `**/*.json` - All JSON files in any subdirectory
 - `*.json` - JSON files in the test directory root only
 - `suite-*/*.json` - JSON files in directories starting with `suite-`
@@ -231,11 +238,11 @@ Configure tolerance in `.structyl/config.json`:
 
 ### Tolerance Modes
 
-| Mode | Formula | Use Case |
-|------|---------|----------|
-| `absolute` | `|a - b| < tolerance` | Small values |
-| `relative` | `|a - b| / max(|a|, |b|) < tolerance` | General purpose |
-| `ulp` | ULP difference < tolerance | IEEE precision |
+| Mode       | Formula                    | Use Case       |
+| ---------- | -------------------------- | -------------- | ------------ | ------------ | --- | --- | -------------- | --------------- |
+| `absolute` | `                          | a - b          | < tolerance` | Small values |
+| `relative` | `                          | a - b          | / max(       | a            | ,   | b   | ) < tolerance` | General purpose |
+| `ulp`      | ULP difference < tolerance | IEEE precision |
 
 **Note:** For `relative` mode, when both values are exactly 0.0, the comparison succeeds (they are equal). This avoids division by zero.
 
@@ -251,10 +258,10 @@ Configure tolerance in `.structyl/config.json`:
 }
 ```
 
-| Mode | Behavior |
-|------|----------|
-| `strict` | Order matters, element-by-element comparison |
-| `unordered` | Order doesn't matter (set comparison) |
+| Mode        | Behavior                                     |
+| ----------- | -------------------------------------------- |
+| `strict`    | Order matters, element-by-element comparison |
+| `unordered` | Order doesn't matter (set comparison)        |
 
 ### Special Floating Point Values
 
@@ -270,23 +277,25 @@ Configure tolerance in `.structyl/config.json`:
 
 Comparison behavior for IEEE 754 special values:
 
-| Comparison | Result |
-|------------|--------|
-| `NaN == NaN` | `true` (configurable via `nan_equals_nan: false`) |
-| `+Infinity == +Infinity` | `true` |
-| `-Infinity == -Infinity` | `true` |
-| `+Infinity == -Infinity` | `false` |
-| `-0.0 == +0.0` | `true` |
+| Comparison               | Result                                            |
+| ------------------------ | ------------------------------------------------- |
+| `NaN == NaN`             | `true` (configurable via `nan_equals_nan: false`) |
+| `+Infinity == +Infinity` | `true`                                            |
+| `-Infinity == -Infinity` | `true`                                            |
+| `+Infinity == -Infinity` | `false`                                           |
+| `-0.0 == +0.0`           | `true`                                            |
 
 JSON representation of special values:
+
 - Infinity: Use string `"Infinity"` or `"+Infinity"`
 - Negative infinity: Use string `"-Infinity"`
 - NaN: Use string `"NaN"`
 
 Example:
+
 ```json
 {
-  "input": {"x": [1.0, "Infinity", "-Infinity"]},
+  "input": { "x": [1.0, "Infinity", "-Infinity"] },
   "output": "NaN"
 }
 ```
@@ -376,14 +385,14 @@ def compare_output(expected, actual, tolerance=1e-9) -> bool:
 }
 ```
 
-| Field | Default | Description |
-|-------|---------|-------------|
-| `directory` | `"tests"` | Test data directory |
-| `pattern` | `"**/*.json"` | Glob pattern for test files |
-| `comparison.float_tolerance` | `1e-9` | Numeric tolerance |
-| `comparison.tolerance_mode` | `"relative"` | How tolerance is applied |
-| `comparison.array_order` | `"strict"` | Array comparison mode |
-| `comparison.nan_equals_nan` | `true` | NaN equality behavior |
+| Field                        | Default       | Description                 |
+| ---------------------------- | ------------- | --------------------------- |
+| `directory`                  | `"tests"`     | Test data directory         |
+| `pattern`                    | `"**/*.json"` | Glob pattern for test files |
+| `comparison.float_tolerance` | `1e-9`        | Numeric tolerance           |
+| `comparison.tolerance_mode`  | `"relative"`  | How tolerance is applied    |
+| `comparison.array_order`     | `"strict"`    | Array comparison mode       |
+| `comparison.nan_equals_nan`  | `true`        | NaN equality behavior       |
 
 ## Test Generation
 

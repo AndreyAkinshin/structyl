@@ -103,13 +103,13 @@ With minimal configuration:
 
 Structyl scans directories for marker files:
 
-| File Found | Detected Toolchain |
-|------------|-------------------|
-| `Cargo.toml` | cargo |
-| `go.mod` | go |
-| `package.json` | npm |
-| `pyproject.toml` | python |
-| `*.csproj` | dotnet |
+| File Found       | Detected Toolchain |
+| ---------------- | ------------------ |
+| `Cargo.toml`     | cargo              |
+| `go.mod`         | go                 |
+| `package.json`   | npm                |
+| `pyproject.toml` | python             |
+| `*.csproj`       | dotnet             |
 
 ### Explicit Configuration
 
@@ -194,13 +194,13 @@ Or at the project root:
 
 Each toolchain manages its own artifacts. Common locations:
 
-| Toolchain | Artifact Directory |
-|-----------|-------------------|
-| cargo | `target/` |
-| go | Binary in cwd |
+| Toolchain     | Artifact Directory       |
+| ------------- | ------------------------ |
+| cargo         | `target/`                |
+| go            | Binary in cwd            |
 | npm/pnpm/yarn | `node_modules/`, `dist/` |
-| dotnet | `bin/`, `obj/` |
-| uv/poetry | `.venv/` |
+| dotnet        | `bin/`, `obj/`           |
+| uv/poetry     | `.venv/`                 |
 
 The `clean` command removes these artifacts.
 

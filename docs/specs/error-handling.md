@@ -6,12 +6,12 @@ This document defines error handling semantics for Structyl.
 
 ## Exit Codes
 
-| Code | Name | Description | Examples |
-|------|------|-------------|----------|
-| `0` | Success | Command completed successfully | Build passed, tests passed |
-| `1` | Failure | Build, test, or command failure (expected runtime failure) | Compilation error, test assertion failed, build script returned non-zero |
-| `2` | Configuration Error | Invalid configuration, schema violation, or semantic validation error | Malformed JSON, missing required field, circular dependency, invalid version format, pattern not found |
-| `3` | Environment Error | External system unavailable, I/O failure, or missing runtime dependency | Docker not running, file permission denied, network timeout, cannot read file |
+| Code | Name                | Description                                                             | Examples                                                                                               |
+| ---- | ------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `0`  | Success             | Command completed successfully                                          | Build passed, tests passed                                                                             |
+| `1`  | Failure             | Build, test, or command failure (expected runtime failure)              | Compilation error, test assertion failed, build script returned non-zero                               |
+| `2`  | Configuration Error | Invalid configuration, schema violation, or semantic validation error   | Malformed JSON, missing required field, circular dependency, invalid version format, pattern not found |
+| `3`  | Environment Error   | External system unavailable, I/O failure, or missing runtime dependency | Docker not running, file permission denied, network timeout, cannot read file                          |
 
 ### Exit Code Categories
 
@@ -65,6 +65,7 @@ structyl test      # Tests all language targets
 ```
 
 Default behavior is **fail-fast**:
+
 - Stop on first failure
 - Exit with code `1`
 - Report which target failed
@@ -78,6 +79,7 @@ structyl test --continue
 ```
 
 Behavior:
+
 - Run all targets even if some fail
 - Collect all failures
 - Exit with code `1` if any target failed
@@ -131,6 +133,7 @@ LF := "\n"
 ```
 
 **Notes:**
+
 - Target names are always lowercase (matching target slug)
 - Messages are single-line; multi-line details go in the detail block
 - Each error line ends with LF (Unix newlines, even on Windows)
@@ -138,16 +141,19 @@ LF := "\n"
 ### Examples
 
 Single-line error:
+
 ```
 structyl: error: configuration file not found
 ```
 
 Target-specific error:
+
 ```
 structyl: error [cs]: command "build" failed with exit code 1
 ```
 
 Multi-line validation error:
+
 ```
 structyl: error: invalid configuration
   - project.name: required field missing
@@ -156,20 +162,20 @@ structyl: error: invalid configuration
 
 ### Verbosity Levels
 
-| Level | Flag | Output |
-|-------|------|--------|
-| Quiet | `-q` | Errors only |
-| Normal | (default) | Errors + summary |
-| Verbose | `-v` | Full output from all targets |
+| Level   | Flag      | Output                       |
+| ------- | --------- | ---------------------------- |
+| Quiet   | `-q`      | Errors only                  |
+| Normal  | (default) | Errors + summary             |
+| Verbose | `-v`      | Full output from all targets |
 
 ## Command Exit Codes
 
 Commands executed by Structyl should use standard exit codes. Structyl normalizes exit codes as follows:
 
 | Target Exit Code | Structyl Exit Code |
-|------------------|-------------------|
-| 0 | 0 (success) |
-| 1-255 | 1 (failure) |
+| ---------------- | ------------------ |
+| 0                | 0 (success)        |
+| 1-255            | 1 (failure)        |
 
 The original target exit code is logged for debugging but not propagated directly to the caller.
 
@@ -189,10 +195,10 @@ Exit code: `2`
 
 Toolchain references are validated at configuration load time, not at command execution time. This ensures early detection of configuration errors.
 
-| Condition | Error Message | Exit Code |
-|-----------|---------------|-----------|
-| Unknown toolchain name | `target "{name}": unknown toolchain "{toolchain}"` | 2 |
-| Toolchain extends unknown base | `toolchain "{name}": extends unknown toolchain "{base}"` | 2 |
+| Condition                      | Error Message                                            | Exit Code |
+| ------------------------------ | -------------------------------------------------------- | --------- |
+| Unknown toolchain name         | `target "{name}": unknown toolchain "{toolchain}"`       | 2         |
+| Toolchain extends unknown base | `toolchain "{name}": extends unknown toolchain "{base}"` | 2         |
 
 Unknown toolchains are detected even if no command from that toolchain is ever invoked:
 
@@ -200,7 +206,7 @@ Unknown toolchains are detected even if no command from that toolchain is ever i
 {
   "targets": {
     "rs": {
-      "toolchain": "carg"  // typo → detected at load time
+      "toolchain": "carg" // typo → detected at load time
     }
   }
 }
@@ -214,9 +220,9 @@ structyl: error: target "rs": unknown toolchain "carg"
 
 Invalid flag values cause immediate errors:
 
-| Condition | Error Message | Exit Code |
-|-----------|---------------|-----------|
-| Invalid `--type` value | `invalid --type value: "{value}" (must be "language" or "auxiliary")` | 2 |
+| Condition              | Error Message                                                         | Exit Code |
+| ---------------------- | --------------------------------------------------------------------- | --------- |
+| Invalid `--type` value | `invalid --type value: "{value}" (must be "language" or "auxiliary")` | 2         |
 
 ## Dependency Checks
 

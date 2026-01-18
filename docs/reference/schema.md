@@ -35,6 +35,7 @@ Download the schema: [structyl.schema.json](/structyl.schema.json)
 ### VS Code
 
 VS Code automatically uses the `$schema` reference for:
+
 - Autocomplete suggestions
 - Error highlighting
 - Hover documentation
@@ -51,11 +52,11 @@ With coc.nvim or nvim-lspconfig, JSON schemas are automatically applied.
 
 The JSON Schema is for **IDE assistance**. Structyl's runtime validation is more lenient:
 
-| Aspect | JSON Schema (IDE) | Runtime (Structyl) |
-|--------|-------------------|-------------------|
-| Unknown fields | May reject | Ignored with warning |
-| Purpose | Editor assistance | Execution |
-| Strictness | Full validation | Required fields only |
+| Aspect         | JSON Schema (IDE) | Runtime (Structyl)   |
+| -------------- | ----------------- | -------------------- |
+| Unknown fields | May reject        | Ignored with warning |
+| Purpose        | Editor assistance | Execution            |
+| Strictness     | Full validation   | Required fields only |
 
 This design allows newer configurations to work with older IDE schemas while maintaining forward compatibility.
 

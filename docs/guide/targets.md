@@ -21,6 +21,7 @@ Language targets represent implementations of your library in different programm
 ```
 
 Language targets:
+
 - Participate in `structyl test` and `structyl demo`
 - Are expected to pass reference tests
 - Get README files generated
@@ -44,6 +45,7 @@ Auxiliary targets are supporting tools that aren't code implementations.
 ```
 
 Use auxiliary targets for:
+
 - Documentation generation
 - Image/asset generation
 - Code generation
@@ -165,6 +167,7 @@ When running `structyl build`:
 3. Independent targets run in parallel
 
 For the example above:
+
 ```
 1. img (no dependencies)
 2. pdf (after img completes)
@@ -213,6 +216,7 @@ structyl targets
 ```
 
 Output:
+
 ```
 Languages:
   rs   Rust       (cargo)
@@ -228,26 +232,27 @@ Auxiliary:
 
 These slugs are recognized as language targets:
 
-| Slug | Language | Default Toolchain |
-|------|----------|-------------------|
-| `rs` | Rust | cargo |
-| `py` | Python | python |
-| `go` | Go | go |
-| `ts` | TypeScript | npm |
-| `js` | JavaScript | npm |
-| `cs` | C# | dotnet |
-| `kt` | Kotlin | gradle |
-| `java` | Java | gradle |
-| `rb` | Ruby | — |
-| `swift` | Swift | swift |
-| `cpp` | C++ | cmake |
-| `c` | C | cmake |
+| Slug    | Language   | Default Toolchain |
+| ------- | ---------- | ----------------- |
+| `rs`    | Rust       | cargo             |
+| `py`    | Python     | python            |
+| `go`    | Go         | go                |
+| `ts`    | TypeScript | npm               |
+| `js`    | JavaScript | npm               |
+| `cs`    | C#         | dotnet            |
+| `kt`    | Kotlin     | gradle            |
+| `java`  | Java       | gradle            |
+| `rb`    | Ruby       | —                 |
+| `swift` | Swift      | swift             |
+| `cpp`   | C++        | cmake             |
+| `c`     | C          | cmake             |
 
 Unknown slugs default to auxiliary type.
 
 ## Target Naming
 
 Target names must:
+
 - Start with a lowercase letter
 - Contain only lowercase letters, digits, and hyphens
 - Be 1-64 characters long

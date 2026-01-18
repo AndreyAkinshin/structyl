@@ -42,6 +42,7 @@ structyl restore ts  # pnpm install --frozen-lockfile
 Runs all read-only validation commands. The exact composition is toolchain-specific.
 
 **Contract:**
+
 - MUST NOT modify files
 - MUST NOT run tests
 - MAY include: `lint`, `format-check`, `typecheck`, `vet`
@@ -135,38 +136,38 @@ structyl doc go  # go doc ./...
 
 These commands operate across all targets.
 
-| Command | Description |
-|---------|-------------|
-| `build` | Build all targets (respects dependencies) |
-| `build:release` | Build all targets with release optimization |
-| `test` | Run tests for all language targets |
-| `clean` | Clean all targets |
-| `restore` | Run restore for all targets |
-| `check` | Run check for all targets |
-| `ci` | Run full CI pipeline (see [ci-integration.md](ci-integration.md)) |
+| Command                | Description                                                             |
+| ---------------------- | ----------------------------------------------------------------------- |
+| `build`                | Build all targets (respects dependencies)                               |
+| `build:release`        | Build all targets with release optimization                             |
+| `test`                 | Run tests for all language targets                                      |
+| `clean`                | Clean all targets                                                       |
+| `restore`              | Run restore for all targets                                             |
+| `check`                | Run check for all targets                                               |
+| `ci`                   | Run full CI pipeline (see [ci-integration.md](ci-integration.md))       |
 | `version <subcommand>` | Version management (see [version-management.md](version-management.md)) |
 
 ## Utility Commands
 
-| Command | Description |
-|---------|-------------|
-| `targets` | List all configured targets (see [targets.md](targets.md#target-listing)) |
-| `release <version>` | Set version, commit, and tag (see [version-management.md](version-management.md#automated-release-command)) |
-| `upgrade [version]` | Manage pinned CLI version (see [version-management.md](version-management.md#cli-version-pinning)) |
-| `config validate` | Validate configuration without running commands |
-| `docker-build [targets]` | Build Docker images (see [docker.md](docker.md#docker-commands)) |
-| `docker-clean` | Remove Docker containers, images, and volumes |
+| Command                  | Description                                                                                                 |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `targets`                | List all configured targets (see [targets.md](targets.md#target-listing))                                   |
+| `release <version>`      | Set version, commit, and tag (see [version-management.md](version-management.md#automated-release-command)) |
+| `upgrade [version]`      | Manage pinned CLI version (see [version-management.md](version-management.md#cli-version-pinning))          |
+| `config validate`        | Validate configuration without running commands                                                             |
+| `docker-build [targets]` | Build Docker images (see [docker.md](docker.md#docker-commands))                                            |
+| `docker-clean`           | Remove Docker containers, images, and volumes                                                               |
 
 ## Global Flags
 
-| Flag | Description |
-|------|-------------|
-| `--docker` | Run command in Docker container |
-| `--no-docker` | Disable Docker mode (overrides `STRUCTYL_DOCKER` env var) |
-| `--continue` | Continue on error (don't fail-fast) |
-| `--type=<type>` | Filter targets by type (`language` or `auxiliary`) |
-| `-h, --help` | Show help message |
-| `--version` | Show Structyl version |
+| Flag            | Description                                               |
+| --------------- | --------------------------------------------------------- |
+| `--docker`      | Run command in Docker container                           |
+| `--no-docker`   | Disable Docker mode (overrides `STRUCTYL_DOCKER` env var) |
+| `--continue`    | Continue on error (don't fail-fast)                       |
+| `--type=<type>` | Filter targets by type (`language` or `auxiliary`)        |
+| `-h, --help`    | Show help message                                         |
+| `--version`     | Show Structyl version                                     |
 
 ## Null Commands
 
@@ -187,10 +188,10 @@ A command value of `null` indicates the command is not available for this target
 
 ### Behavior When Invoked
 
-| Condition | Behavior |
-|-----------|----------|
-| Explicitly set to `null` | Exit code 0 (no-op), warning: `[{target}] command "{cmd}" is not available` |
-| Not defined and no toolchain | Exit code 1, error: `[{target}] command "{cmd}" not defined` |
+| Condition                    | Behavior                                                                    |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| Explicitly set to `null`     | Exit code 0 (no-op), warning: `[{target}] command "{cmd}" is not available` |
+| Not defined and no toolchain | Exit code 1, error: `[{target}] command "{cmd}" not defined`                |
 
 A `null` command is a deliberate "not applicable" marker. This differs from an undefined command, which is an error.
 
@@ -277,12 +278,12 @@ Array elements execute sequentially with fail-fast behavior.
 
 When resolving an array element:
 
-| Element Pattern | Resolution |
-|-----------------|------------|
-| Starts with `$ ` | Shell command (prefix stripped) |
-| Matches defined command name | Reference to that command |
-| Contains whitespace | Shell command |
-| Single word, no match | Shell command |
+| Element Pattern              | Resolution                      |
+| ---------------------------- | ------------------------------- |
+| Starts with `$ `             | Shell command (prefix stripped) |
+| Matches defined command name | Reference to that command       |
+| Contains whitespace          | Shell command                   |
+| Single word, no match        | Shell command                   |
 
 Examples:
 
@@ -293,10 +294,10 @@ Examples:
     "format": "cargo fmt",
 
     "check": [
-      "lint",              // reference → "cargo clippy"
-      "format-check",      // reference → "cargo fmt --check"
-      "$ lint",            // shell → execute /usr/bin/lint
-      "cargo doc --test"   // shell (contains space)
+      "lint", // reference → "cargo clippy"
+      "format-check", // reference → "cargo fmt --check"
+      "$ lint", // shell → execute /usr/bin/lint
+      "cargo doc --test" // shell (contains space)
     ]
   }
 }
@@ -434,14 +435,15 @@ Per-command environment:
 
 When a command is defined as an object, the following validation rules apply:
 
-| Condition | Requirement |
-|-----------|-------------|
-| `run` without `unix`/`windows` | Valid—`run` is the cross-platform command |
-| `unix` and `windows` without `run` | Valid—platform-specific commands |
-| `run` with `unix` or `windows` | **Error**—mutually exclusive |
+| Condition                          | Requirement                                   |
+| ---------------------------------- | --------------------------------------------- |
+| `run` without `unix`/`windows`     | Valid—`run` is the cross-platform command     |
+| `unix` and `windows` without `run` | Valid—platform-specific commands              |
+| `run` with `unix` or `windows`     | **Error**—mutually exclusive                  |
 | Neither `run` nor `unix`/`windows` | **Error** if object has no executable command |
 
 Validation error:
+
 ```
 target "{name}": command "{cmd}": cannot specify both "run" and platform-specific commands ("unix"/"windows")
 ```
@@ -453,18 +455,19 @@ Valid combinations:
 ```json
 {
   "commands": {
-    "build": {"run": "make"},
-    "deploy": {"unix": "deploy.sh", "windows": "deploy.ps1"},
-    "test": {"run": "pytest", "cwd": "tests", "env": {"CI": "1"}}
+    "build": { "run": "make" },
+    "deploy": { "unix": "deploy.sh", "windows": "deploy.ps1" },
+    "test": { "run": "pytest", "cwd": "tests", "env": { "CI": "1" } }
   }
 }
 ```
 
 Invalid:
+
 ```json
 {
   "commands": {
-    "build": {"run": "make", "unix": "make", "windows": "nmake"}
+    "build": { "run": "make", "unix": "make", "windows": "nmake" }
   }
 }
 ```
@@ -473,12 +476,12 @@ Invalid:
 
 Commands support variable interpolation:
 
-| Variable | Description |
-|----------|-------------|
-| `${target}` | Target slug (e.g., `cs`, `py`) |
-| `${target_dir}` | Target directory path |
-| `${root}` | Project root directory |
-| `${version}` | Project version from VERSION file |
+| Variable        | Description                       |
+| --------------- | --------------------------------- |
+| `${target}`     | Target slug (e.g., `cs`, `py`)    |
+| `${target_dir}` | Target directory path             |
+| `${root}`       | Project root directory            |
+| `${version}`    | Project version from VERSION file |
 
 Custom variables via `vars`:
 
@@ -502,13 +505,14 @@ Custom variables via `vars`:
 
 To include a literal `${` in a command, use `$${`:
 
-| Input | Output |
-|-------|--------|
-| `${version}` | Replaced with version value |
-| `$${version}` | Literal string `${version}` |
+| Input          | Output                                |
+| -------------- | ------------------------------------- |
+| `${version}`   | Replaced with version value           |
+| `$${version}`  | Literal string `${version}`           |
 | `$$${version}` | Literal `$` followed by version value |
 
 Example:
+
 ```json
 {
   "commands": {
@@ -541,16 +545,16 @@ See [error-handling.md](error-handling.md) for exit code definitions.
 
 ### Configuration Errors (Exit Code 2)
 
-| Error | Message |
-|-------|---------|
-| Unknown toolchain | `target "{name}": unknown toolchain "{toolchain}"` |
+| Error                       | Message                                                                 |
+| --------------------------- | ----------------------------------------------------------------------- |
+| Unknown toolchain           | `target "{name}": unknown toolchain "{toolchain}"`                      |
 | Undefined command reference | `target "{name}": command "{cmd}" references undefined command "{ref}"` |
-| Circular command reference | `target "{name}": circular command reference: {cycle}` |
-| Invalid variable | `target "{name}": unknown variable "{var}" in command "{cmd}"` |
+| Circular command reference  | `target "{name}": circular command reference: {cycle}`                  |
+| Invalid variable            | `target "{name}": unknown variable "{var}" in command "{cmd}"`          |
 
 ### Runtime Errors (Exit Code 1)
 
-| Error | Message |
-|-------|---------|
-| Command failed | `[{target}] {command} failed with exit code {code}` |
-| Command not found | `[{target}] command "{cmd}" not defined` |
+| Error             | Message                                             |
+| ----------------- | --------------------------------------------------- |
+| Command failed    | `[{target}] {command} failed with exit code {code}` |
+| Command not found | `[{target}] command "{cmd}" not defined`            |

@@ -146,6 +146,7 @@ structyl release 2.0.0
 ```
 
 This command:
+
 1. Updates VERSION file
 2. Propagates to all configured files
 3. Regenerates documentation
@@ -187,6 +188,7 @@ structyl version check
 ```
 
 Output:
+
 ```
 VERSION: 2.0.0
 rs/Cargo.toml: 2.0.0 ✓
@@ -203,6 +205,7 @@ MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]
 ```
 
 Examples:
+
 - `1.0.0`
 - `2.1.3`
 - `1.0.0-alpha`
@@ -227,14 +230,14 @@ Examples:
 }
 ```
 
-| Field | Default | Description |
-|-------|---------|-------------|
-| `source` | `"VERSION"` | Version file path |
-| `files` | `[]` | Files to update |
-| `path` | Required | File path (relative to root) |
-| `pattern` | Required | Regex to match |
-| `replace` | Required | Replacement with `{version}` |
-| `replace_all` | `false` | Replace all matches |
+| Field         | Default     | Description                  |
+| ------------- | ----------- | ---------------------------- |
+| `source`      | `"VERSION"` | Version file path            |
+| `files`       | `[]`        | Files to update              |
+| `path`        | Required    | File path (relative to root) |
+| `pattern`     | Required    | Regex to match               |
+| `replace`     | Required    | Replacement with `{version}` |
+| `replace_all` | `false`     | Replace all matches          |
 
 ## CLI Version Management
 
@@ -247,6 +250,7 @@ structyl upgrade --check
 ```
 
 Output:
+
 ```
   Current CLI version:  1.2.0
   Pinned version:       1.1.0

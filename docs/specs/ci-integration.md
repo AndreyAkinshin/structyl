@@ -29,15 +29,15 @@ For `ci:release`, step 4 uses `build:release` instead of `build`.
 
 ### Variants
 
-| Command | Description |
-|---------|-------------|
-| `ci` | Run CI pipeline with default (debug) builds |
+| Command      | Description                                   |
+| ------------ | --------------------------------------------- |
+| `ci`         | Run CI pipeline with default (debug) builds   |
 | `ci:release` | Run CI pipeline with release/optimized builds |
 
 ### Flags
 
-| Flag | Description |
-|------|-------------|
+| Flag       | Description                         |
+| ---------- | ----------------------------------- |
 | `--docker` | Run all builds in Docker containers |
 
 ### Exit Behavior
@@ -99,7 +99,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: "1.22"
 
       - name: Install Structyl
         run: go install github.com/AndreyAkinshin/structyl/cmd/structyl@latest
@@ -147,10 +147,10 @@ structyl ci:release --docker
 
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `STRUCTYL_DOCKER` | Set to `1` to enable Docker mode by default |
-| `CI` | Standard CI environment variable (affects some target behaviors) |
+| Variable          | Description                                                      |
+| ----------------- | ---------------------------------------------------------------- |
+| `STRUCTYL_DOCKER` | Set to `1` to enable Docker mode by default                      |
+| `CI`              | Standard CI environment variable (affects some target behaviors) |
 
 ## Notes
 

@@ -323,23 +323,23 @@ Defined in `internal/toolchain/defaults.go`. There are **27 built-in toolchains*
 
 **Common toolchains:**
 
-| Name | Ecosystem | Marker Files |
-|------|-----------|--------------|
-| `cargo` | Rust | `Cargo.toml` |
-| `go` | Go | `go.mod` |
-| `dotnet` | .NET | `*.csproj`, `*.fsproj` |
-| `npm` | Node.js | `package.json` |
-| `pnpm` | Node.js | `pnpm-lock.yaml` |
-| `yarn` | Node.js | `yarn.lock` |
-| `bun` | Bun | `bun.lockb` |
-| `python` | Python | `pyproject.toml`, `setup.py` |
-| `uv` | Python | `uv.lock` |
-| `poetry` | Python | `poetry.lock` |
-| `gradle` | JVM | `build.gradle.kts`, `build.gradle` |
-| `maven` | JVM | `pom.xml` |
-| `swift` | Swift | `Package.swift` |
-| `cmake` | C/C++ | `CMakeLists.txt` |
-| `make` | Generic | `Makefile` |
+| Name     | Ecosystem | Marker Files                       |
+| -------- | --------- | ---------------------------------- |
+| `cargo`  | Rust      | `Cargo.toml`                       |
+| `go`     | Go        | `go.mod`                           |
+| `dotnet` | .NET      | `*.csproj`, `*.fsproj`             |
+| `npm`    | Node.js   | `package.json`                     |
+| `pnpm`   | Node.js   | `pnpm-lock.yaml`                   |
+| `yarn`   | Node.js   | `yarn.lock`                        |
+| `bun`    | Bun       | `bun.lockb`                        |
+| `python` | Python    | `pyproject.toml`, `setup.py`       |
+| `uv`     | Python    | `uv.lock`                          |
+| `poetry` | Python    | `poetry.lock`                      |
+| `gradle` | JVM       | `build.gradle.kts`, `build.gradle` |
+| `maven`  | JVM       | `pom.xml`                          |
+| `swift`  | Swift     | `Package.swift`                    |
+| `cmake`  | C/C++     | `CMakeLists.txt`                   |
+| `make`   | Generic   | `Makefile`                         |
 
 **Additional toolchains:** `deno`, `r`, `bundler`, `composer`, `mix`, `sbt`, `cabal`, `stack`, `dune`, `lein`, `zig`, `rebar3`
 
@@ -500,6 +500,7 @@ mise tasks
 ### Adding a New Toolchain
 
 1. Edit `internal/toolchain/builtin.go`:
+
 ```go
 var builtinToolchains = map[string]*Toolchain{
     // ... existing toolchains
@@ -517,6 +518,7 @@ var builtinToolchains = map[string]*Toolchain{
 ```
 
 2. Add marker file detection in `internal/toolchain/detect.go`:
+
 ```go
 var markerFiles = []struct {
     file      string
@@ -532,12 +534,14 @@ var markerFiles = []struct {
 ### Adding a New Command
 
 1. Add to `internal/cli/cli.go` `Run()` switch:
+
 ```go
 case "newcmd":
     return cmdNewCmd(cmdArgs, opts)
 ```
 
 2. Implement in `internal/cli/commands.go`:
+
 ```go
 func cmdNewCmd(args []string, opts *GlobalOptions) int {
     // Load project
@@ -556,6 +560,7 @@ func cmdNewCmd(args []string, opts *GlobalOptions) int {
 ### Adding a Configuration Field
 
 1. Add field to struct in `internal/config/schema.go`:
+
 ```go
 type Config struct {
     // ... existing fields
@@ -613,17 +618,19 @@ func cmdSomething() int {
 
 ## Environment Variables
 
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| `STRUCTYL_DOCKER` | Enable Docker mode | `false` |
+| Variable            | Purpose                    | Default            |
+| ------------------- | -------------------------- | ------------------ |
+| `STRUCTYL_DOCKER`   | Enable Docker mode         | `false`            |
 | `STRUCTYL_PARALLEL` | Number of parallel workers | `runtime.NumCPU()` |
 
 ## Dependencies
 
 **Production dependencies:**
+
 - `gopkg.in/yaml.v3` v3.0.1 - YAML parsing (indirect, for some config scenarios)
 
 **Standard library (no external deps for core):**
+
 - `encoding/json` - Configuration parsing
 - `os/exec` - Command execution
 - `path/filepath` - Cross-platform paths
@@ -669,22 +676,23 @@ mise run test:cover
 
 For detailed behavior specifications, see `specs/`:
 
-| Document | Content |
-|----------|---------|
-| `configuration.md` | `.structyl/config.json` format |
-| `commands.md` | Command vocabulary and semantics |
-| `toolchains.md` | Built-in toolchain definitions |
-| `targets.md` | Target types and properties |
-| `test-system.md` | Reference test JSON format |
-| `version-management.md` | Version propagation |
-| `docker.md` | Docker integration |
-| `error-handling.md` | Exit codes and error messages |
-| `cross-platform.md` | Windows/Unix compatibility |
-| `go-architecture.md` | Internal implementation notes |
+| Document                | Content                          |
+| ----------------------- | -------------------------------- |
+| `configuration.md`      | `.structyl/config.json` format   |
+| `commands.md`           | Command vocabulary and semantics |
+| `toolchains.md`         | Built-in toolchain definitions   |
+| `targets.md`            | Target types and properties      |
+| `test-system.md`        | Reference test JSON format       |
+| `version-management.md` | Version propagation              |
+| `docker.md`             | Docker integration               |
+| `error-handling.md`     | Exit codes and error messages    |
+| `cross-platform.md`     | Windows/Unix compatibility       |
+| `go-architecture.md`    | Internal implementation notes    |
 
 ## Known Issues / TODOs
 
 Current code quality (as of last audit):
+
 - **Test coverage**: 79.9%-100% per package (avg ~90%)
 - **go vet**: 8 loop variable capture warnings in test files (Go 1.22 style needed)
 - **Dependencies**: Single external dependency (yaml.v3)

@@ -46,15 +46,16 @@ Project metadata used in documentation and package generation.
 }
 ```
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `name` | Yes | Project name |
-| `description` | No | Short description |
-| `homepage` | No | Project website URL |
-| `repository` | No | Source repository URL |
-| `license` | No | SPDX license identifier |
+| Field         | Required | Description             |
+| ------------- | -------- | ----------------------- |
+| `name`        | Yes      | Project name            |
+| `description` | No       | Short description       |
+| `homepage`    | No       | Project website URL     |
+| `repository`  | No       | Source repository URL   |
+| `license`     | No       | SPDX license identifier |
 
 **Project Name Constraints:**
+
 - Length: 1-128 characters
 - MUST start with a lowercase letter (`a-z`)
 - MAY contain lowercase letters, digits, and hyphens
@@ -115,18 +116,18 @@ Build targets configuration. See [targets.md](targets.md) for details.
 
 #### Target Fields
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `type` | string | Required | `"language"` or `"auxiliary"` |
-| `title` | string | Required | Display name |
-| `toolchain` | string | Auto-detect | Toolchain preset (see [toolchains.md](toolchains.md)) |
-| `directory` | string | Target key | Directory path relative to root |
-| `cwd` | string | `directory` | Working directory for commands |
-| `commands` | object | From toolchain | Command definitions/overrides |
-| `vars` | object | `{}` | Variables for command interpolation |
-| `env` | object | `{}` | Environment variables |
-| `depends_on` | array | `[]` | Targets that must build first |
-| `demo_path` | string | None | Path to demo source (for doc generation) |
+| Field        | Type   | Default        | Description                                           |
+| ------------ | ------ | -------------- | ----------------------------------------------------- |
+| `type`       | string | Required       | `"language"` or `"auxiliary"`                         |
+| `title`      | string | Required       | Display name                                          |
+| `toolchain`  | string | Auto-detect    | Toolchain preset (see [toolchains.md](toolchains.md)) |
+| `directory`  | string | Target key     | Directory path relative to root                       |
+| `cwd`        | string | `directory`    | Working directory for commands                        |
+| `commands`   | object | From toolchain | Command definitions/overrides                         |
+| `vars`       | object | `{}`           | Variables for command interpolation                   |
+| `env`        | object | `{}`           | Environment variables                                 |
+| `depends_on` | array  | `[]`           | Targets that must build first                         |
+| `demo_path`  | string | None           | Path to demo source (for doc generation)              |
 
 #### Command Definitions
 
@@ -143,7 +144,7 @@ Commands can be defined in several forms:
     "test": {
       "run": "pytest",
       "cwd": "tests",
-      "env": {"PYTHONPATH": "."}
+      "env": { "PYTHONPATH": "." }
     }
   }
 }
@@ -209,8 +210,8 @@ Docker configuration. See [docker.md](docker.md) for details.
     "compose_file": "docker-compose.yml",
     "env_var": "STRUCTYL_DOCKER",
     "services": {
-      "cs": {"base_image": "mcr.microsoft.com/dotnet/sdk:8.0"},
-      "py": {"base_image": "python:3.12-slim"}
+      "cs": { "base_image": "mcr.microsoft.com/dotnet/sdk:8.0" },
+      "py": { "base_image": "python:3.12-slim" }
     }
   }
 }
@@ -229,6 +230,7 @@ The smallest valid configuration:
 ```
 
 With this minimal config, Structyl uses all defaults:
+
 - Version source: `VERSION`
 - Tests directory: `tests/`
 - Targets: auto-discovered from directories with recognized toolchain files
@@ -400,10 +402,10 @@ Or use the local schema file:
 
 The JSON Schema is designed for **IDE validation** (autocomplete, syntax checking). Structyl's runtime parser applies **lenient validation** to support forward compatibility:
 
-| Aspect | JSON Schema (IDE) | Runtime (Structyl) |
-|--------|-------------------|-------------------|
-| Unknown fields | May reject | Ignored with warning |
-| Purpose | Editor assistance | Execution |
-| Strictness | Full schema validation | Required fields only |
+| Aspect         | JSON Schema (IDE)      | Runtime (Structyl)   |
+| -------------- | ---------------------- | -------------------- |
+| Unknown fields | May reject             | Ignored with warning |
+| Purpose        | Editor assistance      | Execution            |
+| Strictness     | Full schema validation | Required fields only |
 
 This design allows newer configurations to be opened in IDEs using older schema versions (with warnings) while ensuring Structyl itself remains forward-compatible per [Extensibility Rule 3](./index.md#extensibility-rules).

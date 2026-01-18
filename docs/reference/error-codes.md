@@ -4,12 +4,12 @@ Structyl uses standard exit codes to indicate the result of commands.
 
 ## Exit Codes
 
-| Code | Name | Description |
-|------|------|-------------|
-| `0` | Success | Command completed successfully |
-| `1` | Failure | Build, test, or command failed |
-| `2` | Configuration Error | Invalid configuration |
-| `3` | Environment Error | Missing external dependency |
+| Code | Name                | Description                    |
+| ---- | ------------------- | ------------------------------ |
+| `0`  | Success             | Command completed successfully |
+| `1`  | Failure             | Build, test, or command failed |
+| `2`  | Configuration Error | Invalid configuration          |
+| `3`  | Environment Error   | Missing external dependency    |
 
 ## Understanding Exit Codes
 
@@ -26,6 +26,7 @@ structyl build && echo "Success!"
 Your project has an issue that Structyl detected. The configuration is valid, but the build or test failed.
 
 **Examples:**
+
 - Compilation error
 - Test assertion failed
 - Build script returned non-zero
@@ -42,6 +43,7 @@ fi
 The Structyl configuration is invalid. Fix `.structyl/config.json` before proceeding.
 
 **Examples:**
+
 - Malformed JSON
 - Missing required field
 - Circular dependency
@@ -58,6 +60,7 @@ structyl: error: invalid configuration
 An external system or resource is unavailable.
 
 **Examples:**
+
 - Docker not running
 - File permission denied
 - Network timeout
@@ -103,6 +106,7 @@ structyl test --continue
 ```
 
 Output:
+
 ```
 [cs] Tests passed
 [go] Tests FAILED
@@ -138,11 +142,11 @@ structyl: error: invalid configuration
 
 ## Verbosity Levels
 
-| Flag | Output |
-|------|--------|
-| `-q` | Errors only |
-| (default) | Errors + summary |
-| `-v` | Full output from all targets |
+| Flag      | Output                       |
+| --------- | ---------------------------- |
+| `-q`      | Errors only                  |
+| (default) | Errors + summary             |
+| `-v`      | Full output from all targets |
 
 ## Recovery Strategies
 

@@ -156,15 +156,15 @@ structyl ci
 
 ## Common Commands
 
-| Command | Description |
-|---------|-------------|
-| `structyl build` | Build all targets |
-| `structyl test` | Test all targets |
-| `structyl clean` | Clean build artifacts |
-| `structyl restore` | Install dependencies |
-| `structyl ci` | Run full CI pipeline |
+| Command                   | Description                    |
+| ------------------------- | ------------------------------ |
+| `structyl build`          | Build all targets              |
+| `structyl test`           | Test all targets               |
+| `structyl clean`          | Clean build artifacts          |
+| `structyl restore`        | Install dependencies           |
+| `structyl ci`             | Run full CI pipeline           |
 | `structyl <cmd> <target>` | Run command on specific target |
-| `structyl build --docker` | Build in Docker containers |
+| `structyl build --docker` | Build in Docker containers     |
 
 ## Next Steps
 

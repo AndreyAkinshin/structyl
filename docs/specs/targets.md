@@ -19,16 +19,17 @@ Invalid target names cause exit code 2 with message: `invalid target name "{name
 
 ## Target Types
 
-| Type | Description | Included In |
-|------|-------------|-------------|
-| `language` | Programming language implementation | `build`, `test`, `demo` |
-| `auxiliary` | Supporting tools (docs, images, etc.) | `build` only |
+| Type        | Description                           | Included In             |
+| ----------- | ------------------------------------- | ----------------------- |
+| `language`  | Programming language implementation   | `build`, `test`, `demo` |
+| `auxiliary` | Supporting tools (docs, images, etc.) | `build` only            |
 
 ### Language Targets
 
 Language targets represent implementations of your library in different programming languages.
 
 Characteristics:
+
 - Included in `structyl test` and `structyl demo`
 - Expected to have reference test integration
 - README generation applies
@@ -38,12 +39,14 @@ Characteristics:
 Auxiliary targets are supporting tools that aren't language implementations.
 
 Examples:
+
 - Image generation (`img`)
 - PDF documentation (`pdf`)
 - Website (`web`)
 - Code generation (`gen`)
 
 Characteristics:
+
 - Only included in `structyl build`
 - May have dependencies on other targets
 - No test/demo expectations
@@ -137,11 +140,11 @@ Structyl detects `Cargo.toml` in `rs/` and uses the `cargo` toolchain.
 
 ### Configuration Fields
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `type` | string | Inferred (see below) | `"language"` or `"auxiliary"` |
-| `title` | string | Required | Display name (1-64 characters, non-empty) |
-| `toolchain` | string | Auto-detect | Toolchain preset (see [toolchains.md](toolchains.md)) |
+| Field       | Type   | Default              | Description                                           |
+| ----------- | ------ | -------------------- | ----------------------------------------------------- |
+| `type`      | string | Inferred (see below) | `"language"` or `"auxiliary"`                         |
+| `title`     | string | Required             | Display name (1-64 characters, non-empty)             |
+| `toolchain` | string | Auto-detect          | Toolchain preset (see [toolchains.md](toolchains.md)) |
 
 **Type Inference:**
 
@@ -150,20 +153,20 @@ Structyl detects `Cargo.toml` in `rs/` and uses the `cargo` toolchain.
 
 When a target slug matches a default language slug (e.g., `cs`, `py`, `rs`), the type defaults to `language`. Unknown slugs in explicit configurations MUST specify `type`.
 
-| Slug | type Omitted | Result |
-|------|--------------|--------|
-| `cs`, `py`, `rs` (known) | Allowed | Inferred as `language` |
-| `img`, `pdf` (unknown) | Error | Must specify explicitly |
+| Slug                     | type Omitted | Result                  |
+| ------------------------ | ------------ | ----------------------- |
+| `cs`, `py`, `rs` (known) | Allowed      | Inferred as `language`  |
+| `img`, `pdf` (unknown)   | Error        | Must specify explicitly |
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `directory` | string | Target key | Directory path relative to root |
-| `cwd` | string | `directory` | Working directory for commands |
-| `commands` | object | From toolchain | Command definitions/overrides |
-| `vars` | object | `{}` | Custom variables for command interpolation |
-| `env` | object | `{}` | Environment variables |
-| `depends_on` | array | `[]` | Targets that must build first |
-| `demo_path` | string | None | Path to demo source (for doc generation) |
+| Field        | Type   | Default        | Description                                |
+| ------------ | ------ | -------------- | ------------------------------------------ |
+| `directory`  | string | Target key     | Directory path relative to root            |
+| `cwd`        | string | `directory`    | Working directory for commands             |
+| `commands`   | object | From toolchain | Command definitions/overrides              |
+| `vars`       | object | `{}`           | Custom variables for command interpolation |
+| `env`        | object | `{}`           | Environment variables                      |
+| `depends_on` | array  | `[]`           | Targets that must build first              |
+| `demo_path`  | string | None           | Path to demo source (for doc generation)   |
 
 ## Toolchains
 
@@ -171,23 +174,23 @@ Toolchains provide default command implementations. See [toolchains.md](toolchai
 
 ### Available Toolchains
 
-| Toolchain | Ecosystem | Auto-detect File |
-|-----------|-----------|------------------|
-| `cargo` | Rust | `Cargo.toml` |
-| `dotnet` | .NET (C#/F#) | `*.csproj`, `*.fsproj` |
-| `go` | Go | `go.mod` |
-| `npm` | Node.js | `package.json` |
-| `pnpm` | Node.js | `pnpm-lock.yaml` |
-| `yarn` | Node.js | `yarn.lock` |
-| `bun` | Bun | `bun.lockb` |
-| `python` | Python | `pyproject.toml`, `setup.py` |
-| `uv` | Python (uv) | `uv.lock` |
-| `poetry` | Python (Poetry) | `poetry.lock` |
-| `gradle` | JVM | `build.gradle`, `build.gradle.kts` |
-| `maven` | JVM | `pom.xml` |
-| `make` | Generic | `Makefile` |
-| `cmake` | C/C++ | `CMakeLists.txt` |
-| `swift` | Swift | `Package.swift` |
+| Toolchain | Ecosystem       | Auto-detect File                   |
+| --------- | --------------- | ---------------------------------- |
+| `cargo`   | Rust            | `Cargo.toml`                       |
+| `dotnet`  | .NET (C#/F#)    | `*.csproj`, `*.fsproj`             |
+| `go`      | Go              | `go.mod`                           |
+| `npm`     | Node.js         | `package.json`                     |
+| `pnpm`    | Node.js         | `pnpm-lock.yaml`                   |
+| `yarn`    | Node.js         | `yarn.lock`                        |
+| `bun`     | Bun             | `bun.lockb`                        |
+| `python`  | Python          | `pyproject.toml`, `setup.py`       |
+| `uv`      | Python (uv)     | `uv.lock`                          |
+| `poetry`  | Python (Poetry) | `poetry.lock`                      |
+| `gradle`  | JVM             | `build.gradle`, `build.gradle.kts` |
+| `maven`   | JVM             | `pom.xml`                          |
+| `make`    | Generic         | `Makefile`                         |
+| `cmake`   | C/C++           | `CMakeLists.txt`                   |
+| `swift`   | Swift           | `Package.swift`                    |
 
 ### Toolchain Auto-Detection
 
@@ -229,7 +232,7 @@ Commands are defined via the `commands` field or inherited from the toolchain. S
     "test": {
       "run": "pytest",
       "cwd": "tests",
-      "env": {"PYTHONPATH": "."}
+      "env": { "PYTHONPATH": "." }
     }
   }
 }
@@ -244,7 +247,7 @@ Targets can declare dependencies on other targets:
 ```json
 {
   "targets": {
-    "img": {"type": "auxiliary", "title": "Images"},
+    "img": { "type": "auxiliary", "title": "Images" },
     "pdf": {
       "type": "auxiliary",
       "title": "PDF",
@@ -269,6 +272,7 @@ When running `structyl build`:
 4. Auxiliary targets build in dependency order
 
 For the example above:
+
 ```
 1. img (no dependencies)
 2. pdf (depends on img) + language targets (parallel)
@@ -280,40 +284,45 @@ For the example above:
 Targets execute in parallel when all their dependencies have completed. Targets at the same dependency depth MAY execute concurrently.
 
 **Execution model:**
+
 - A target becomes eligible when all targets in its `depends_on` list have completed successfully
 - Multiple eligible targets execute in parallel (up to `STRUCTYL_PARALLEL` workers)
 - Language targets without explicit dependencies are immediately eligible
 
 **Example:**
+
 ```json
 {
   "targets": {
-    "gen": {"type": "auxiliary"},
-    "cs": {"type": "language", "depends_on": ["gen"]},
-    "py": {"type": "language", "depends_on": ["gen"]},
-    "rs": {"type": "language"}
+    "gen": { "type": "auxiliary" },
+    "cs": { "type": "language", "depends_on": ["gen"] },
+    "py": { "type": "language", "depends_on": ["gen"] },
+    "rs": { "type": "language" }
   }
 }
 ```
 
 Execution order:
+
 1. `gen` and `rs` start immediately (no dependencies)
 2. When `gen` completes, `cs` and `py` become eligible and start in parallel
 
-| `STRUCTYL_PARALLEL` Value | Behavior |
-|---------------------------|----------|
-| Unset or empty | Default to number of CPU cores |
-| `1` | Serial execution (one target at a time) |
-| `2` to `256` | Parallel execution with N workers |
-| `0`, negative, or >256 | Error: `invalid STRUCTYL_PARALLEL: must be 1-256` (exit code 2) |
+| `STRUCTYL_PARALLEL` Value    | Behavior                                                          |
+| ---------------------------- | ----------------------------------------------------------------- |
+| Unset or empty               | Default to number of CPU cores                                    |
+| `1`                          | Serial execution (one target at a time)                           |
+| `2` to `256`                 | Parallel execution with N workers                                 |
+| `0`, negative, or >256       | Error: `invalid STRUCTYL_PARALLEL: must be 1-256` (exit code 2)   |
 | Non-integer (e.g., `"fast"`) | Error: `invalid STRUCTYL_PARALLEL: must be integer` (exit code 2) |
 
 **Output Handling:**
+
 - Each target's stdout/stderr is buffered independently
 - Output is printed atomically when the target completes
 - Output order follows completion order, not start order
 
 **Failure Behavior:**
+
 - **Fail-fast (default):** First failure cancels all pending targets; running targets continue to completion
 - **Continue mode (`--continue`):** All targets run regardless of failures; exit code 1 if any failed
 
@@ -321,11 +330,11 @@ Execution order:
 
 At project load time, Structyl validates all target dependencies:
 
-| Validation | Error Message |
-|------------|---------------|
+| Validation                    | Error Message                                          |
+| ----------------------------- | ------------------------------------------------------ |
 | Reference to undefined target | `target "{name}": depends on undefined target "{dep}"` |
-| Self-reference | `target "{name}": cannot depend on itself` |
-| Circular dependency | `circular dependency detected: {cycle}` |
+| Self-reference                | `target "{name}": cannot depend on itself`             |
+| Circular dependency           | `circular dependency detected: {cycle}`                |
 
 All dependency validation errors exit with code 2.
 
@@ -341,31 +350,31 @@ structyl: error: circular dependency detected: a -> b -> c -> a
 
 At project load time, Structyl validates that each target's directory exists:
 
-| Condition | Error Message | Exit Code |
-|-----------|---------------|-----------|
-| Directory does not exist | `target "{name}": directory not found: {path}` | 2 |
-| Directory is not a directory | `target "{name}": path is not a directory: {path}` | 2 |
+| Condition                    | Error Message                                      | Exit Code |
+| ---------------------------- | -------------------------------------------------- | --------- |
+| Directory does not exist     | `target "{name}": directory not found: {path}`     | 2         |
+| Directory is not a directory | `target "{name}": path is not a directory: {path}` | 2         |
 
 ## Default Language Slugs
 
 Structyl recognizes these slugs as language targets during auto-discovery:
 
-| Slug | Language | Code Fence | Default Toolchain |
-|------|----------|------------|-------------------|
-| `cs` | C# | `csharp` | `dotnet` |
-| `go` | Go | `go` | `go` |
-| `kt` | Kotlin | `kotlin` | `gradle` |
-| `py` | Python | `python` | `python` |
-| `r` | R | `r` | — |
-| `rs` | Rust | `rust` | `cargo` |
-| `ts` | TypeScript | `typescript` | `npm` |
-| `js` | JavaScript | `javascript` | `npm` |
-| `java` | Java | `java` | `gradle` |
-| `cpp` | C++ | `cpp` | `cmake` |
-| `c` | C | `c` | `cmake` |
-| `rb` | Ruby | `ruby` | — |
-| `swift` | Swift | `swift` | `swift` |
-| `scala` | Scala | `scala` | `gradle` |
+| Slug    | Language   | Code Fence   | Default Toolchain |
+| ------- | ---------- | ------------ | ----------------- |
+| `cs`    | C#         | `csharp`     | `dotnet`          |
+| `go`    | Go         | `go`         | `go`              |
+| `kt`    | Kotlin     | `kotlin`     | `gradle`          |
+| `py`    | Python     | `python`     | `python`          |
+| `r`     | R          | `r`          | —                 |
+| `rs`    | Rust       | `rust`       | `cargo`           |
+| `ts`    | TypeScript | `typescript` | `npm`             |
+| `js`    | JavaScript | `javascript` | `npm`             |
+| `java`  | Java       | `java`       | `gradle`          |
+| `cpp`   | C++        | `cpp`        | `cmake`           |
+| `c`     | C          | `c`          | `cmake`           |
+| `rb`    | Ruby       | `ruby`       | —                 |
+| `swift` | Swift      | `swift`      | `swift`           |
+| `scala` | Scala      | `scala`      | `gradle`          |
 
 Custom slugs default to `auxiliary` type unless explicitly configured.
 
@@ -408,13 +417,13 @@ structyl build --type=auxiliary
 
 ## Meta Commands vs Target Commands
 
-| Command | Scope | Notes |
-|---------|-------|-------|
-| `structyl build` | All targets | Respects dependencies |
-| `structyl test` | Language targets only | Parallel execution |
-| `structyl demo` | Language targets only | Parallel execution |
-| `structyl clean` | All targets | No dependency order |
-| `structyl ci` | All targets | Full pipeline |
+| Command          | Scope                 | Notes                 |
+| ---------------- | --------------------- | --------------------- |
+| `structyl build` | All targets           | Respects dependencies |
+| `structyl test`  | Language targets only | Parallel execution    |
+| `structyl demo`  | Language targets only | Parallel execution    |
+| `structyl clean` | All targets           | No dependency order   |
+| `structyl ci`    | All targets           | Full pipeline         |
 
 ## Target Listing
 

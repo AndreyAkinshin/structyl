@@ -38,15 +38,15 @@ structyl build --no-docker
 
 Structyl provides default Docker images for common languages:
 
-| Language | Base Image |
-|----------|------------|
-| Rust | `rust:1.75` |
-| Go | `golang:1.22` |
-| Python | `python:3.12-slim` |
-| Node.js | `node:20-slim` |
-| C#/.NET | `mcr.microsoft.com/dotnet/sdk:8.0` |
-| Kotlin | `gradle:8-jdk21` |
-| R | `rocker/verse:latest` |
+| Language | Base Image                         |
+| -------- | ---------------------------------- |
+| Rust     | `rust:1.75`                        |
+| Go       | `golang:1.22`                      |
+| Python   | `python:3.12-slim`                 |
+| Node.js  | `node:20-slim`                     |
+| C#/.NET  | `mcr.microsoft.com/dotnet/sdk:8.0` |
+| Kotlin   | `gradle:8-jdk21`                   |
+| R        | `rocker/verse:latest`              |
 
 ## Custom Dockerfiles
 
@@ -130,11 +130,11 @@ structyl docker-clean        # Remove containers, images, volumes
 
 Structyl automatically mounts:
 
-| Mount | Purpose |
-|-------|---------|
-| `./<target>` | Target source code (read-write) |
-| `./tests` | Test data (read-only) |
-| `./.structyl/config.json` | Configuration (read-only) |
+| Mount                     | Purpose                         |
+| ------------------------- | ------------------------------- |
+| `./<target>`              | Target source code (read-write) |
+| `./tests`                 | Test data (read-only)           |
+| `./.structyl/config.json` | Configuration (read-only)       |
 
 ## Apple Silicon (ARM64)
 
@@ -179,12 +179,14 @@ Add to `.gitignore`:
 ### Permission Denied
 
 If files are owned by root after Docker builds:
+
 - Use separate cache directories
 - Structyl maps the container user on Unix systems
 
 ### Slow Builds on Apple Silicon
 
 ARM64 emulation is slow. Options:
+
 - Use native ARM64 images where available
 - Use native builds for development, Docker for CI only
 

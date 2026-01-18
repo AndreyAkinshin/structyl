@@ -106,11 +106,11 @@ Configure tolerance in `.structyl/config.json`:
 
 ### Tolerance Modes
 
-| Mode | Use When |
-|------|----------|
-| `relative` | General purpose (default) |
-| `absolute` | Comparing small values near zero |
-| `ulp` | Need exact IEEE precision control |
+| Mode       | Use When                          |
+| ---------- | --------------------------------- |
+| `relative` | General purpose (default)         |
+| `absolute` | Comparing small values near zero  |
+| `ulp`      | Need exact IEEE precision control |
 
 ### Special Values
 
@@ -179,14 +179,14 @@ Full test configuration:
 }
 ```
 
-| Field | Default | Description |
-|-------|---------|-------------|
-| `directory` | `"tests"` | Test data directory |
-| `pattern` | `"**/*.json"` | Glob pattern for test files |
-| `float_tolerance` | `1e-9` | Numeric comparison tolerance |
-| `tolerance_mode` | `"relative"` | How tolerance is applied |
-| `array_order` | `"strict"` | Whether array order matters |
-| `nan_equals_nan` | `true` | NaN equality behavior |
+| Field             | Default       | Description                  |
+| ----------------- | ------------- | ---------------------------- |
+| `directory`       | `"tests"`     | Test data directory          |
+| `pattern`         | `"**/*.json"` | Glob pattern for test files  |
+| `float_tolerance` | `1e-9`        | Numeric comparison tolerance |
+| `tolerance_mode`  | `"relative"`  | How tolerance is applied     |
+| `array_order`     | `"strict"`    | Whether array order matters  |
+| `nan_equals_nan`  | `true`        | NaN equality behavior        |
 
 ## Running Tests
 

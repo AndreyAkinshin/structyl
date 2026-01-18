@@ -5,11 +5,13 @@ Structyl uses [mise](https://mise.jdx.dev/) as its primary build platform. All c
 ## Overview
 
 When you run `structyl build go`, structyl:
+
 1. Ensures mise is installed
 2. Generates/updates `.mise.toml` from your config.json
 3. Executes `mise run build:go`
 
 This approach provides:
+
 - Consistent toolchain versions across all environments
 - Native mise task execution
 - Full compatibility with mise ecosystem tools
@@ -27,6 +29,7 @@ brew install mise
 ```
 
 After installation, activate mise in your shell:
+
 ```bash
 # Add to ~/.bashrc or ~/.zshrc
 eval "$(mise activate bash)"  # or zsh/fish
@@ -70,11 +73,11 @@ Configure mise behavior in your config.json:
 }
 ```
 
-| Field | Default | Description |
-|-------|---------|-------------|
-| `enabled` | `true` | Enable mise integration |
-| `auto_generate` | `true` | Regenerate .mise.toml before each run |
-| `extra_tools` | `{}` | Additional mise tools to install |
+| Field           | Default | Description                           |
+| --------------- | ------- | ------------------------------------- |
+| `enabled`       | `true`  | Enable mise integration               |
+| `auto_generate` | `true`  | Regenerate .mise.toml before each run |
+| `extra_tools`   | `{}`    | Additional mise tools to install      |
 
 ### Toolchain Versions
 
@@ -107,6 +110,7 @@ Or define version in a custom toolchain:
 ```
 
 Version priority:
+
 1. Target's `toolchain_version`
 2. Custom toolchain's `version`
 3. Built-in default for the toolchain
@@ -247,14 +251,15 @@ depends = ["ci:go", "ci:rs"]
 
 Tasks follow the pattern `<command>:<target>`:
 
-| Command | Description |
-|---------|-------------|
-| `build:go` | Build Go target |
-| `test:rs` | Test Rust target |
-| `lint:py` | Lint Python target |
-| `ci:ts` | Full CI for TypeScript target |
+| Command    | Description                   |
+| ---------- | ----------------------------- |
+| `build:go` | Build Go target               |
+| `test:rs`  | Test Rust target              |
+| `lint:py`  | Lint Python target            |
+| `ci:ts`    | Full CI for TypeScript target |
 
 Aggregate tasks run across all targets:
+
 - `build` - Build all targets
 - `test` - Test all targets
 - `ci` - Full CI for all targets
@@ -263,22 +268,22 @@ Aggregate tasks run across all targets:
 
 Structyl automatically maps toolchains to mise tools:
 
-| Toolchain | Mise Tools |
-|-----------|------------|
-| `cargo` | `rust = "stable"` |
-| `dotnet` | `dotnet = "10.0"` |
-| `go` | `go = "1.24"`, `golangci-lint = "latest"` |
-| `npm` | `node = "22"` |
-| `pnpm` | `node = "22"`, `pnpm = "10"` |
-| `yarn` | `node = "22"` |
-| `bun` | `bun = "latest"` |
-| `python` | `python = "3.13"` |
-| `uv` | `python = "3.13"`, `uv = "0.6"`, `ruff = "latest"` |
-| `poetry` | `python = "3.13"` |
-| `gradle` | `java = "temurin-23"` |
-| `maven` | `java = "temurin-23"` |
-| `deno` | `deno = "latest"` |
-| `swift` | `swift = "latest"` |
+| Toolchain | Mise Tools                                         |
+| --------- | -------------------------------------------------- |
+| `cargo`   | `rust = "stable"`                                  |
+| `dotnet`  | `dotnet = "10.0"`                                  |
+| `go`      | `go = "1.24"`, `golangci-lint = "latest"`          |
+| `npm`     | `node = "22"`                                      |
+| `pnpm`    | `node = "22"`, `pnpm = "10"`                       |
+| `yarn`    | `node = "22"`                                      |
+| `bun`     | `bun = "latest"`                                   |
+| `python`  | `python = "3.13"`                                  |
+| `uv`      | `python = "3.13"`, `uv = "0.6"`, `ruff = "latest"` |
+| `poetry`  | `python = "3.13"`                                  |
+| `gradle`  | `java = "temurin-23"`                              |
+| `maven`   | `java = "temurin-23"`                              |
+| `deno`    | `deno = "latest"`                                  |
+| `swift`   | `swift = "latest"`                                 |
 
 ## Docker Integration
 

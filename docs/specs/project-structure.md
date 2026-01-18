@@ -49,6 +49,7 @@ myproject/
 ```
 
 `.structyl/config.json`:
+
 ```json
 {
   "project": {
@@ -156,15 +157,15 @@ pragmastat/
 
 Standard language slugs:
 
-| Slug | Language | Toolchain | Marker Files |
-|------|----------|-----------|--------------|
-| `cs` | C# | `dotnet` | `*.csproj`, `Directory.Build.props` |
-| `go` | Go | `go` | `go.mod` |
-| `kt` | Kotlin | `gradle` | `build.gradle.kts` |
-| `py` | Python | `python`/`uv` | `pyproject.toml`, `uv.lock` |
-| `r` | R | — | `DESCRIPTION` |
-| `rs` | Rust | `cargo` | `Cargo.toml` |
-| `ts` | TypeScript | `npm`/`pnpm` | `package.json` |
+| Slug | Language   | Toolchain     | Marker Files                        |
+| ---- | ---------- | ------------- | ----------------------------------- |
+| `cs` | C#         | `dotnet`      | `*.csproj`, `Directory.Build.props` |
+| `go` | Go         | `go`          | `go.mod`                            |
+| `kt` | Kotlin     | `gradle`      | `build.gradle.kts`                  |
+| `py` | Python     | `python`/`uv` | `pyproject.toml`, `uv.lock`         |
+| `r`  | R          | —             | `DESCRIPTION`                       |
+| `rs` | Rust       | `cargo`       | `Cargo.toml`                        |
+| `ts` | TypeScript | `npm`/`pnpm`  | `package.json`                      |
 
 Custom slugs are allowed—the slug is just a directory name and target key.
 
@@ -197,10 +198,10 @@ Target resolution determines which directories are recognized as build targets.
 
 ### Resolution Modes
 
-| Mode | Condition | Behavior |
-|------|-----------|----------|
+| Mode                   | Condition                              | Behavior                           |
+| ---------------------- | -------------------------------------- | ---------------------------------- |
 | **Explicit** (default) | `targets` object present and non-empty | Only listed targets are recognized |
-| **Auto-discovery** | `targets` absent or empty (`{}`) | Scan for toolchain marker files |
+| **Auto-discovery**     | `targets` absent or empty (`{}`)       | Scan for toolchain marker files    |
 
 ### Explicit Mode (Default)
 
@@ -217,6 +218,7 @@ When `targets` is absent or empty, Structyl discovers targets automatically:
 3. Infer type based on known language slugs (see [targets.md](targets.md#default-language-slugs))
 
 Example: If `cs/`, `py/`, and `img/` contain toolchain markers:
+
 - `cs` (has `*.csproj`) → type: `language`, toolchain: `dotnet`
 - `py` (has `pyproject.toml`) → type: `language`, toolchain: `python`
 - `img` (no markers) → type: `auxiliary`, no toolchain (requires explicit commands)
@@ -225,24 +227,24 @@ Example: If `cs/`, `py/`, and `img/` contain toolchain markers:
 
 These directory names have special meaning:
 
-| Name | Purpose |
-|------|---------|
+| Name        | Purpose                                                                |
+| ----------- | ---------------------------------------------------------------------- |
 | `.structyl` | Configuration directory (contains config.json, version, setup scripts) |
-| `tests` | Reference test data |
-| `templates` | Documentation templates |
-| `artifacts` | Build output (created by CI) |
+| `tests`     | Reference test data                                                    |
+| `templates` | Documentation templates                                                |
+| `artifacts` | Build output (created by CI)                                           |
 
 Avoid using these as target names unless intended.
 
 ### `.structyl/` Directory Contents
 
-| File | Purpose |
-|------|---------|
-| `config.json` | Project configuration (root marker) |
-| `version` | Pinned CLI version for reproducible builds |
-| `setup.sh` | Bootstrap script for Unix/macOS |
-| `setup.ps1` | Bootstrap script for Windows |
-| `AGENTS.md` | LLM guidelines (auto-generated) |
+| File          | Purpose                                    |
+| ------------- | ------------------------------------------ |
+| `config.json` | Project configuration (root marker)        |
+| `version`     | Pinned CLI version for reproducible builds |
+| `setup.sh`    | Bootstrap script for Unix/macOS            |
+| `setup.ps1`   | Bootstrap script for Windows               |
+| `AGENTS.md`   | LLM guidelines (auto-generated)            |
 
 New contributors can run the setup script to install the correct version of structyl:
 

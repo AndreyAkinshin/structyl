@@ -67,13 +67,13 @@ Project metadata used in documentation and package generation.
 }
 ```
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `name` | Yes | Project name (lowercase, hyphens allowed) |
-| `description` | No | Short description |
-| `homepage` | No | Project website URL |
-| `repository` | No | Source repository URL |
-| `license` | No | SPDX license identifier |
+| Field         | Required | Description                               |
+| ------------- | -------- | ----------------------------------------- |
+| `name`        | Yes      | Project name (lowercase, hyphens allowed) |
+| `description` | No       | Short description                         |
+| `homepage`    | No       | Project website URL                       |
+| `repository`  | No       | Source repository URL                     |
+| `license`     | No       | SPDX license identifier                   |
 
 ### `version`
 
@@ -149,11 +149,11 @@ Configure mise integration (enabled by default).
 }
 ```
 
-| Field | Default | Description |
-|-------|---------|-------------|
-| `enabled` | `true` | Enable mise integration |
-| `auto_generate` | `true` | Regenerate .mise.toml before each run |
-| `extra_tools` | `{}` | Additional mise tools to install |
+| Field           | Default | Description                           |
+| --------------- | ------- | ------------------------------------- |
+| `enabled`       | `true`  | Enable mise integration               |
+| `auto_generate` | `true`  | Regenerate .mise.toml before each run |
+| `extra_tools`   | `{}`    | Additional mise tools to install      |
 
 See [Mise Integration](./mise) for details.
 
@@ -166,8 +166,8 @@ Enable Docker-based builds.
   "docker": {
     "compose_file": "docker-compose.yml",
     "services": {
-      "rs": {"base_image": "rust:1.75"},
-      "py": {"base_image": "python:3.12-slim"}
+      "rs": { "base_image": "rust:1.75" },
+      "py": { "base_image": "python:3.12-slim" }
     }
   }
 }
@@ -179,18 +179,18 @@ See [Docker](./docker) for container configuration.
 
 Each target supports these options:
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `type` | string | Required | `"language"` or `"auxiliary"` |
-| `title` | string | Required | Display name |
-| `toolchain` | string | Auto-detect | Toolchain preset |
-| `toolchain_version` | string | From toolchain | Override mise tool version |
-| `directory` | string | Target key | Directory path |
-| `cwd` | string | `directory` | Working directory |
-| `commands` | object | From toolchain | Command overrides |
-| `vars` | object | `{}` | Custom variables |
-| `env` | object | `{}` | Environment variables |
-| `depends_on` | array | `[]` | Dependency targets |
+| Field               | Type   | Default        | Description                   |
+| ------------------- | ------ | -------------- | ----------------------------- |
+| `type`              | string | Required       | `"language"` or `"auxiliary"` |
+| `title`             | string | Required       | Display name                  |
+| `toolchain`         | string | Auto-detect    | Toolchain preset              |
+| `toolchain_version` | string | From toolchain | Override mise tool version    |
+| `directory`         | string | Target key     | Directory path                |
+| `cwd`               | string | `directory`    | Working directory             |
+| `commands`          | object | From toolchain | Command overrides             |
+| `vars`              | object | `{}`           | Custom variables              |
+| `env`               | object | `{}`           | Environment variables         |
+| `depends_on`        | array  | `[]`           | Dependency targets            |
 
 ### Command Definitions
 
@@ -211,6 +211,7 @@ Override toolchain commands or define custom ones:
 ```
 
 Commands can be:
+
 - **Strings**: Shell commands
 - **Arrays**: Sequential command execution
 - **Objects**: Commands with custom cwd/env
@@ -223,7 +224,7 @@ Commands can be:
     "test": {
       "run": "pytest",
       "cwd": "tests",
-      "env": {"PYTHONPATH": "."}
+      "env": { "PYTHONPATH": "." }
     }
   }
 }
@@ -250,12 +251,12 @@ Use variables in commands for flexibility:
 
 Built-in variables:
 
-| Variable | Description |
-|----------|-------------|
-| `${target}` | Target slug (e.g., `cs`, `py`) |
-| `${target_dir}` | Target directory path |
-| `${root}` | Project root directory |
-| `${version}` | Project version |
+| Variable        | Description                    |
+| --------------- | ------------------------------ |
+| `${target}`     | Target slug (e.g., `cs`, `py`) |
+| `${target_dir}` | Target directory path          |
+| `${root}`       | Project root directory         |
+| `${version}`    | Project version                |
 
 ## Schema Validation
 

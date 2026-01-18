@@ -6,22 +6,22 @@ This document describes Structyl's cross-platform capabilities.
 
 ## Supported Platforms
 
-| Platform | Native Support | Docker Support |
-|----------|----------------|----------------|
-| macOS (x64) | Yes | Yes |
-| macOS (ARM64) | Yes | Yes |
-| Linux (x64) | Yes | Yes |
-| Linux (ARM64) | Yes | Yes |
-| Windows (x64) | Yes | Yes |
+| Platform      | Native Support | Docker Support |
+| ------------- | -------------- | -------------- |
+| macOS (x64)   | Yes            | Yes            |
+| macOS (ARM64) | Yes            | Yes            |
+| Linux (x64)   | Yes            | Yes            |
+| Linux (ARM64) | Yes            | Yes            |
+| Windows (x64) | Yes            | Yes            |
 
 ## Command Execution
 
 Structyl executes commands defined in `.structyl/config.json` using the platform's shell:
 
-| Platform | Shell | Invocation |
-|----------|-------|------------|
-| Unix (macOS, Linux) | Bash | `bash -c "<command>"` |
-| Windows | PowerShell | `powershell -Command "<command>"` |
+| Platform            | Shell      | Invocation                        |
+| ------------------- | ---------- | --------------------------------- |
+| Unix (macOS, Linux) | Bash       | `bash -c "<command>"`             |
+| Windows             | PowerShell | `powershell -Command "<command>"` |
 
 ### Shell Selection Logic
 
@@ -97,9 +97,7 @@ Structyl normalizes paths internally:
 ```json
 {
   "version": {
-    "files": [
-      {"path": "cs/Directory.Build.props"}
-    ]
+    "files": [{ "path": "cs/Directory.Build.props" }]
   }
 }
 ```
@@ -128,6 +126,7 @@ structyl build --docker
 ```
 
 Benefits:
+
 - Identical toolchain versions
 - No platform-specific command variations needed
 - CI/local parity
@@ -143,6 +142,7 @@ Some Docker images don't support ARM64 natively. Configure platform overrides in
 ### Windows Subsystem for Linux (WSL)
 
 On Windows, Unix-style commands can run via:
+
 1. PowerShell (native Windows tools)
 2. WSL (for Linux tooling)
 
@@ -169,9 +169,9 @@ structyl test --docker
 
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `STRUCTYL_DOCKER` | Force Docker mode on all platforms |
-| `STRUCTYL_PARALLEL` | Control parallel execution |
-| `SHELL` | Used to determine shell on Unix |
-| `COMSPEC` | Used to detect Windows |
+| Variable            | Description                        |
+| ------------------- | ---------------------------------- |
+| `STRUCTYL_DOCKER`   | Force Docker mode on all platforms |
+| `STRUCTYL_PARALLEL` | Control parallel execution         |
+| `SHELL`             | Used to determine shell on Unix    |
+| `COMSPEC`           | Used to detect Windows             |

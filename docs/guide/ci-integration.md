@@ -17,6 +17,7 @@ This runs the full build pipeline:
 ### For Each Target
 
 The CI pipeline runs these steps sequentially:
+
 - `clean` - Remove build artifacts
 - `restore` - Install dependencies
 - `check` - Static analysis
@@ -32,9 +33,9 @@ structyl ci:release  # Release/optimized builds
 
 ### Flags
 
-| Flag | Description |
-|------|-------------|
-| `--docker` | Run all builds in Docker |
+| Flag         | Description                          |
+| ------------ | ------------------------------------ |
+| `--docker`   | Run all builds in Docker             |
 | `--continue` | Continue on errors (don't fail-fast) |
 
 ## Local CI Validation
@@ -82,7 +83,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.22'
+          go-version: "1.22"
 
       - name: Install Structyl
         run: go install github.com/AndreyAkinshin/structyl/cmd/structyl@latest
@@ -145,7 +146,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 jobs:
   release:
@@ -167,11 +168,11 @@ jobs:
 
 ## Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `STRUCTYL_DOCKER` | Set to `1` to enable Docker mode |
-| `CI` | Standard CI variable (affects some behaviors) |
-| `STRUCTYL_PARALLEL` | Number of parallel workers |
+| Variable            | Description                                   |
+| ------------------- | --------------------------------------------- |
+| `STRUCTYL_DOCKER`   | Set to `1` to enable Docker mode              |
+| `CI`                | Standard CI variable (affects some behaviors) |
+| `STRUCTYL_PARALLEL` | Number of parallel workers                    |
 
 ## Best Practices
 
@@ -192,11 +193,11 @@ For ci:release mode:
 
 ## Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | All steps succeeded |
-| 1 | One or more steps failed |
-| 2 | Configuration error |
+| Code | Meaning                  |
+| ---- | ------------------------ |
+| 0    | All steps succeeded      |
+| 1    | One or more steps failed |
+| 2    | Configuration error      |
 
 ## Next Steps
 

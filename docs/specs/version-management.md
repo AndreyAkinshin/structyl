@@ -17,6 +17,7 @@ VERSION
 ```
 
 Contents (plain text, no newline required):
+
 ```
 1.2.3
 ```
@@ -32,6 +33,7 @@ MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]
 ```
 
 Examples:
+
 - `1.0.0`
 - `2.1.3`
 - `1.0.0-alpha`
@@ -40,12 +42,12 @@ Examples:
 
 ### Error Conditions
 
-| Condition | Exit Code | Error Message |
-|-----------|-----------|---------------|
-| Version source file missing | 2 | `version source file not found: {path}` |
-| Version source file empty | 2 | `version source file is empty: {path}` |
-| Invalid version format | 2 | `invalid version format in {path}: "{content}"` |
-| Version file not readable | 3 | `cannot read version file: {path}: {error}` |
+| Condition                   | Exit Code | Error Message                                   |
+| --------------------------- | --------- | ----------------------------------------------- |
+| Version source file missing | 2         | `version source file not found: {path}`         |
+| Version source file empty   | 2         | `version source file is empty: {path}`          |
+| Invalid version format      | 2         | `invalid version format in {path}: "{content}"` |
+| Version file not readable   | 3         | `cannot read version file: {path}: {error}`     |
 
 ## Version Commands
 
@@ -63,6 +65,7 @@ structyl version set 2.0.0
 ```
 
 This:
+
 1. Updates the VERSION file
 2. Propagates to all configured files
 3. Regenerates documentation (if configured)
@@ -84,16 +87,17 @@ structyl version bump prerelease  # 2.0.0-alpha.1 → 2.0.0-alpha.2
 
 ### Prerelease Bump Edge Cases
 
-| Current Version | After `bump prerelease` | Notes |
-|-----------------|-------------------------|-------|
-| `1.0.0` | Error | Cannot bump prerelease on release version |
-| `1.0.0-alpha` | `1.0.0-alpha.1` | Adds `.1` suffix |
-| `1.0.0-alpha.1` | `1.0.0-alpha.2` | Increments numeric suffix |
-| `1.0.0-alpha.9` | `1.0.0-alpha.10` | No digit limit |
-| `1.0.0-rc.1` | `1.0.0-rc.2` | Works with any prerelease tag |
-| `1.0.0-beta.2+build.5` | `1.0.0-beta.3+build.5` | Build metadata preserved |
+| Current Version        | After `bump prerelease` | Notes                                     |
+| ---------------------- | ----------------------- | ----------------------------------------- |
+| `1.0.0`                | Error                   | Cannot bump prerelease on release version |
+| `1.0.0-alpha`          | `1.0.0-alpha.1`         | Adds `.1` suffix                          |
+| `1.0.0-alpha.1`        | `1.0.0-alpha.2`         | Increments numeric suffix                 |
+| `1.0.0-alpha.9`        | `1.0.0-alpha.10`        | No digit limit                            |
+| `1.0.0-rc.1`           | `1.0.0-rc.2`            | Works with any prerelease tag             |
+| `1.0.0-beta.2+build.5` | `1.0.0-beta.3+build.5`  | Build metadata preserved                  |
 
 Error case:
+
 ```bash
 structyl version bump prerelease  # When VERSION contains "1.0.0"
 # Error: cannot bump prerelease on release version "1.0.0"
@@ -120,11 +124,11 @@ Patterns are matched against the entire file content. Use anchors or capture gro
 
 By default, each pattern MUST match exactly once per file:
 
-| Matches Found | Behavior | Exit Code |
-|---------------|----------|-----------|
-| 0 | Error: `pattern not found in {path}` | 2 |
-| 1 | Replace the match | 0 |
-| >1 | Error: `pattern matched {n} times in {path} (expected 1)` | 2 |
+| Matches Found | Behavior                                                  | Exit Code |
+| ------------- | --------------------------------------------------------- | --------- |
+| 0             | Error: `pattern not found in {path}`                      | 2         |
+| 1             | Replace the match                                         | 0         |
+| >1            | Error: `pattern matched {n} times in {path} (expected 1)` | 2         |
 
 To replace all occurrences, set `replace_all: true`:
 
@@ -139,10 +143,10 @@ To replace all occurrences, set `replace_all: true`:
 
 With `replace_all: true`:
 
-| Matches Found | Behavior | Exit Code |
-|---------------|----------|-----------|
-| 0 | Error: `pattern not found in {path}` | 2 |
-| ≥1 | Replace all matches | 0 |
+| Matches Found | Behavior                             | Exit Code |
+| ------------- | ------------------------------------ | --------- |
+| 0             | Error: `pattern not found in {path}` | 2         |
+| ≥1            | Replace all matches                  | 0         |
 
 ### Configuration
 
@@ -168,10 +172,10 @@ With `replace_all: true`:
 
 ### Fields
 
-| Field | Description |
-|-------|-------------|
-| `path` | File path relative to project root |
-| `pattern` | Regex pattern to match version string |
+| Field     | Description                              |
+| --------- | ---------------------------------------- |
+| `path`    | File path relative to project root       |
+| `pattern` | Regex pattern to match version string    |
 | `replace` | Replacement with `{version}` placeholder |
 
 ### Pattern Examples
@@ -204,7 +208,7 @@ version = "1.2.3"
 }
 ```
 
-#### Python (__init__.py)
+#### Python (**init**.py)
 
 ```python
 __version__ = "1.2.3"
@@ -326,6 +330,7 @@ structyl release 2.0.0 [--push]
 ```
 
 This command:
+
 1. Sets version in VERSION file
 2. Propagates version to all files
 3. Regenerates documentation
@@ -381,14 +386,14 @@ Exit code `1` if any mismatch found. This is a runtime check of project state (n
 }
 ```
 
-| Field | Default | Description |
-|-------|---------|-------------|
-| `source` | `"VERSION"` | Version file path |
-| `files` | `[]` | Files to update |
-| `files[].path` | Required | File path |
-| `files[].pattern` | Required | Regex to match |
-| `files[].replace` | Required | Replacement string |
-| `files[].replace_all` | `false` | Replace all matches (vs. require exactly one) |
+| Field                 | Default     | Description                                   |
+| --------------------- | ----------- | --------------------------------------------- |
+| `source`              | `"VERSION"` | Version file path                             |
+| `files`               | `[]`        | Files to update                               |
+| `files[].path`        | Required    | File path                                     |
+| `files[].pattern`     | Required    | Regex to match                                |
+| `files[].replace`     | Required    | Replacement string                            |
+| `files[].replace_all` | `false`     | Replace all matches (vs. require exactly one) |
 
 ## CLI Version Pinning
 
@@ -411,18 +416,18 @@ Usage: structyl upgrade [version] [--check]
        structyl upgrade --check
 ```
 
-| Command | Description |
-|---------|-------------|
-| `structyl upgrade` | Upgrade to latest stable version |
+| Command                      | Description                                            |
+| ---------------------------- | ------------------------------------------------------ |
+| `structyl upgrade`           | Upgrade to latest stable version                       |
 | `structyl upgrade <version>` | Upgrade to specific version (e.g., `1.2.3`, `nightly`) |
-| `structyl upgrade --check` | Show current vs latest version without changing |
+| `structyl upgrade --check`   | Show current vs latest version without changing        |
 
 ### Version Types
 
-| Type | Validation | Cache Check | Install Prompt |
-|------|------------|-------------|----------------|
+| Type                   | Validation        | Cache Check                   | Install Prompt        |
+| ---------------------- | ----------------- | ----------------------------- | --------------------- |
 | Stable (e.g., `1.2.3`) | Semver validation | Check `~/.structyl/versions/` | Only if not installed |
-| Nightly | Skip validation | Skip | Always prompt |
+| Nightly                | Skip validation   | Skip                          | Always prompt         |
 
 ### GitHub API Integration
 
@@ -433,6 +438,7 @@ https://api.github.com/repos/AndreyAkinshin/structyl/releases/latest
 ```
 
 Response parsing:
+
 - Extract `tag_name` field
 - Strip `v` prefix (e.g., `v1.2.3` → `1.2.3`)
 - 10-second HTTP timeout
@@ -440,15 +446,16 @@ Response parsing:
 
 ### Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | Runtime error (network failure, file I/O, not in project) |
-| 2 | Usage error (invalid version format, unknown flag) |
+| Code | Meaning                                                   |
+| ---- | --------------------------------------------------------- |
+| 0    | Success                                                   |
+| 1    | Runtime error (network failure, file I/O, not in project) |
+| 2    | Usage error (invalid version format, unknown flag)        |
 
 ### Output Examples
 
 **Upgrade to latest:**
+
 ```
 Upgraded from 1.1.0 to 1.2.3
 
@@ -456,6 +463,7 @@ Run '.structyl/setup.sh' to install version 1.2.3.
 ```
 
 **Check mode:**
+
 ```
   Current CLI version:  1.2.0
   Pinned version:       1.1.0
@@ -465,6 +473,7 @@ A newer version is available. Run 'structyl upgrade' to update.
 ```
 
 **Nightly upgrade:**
+
 ```
 Upgraded from 1.1.0 to nightly
 
@@ -472,6 +481,7 @@ Run '.structyl/setup.sh' to install the nightly build.
 ```
 
 **Already on version:**
+
 ```
 Already on version 1.2.3
 ```

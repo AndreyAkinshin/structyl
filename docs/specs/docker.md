@@ -38,14 +38,14 @@ STRUCTYL_DOCKER=1 structyl build
 
 ### Activation Precedence
 
-| Condition | Docker Mode |
-|-----------|-------------|
-| `--docker` flag present | **Enabled** |
-| `--no-docker` flag present | **Disabled** (overrides env var) |
-| `STRUCTYL_DOCKER` = `1`, `true`, `yes` (case-insensitive) | Enabled |
-| `STRUCTYL_DOCKER` = `0`, `false`, `no` | Disabled |
-| `STRUCTYL_DOCKER` unset or empty | Disabled |
-| `STRUCTYL_DOCKER` = other value | Warning emitted; disabled |
+| Condition                                                 | Docker Mode                      |
+| --------------------------------------------------------- | -------------------------------- |
+| `--docker` flag present                                   | **Enabled**                      |
+| `--no-docker` flag present                                | **Disabled** (overrides env var) |
+| `STRUCTYL_DOCKER` = `1`, `true`, `yes` (case-insensitive) | Enabled                          |
+| `STRUCTYL_DOCKER` = `0`, `false`, `no`                    | Disabled                         |
+| `STRUCTYL_DOCKER` unset or empty                          | Disabled                         |
+| `STRUCTYL_DOCKER` = other value                           | Warning emitted; disabled        |
 
 Command-line flags take precedence over environment variables. The `--no-docker` flag explicitly disables Docker mode even if `STRUCTYL_DOCKER` is set.
 
@@ -94,15 +94,15 @@ Each target needs a Dockerfile. Options:
 
 Structyl provides default Dockerfiles for common languages:
 
-| Language | Base Image |
-|----------|------------|
-| C# | `mcr.microsoft.com/dotnet/sdk:8.0` |
-| Go | `golang:1.22` |
-| Kotlin | `gradle:8-jdk21` |
-| Python | `python:3.12-slim` |
-| R | `rocker/verse:latest` |
-| Rust | `rust:1.75` |
-| TypeScript | `node:20-slim` |
+| Language   | Base Image                         |
+| ---------- | ---------------------------------- |
+| C#         | `mcr.microsoft.com/dotnet/sdk:8.0` |
+| Go         | `golang:1.22`                      |
+| Kotlin     | `gradle:8-jdk21`                   |
+| Python     | `python:3.12-slim`                 |
+| R          | `rocker/verse:latest`              |
+| Rust       | `rust:1.75`                        |
+| TypeScript | `node:20-slim`                     |
 
 ### 2. Custom Dockerfile
 
@@ -137,11 +137,11 @@ Specify in `.structyl/config.json`:
 
 Standard volume mounts:
 
-| Mount | Purpose |
-|-------|---------|
-| `./<target>:/workspace/<target>` | Target source code (read-write) |
-| `./tests:/workspace/tests:ro` | Test data (read-only) |
-| `./.structyl/config.json:/workspace/.structyl/config.json:ro` | Configuration (read-only) |
+| Mount                                                         | Purpose                         |
+| ------------------------------------------------------------- | ------------------------------- |
+| `./<target>:/workspace/<target>`                              | Target source code (read-write) |
+| `./tests:/workspace/tests:ro`                                 | Test data (read-only)           |
+| `./.structyl/config.json:/workspace/.structyl/config.json:ro` | Configuration (read-only)       |
 
 ### Cache Volumes
 
@@ -175,8 +175,8 @@ Some images don't support ARM64. Specify platform explicitly:
 {
   "docker": {
     "services": {
-      "r": {"platform": "linux/amd64"},
-      "pdf": {"platform": "linux/amd64"}
+      "r": { "platform": "linux/amd64" },
+      "pdf": { "platform": "linux/amd64" }
     }
   }
 }
@@ -188,18 +188,20 @@ Docker Desktop uses Rosetta for emulation.
 
 Structyl maps the container user to avoid root-owned files on the host.
 
-| Platform | Behavior |
-|----------|----------|
-| Linux | Run as host user: `--user "$(id -u):$(id -g)"` |
-| macOS | Run as host user: `--user "$(id -u):$(id -g)"` |
-| Windows | Run as default container user (user mapping not supported) |
+| Platform | Behavior                                                   |
+| -------- | ---------------------------------------------------------- |
+| Linux    | Run as host user: `--user "$(id -u):$(id -g)"`             |
+| macOS    | Run as host user: `--user "$(id -u):$(id -g)"`             |
+| Windows  | Run as default container user (user mapping not supported) |
 
 On Unix systems, the equivalent command is:
+
 ```bash
 docker compose run --rm --user "$(id -u):$(id -g)" cs bash -c "dotnet build"
 ```
 
 On Windows, user mapping is omitted:
+
 ```powershell
 docker compose run --rm cs powershell -Command "dotnet build"
 ```
@@ -280,20 +282,21 @@ ENV GOPATH=/tmp/go
 }
 ```
 
-| Field | Description | Default |
-|-------|-------------|---------|
-| `compose_file` | Path to compose file | `docker-compose.yml` |
-| `env_var` | Env var to enable Docker mode | `STRUCTYL_DOCKER` |
-| `services.<target>.base_image` | Base Docker image | Language-specific |
-| `services.<target>.dockerfile` | Custom Dockerfile path | `<target>/Dockerfile` |
-| `services.<target>.platform` | Target platform | Host platform |
-| `services.<target>.volumes` | Additional volume mounts | `[]` |
+| Field                          | Description                   | Default               |
+| ------------------------------ | ----------------------------- | --------------------- |
+| `compose_file`                 | Path to compose file          | `docker-compose.yml`  |
+| `env_var`                      | Env var to enable Docker mode | `STRUCTYL_DOCKER`     |
+| `services.<target>.base_image` | Base Docker image             | Language-specific     |
+| `services.<target>.dockerfile` | Custom Dockerfile path        | `<target>/Dockerfile` |
+| `services.<target>.platform`   | Target platform               | Host platform         |
+| `services.<target>.volumes`    | Additional volume mounts      | `[]`                  |
 
 ## Troubleshooting
 
 ### Permission Denied
 
 If files are owned by root after Docker build:
+
 1. Ensure user mapping is enabled
 2. Use separate cache directories (e.g., `.nuget-docker`)
 
@@ -306,6 +309,7 @@ structyl docker-build  # Rebuild all images
 ### Slow Builds on Apple Silicon
 
 ARM64 emulation is slow. Options:
+
 1. Use native ARM64 images where available
 2. Accept slower builds for x64-only tools
 3. Use native builds for development, Docker for CI only

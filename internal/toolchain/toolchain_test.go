@@ -45,13 +45,13 @@ func TestToolchain_GetCommand(t *testing.T) {
 		t.Errorf("GetCommand(build) = %v, want 'cargo build'", cmd)
 	}
 
-	// Test composite command ([]string)
+	// Test composite command ([]interface{} - array of shell commands)
 	cmd, ok = tc.GetCommand("check")
 	if !ok {
 		t.Error("GetCommand(check) = not found")
 	}
-	if _, isSlice := cmd.([]string); !isSlice {
-		t.Errorf("GetCommand(check) = %T, want []string", cmd)
+	if _, isSlice := cmd.([]interface{}); !isSlice {
+		t.Errorf("GetCommand(check) = %T, want []interface{}", cmd)
 	}
 
 	// Test nil command

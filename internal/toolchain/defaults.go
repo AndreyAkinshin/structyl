@@ -6,6 +6,27 @@ func GetDefaultToolchains() *ToolchainsFile {
 	return &ToolchainsFile{
 		Schema:  "https://structyl.akinshin.dev/schemas/toolchains.json",
 		Version: "1.0",
+		Commands: map[string]CommandMeta{
+			"clean":         {Description: "Clean build artifacts"},
+			"restore":       {Description: "Restore/install dependencies"},
+			"build":         {Description: "Build targets"},
+			"build:release": {Description: "Build targets (release mode)"},
+			"test":          {Description: "Run tests"},
+			"test:coverage": {Description: "Run tests with coverage"},
+			"check":         {Description: "Run static analysis (lint, typecheck, format-check)"},
+			"check:fix":     {Description: "Auto-fix static analysis issues"},
+			"bench":         {Description: "Run benchmarks"},
+			"demo":          {Description: "Run demos"},
+			"doc":           {Description: "Generate documentation"},
+			"pack":          {Description: "Create package"},
+		},
+		AggregateCommands: []string{
+			"clean", "restore", "build", "build:release", "test", "check", "check:fix",
+		},
+		Pipelines: map[string][]string{
+			"ci":         {"clean", "restore", "check", "build", "test"},
+			"ci:release": {"clean", "restore", "check", "build:release", "test"},
+		},
 		Toolchains: map[string]ToolchainFileEntry{
 			"cargo": {
 				Mise: &MiseConfig{

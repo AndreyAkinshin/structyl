@@ -67,22 +67,54 @@ func GenerateMiseTomlWithToolchains(cfg *config.Config, loaded *toolchain.Toolch
 	return b.String(), nil
 }
 
-// commandsToGenerate lists the commands to generate mise tasks for.
-var commandsToGenerate = []string{
-	"clean", "restore", "build", "build:release", "test",
-	"check", "check:fix", "bench", "demo", "doc", "pack",
+// getCommandsToGenerate returns the list of commands to generate mise tasks for.
+// Uses loaded config if available, otherwise falls back to defaults.
+func getCommandsToGenerate(loaded *toolchain.ToolchainsFile) []string {
+	commands := toolchain.GetStandardCommands(loaded)
+	if len(commands) > 0 {
+		return commands
+	}
+	// Fallback defaults
+	return []string{
+		"clean", "restore", "build", "build:release", "test",
+		"check", "check:fix", "bench", "demo", "doc", "pack",
+	}
 }
 
-// aggregateCommands are commands that get aggregate tasks across all targets.
-var aggregateCommands = []string{
-	"clean", "restore", "build", "build:release", "test",
-	"check", "check:fix",
+// getAggregateCommands returns the list of commands that get aggregate tasks.
+// Uses loaded config if available, otherwise falls back to defaults.
+func getAggregateCommands(loaded *toolchain.ToolchainsFile) []string {
+	commands := toolchain.GetAggregateCommands(loaded)
+	if len(commands) > 0 {
+		return commands
+	}
+	// Fallback defaults
+	return []string{
+		"clean", "restore", "build", "build:release", "test",
+		"check", "check:fix",
+	}
+}
+
+// getCIPipeline returns the CI pipeline commands.
+// Uses loaded config if available, otherwise falls back to defaults.
+func getCIPipeline(loaded *toolchain.ToolchainsFile) []string {
+	pipeline := toolchain.GetPipeline(loaded, "ci")
+	if len(pipeline) > 0 {
+		return pipeline
+	}
+	// Fallback defaults
+	return []string{"clean", "restore", "check", "build", "test"}
 }
 
 // generateTasksWithToolchains creates mise tasks from project config
 // using the loaded toolchains configuration.
 func generateTasksWithToolchains(cfg *config.Config, loaded *toolchain.ToolchainsFile) map[string]MiseTask {
 	tasks := make(map[string]MiseTask)
+
+	// Get command lists from loaded config
+	commandsToGenerate := getCommandsToGenerate(loaded)
+	aggregateCommands := getAggregateCommands(loaded)
+	ciPipeline := getCIPipeline(loaded)
 
 	// Setup task for structyl
 	tasks["setup:structyl"] = MiseTask{
@@ -163,7 +195,7 @@ func generateTasksWithToolchains(cfg *config.Config, loaded *toolchain.Toolchain
 		// Generate CI task for each target with sequential execution
 		ciTaskName := fmt.Sprintf("ci:%s", targetName)
 		var ciSteps []RunStep
-		for _, cmd := range []string{"clean", "restore", "check", "build", "test"} {
+		for _, cmd := range ciPipeline {
 			depTask := fmt.Sprintf("%s:%s", cmd, targetName)
 			if _, exists := tasks[depTask]; exists {
 				ciSteps = append(ciSteps, RunStep{Task: depTask})

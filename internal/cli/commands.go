@@ -15,6 +15,7 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/release"
 	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: intentionally using deprecated package for backwards compatibility
 	"github.com/AndreyAkinshin/structyl/internal/target"
+	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
 
 // out is the shared output writer for CLI commands.
@@ -786,24 +787,13 @@ func cmdRelease(args []string, opts *GlobalOptions) int {
 func printUnifiedUsage(cmd string) {
 	w := output.New()
 
-	descriptions := map[string]string{
-		"build":         "build targets",
-		"build:release": "build targets in release mode",
-		"test":          "run tests",
-		"test:coverage": "run tests with coverage",
-		"clean":         "clean build artifacts",
-		"restore":       "restore/install dependencies",
-		"check":         "run static analysis (lint, typecheck, format-check)",
-		"check:fix":     "auto-fix static analysis issues (format, lint --fix)",
-		"bench":         "run benchmarks",
-		"demo":          "run demos",
-		"doc":           "generate documentation",
-		"pack":          "create package",
-	}
-
-	desc := descriptions[cmd]
+	defaults := toolchain.GetDefaultToolchains()
+	desc := toolchain.GetCommandDescription(defaults, cmd)
 	if desc == "" {
 		desc = fmt.Sprintf("run %s", cmd)
+	} else {
+		// Convert to lowercase for help text
+		desc = strings.ToLower(desc)
 	}
 
 	w.HelpTitle(fmt.Sprintf("structyl %s - %s", cmd, desc))

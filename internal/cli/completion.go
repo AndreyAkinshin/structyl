@@ -3,9 +3,11 @@ package cli
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/AndreyAkinshin/structyl/internal/output"
+	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
 
 // cmdCompletion generates shell completion scripts.
@@ -117,19 +119,16 @@ func builtinCommands() []string {
 
 // commonTargetCommands returns commands typically available on targets.
 func commonTargetCommands() []string {
+	defaults := toolchain.GetDefaultToolchains()
+	commands := toolchain.GetStandardCommands(defaults)
+	if len(commands) > 0 {
+		sort.Strings(commands)
+		return commands
+	}
+	// Fallback
 	return []string{
-		"build",
-		"build:release",
-		"test",
-		"test:coverage",
-		"clean",
-		"restore",
-		"check",
-		"check:fix",
-		"bench",
-		"demo",
-		"doc",
-		"pack",
+		"bench", "build", "build:release", "check", "check:fix",
+		"clean", "demo", "doc", "pack", "restore", "test", "test:coverage",
 	}
 }
 
@@ -393,22 +392,12 @@ complete -c %s -f
 	}
 
 	sb.WriteString("\n# Target commands\n")
-	targetCommandDescs := map[string]string{
-		"build":         "Build targets",
-		"build:release": "Build targets in release mode",
-		"test":          "Run tests",
-		"test:coverage": "Run tests with coverage",
-		"clean":         "Clean build artifacts",
-		"restore":       "Restore dependencies",
-		"check":         "Run static analysis (lint, typecheck, format-check)",
-		"check:fix":     "Auto-fix static analysis issues",
-		"bench":         "Run benchmarks",
-		"demo":          "Run demos",
-		"doc":           "Generate documentation",
-		"pack":          "Create package",
-	}
-
-	for cmd, desc := range targetCommandDescs {
+	defaults := toolchain.GetDefaultToolchains()
+	for _, cmd := range commonTargetCommands() {
+		desc := toolchain.GetCommandDescription(defaults, cmd)
+		if desc == "" {
+			desc = fmt.Sprintf("Run %s", cmd)
+		}
 		sb.WriteString(fmt.Sprintf("complete -c %s -n '__fish_use_subcommand' -a '%s' -d '%s'\n", cmdName, cmd, desc))
 	}
 

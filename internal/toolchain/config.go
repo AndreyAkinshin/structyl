@@ -8,9 +8,17 @@ import (
 
 // ToolchainsFile represents the .structyl/toolchains.json configuration file.
 type ToolchainsFile struct {
-	Schema     string                        `json:"$schema,omitempty"`
-	Version    string                        `json:"version"`
-	Toolchains map[string]ToolchainFileEntry `json:"toolchains"`
+	Schema            string                        `json:"$schema,omitempty"`
+	Version           string                        `json:"version"`
+	Commands          map[string]CommandMeta        `json:"commands,omitempty"`
+	AggregateCommands []string                      `json:"aggregateCommands,omitempty"`
+	Pipelines         map[string][]string           `json:"pipelines,omitempty"`
+	Toolchains        map[string]ToolchainFileEntry `json:"toolchains"`
+}
+
+// CommandMeta contains metadata about a standard command.
+type CommandMeta struct {
+	Description string `json:"description"`
 }
 
 // ToolchainFileEntry represents a single toolchain configuration in the file.
@@ -61,7 +69,52 @@ func MergeToolchains(defaults, loaded *ToolchainsFile) *ToolchainsFile {
 		Toolchains: make(map[string]ToolchainFileEntry),
 	}
 
-	// Start with all defaults
+	// Copy commands metadata from defaults, override with loaded
+	if defaults.Commands != nil {
+		result.Commands = make(map[string]CommandMeta)
+		for k, v := range defaults.Commands {
+			result.Commands[k] = v
+		}
+	}
+	if loaded.Commands != nil {
+		if result.Commands == nil {
+			result.Commands = make(map[string]CommandMeta)
+		}
+		for k, v := range loaded.Commands {
+			result.Commands[k] = v
+		}
+	}
+
+	// Use loaded aggregateCommands if provided, otherwise defaults
+	if len(loaded.AggregateCommands) > 0 {
+		result.AggregateCommands = make([]string, len(loaded.AggregateCommands))
+		copy(result.AggregateCommands, loaded.AggregateCommands)
+	} else if len(defaults.AggregateCommands) > 0 {
+		result.AggregateCommands = make([]string, len(defaults.AggregateCommands))
+		copy(result.AggregateCommands, defaults.AggregateCommands)
+	}
+
+	// Merge pipelines - loaded override defaults
+	if defaults.Pipelines != nil {
+		result.Pipelines = make(map[string][]string)
+		for k, v := range defaults.Pipelines {
+			copied := make([]string, len(v))
+			copy(copied, v)
+			result.Pipelines[k] = copied
+		}
+	}
+	if loaded.Pipelines != nil {
+		if result.Pipelines == nil {
+			result.Pipelines = make(map[string][]string)
+		}
+		for k, v := range loaded.Pipelines {
+			copied := make([]string, len(v))
+			copy(copied, v)
+			result.Pipelines[k] = copied
+		}
+	}
+
+	// Start with all default toolchains
 	for name, entry := range defaults.Toolchains {
 		result.Toolchains[name] = deepCopyToolchainEntry(entry)
 	}
@@ -193,4 +246,45 @@ func GetMiseConfigFromToolchains(name string, loaded *ToolchainsFile) *MiseConfi
 	}
 
 	return entry.Mise
+}
+
+// GetStandardCommands returns the list of standard command names from the config.
+func GetStandardCommands(loaded *ToolchainsFile) []string {
+	if loaded == nil || loaded.Commands == nil {
+		return nil
+	}
+
+	commands := make([]string, 0, len(loaded.Commands))
+	for name := range loaded.Commands {
+		commands = append(commands, name)
+	}
+	return commands
+}
+
+// GetCommandDescription returns the description for a command, or empty string if not found.
+func GetCommandDescription(loaded *ToolchainsFile, cmdName string) string {
+	if loaded == nil || loaded.Commands == nil {
+		return ""
+	}
+
+	if meta, ok := loaded.Commands[cmdName]; ok {
+		return meta.Description
+	}
+	return ""
+}
+
+// GetAggregateCommands returns the list of commands that should be aggregated across targets.
+func GetAggregateCommands(loaded *ToolchainsFile) []string {
+	if loaded == nil {
+		return nil
+	}
+	return loaded.AggregateCommands
+}
+
+// GetPipeline returns the command sequence for a pipeline, or nil if not found.
+func GetPipeline(loaded *ToolchainsFile, name string) []string {
+	if loaded == nil || loaded.Pipelines == nil {
+		return nil
+	}
+	return loaded.Pipelines[name]
 }

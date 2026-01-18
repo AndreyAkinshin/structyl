@@ -51,12 +51,9 @@ func TestGenerateMiseToml_Basic(t *testing.T) {
 		t.Error("missing main ci task")
 	}
 
-	// Check that vet:go task is generated (required for check:go which depends on it)
-	if !strings.Contains(content, `[tasks."vet:go"]`) {
-		t.Error("missing vet:go task (required by check:go)")
-	}
-	if !strings.Contains(content, `[tasks."lint:go"]`) {
-		t.Error("missing lint:go task (required by check:go)")
+	// Check that check:go task is generated (unified static analysis command)
+	if !strings.Contains(content, `[tasks."check:go"]`) {
+		t.Error("missing check:go task")
 	}
 }
 

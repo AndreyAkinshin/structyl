@@ -1,6 +1,27 @@
 {
   "$schema": "https://structyl.akinshin.dev/schemas/toolchains.json",
   "version": "1.0",
+  "commands": {
+    "clean": { "description": "Clean build artifacts" },
+    "restore": { "description": "Restore/install dependencies" },
+    "build": { "description": "Build targets" },
+    "build:release": { "description": "Build targets (release mode)" },
+    "test": { "description": "Run tests" },
+    "test:coverage": { "description": "Run tests with coverage" },
+    "check": { "description": "Run static analysis (lint, typecheck, format-check)" },
+    "check:fix": { "description": "Auto-fix static analysis issues" },
+    "bench": { "description": "Run benchmarks" },
+    "demo": { "description": "Run demos" },
+    "doc": { "description": "Generate documentation" },
+    "pack": { "description": "Create package" }
+  },
+  "aggregateCommands": [
+    "clean", "restore", "build", "build:release", "test", "check", "check:fix"
+  ],
+  "pipelines": {
+    "ci": ["clean", "restore", "check", "build", "test"],
+    "ci:release": ["clean", "restore", "check", "build:release", "test"]
+  },
   "toolchains": {
     "cargo": {
       "mise": {

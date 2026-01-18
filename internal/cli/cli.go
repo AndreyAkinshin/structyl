@@ -11,6 +11,7 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/project"
 	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: intentionally using deprecated package for backwards compatibility
 	"github.com/AndreyAkinshin/structyl/internal/target"
+	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
 
 // Version is set at build time.
@@ -396,21 +397,8 @@ func collectAllCommands(targets []target.Target) []commandInfo {
 		return cmds[i].name < cmds[j].name
 	})
 
-	// Build result with descriptions
-	descriptions := map[string]string{
-		"build":         "Build targets",
-		"build:release": "Build targets (release mode)",
-		"test":          "Run tests",
-		"test:coverage": "Run tests with coverage",
-		"clean":         "Clean build artifacts",
-		"restore":       "Restore/install dependencies",
-		"check":         "Run static analysis (lint, typecheck, format-check)",
-		"check:fix":     "Auto-fix static analysis issues",
-		"bench":         "Run benchmarks",
-		"demo":          "Run demos",
-		"doc":           "Generate documentation",
-		"pack":          "Create package",
-	}
+	// Get descriptions from loaded defaults
+	defaults := toolchain.GetDefaultToolchains()
 
 	maxNameLen := 0
 	for _, c := range cmds {
@@ -421,7 +409,7 @@ func collectAllCommands(targets []target.Target) []commandInfo {
 
 	var result []commandInfo
 	for _, c := range cmds {
-		desc := descriptions[c.name]
+		desc := toolchain.GetCommandDescription(defaults, c.name)
 		if desc == "" {
 			desc = fmt.Sprintf("Run %s", c.name)
 		}

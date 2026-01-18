@@ -12,15 +12,17 @@ import (
 
 	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/target"
+	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
 
 // CIOptions configures CI pipeline execution.
 type CIOptions struct {
-	Docker      bool   // Run in Docker containers
-	Continue    bool   // Continue on error
-	Release     bool   // Use release build variants
-	Parallel    bool   // Run language targets in parallel
-	ArtifactDir string // Directory to collect artifacts
+	Docker      bool                      // Run in Docker containers
+	Continue    bool                      // Continue on error
+	Release     bool                      // Use release build variants
+	Parallel    bool                      // Run language targets in parallel
+	ArtifactDir string                    // Directory to collect artifacts
+	Toolchains  *toolchain.ToolchainsFile // Loaded toolchains config (optional)
 }
 
 // CIResult contains the results of a CI pipeline run.
@@ -61,10 +63,7 @@ func (r *Runner) RunCI(ctx context.Context, opts CIOptions) (*CIResult, error) {
 	}
 
 	// Determine pipeline phases based on release mode
-	pipeline := []string{"clean", "restore", "check", "build", "test"}
-	if opts.Release {
-		pipeline = []string{"clean", "restore", "check", "build:release", "test"}
-	}
+	pipeline := getPipeline(opts.Toolchains, opts.Release)
 
 	// Get targets
 	targets, err := r.registry.TopologicalOrder()
@@ -308,10 +307,28 @@ func FormatDuration(d time.Duration) string {
 	return fmt.Sprintf("%dm%ds", m, s)
 }
 
-// PhaseOrder returns the standard CI phase order.
-func PhaseOrder(release bool) []string {
+// getPipeline returns the CI pipeline phases from config or defaults.
+func getPipeline(loaded *toolchain.ToolchainsFile, release bool) []string {
+	pipelineName := "ci"
+	if release {
+		pipelineName = "ci:release"
+	}
+
+	if loaded != nil {
+		if pipeline := toolchain.GetPipeline(loaded, pipelineName); len(pipeline) > 0 {
+			return pipeline
+		}
+	}
+
+	// Fallback defaults
 	if release {
 		return []string{"clean", "restore", "check", "build:release", "test"}
 	}
 	return []string{"clean", "restore", "check", "build", "test"}
+}
+
+// PhaseOrder returns the standard CI phase order.
+// Deprecated: Use getPipeline with toolchains config for configurable pipelines.
+func PhaseOrder(release bool) []string {
+	return getPipeline(nil, release)
 }

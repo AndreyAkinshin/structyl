@@ -98,10 +98,10 @@ func TestResolver_ExtendedToolchain(t *testing.T) {
 		t.Errorf("GetCommand(clean) = %v, want 'cargo clean' (inherited)", cmd)
 	}
 
-	// Inherited format command
-	cmd, _ = tc.GetCommand("format")
+	// Inherited check:fix command (consolidated from format)
+	cmd, _ = tc.GetCommand("check:fix")
 	if cmd != "cargo fmt" {
-		t.Errorf("GetCommand(format) = %v, want 'cargo fmt' (inherited)", cmd)
+		t.Errorf("GetCommand(check:fix) = %v, want 'cargo fmt' (inherited)", cmd)
 	}
 }
 

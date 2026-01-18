@@ -139,7 +139,7 @@ func TestTarget_Commands(t *testing.T) {
 		cmdMap[cmd] = true
 	}
 
-	expected := []string{"build", "test", "clean", "format"}
+	expected := []string{"build", "test", "clean", "check:fix"}
 	for _, cmd := range expected {
 		if !cmdMap[cmd] {
 			t.Errorf("Commands() missing %q", cmd)

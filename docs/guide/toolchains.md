@@ -444,7 +444,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 |---------|------|
 | `build` | `R CMD build .` |
 | `test` | `Rscript -e "devtools::test()"` |
-| `check` | `R CMD check --no-manual *.tar.gz` |
+| `check` | `R CMD check --no-manual --no-tests *.tar.gz` |
 | `lint` | `Rscript -e "lintr::lint_package()"` |
 | `format` | `Rscript -e "styler::style_pkg()"` |
 | `pack` | `R CMD build .` |

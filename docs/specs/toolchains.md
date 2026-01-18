@@ -1,5 +1,7 @@
 # Toolchains
 
+> **Terminology:** This specification uses [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) keywords (MUST, SHOULD, MAY, etc.) to indicate requirement levels.
+
 This document defines the built-in toolchain presets for Structyl.
 
 ## Overview
@@ -96,7 +98,6 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `build:release` | `cargo build --release` |
 | `test` | `cargo test` |
 | `test:unit` | `cargo test --lib` |
-| `test:integration` | `cargo test --test '*'` |
 | `test:doc` | `cargo test --doc` |
 | `check` | `["lint", "format-check"]` |
 | `lint` | `cargo clippy -- -D warnings` |
@@ -143,7 +144,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `test` | `go test ./...` |
 | `test:verbose` | `go test -v ./...` |
 | `test:coverage` | `go test -cover ./...` |
-| `check` | `["lint", "vet"]` |
+| `check` | `["lint", "format-check"]` |
 | `lint` | `golangci-lint run` |
 | `vet` | `go vet ./...` |
 | `format` | `go fmt ./...` |
@@ -257,7 +258,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `build` | `python -m build` |
 | `test` | `pytest` |
 | `test:coverage` | `pytest --cov` |
-| `check` | `["lint", "typecheck"]` |
+| `check` | `["lint", "format-check"]` |
 | `lint` | `ruff check .` |
 | `typecheck` | `mypy .` |
 | `format` | `ruff format .` |
@@ -281,7 +282,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `build` | `uv build` |
 | `test` | `uv run pytest` |
 | `test:coverage` | `uv run pytest --cov` |
-| `check` | `["lint", "typecheck"]` |
+| `check` | `["lint", "format-check"]` |
 | `lint` | `uv run ruff check .` |
 | `typecheck` | `uv run mypy .` |
 | `format` | `uv run ruff format .` |
@@ -303,7 +304,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `build` | `poetry build` |
 | `test` | `poetry run pytest` |
 | `test:coverage` | `poetry run pytest --cov` |
-| `check` | `["lint", "typecheck"]` |
+| `check` | `["lint", "format-check"]` |
 | `lint` | `poetry run ruff check .` |
 | `typecheck` | `poetry run mypy .` |
 | `format` | `poetry run ruff format .` |

@@ -9,14 +9,12 @@ const props = defineProps<{
 
 const toolchain = computed(() => toolchainsData.toolchains[props.name])
 
-const commandOrder = [
-  'clean', 'restore', 'build', 'build:release', 'test', 'check',
-  'lint', 'vet', 'typecheck', 'format', 'format-check', 'bench', 'pack', 'doc', 'demo'
-]
+// Derive command order from the source of truth
+const commandOrder = Object.keys(toolchainsData.commands)
 
 const guideCommands = [
-  'build', 'build:release', 'test', 'check', 'lint', 'vet', 'typecheck',
-  'restore', 'format', 'bench', 'pack', 'doc'
+  'build', 'build:release', 'test', 'check', 'check:fix',
+  'restore', 'bench', 'pack', 'doc', 'demo'
 ]
 
 function formatCommand(value: string | string[] | null): string {

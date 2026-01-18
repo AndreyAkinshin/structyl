@@ -112,10 +112,10 @@ This specification defines Structyl v1.0. The following are explicitly **in scop
 - Docker-based isolated builds
 - README documentation generation
 - Local CI simulation
+- Package publishing
 
 The following are explicitly **out of scope** for v1.0:
 
-- Package publishing (use CI/CD tools)
 - Complex documentation generation (PDF, websites)
 - Plugin system for custom languages
 - Remote execution

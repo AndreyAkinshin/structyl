@@ -12,7 +12,6 @@ export default defineConfig({
     logo: '/logo.svg',
 
     nav: [
-      { text: 'Install', link: '/getting-started/installation' },
       { text: 'Getting Started', link: '/getting-started/' },
       { text: 'Guide', link: '/guide/configuration' },
       { text: 'Reference', link: '/reference/error-codes' },

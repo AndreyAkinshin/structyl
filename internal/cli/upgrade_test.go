@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -408,12 +409,13 @@ func TestCmdUpgrade_SpecificVersion_Success(t *testing.T) {
 		// Verify project files were regenerated
 		structylDir := filepath.Join(root, ".structyl")
 
-		// Check setup.sh exists and is executable
+		// Check setup.sh exists and is executable (on Unix systems)
 		setupShPath := filepath.Join(structylDir, "setup.sh")
 		info, err := os.Stat(setupShPath)
 		if err != nil {
 			t.Errorf("setup.sh not found: %v", err)
-		} else if info.Mode()&0100 == 0 {
+		} else if runtime.GOOS != "windows" && info.Mode()&0100 == 0 {
+			// Only check executable bit on Unix systems; Windows doesn't support Unix permissions
 			t.Error("setup.sh is not executable")
 		}
 

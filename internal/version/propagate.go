@@ -12,7 +12,7 @@ import (
 // Propagate updates version in all configured files.
 func Propagate(version string, files []config.VersionFileConfig) error {
 	for _, f := range files {
-		if err := UpdateFile(f.Path, f.Pattern, f.Replace, version); err != nil {
+		if err := UpdateFile(f.Path, f.Pattern, f.Replace, version, f.ReplaceAll); err != nil {
 			return fmt.Errorf("failed to update %s: %w", f.Path, err)
 		}
 	}
@@ -20,7 +20,9 @@ func Propagate(version string, files []config.VersionFileConfig) error {
 }
 
 // UpdateFile updates version in a single file using regex pattern.
-func UpdateFile(path, pattern, replace, version string) error {
+// If replaceAll is false (default), the pattern must match exactly once.
+// If replaceAll is true, all matches are replaced.
+func UpdateFile(path, pattern, replace, version string, replaceAll bool) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return err
@@ -34,6 +36,11 @@ func UpdateFile(path, pattern, replace, version string) error {
 	matches := re.FindAllIndex(data, -1)
 	if len(matches) == 0 {
 		return fmt.Errorf("pattern not found in file")
+	}
+
+	// When replaceAll is false, require exactly one match
+	if !replaceAll && len(matches) > 1 {
+		return fmt.Errorf("pattern matched %d times (expected 1)", len(matches))
 	}
 
 	// Substitute {version} placeholder in replace string

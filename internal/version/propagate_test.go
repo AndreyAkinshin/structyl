@@ -88,7 +88,7 @@ func TestUpdateFile_ValidPattern_ReplacesVersion(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err := UpdateFile(filePath, `"version": "[\d.]+"`, `"version": "{version}"`, "2.0.0")
+	err := UpdateFile(filePath, `"version": "[\d.]+"`, `"version": "{version}"`, "2.0.0", false)
 	if err != nil {
 		t.Fatalf("UpdateFile() error = %v", err)
 	}
@@ -106,7 +106,7 @@ func TestUpdateFile_InvalidPattern_ReturnsError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err := UpdateFile(filePath, "[invalid(regex", "replacement", "1.0.0")
+	err := UpdateFile(filePath, "[invalid(regex", "replacement", "1.0.0", false)
 	if err == nil {
 		t.Error("UpdateFile() expected error for invalid regex")
 	}
@@ -119,7 +119,7 @@ func TestUpdateFile_PatternNotFound_ReturnsError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err := UpdateFile(filePath, `"version": "[\d.]+"`, `"version": "{version}"`, "1.0.0")
+	err := UpdateFile(filePath, `"version": "[\d.]+"`, `"version": "{version}"`, "1.0.0", false)
 	if err == nil {
 		t.Error("UpdateFile() expected error when pattern not found")
 	}
@@ -137,7 +137,7 @@ func TestUpdateFile_NoChange_NoWrite(t *testing.T) {
 	info1, _ := os.Stat(filePath)
 
 	// Update to same version
-	err := UpdateFile(filePath, `"version": "[\d.]+"`, `"version": "{version}"`, "1.0.0")
+	err := UpdateFile(filePath, `"version": "[\d.]+"`, `"version": "{version}"`, "1.0.0", false)
 	if err != nil {
 		t.Fatalf("UpdateFile() error = %v", err)
 	}
@@ -154,13 +154,13 @@ func TestUpdateFile_NoChange_NoWrite(t *testing.T) {
 }
 
 func TestUpdateFile_FileNotFound_ReturnsError(t *testing.T) {
-	err := UpdateFile("/nonexistent/file.txt", `pattern`, `replace`, "1.0.0")
+	err := UpdateFile("/nonexistent/file.txt", `pattern`, `replace`, "1.0.0", false)
 	if err == nil {
 		t.Error("UpdateFile() expected error for missing file")
 	}
 }
 
-func TestUpdateFile_MultipleMatches_ReplacesAll(t *testing.T) {
+func TestUpdateFile_MultipleMatches_ReplaceAllTrue_ReplacesAll(t *testing.T) {
 	tmpDir := t.TempDir()
 	filePath := filepath.Join(tmpDir, "test.txt")
 	content := `version1: 1.0.0, version2: 1.0.0`
@@ -168,7 +168,7 @@ func TestUpdateFile_MultipleMatches_ReplacesAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err := UpdateFile(filePath, `[\d]+\.[\d]+\.[\d]+`, `{version}`, "2.0.0")
+	err := UpdateFile(filePath, `[\d]+\.[\d]+\.[\d]+`, `{version}`, "2.0.0", true)
 	if err != nil {
 		t.Fatalf("UpdateFile() error = %v", err)
 	}
@@ -177,6 +177,23 @@ func TestUpdateFile_MultipleMatches_ReplacesAll(t *testing.T) {
 	expected := `version1: 2.0.0, version2: 2.0.0`
 	if string(result) != expected {
 		t.Errorf("content = %q, want %q", string(result), expected)
+	}
+}
+
+func TestUpdateFile_MultipleMatches_ReplaceAllFalse_ReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	filePath := filepath.Join(tmpDir, "test.txt")
+	content := `version1: 1.0.0, version2: 1.0.0`
+	if err := os.WriteFile(filePath, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	err := UpdateFile(filePath, `[\d]+\.[\d]+\.[\d]+`, `{version}`, "2.0.0", false)
+	if err == nil {
+		t.Error("UpdateFile() expected error when multiple matches and replaceAll=false")
+	}
+	if !strings.Contains(err.Error(), "matched 2 times") {
+		t.Errorf("error = %q, want to contain 'matched 2 times'", err.Error())
 	}
 }
 

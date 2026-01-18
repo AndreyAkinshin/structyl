@@ -284,12 +284,21 @@ func printGenericHelp(w *output.Writer) {
 	w.HelpSection("Project Setup:")
 	w.HelpCommand("init", "Initialize a new structyl project", 10)
 
+	// Use loaded descriptions from defaults
+	defaults := toolchain.GetDefaultToolchains()
+	getDesc := func(cmd string) string {
+		if desc := toolchain.GetCommandDescription(defaults, cmd); desc != "" {
+			return desc
+		}
+		return fmt.Sprintf("Run %s", cmd)
+	}
+
 	w.HelpSection("Common Commands:")
-	w.HelpCommand("build", "Build targets", 10)
-	w.HelpCommand("test", "Run tests", 10)
-	w.HelpCommand("clean", "Clean build artifacts", 10)
-	w.HelpCommand("restore", "Restore/install dependencies", 10)
-	w.HelpCommand("check", "Run static analysis", 10)
+	w.HelpCommand("build", getDesc("build"), 10)
+	w.HelpCommand("test", getDesc("test"), 10)
+	w.HelpCommand("clean", getDesc("clean"), 10)
+	w.HelpCommand("restore", getDesc("restore"), 10)
+	w.HelpCommand("check", getDesc("check"), 10)
 
 	w.HelpSection("CI/Release Commands:")
 	w.HelpCommand("ci", "Run CI pipeline (clean, restore, check, build, test)", 15)

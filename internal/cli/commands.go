@@ -535,11 +535,20 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 	}
 
 	// Fallback to direct execution (Docker mode or mise disabled)
-	// CI pipeline: clean, restore, check, build, test
-	commands := []string{"clean", "restore", "check", "build", "test"}
-
+	// Get CI pipeline from config
+	defaults := toolchain.GetDefaultToolchains()
+	pipelineName := "ci"
 	if cmd == "ci:release" {
-		commands = []string{"clean", "restore", "check", "build:release", "test"}
+		pipelineName = "ci:release"
+	}
+	commands := toolchain.GetPipeline(defaults, pipelineName)
+	if len(commands) == 0 {
+		// Fallback defaults
+		if cmd == "ci:release" {
+			commands = []string{"clean", "restore", "check", "build:release", "test"}
+		} else {
+			commands = []string{"clean", "restore", "check", "build", "test"}
+		}
 	}
 
 	startTime := time.Now()

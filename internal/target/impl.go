@@ -248,7 +248,13 @@ func (t *targetImpl) executeShell(ctx context.Context, cmdStr string, opts ExecO
 	// Create cross-platform shell command
 	var shellCmd *exec.Cmd
 	if runtime.GOOS == "windows" {
-		shellCmd = exec.CommandContext(ctx, "powershell", "-NoProfile", "-NonInteractive", "-Command", cmdStr)
+		// Use full path to PowerShell to bypass mise shims that may intercept commands
+		systemRoot := os.Getenv("SYSTEMROOT")
+		if systemRoot == "" {
+			systemRoot = `C:\Windows`
+		}
+		powershellPath := filepath.Join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+		shellCmd = exec.CommandContext(ctx, powershellPath, "-NoProfile", "-NonInteractive", "-Command", cmdStr)
 	} else {
 		shellCmd = exec.CommandContext(ctx, "sh", "-c", cmdStr)
 	}
@@ -257,8 +263,14 @@ func (t *targetImpl) executeShell(ctx context.Context, cmdStr string, opts ExecO
 	shellCmd.Stdout = os.Stdout
 	shellCmd.Stderr = os.Stderr
 
-	// Set environment
-	shellCmd.Env = os.Environ()
+	// Set environment, filtering out mise-related variables to prevent interference
+	for _, env := range os.Environ() {
+		// Skip mise internal variables that can cause command interception
+		if strings.HasPrefix(env, "__MISE_") || strings.HasPrefix(env, "MISE_SHELL=") {
+			continue
+		}
+		shellCmd.Env = append(shellCmd.Env, env)
+	}
 	for k, v := range t.env {
 		shellCmd.Env = append(shellCmd.Env, k+"="+v)
 	}

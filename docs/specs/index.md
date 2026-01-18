@@ -52,7 +52,7 @@ Configuration files MAY include a `$schema` field for IDE validation:
 
 ```json
 {
-  "$schema": "https://structyl.dev/schemas/structyl.schema.json",
+  "$schema": "https://structyl.akinshin.dev/structyl.schema.json",
   "project": { ... }
 }
 ```

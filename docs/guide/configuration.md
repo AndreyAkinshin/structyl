@@ -263,7 +263,7 @@ Enable IDE autocomplete by adding a schema reference:
 
 ```json
 {
-  "$schema": "https://structyl.dev/schemas/structyl.schema.json",
+  "$schema": "https://structyl.akinshin.dev/structyl.schema.json",
   "project": {
     "name": "my-library"
   }

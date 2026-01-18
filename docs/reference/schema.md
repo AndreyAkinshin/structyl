@@ -8,7 +8,7 @@ Add the schema reference to your `.structyl/config.json`:
 
 ```json
 {
-  "$schema": "https://structyl.dev/schemas/structyl.schema.json",
+  "$schema": "https://structyl.akinshin.dev/structyl.schema.json",
   "project": {
     "name": "my-library"
   }
@@ -65,7 +65,7 @@ The full configuration structure:
 
 ```json
 {
-  "$schema": "https://structyl.dev/schemas/structyl.schema.json",
+  "$schema": "https://structyl.akinshin.dev/structyl.schema.json",
 
   "project": {
     "name": "string (required)",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://structyl.dev/schemas/structyl.schema.json",
+  "$id": "https://structyl.akinshin.dev/structyl.schema.json",
   "title": "Structyl Configuration",
   "description": "Configuration schema for Structyl multi-language project orchestration",
   "type": "object",

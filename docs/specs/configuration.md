@@ -1,5 +1,7 @@
 # Configuration
 
+> **Terminology:** This specification uses [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) keywords (MUST, SHOULD, MAY, etc.) to indicate requirement levels.
+
 This document describes the `.structyl/config.json` configuration file.
 
 ## Overview
@@ -376,7 +378,7 @@ To enable IDE autocomplete and validation, add the schema reference:
 
 ```json
 {
-  "$schema": "https://structyl.dev/schemas/structyl.schema.json",
+  "$schema": "https://structyl.akinshin.dev/structyl.schema.json",
   "project": {
     "name": "myproject"
   }

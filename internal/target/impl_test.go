@@ -490,9 +490,13 @@ func TestExecute_WithVerbosity_ResolvesVariant(t *testing.T) {
 		t.Errorf("Execute() error = %v", err)
 	}
 
-	content, _ := os.ReadFile(outputFile)
-	if !strings.Contains(string(content), "verbose") {
-		t.Errorf("output = %q, want to contain 'verbose' (should have used test:verbose)", string(content))
+	content, err := readTestOutput(outputFile)
+	if err != nil {
+		t.Errorf("failed to read output file: %v", err)
+		return
+	}
+	if !strings.Contains(content, "verbose") {
+		t.Errorf("output = %q, want to contain 'verbose' (should have used test:verbose)", content)
 	}
 }
 
@@ -626,8 +630,8 @@ func TestExecute_WithEnv_SetsEnvironment(t *testing.T) {
 	// Use platform-specific command syntax
 	var echoCmd string
 	if runtime.GOOS == "windows" {
-		// PowerShell syntax for environment variables
-		echoCmd = fmt.Sprintf("\"$env:TARGET_VAR $env:OPTS_VAR\" | Out-File -FilePath '%s' -Encoding ASCII", outputFile)
+		// PowerShell syntax using Set-Content for reliability
+		echoCmd = fmt.Sprintf("Set-Content -Path '%s' -Value ($env:TARGET_VAR + ' ' + $env:OPTS_VAR)", outputFile)
 	} else {
 		echoCmd = "echo $TARGET_VAR $OPTS_VAR > " + outputFile
 	}
@@ -661,17 +665,17 @@ func TestExecute_WithEnv_SetsEnvironment(t *testing.T) {
 	}
 
 	// Verify output file contains both env vars
-	content, err := os.ReadFile(outputFile)
+	content, err := readTestOutput(outputFile)
 	if err != nil {
 		t.Errorf("failed to read output file: %v", err)
 		return
 	}
 
-	if !strings.Contains(string(content), "target_value") {
-		t.Errorf("output = %q, want to contain 'target_value'", string(content))
+	if !strings.Contains(content, "target_value") {
+		t.Errorf("output = %q, want to contain 'target_value'", content)
 	}
-	if !strings.Contains(string(content), "opts_value") {
-		t.Errorf("output = %q, want to contain 'opts_value'", string(content))
+	if !strings.Contains(content, "opts_value") {
+		t.Errorf("output = %q, want to contain 'opts_value'", content)
 	}
 }
 
@@ -682,9 +686,9 @@ func TestExecute_CompositeCommand_ExecutesInOrder(t *testing.T) {
 	// Use platform-specific commands for appending to file
 	var firstCmd, secondCmd string
 	if runtime.GOOS == "windows" {
-		// PowerShell syntax for appending to file with ASCII encoding
-		firstCmd = fmt.Sprintf("'first' | Out-File -FilePath '%s' -Encoding ASCII -Append", outputFile)
-		secondCmd = fmt.Sprintf("'second' | Out-File -FilePath '%s' -Encoding ASCII -Append", outputFile)
+		// PowerShell syntax using Add-Content for reliability
+		firstCmd = fmt.Sprintf("Add-Content -Path '%s' -Value 'first'", outputFile)
+		secondCmd = fmt.Sprintf("Add-Content -Path '%s' -Value 'second'", outputFile)
 	} else {
 		firstCmd = "echo first >> " + outputFile
 		secondCmd = "echo second >> " + outputFile
@@ -713,14 +717,13 @@ func TestExecute_CompositeCommand_ExecutesInOrder(t *testing.T) {
 		return
 	}
 
-	content, err := os.ReadFile(outputFile)
+	output, err := readTestOutput(outputFile)
 	if err != nil {
 		t.Errorf("failed to read output: %v", err)
 		return
 	}
 
 	// Verify order
-	output := string(content)
 	firstIdx := strings.Index(output, "first")
 	secondIdx := strings.Index(output, "second")
 

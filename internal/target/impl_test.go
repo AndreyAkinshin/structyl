@@ -2,16 +2,44 @@ package target
 
 import (
 	"context"
+	"encoding/binary"
 	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
+	"unicode/utf16"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
 	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
+
+// readTestOutput reads a file and decodes it to a string, handling Windows UTF-16 encoding.
+// On Windows, cmd.exe's echo command with redirection creates UTF-16 LE files with BOM.
+func readTestOutput(path string) (string, error) {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+
+	// Check for UTF-16 LE BOM (0xFF 0xFE)
+	if len(content) >= 2 && content[0] == 0xFF && content[1] == 0xFE {
+		// Decode UTF-16 LE to string
+		content = content[2:] // skip BOM
+		if len(content)%2 != 0 {
+			content = content[:len(content)-1] // truncate odd byte
+		}
+
+		u16s := make([]uint16, len(content)/2)
+		for i := range u16s {
+			u16s[i] = binary.LittleEndian.Uint16(content[i*2:])
+		}
+		return string(utf16.Decode(u16s)), nil
+	}
+
+	return string(content), nil
+}
 
 func TestNewTarget(t *testing.T) {
 	cfg := config.TargetConfig{
@@ -879,14 +907,14 @@ func TestExecute_CompositeWithUnavailableCommand_ContinuesWithOthers(t *testing.
 	}
 
 	// Verify vet ran
-	content, readErr := os.ReadFile(outputFile)
+	content, readErr := readTestOutput(outputFile)
 	if readErr != nil {
 		t.Errorf("failed to read output file: %v", readErr)
 		return
 	}
 
-	if !strings.Contains(string(content), "vet-ran") {
-		t.Errorf("output = %q, want to contain 'vet-ran' (vet should have executed)", string(content))
+	if !strings.Contains(content, "vet-ran") {
+		t.Errorf("output = %q, want to contain 'vet-ran' (vet should have executed)", content)
 	}
 }
 
@@ -963,14 +991,14 @@ func TestExecute_ExistingNpmScript_Executes(t *testing.T) {
 	}
 
 	// Verify the command ran
-	content, readErr := os.ReadFile(outputFile)
+	content, readErr := readTestOutput(outputFile)
 	if readErr != nil {
 		t.Errorf("failed to read output file: %v", readErr)
 		return
 	}
 
-	if !strings.Contains(string(content), "script-ran") {
-		t.Errorf("output = %q, want to contain 'script-ran'", string(content))
+	if !strings.Contains(content, "script-ran") {
+		t.Errorf("output = %q, want to contain 'script-ran'", content)
 	}
 }
 
@@ -1013,14 +1041,14 @@ func TestExecute_CompositeWithMissingNpmScript_ContinuesWithOthers(t *testing.T)
 	}
 
 	// Verify build ran
-	content, readErr := os.ReadFile(outputFile)
+	content, readErr := readTestOutput(outputFile)
 	if readErr != nil {
 		t.Errorf("failed to read output file: %v", readErr)
 		return
 	}
 
-	if !strings.Contains(string(content), "build-ran") {
-		t.Errorf("output = %q, want to contain 'build-ran' (build should have executed)", string(content))
+	if !strings.Contains(content, "build-ran") {
+		t.Errorf("output = %q, want to contain 'build-ran' (build should have executed)", content)
 	}
 }
 

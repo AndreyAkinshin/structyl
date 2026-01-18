@@ -82,7 +82,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 |---------|------|
 | `build` | `go build ./...` |
 | `test` | `go test ./...` |
-| `check` | lint + vet |
+| `check` | lint + format-check |
 | `lint` | `golangci-lint run` |
 | `format` | `go fmt ./...` |
 | `bench` | `go test -bench=. ./...` |

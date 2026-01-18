@@ -144,7 +144,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `test` | `go test ./...` |
 | `test:verbose` | `go test -v ./...` |
 | `test:coverage` | `go test -cover ./...` |
-| `check` | `["lint", "vet"]` |
+| `check` | `["lint", "format-check"]` |
 | `lint` | `golangci-lint run` |
 | `vet` | `go vet ./...` |
 | `format` | `go fmt ./...` |

@@ -98,6 +98,10 @@ func Run(args []string) int {
 	case "mise":
 		return cmdMise(cmdArgs, opts)
 
+	// Test utilities
+	case "test-summary":
+		return cmdTestSummary(cmdArgs)
+
 	// Utility commands
 	case "targets":
 		return cmdTargets(cmdArgs, opts)

@@ -301,26 +301,44 @@ func generateZshCompletion(cmdName string) string {
         'fish:Generate fish completion'
     )
 
+    # Get dynamic targets (used in multiple places)
+    local -a targets
+    targets=(${(f)"$(structyl targets 2>/dev/null | awk '{print $1}')"})
+
+    # Determine current position
+    local cur_pos=$((CURRENT - 1))
+
+    if (( cur_pos == 1 )); then
+        # First argument: show all commands, target commands, dynamic targets, and flags
+        _describe -t commands 'command' commands
+        _describe -t target-commands 'target command' target_commands
+        if [[ ${#targets[@]} -gt 0 && -n "${targets[1]}" ]]; then
+            _describe -t targets 'target' targets
+        fi
+        _arguments -s $flags[@]
+        return
+    fi
+
+    # Second+ argument: context-sensitive completion based on first word
     case "${words[2]}" in
         config)
             _describe -t config-subcommands 'config subcommand' config_subcommands
-            return
             ;;
         completion)
             _describe -t shells 'shell' completion_shells
-            return
+            ;;
+        build|build\:release|test|test\:coverage|clean|restore|check|format|format-check|lint|bench|demo|doc|pack)
+            # Target commands: show dynamic targets as arguments
+            if [[ ${#targets[@]} -gt 0 && -n "${targets[1]}" ]]; then
+                _describe -t targets 'target' targets
+            fi
+            _arguments -s $flags[@]
+            ;;
+        *)
+            # Unknown command or builtin without subcommands: just show flags
+            _arguments -s $flags[@]
             ;;
     esac
-
-    # Try to get dynamic targets
-    local -a targets
-    if targets=(${(f)"$(structyl targets 2>/dev/null | awk '{print $1}')"}); then
-        _describe -t targets 'target' targets
-    fi
-
-    _describe -t commands 'command' commands
-    _describe -t target-commands 'target command' target_commands
-    _arguments -s $flags
 }
 
 compdef %s %s

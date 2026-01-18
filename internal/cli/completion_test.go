@@ -250,6 +250,15 @@ func TestGenerateZshCompletion_ContainsRequiredElements(t *testing.T) {
 		"'init:Initialize a new structyl project'",
 		"'--docker[Run in Docker container]'",
 		"awk '{print $1}'", // portable alternative to grep -oP
+		// Position-aware completion logic
+		"cur_pos=$((CURRENT - 1))",
+		"if (( cur_pos == 1 ))",
+		// Proper array expansion for flags
+		"$flags[@]",
+		// Empty targets guard
+		`${#targets[@]} -gt 0 && -n "${targets[1]}"`,
+		// Context-sensitive completion for target commands
+		"build|build\\:release|test|test\\:coverage|clean|restore|check|format|format-check|lint|bench|demo|doc|pack)",
 	}
 
 	for _, elem := range requiredElements {
@@ -261,6 +270,11 @@ func TestGenerateZshCompletion_ContainsRequiredElements(t *testing.T) {
 	// Ensure non-portable grep -oP is not used (fails on macOS BSD grep)
 	if strings.Contains(output, "grep -oP") {
 		t.Error("generateZshCompletion() should not use non-portable 'grep -oP'")
+	}
+
+	// Ensure old buggy patterns are not present
+	if strings.Contains(output, "_arguments -s $flags\n") {
+		t.Error("generateZshCompletion() should use $flags[@] not $flags for proper array expansion")
 	}
 }
 

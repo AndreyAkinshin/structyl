@@ -17,22 +17,15 @@ structyl ci:release [--docker] [--continue]
 
 ### Behavior
 
-The `ci` command executes the full build pipeline:
+The `ci` command executes the following steps for each target:
 
-1. **Auxiliary builds** (in dependency order)
-   - Build image generation targets
-   - Build documentation targets
-   - Build web/PDF targets (if applicable)
+1. `clean` - Remove build artifacts
+2. `restore` - Install dependencies
+3. `check` - Static analysis
+4. `build` - Compilation
+5. `test` - Run tests
 
-2. **Language builds** (can be parallelized)
-   - For each language target:
-     - `check` (if available)
-     - `build`
-     - `test`
-     - `pack` (if available)
-
-3. **Artifact collection**
-   - Gather all build outputs into `artifacts/` directory
+For `ci:release`, step 4 uses `build:release` instead of `build`.
 
 ### Variants
 
@@ -55,22 +48,19 @@ The `ci` command executes the full build pipeline:
 
 ## Build Pipeline Steps
 
-The CI pipeline follows this execution order:
+The CI pipeline follows this execution order for each target:
 
 ```
-1. img (auxiliary)
-2. gen (auxiliary, depends on img)
-3. pdf (auxiliary, depends on img)
-4. web (auxiliary, depends on img, pdf)
-5. Language targets (parallel):
-   - cs: check → build → test → pack
-   - go: deps → build → test
-   - kt: build (includes test)
-   - py: test → build → check
-   - r: check → build → test
-   - rs: check → test → build → pack
-   - ts: check → test → build → pack
+clean → restore → check → build → test
 ```
+
+For `ci:release` mode:
+
+```
+clean → restore → check → build:release → test
+```
+
+Targets are processed in dependency order, respecting `depends_on` declarations.
 
 ## Artifact Collection
 

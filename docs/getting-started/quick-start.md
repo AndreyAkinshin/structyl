@@ -148,7 +148,7 @@ structyl build rs
 
 ## Run the CI Pipeline
 
-Execute the full CI pipeline (restore, build, test):
+Execute the full CI pipeline (clean, restore, check, build, test):
 
 ```bash
 structyl ci

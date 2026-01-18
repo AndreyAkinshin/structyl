@@ -102,7 +102,7 @@ The `ci` command runs a complete build pipeline:
 structyl ci
 ```
 
-Executes: `restore` → `check` → `build` → `test`
+Executes: `clean` → `restore` → `check` → `build` → `test`
 
 See [CI Integration](./ci-integration) for details.
 

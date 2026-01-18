@@ -14,13 +14,14 @@ This runs the full build pipeline:
 2. **Language builds** (in parallel)
 3. **Artifact collection**
 
-### For Each Language Target
+### For Each Target
 
-The CI pipeline runs:
+The CI pipeline runs these steps sequentially:
+- `clean` - Remove build artifacts
+- `restore` - Install dependencies
 - `check` - Static analysis
 - `build` - Compilation
-- `test` - Tests
-- `pack` - Package creation
+- `test` - Run tests
 
 ### Variants
 
@@ -182,14 +183,11 @@ jobs:
 ## Execution Order
 
 ```
-1. Auxiliary targets (dependency order):
-   img → pdf → web
+For each target (in dependency order):
+   clean → restore → check → build → test
 
-2. Language targets (parallel):
-   rs: check → build → test → pack
-   py: check → build → test → pack
-   go: check → build → test
-   ...
+For ci:release mode:
+   clean → restore → check → build:release → test
 ```
 
 ## Exit Codes

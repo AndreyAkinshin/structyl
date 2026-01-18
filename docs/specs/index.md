@@ -2,6 +2,8 @@
 
 **Multi-Language Project Orchestration System**
 
+> **Terminology:** This specification uses [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY) to indicate requirement levels.
+
 ---
 
 ## What is Structyl?
@@ -59,10 +61,6 @@ Configuration files MAY include a `$schema` field for IDE validation:
 
 Structyl ignores this field (per Extensibility Rule 3).
 
-### Terminology
-
-This specification uses RFC 2119 keywords (MUST, SHOULD, MAY, etc.) to indicate requirement levels. See [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) for definitions.
-
 ## Quick Start
 
 ```bash
@@ -84,23 +82,23 @@ structyl build --docker
 
 ## Specification Index
 
-| Document | Description |
-|----------|-------------|
-| [glossary.md](glossary.md) | Term definitions and abbreviations |
-| [project-structure.md](project-structure.md) | Directory layout and root marker conventions |
-| [configuration.md](configuration.md) | `.structyl/config.json` configuration file format |
-| [structyl.schema.json](/structyl.schema.json) | JSON Schema for configuration validation |
-| [commands.md](commands.md) | Command vocabulary and execution model |
-| [toolchains.md](toolchains.md) | Built-in toolchain presets |
-| [targets.md](targets.md) | Language and auxiliary target definitions |
-| [test-system.md](test-system.md) | Reference test format and discovery |
-| [version-management.md](version-management.md) | Version file and propagation patterns |
-| [docker.md](docker.md) | Docker configuration and templates |
-| [documentation.md](documentation.md) | README generation system |
-| [ci-integration.md](ci-integration.md) | Local CI simulation |
-| [error-handling.md](error-handling.md) | Exit codes and failure modes |
-| [cross-platform.md](cross-platform.md) | Windows/Unix support |
-| [go-architecture.md](go-architecture.md) | Internal Go implementation |
+| Document                                       | Description                                       |
+| ---------------------------------------------- | ------------------------------------------------- |
+| [glossary.md](glossary.md)                     | Term definitions and abbreviations                |
+| [project-structure.md](project-structure.md)   | Directory layout and root marker conventions      |
+| [configuration.md](configuration.md)           | `.structyl/config.json` configuration file format |
+| [structyl.schema.json](/structyl.schema.json)  | JSON Schema for configuration validation          |
+| [commands.md](commands.md)                     | Command vocabulary and execution model            |
+| [toolchains.md](toolchains.md)                 | Built-in toolchain presets                        |
+| [targets.md](targets.md)                       | Language and auxiliary target definitions         |
+| [test-system.md](test-system.md)               | Reference test format and discovery               |
+| [version-management.md](version-management.md) | Version file and propagation patterns             |
+| [docker.md](docker.md)                         | Docker configuration and templates                |
+| [documentation.md](documentation.md)           | README generation system                          |
+| [ci-integration.md](ci-integration.md)         | Local CI simulation                               |
+| [error-handling.md](error-handling.md)         | Exit codes and failure modes                      |
+| [cross-platform.md](cross-platform.md)         | Windows/Unix support                              |
+| [go-architecture.md](go-architecture.md)       | Internal Go implementation                        |
 
 ## Scope
 

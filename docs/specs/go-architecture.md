@@ -12,43 +12,62 @@ structyl/
 │   └── structyl/
 │       └── main.go              # CLI entry point
 ├── internal/
-│   ├── cli/
-│   │   ├── cli.go               # Command-line parsing
+│   ├── cli/                     # Command-line interface
+│   │   ├── cli.go               # Run(), parseGlobalFlags(), printUsage()
 │   │   ├── commands.go          # Command handlers
-│   │   └── flags.go             # Flag definitions
-│   ├── config/
-│   │   ├── config.go            # Configuration loading
+│   │   ├── init.go              # Project initialization
+│   │   ├── upgrade.go           # CLI version management
+│   │   ├── completion.go        # Shell completion generation
+│   │   ├── mise.go              # Mise integration
+│   │   ├── prompts.go           # Interactive prompts
+│   │   └── test_summary.go      # Test result summarization
+│   ├── config/                  # Configuration loading & validation
+│   │   ├── config.go            # Load(), LoadWithDefaults()
 │   │   ├── schema.go            # Go structs for config
 │   │   └── defaults.go          # Default values
-│   ├── project/
-│   │   ├── project.go           # Project discovery/loading
-│   │   ├── root.go              # Root marker detection
+│   ├── project/                 # Project discovery
+│   │   ├── project.go           # LoadProject()
+│   │   ├── root.go              # FindRoot() - walks up to .structyl/config.json
 │   │   └── discover.go          # Target auto-discovery
-│   ├── target/
+│   ├── target/                  # Target execution
 │   │   ├── target.go            # Target interface and types
-│   │   ├── executor.go          # Command execution
-│   │   └── registry.go          # Target registry
-│   ├── runner/
-│   │   ├── runner.go            # Build orchestration
-│   │   ├── parallel.go          # Parallel execution
-│   │   └── docker.go            # Docker integration
-│   ├── version/
-│   │   ├── version.go           # Version management
-│   │   └── updater.go           # File version updates
-│   ├── tests/
-│   │   ├── loader.go            # Test data loading
-│   │   └── types.go             # Test data structures
-│   ├── docs/
-│   │   ├── generator.go         # Documentation generation
-│   │   └── templates.go         # Template processing
-│   └── output/
-│       ├── colors.go            # ANSI color definitions
-│       ├── formatter.go         # Output formatting
-│       └── logger.go            # Logging utilities
+│   │   ├── impl.go              # targetImpl struct, Execute()
+│   │   └── registry.go          # Registry, TopologicalOrder()
+│   ├── toolchain/               # Toolchain definitions
+│   │   ├── toolchain.go         # Toolchain struct
+│   │   ├── builtin.go           # Built-in toolchain definitions
+│   │   ├── detect.go            # Auto-detection from marker files
+│   │   └── resolver.go          # Merges custom + builtin toolchains
+│   ├── runner/                  # Build orchestration
+│   │   ├── runner.go            # Runner, Run(), RunAll()
+│   │   ├── docker.go            # DockerRunner, IsDockerAvailable()
+│   │   ├── compose.go           # Docker Compose generation
+│   │   └── ci.go                # CI pipeline simulation
+│   ├── version/                 # Version management
+│   │   ├── version.go           # ReadVersion(), ParseVersion()
+│   │   └── propagate.go         # Version file updates
+│   ├── tests/                   # Test data handling
+│   │   └── ...                  # Test data loading
+│   ├── testparser/              # Reference test parsing
+│   │   └── ...                  # JSON test case parsing
+│   ├── docs/                    # Documentation generation
+│   │   └── ...                  # Template processing
+│   ├── output/                  # Output formatting
+│   │   └── ...                  # Colors, formatting, logging
+│   ├── errors/                  # Error definitions
+│   │   └── ...                  # Structured error types
+│   ├── mise/                    # Mise task runner integration
+│   │   └── ...                  # .mise.toml generation
+│   ├── release/                 # Release management
+│   │   └── ...                  # Git tag/push operations
+│   └── testing/                 # Test utilities
+│       └── mocks/               # Mock implementations
 ├── pkg/
-│   └── testhelper/
-│       ├── loader.go            # Reusable test loader
-│       └── compare.go           # Output comparison
+│   └── testhelper/              # Reusable test utilities
+│       └── ...                  # Test loader, comparison
+├── test/
+│   ├── integration/             # Integration tests
+│   └── fixtures/                # Test project fixtures
 └── go.mod
 ```
 
@@ -268,16 +287,16 @@ go test -race ./...
 
 Minimal external dependencies:
 
-| Package | Purpose |
-|---------|---------|
-| `encoding/json` | JSON parsing (stdlib) |
-| `os/exec` | Command execution (stdlib) |
-| `path/filepath` | Path handling (stdlib) |
+| Package         | Purpose                      |
+| --------------- | ---------------------------- |
+| `encoding/json` | JSON parsing (stdlib)        |
+| `os/exec`       | Command execution (stdlib)   |
+| `path/filepath` | Path handling (stdlib)       |
 | `text/template` | Template processing (stdlib) |
 
 No external dependency for core functionality. Optional:
 
-| Package | Purpose |
-|---------|---------|
-| `github.com/spf13/cobra` | CLI framework (optional) |
+| Package                  | Purpose                    |
+| ------------------------ | -------------------------- |
+| `github.com/spf13/cobra` | CLI framework (optional)   |
 | `github.com/fatih/color` | Terminal colors (optional) |

@@ -30,37 +30,47 @@ If `toolchain` is omitted, Structyl attempts auto-detection based on files in th
 
 Structyl checks for marker files in order:
 
-| File | Toolchain |
-|------|-----------|
-| `Cargo.toml` | `cargo` |
-| `go.mod` | `go` |
-| `deno.jsonc`, `deno.json` | `deno` |
-| `pnpm-lock.yaml` | `pnpm` |
-| `yarn.lock` | `yarn` |
-| `bun.lockb` | `bun` |
-| `package.json` | `npm` |
-| `uv.lock` | `uv` |
-| `poetry.lock` | `poetry` |
-| `pyproject.toml`, `setup.py` | `python` |
-| `build.gradle.kts`, `build.gradle` | `gradle` |
-| `pom.xml` | `maven` |
-| `build.sbt` | `sbt` |
-| `Package.swift` | `swift` |
-| `CMakeLists.txt` | `cmake` |
-| `Makefile` | `make` |
-| `*.csproj`, `*.fsproj` | `dotnet` |
-| `Gemfile` | `bundler` |
-| `composer.json` | `composer` |
-| `mix.exs` | `mix` |
-| `stack.yaml` | `stack` |
-| `*.cabal` | `cabal` |
-| `dune-project` | `dune` |
-| `project.clj` | `lein` |
-| `build.zig` | `zig` |
-| `rebar.config` | `rebar3` |
-| `DESCRIPTION` | `r` |
+| File                               | Toolchain  |
+| ---------------------------------- | ---------- |
+| `Cargo.toml`                       | `cargo`    |
+| `go.mod`                           | `go`       |
+| `deno.jsonc`, `deno.json`          | `deno`     |
+| `pnpm-lock.yaml`                   | `pnpm`     |
+| `yarn.lock`                        | `yarn`     |
+| `bun.lockb`                        | `bun`      |
+| `package.json`                     | `npm`      |
+| `uv.lock`                          | `uv`       |
+| `poetry.lock`                      | `poetry`   |
+| `pyproject.toml`, `setup.py`       | `python`   |
+| `build.gradle.kts`, `build.gradle` | `gradle`   |
+| `pom.xml`                          | `maven`    |
+| `build.sbt`                        | `sbt`      |
+| `Package.swift`                    | `swift`    |
+| `CMakeLists.txt`                   | `cmake`    |
+| `Makefile`                         | `make`     |
+| `*.csproj`, `*.fsproj`             | `dotnet`   |
+| `Gemfile`                          | `bundler`  |
+| `composer.json`                    | `composer` |
+| `mix.exs`                          | `mix`      |
+| `stack.yaml`                       | `stack`    |
+| `*.cabal`                          | `cabal`    |
+| `dune-project`                     | `dune`     |
+| `project.clj`                      | `lein`     |
+| `build.zig`                        | `zig`      |
+| `rebar.config`                     | `rebar3`   |
+| `DESCRIPTION`                      | `r`        |
 
-First match wins. Explicit `toolchain` declaration is recommended for clarity.
+### Detection Algorithm
+
+1. For each marker pattern in the table above (checked in listed order):
+2. If the pattern contains `*` (glob): check if any files match the glob in the target directory
+3. Otherwise: check if the exact file exists in the target directory
+4. Return the toolchain for the **first match found**
+5. If no patterns match, the toolchain is undefined (requires explicit `toolchain` configuration)
+
+**Glob patterns:** Entries marked with `*` (e.g., `*.csproj`) use glob matching. For example, `*.csproj` matches any file ending in `.csproj` in the target directory.
+
+Explicit `toolchain` declaration is RECOMMENDED for clarity and to avoid detection order surprises.
 
 ## Standard Command Vocabulary
 

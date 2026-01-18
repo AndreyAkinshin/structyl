@@ -4,20 +4,26 @@ Structyl provides a unified command interface that works across all programming 
 
 ## Standard Commands
 
-| Command | Purpose | Example |
-|---------|---------|---------|
-| `clean` | Remove build artifacts | `structyl clean rs` |
-| `restore` | Install dependencies | `structyl restore py` |
-| `check` | Run all checks (lint + format) | `structyl check go` |
-| `lint` | Run linter | `structyl lint rs` |
-| `format` | Auto-format code | `structyl format py` |
-| `format-check` | Verify formatting | `structyl format-check ts` |
-| `build` | Build the project | `structyl build rs` |
-| `test` | Run tests | `structyl test py` |
-| `bench` | Run benchmarks | `structyl bench go` |
-| `demo` | Run demo code | `structyl demo cs` |
-| `pack` | Create package | `structyl pack ts` |
-| `doc` | Generate API docs | `structyl doc rs` |
+| Command         | Purpose                                             | Example                     |
+| --------------- | --------------------------------------------------- | --------------------------- |
+| `clean`         | Remove build artifacts                              | `structyl clean rs`         |
+| `restore`       | Install dependencies                                | `structyl restore py`       |
+| `build`         | Build the project                                   | `structyl build rs`         |
+| `build:release` | Build with release optimizations                    | `structyl build:release rs` |
+| `test`          | Run tests                                           | `structyl test py`          |
+| `test:coverage` | Run tests with coverage                             | `structyl test:coverage py` |
+| `check`         | Run static analysis (lint, typecheck, format-check) | `structyl check go`         |
+| `check:fix`     | Auto-fix static analysis issues                     | `structyl check:fix go`     |
+| `bench`         | Run benchmarks                                      | `structyl bench go`         |
+| `demo`          | Run demo code                                       | `structyl demo cs`          |
+| `doc`           | Generate API docs                                   | `structyl doc rs`           |
+| `pack`          | Create distributable package                        | `structyl pack ts`          |
+| `publish`       | Publish package to registry                         | `structyl publish ts`       |
+| `publish:dry`   | Dry-run publish                                     | `structyl publish:dry ts`   |
+
+::: info Lint and Format Commands
+Individual `lint`, `format`, and `format-check` commands are not part of the standard command vocabulary. Instead, toolchains implement these as part of `check` (for verification) and `check:fix` (for auto-correction). See [Toolchains](./toolchains) for specific mappings.
+:::
 
 ## Running Commands
 
@@ -87,12 +93,12 @@ Define variants in configuration:
 
 Commands that operate on multiple targets:
 
-| Command | Description |
-|---------|-------------|
+| Command          | Description                               |
+| ---------------- | ----------------------------------------- |
 | `structyl build` | Build all targets (respects dependencies) |
-| `structyl test` | Test all language targets |
-| `structyl clean` | Clean all targets |
-| `structyl ci` | Run full CI pipeline |
+| `structyl test`  | Test all language targets                 |
+| `structyl clean` | Clean all targets                         |
+| `structyl ci`    | Run full CI pipeline                      |
 
 ### CI Pipeline
 
@@ -108,12 +114,12 @@ See [CI Integration](./ci-integration) for details.
 
 ## Utility Commands
 
-| Command | Description |
-|---------|-------------|
-| `structyl targets` | List configured targets |
-| `structyl release <version>` | Set version and release |
-| `structyl upgrade [version]` | Manage pinned CLI version |
-| `structyl config validate` | Validate configuration |
+| Command                       | Description                                 |
+| ----------------------------- | ------------------------------------------- |
+| `structyl targets`            | List configured targets                     |
+| `structyl release <version>`  | Set version and release                     |
+| `structyl upgrade [version]`  | Manage pinned CLI version                   |
+| `structyl config validate`    | Validate configuration                      |
 | `structyl completion <shell>` | Generate shell completion (bash, zsh, fish) |
 
 ## Defining Commands
@@ -216,6 +222,7 @@ Use variables in commands:
 ```
 
 Built-in variables:
+
 - `${target}` - Target slug
 - `${target_dir}` - Target directory
 - `${root}` - Project root
@@ -237,20 +244,20 @@ Running a null command succeeds with a warning.
 
 ## Global Flags
 
-| Flag | Description |
-|------|-------------|
-| `--docker` | Run in Docker container |
-| `--continue` | Continue on errors |
-| `--type=<type>` | Filter by target type |
+| Flag            | Description             |
+| --------------- | ----------------------- |
+| `--docker`      | Run in Docker container |
+| `--continue`    | Continue on errors      |
+| `--type=<type>` | Filter by target type   |
 
 ## Exit Codes
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | Command failed |
-| 2 | Configuration error |
-| 3 | Environment error |
+| Code | Meaning             |
+| ---- | ------------------- |
+| 0    | Success             |
+| 1    | Command failed      |
+| 2    | Configuration error |
+| 3    | Environment error   |
 
 ## Next Steps
 

@@ -1,6 +1,8 @@
 # Documentation Generation
 
-> **Status:** This feature is specified but not yet implemented.
+::: warning NOT YET IMPLEMENTED
+This feature is specified for Structyl v1.0 but **not yet implemented**. The specification below describes planned behavior. The `structyl docs generate` command does not currently exist.
+:::
 
 > **Terminology:** This specification uses [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) keywords (MUST, SHOULD, MAY, etc.) to indicate requirement levels.
 
@@ -11,6 +13,7 @@ This document describes Structyl's planned documentation generation capabilities
 Structyl v1.0 focuses on **README generation only**. More complex documentation (PDF manuals, websites) is out of scope.
 
 The README generator:
+
 - Creates per-language README files from templates
 - Injects version, install instructions, and demo code
 - Ensures consistency across all language implementations
@@ -41,7 +44,7 @@ Create a template at the path specified in configuration:
 
 Templates use placeholder syntax `$PLACEHOLDER$`:
 
-```markdown
+````markdown
 # MyProject - $LANG_TITLE$ Implementation
 
 $DESCRIPTION$
@@ -55,6 +58,7 @@ $INSTALL$
 ```$LANG_CODE$
 $DEMO$
 ```
+````
 
 ## Version
 
@@ -63,6 +67,7 @@ Current version: $VERSION$
 ## License
 
 $LICENSE$
+
 ```
 
 ### Supported Placeholders
@@ -94,17 +99,19 @@ Unknown placeholders are preserved in the output to support custom post-processi
 Installation instructions and demo code are sourced from separate files:
 
 ```
+
 templates/
-├── README.md.tmpl           # Main template
+├── README.md.tmpl # Main template
 ├── install/
-│   ├── cs.md                # C# installation
-│   ├── py.md                # Python installation
-│   └── ...
+│ ├── cs.md # C# installation
+│ ├── py.md # Python installation
+│ └── ...
 └── demo/
-    ├── cs.md                # C# demo (or extracted from code)
-    ├── py.md
-    └── ...
-```
+├── cs.md # C# demo (or extracted from code)
+├── py.md
+└── ...
+
+````
 
 Alternatively, demo code can be extracted directly from source files:
 
@@ -116,7 +123,7 @@ Alternatively, demo code can be extracted directly from source files:
     }
   }
 }
-```
+````
 
 #### Demo Extraction Rules
 
@@ -127,11 +134,13 @@ When `demo_path` is specified, the source file is processed as follows:
 3. **If no markers:** Use the entire file content
 
 Marker syntax (language-specific comment style):
+
 - C-style: `// structyl:demo:begin` ... `// structyl:demo:end`
 - Python/R: `# structyl:demo:begin` ... `# structyl:demo:end`
 - HTML/XML: `<!-- structyl:demo:begin -->` ... `<!-- structyl:demo:end -->`
 
 Example with markers:
+
 ```csharp
 using System;
 // structyl:demo:begin
@@ -151,6 +160,7 @@ READMEs are generated at:
 ```
 
 For example:
+
 - `cs/README.md`
 - `py/README.md`
 - `rs/README.md`
@@ -166,10 +176,10 @@ For example:
 }
 ```
 
-| Field | Description | Default |
-|-------|-------------|---------|
-| `readme_template` | Path to README template | None (optional feature) |
-| `placeholders` | List of placeholder names used | All standard placeholders |
+| Field             | Description                    | Default                   |
+| ----------------- | ------------------------------ | ------------------------- |
+| `readme_template` | Path to README template        | None (optional feature)   |
+| `placeholders`    | List of placeholder names used | All standard placeholders |
 
 ## Example Workflow
 
@@ -182,6 +192,7 @@ For example:
 ## Generated vs Source Files
 
 Generated READMEs should be committed to the repository. This ensures:
+
 - Package registries display documentation
 - GitHub shows README on repository page
 - Offline access to documentation
@@ -194,6 +205,7 @@ Add a header comment to indicate the file is generated:
 <!-- Regenerate with: structyl docs generate -->
 
 # MyProject - C# Implementation
+
 ...
 ```
 

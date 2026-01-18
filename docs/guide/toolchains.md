@@ -60,17 +60,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "cargo" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `cargo build` |
-| `build:release` | `cargo build --release` |
-| `test` | `cargo test` |
-| `check` | lint + format-check |
-| `lint` | `cargo clippy -- -D warnings` |
-| `format` | `cargo fmt` |
-| `bench` | `cargo bench` |
-| `pack` | `cargo package` |
-| `doc` | `cargo doc --no-deps` |
+<ToolchainCommands name="cargo" variant="guide" />
 
 ### Go: `go`
 
@@ -78,16 +68,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "go" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `go build ./...` |
-| `test` | `go test ./...` |
-| `check` | lint + vet |
-| `lint` | `golangci-lint run` |
-| `vet` | `go vet ./...` |
-| `format` | `go fmt ./...` |
-| `bench` | `go test -bench=. ./...` |
-| `doc` | `go doc ./...` |
+<ToolchainCommands name="go" variant="guide" />
 
 ### .NET: `dotnet`
 
@@ -95,14 +76,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "dotnet" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `dotnet build` |
-| `build:release` | `dotnet build -c Release` |
-| `test` | `dotnet test` |
-| `restore` | `dotnet restore` |
-| `format` | `dotnet format` |
-| `pack` | `dotnet pack` |
+<ToolchainCommands name="dotnet" variant="guide" />
 
 ### Python: `uv`
 
@@ -110,13 +84,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "uv" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `uv build` |
-| `test` | `uv run pytest` |
-| `restore` | `uv sync --all-extras` |
-| `lint` | `uv run ruff check .` |
-| `format` | `uv run ruff format .` |
+<ToolchainCommands name="uv" variant="guide" />
 
 ### Python: `poetry`
 
@@ -124,12 +92,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "poetry" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `poetry build` |
-| `test` | `poetry run pytest` |
-| `restore` | `poetry install` |
-| `lint` | `poetry run ruff check .` |
+<ToolchainCommands name="poetry" variant="guide" />
 
 ### Python: `python`
 
@@ -137,12 +100,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "python" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `python -m build` |
-| `test` | `pytest` |
-| `restore` | `pip install -e .` |
-| `lint` | `ruff check .` |
+<ToolchainCommands name="python" variant="guide" />
 
 ### Node.js: `npm`
 
@@ -150,13 +108,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "npm" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `npm run build` |
-| `test` | `npm test` |
-| `restore` | `npm ci` |
-| `lint` | `npm run lint` |
-| `pack` | `npm pack` |
+<ToolchainCommands name="npm" variant="guide" />
 
 ### Node.js: `pnpm`
 
@@ -164,12 +116,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "pnpm" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `pnpm build` |
-| `test` | `pnpm test` |
-| `restore` | `pnpm install --frozen-lockfile` |
-| `pack` | `pnpm pack` |
+<ToolchainCommands name="pnpm" variant="guide" />
 
 ### Node.js: `yarn`
 
@@ -177,12 +124,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "yarn" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `yarn build` |
-| `test` | `yarn test` |
-| `restore` | `yarn install --frozen-lockfile` |
-| `pack` | `yarn pack` |
+<ToolchainCommands name="yarn" variant="guide" />
 
 ### Node.js: `bun`
 
@@ -190,11 +132,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "bun" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `bun run build` |
-| `test` | `bun test` |
-| `restore` | `bun install --frozen-lockfile` |
+<ToolchainCommands name="bun" variant="guide" />
 
 ### Deno: `deno`
 
@@ -202,15 +140,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "deno" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `test` | `deno test` |
-| `restore` | `deno install` |
-| `check` | lint + typecheck |
-| `lint` | `deno lint` |
-| `format` | `deno fmt` |
-| `bench` | `deno bench` |
-| `doc` | `deno doc` |
+<ToolchainCommands name="deno" variant="guide" />
 
 ### JVM: `gradle`
 
@@ -218,13 +148,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "gradle" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `gradle build -x test` |
-| `test` | `gradle test` |
-| `clean` | `gradle clean` |
-| `pack` | `gradle jar` |
-| `doc` | `gradle javadoc` |
+<ToolchainCommands name="gradle" variant="guide" />
 
 ### JVM: `maven`
 
@@ -232,13 +156,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "maven" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `mvn compile` |
-| `test` | `mvn test` |
-| `clean` | `mvn clean` |
-| `restore` | `mvn dependency:resolve` |
-| `pack` | `mvn package -DskipTests` |
+<ToolchainCommands name="maven" variant="guide" />
 
 ### Scala: `sbt`
 
@@ -246,15 +164,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "sbt" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `sbt compile` |
-| `test` | `sbt test` |
-| `clean` | `sbt clean` |
-| `restore` | `sbt update` |
-| `format` | `sbt scalafmt` |
-| `pack` | `sbt package` |
-| `doc` | `sbt doc` |
+<ToolchainCommands name="sbt" variant="guide" />
 
 ### Swift: `swift`
 
@@ -262,12 +172,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "swift" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `swift build` |
-| `build:release` | `swift build -c release` |
-| `test` | `swift test` |
-| `restore` | `swift package resolve` |
+<ToolchainCommands name="swift" variant="guide" />
 
 ### C/C++: `cmake`
 
@@ -275,11 +180,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "cmake" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `restore` | `cmake -B build -S .` |
-| `build` | `cmake --build build` |
-| `test` | `ctest --test-dir build` |
+<ToolchainCommands name="cmake" variant="guide" />
 
 ### Generic: `make`
 
@@ -287,11 +188,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "make" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `make` |
-| `test` | `make test` |
-| `clean` | `make clean` |
+<ToolchainCommands name="make" variant="guide" />
 
 ### Ruby: `bundler`
 
@@ -299,15 +196,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "bundler" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `bundle exec rake build` |
-| `test` | `bundle exec rake test` |
-| `restore` | `bundle install` |
-| `lint` | `bundle exec rubocop` |
-| `format` | `bundle exec rubocop -a` |
-| `pack` | `gem build *.gemspec` |
-| `doc` | `bundle exec yard doc` |
+<ToolchainCommands name="bundler" variant="guide" />
 
 ### PHP: `composer`
 
@@ -315,12 +204,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "composer" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `test` | `composer test` |
-| `restore` | `composer install` |
-| `lint` | `composer run-script lint` |
-| `format` | `composer run-script format` |
+<ToolchainCommands name="composer" variant="guide" />
 
 ### Elixir: `mix`
 
@@ -328,16 +212,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "mix" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `mix compile` |
-| `test` | `mix test` |
-| `clean` | `mix clean` |
-| `restore` | `mix deps.get` |
-| `check` | lint + typecheck |
-| `lint` | `mix credo` |
-| `format` | `mix format` |
-| `doc` | `mix docs` |
+<ToolchainCommands name="mix" variant="guide" />
 
 ### Haskell: `cabal`
 
@@ -345,16 +220,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "cabal" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `cabal build` |
-| `test` | `cabal test` |
-| `clean` | `cabal clean` |
-| `restore` | `cabal update` |
-| `check` | `cabal check` |
-| `lint` | `hlint .` |
-| `bench` | `cabal bench` |
-| `doc` | `cabal haddock` |
+<ToolchainCommands name="cabal" variant="guide" />
 
 ### Haskell: `stack`
 
@@ -362,15 +228,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "stack" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `stack build` |
-| `test` | `stack test` |
-| `clean` | `stack clean` |
-| `restore` | `stack setup` |
-| `lint` | `stack exec -- hlint .` |
-| `bench` | `stack bench` |
-| `doc` | `stack haddock` |
+<ToolchainCommands name="stack" variant="guide" />
 
 ### OCaml: `dune`
 
@@ -378,14 +236,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "dune" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `dune build` |
-| `test` | `dune runtest` |
-| `clean` | `dune clean` |
-| `restore` | `opam install . --deps-only` |
-| `format` | `dune fmt` |
-| `doc` | `dune build @doc` |
+<ToolchainCommands name="dune" variant="guide" />
 
 ### Clojure: `lein`
 
@@ -393,17 +244,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "lein" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `lein compile` |
-| `test` | `lein test` |
-| `clean` | `lein clean` |
-| `restore` | `lein deps` |
-| `check` | `lein check` |
-| `lint` | `lein eastwood` |
-| `format` | `lein cljfmt fix` |
-| `pack` | `lein jar` |
-| `doc` | `lein codox` |
+<ToolchainCommands name="lein" variant="guide" />
 
 ### Zig: `zig`
 
@@ -411,12 +252,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "zig" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `zig build` |
-| `build:release` | `zig build -Doptimize=ReleaseFast` |
-| `test` | `zig build test` |
-| `format` | `zig fmt .` |
+<ToolchainCommands name="zig" variant="guide" />
 
 ### Erlang: `rebar3`
 
@@ -424,16 +260,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "rebar3" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `rebar3 compile` |
-| `test` | `rebar3 eunit` |
-| `clean` | `rebar3 clean` |
-| `restore` | `rebar3 get-deps` |
-| `check` | `rebar3 dialyzer` |
-| `lint` | `rebar3 lint` |
-| `pack` | `rebar3 tar` |
-| `doc` | `rebar3 edoc` |
+<ToolchainCommands name="rebar3" variant="guide" />
 
 ### R: `r`
 
@@ -441,15 +268,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 { "toolchain": "r" }
 ```
 
-| Command | Runs |
-|---------|------|
-| `build` | `R CMD build .` |
-| `test` | `Rscript -e "devtools::test()"` |
-| `check` | `R CMD check --no-manual --no-tests *.tar.gz` |
-| `lint` | `Rscript -e "lintr::lint_package()"` |
-| `format` | `Rscript -e "styler::style_pkg()"` |
-| `pack` | `R CMD build .` |
-| `doc` | `Rscript -e "roxygen2::roxygenise()"` |
+<ToolchainCommands name="r" variant="guide" />
 
 ## Custom Toolchains
 

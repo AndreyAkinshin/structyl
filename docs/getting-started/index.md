@@ -44,12 +44,7 @@ A **target** is a buildable unit in your project. There are two types:
 
 A **toolchain** maps standard commands (build, test, clean) to language-specific tools:
 
-| Toolchain | Build Command | Test Command |
-|-----------|---------------|--------------|
-| cargo | `cargo build` | `cargo test` |
-| go | `go build ./...` | `go test ./...` |
-| npm | `npm run build` | `npm test` |
-| uv | `uv build` | `uv run pytest` |
+<ToolchainOverview :toolchains="['cargo', 'go', 'npm', 'uv']" />
 
 ### Commands
 

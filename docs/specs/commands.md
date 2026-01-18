@@ -231,7 +231,7 @@ Specify a toolchain to inherit all standard commands:
 }
 ```
 
-This provides `clean`, `restore`, `build`, `test`, `check`, `lint`, `format`, `format-check`, `bench`, `pack`, and `doc` commands automatically. See [toolchains.md](toolchains.md) for all available toolchains.
+This provides `clean`, `restore`, `build`, `test`, `check`, `lint`, `format`, `format-check`, `bench`, `demo`, `pack`, and `doc` commands automatically. See [toolchains.md](toolchains.md) for all available toolchains.
 
 ### 2. Command Override
 

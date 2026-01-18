@@ -16,7 +16,7 @@ import (
 )
 
 // readTestOutput reads a file and decodes it to a string, handling Windows UTF-16 encoding.
-// On Windows, cmd.exe's echo command with redirection creates UTF-16 LE files with BOM.
+// On Windows, PowerShell's redirection operator creates UTF-16 LE files with BOM.
 func readTestOutput(path string) (string, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
@@ -630,8 +630,8 @@ func TestExecute_WithEnv_SetsEnvironment(t *testing.T) {
 	// Use platform-specific command syntax
 	var echoCmd string
 	if runtime.GOOS == "windows" {
-		// PowerShell syntax using Set-Content for reliability
-		echoCmd = fmt.Sprintf("Set-Content -Path '%s' -Value ($env:TARGET_VAR + ' ' + $env:OPTS_VAR)", outputFile)
+		// PowerShell: use string interpolation with redirection operator
+		echoCmd = fmt.Sprintf(`"$env:TARGET_VAR $env:OPTS_VAR" > '%s'`, outputFile)
 	} else {
 		echoCmd = "echo $TARGET_VAR $OPTS_VAR > " + outputFile
 	}
@@ -686,9 +686,9 @@ func TestExecute_CompositeCommand_ExecutesInOrder(t *testing.T) {
 	// Use platform-specific commands for appending to file
 	var firstCmd, secondCmd string
 	if runtime.GOOS == "windows" {
-		// PowerShell syntax using Add-Content for reliability
-		firstCmd = fmt.Sprintf("Add-Content -Path '%s' -Value 'first'", outputFile)
-		secondCmd = fmt.Sprintf("Add-Content -Path '%s' -Value 'second'", outputFile)
+		// PowerShell: use string with append redirection operator
+		firstCmd = fmt.Sprintf(`'first' >> '%s'`, outputFile)
+		secondCmd = fmt.Sprintf(`'second' >> '%s'`, outputFile)
 	} else {
 		firstCmd = "echo first >> " + outputFile
 		secondCmd = "echo second >> " + outputFile

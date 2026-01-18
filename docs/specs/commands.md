@@ -16,20 +16,7 @@ Usage: structyl <command> <target> [args] [--docker]
 
 These commands form the standard vocabulary. Toolchains provide default implementations for each.
 
-| Command | Purpose | Idempotent | Mutates |
-|---------|---------|------------|---------|
-| `clean` | Remove build artifacts | Yes | Yes |
-| `restore` | Install/restore dependencies | Yes | Yes |
-| `check` | Static analysis, lint, format verification | Yes | No |
-| `lint` | Linting only | Yes | No |
-| `format` | Auto-fix formatting | No | Yes |
-| `format-check` | Verify formatting (read-only) | Yes | No |
-| `build` | Compile/build the project | No | Yes |
-| `test` | Run unit tests | No | No |
-| `bench` | Run benchmarks | No | No |
-| `demo` | Run example/demo code | No | No |
-| `pack` | Create distributable package | No | Yes |
-| `doc` | Generate documentation | No | Yes |
+<StandardCommands />
 
 ### Command Semantics
 
@@ -231,7 +218,7 @@ Specify a toolchain to inherit all standard commands:
 }
 ```
 
-This provides `clean`, `restore`, `build`, `test`, `check`, `lint`, `format`, `format-check`, `bench`, `demo`, `pack`, and `doc` commands automatically. See [toolchains.md](toolchains.md) for all available toolchains.
+This provides all standard commands automatically. See [toolchains.md](toolchains.md) for all available toolchains.
 
 ### 2. Command Override
 

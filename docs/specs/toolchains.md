@@ -66,19 +66,7 @@ First match wins. Explicit `toolchain` declaration is recommended for clarity.
 
 All toolchains implement this vocabulary:
 
-| Command | Purpose | Mutates |
-|---------|---------|---------|
-| `clean` | Remove build artifacts | Yes |
-| `restore` | Install dependencies | Yes |
-| `build` | Compile/build | Yes |
-| `test` | Run tests | No |
-| `check` | Static analysis (read-only) | No |
-| `lint` | Linting only | No |
-| `format` | Auto-fix formatting | Yes |
-| `format-check` | Verify formatting | No |
-| `bench` | Run benchmarks | No |
-| `pack` | Create package | Yes |
-| `doc` | Generate documentation | Yes |
+<StandardCommands variant="brief" />
 
 Commands not applicable to a toolchain are set to `null` (skipped).
 

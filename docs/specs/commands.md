@@ -144,17 +144,6 @@ structyl doc rs  # cargo doc --no-deps
 structyl doc go  # go doc ./...
 ```
 
-This is distinct from `docs generate` (see below).
-
-### `doc` vs `docs generate`
-
-| Command | Scope | Output | Purpose |
-|---------|-------|--------|---------|
-| `structyl doc <target>` | Single target | API documentation | Generate target-specific documentation (rustdoc, godoc, javadoc) |
-| `structyl docs generate` | All language targets | README files | Generate README.md files from templates |
-
-The `doc` command invokes toolchain-specific documentation generators. The `docs generate` utility command generates README files from the template system defined in [documentation.md](documentation.md).
-
 ## Meta Commands
 
 These commands operate across all targets.
@@ -177,7 +166,6 @@ These commands operate across all targets.
 | `targets` | List all configured targets (see [targets.md](targets.md#target-listing)) |
 | `release <version>` | Set version, commit, and tag (see [version-management.md](version-management.md#automated-release-command)) |
 | `upgrade [version]` | Manage pinned CLI version (see [version-management.md](version-management.md#cli-version-pinning)) |
-| `docs generate` | Generate README files from templates (see [documentation.md](documentation.md)) |
 | `config validate` | Validate configuration without running commands |
 | `docker-build [targets]` | Build Docker images (see [docker.md](docker.md#docker-commands)) |
 | `docker-clean` | Remove Docker containers, images, and volumes |

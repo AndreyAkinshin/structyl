@@ -15,7 +15,6 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/release"
 	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: intentionally using deprecated package for backwards compatibility
 	"github.com/AndreyAkinshin/structyl/internal/target"
-	"github.com/AndreyAkinshin/structyl/internal/testparser"
 )
 
 // out is the shared output writer for CLI commands.
@@ -155,13 +154,7 @@ func runViaMise(proj *project.Project, cmd string, targetName string, args []str
 	executor := mise.NewExecutor(proj.Root)
 	executor.SetVerbose(opts.Verbose)
 
-	// Create parser registry for test commands
-	var parserRegistry *testparser.Registry
-	if strings.HasPrefix(cmd, "test") || cmd == "ci" || cmd == "ci:release" {
-		parserRegistry = testparser.NewRegistry()
-	}
-
-	// Try to resolve dependencies for tracking
+	// Try to resolve dependencies to check if this is an aggregate task
 	tasks, err := executor.ResolveTaskDependencies(ctx, task)
 	if err != nil {
 		// Fall back to direct execution if dependency resolution fails
@@ -179,31 +172,11 @@ func runViaMise(proj *project.Project, cmd string, targetName string, args []str
 		return 0
 	}
 
-	// Run with tracking
-	summary := executor.RunTasksWithTracking(ctx, tasks, args, opts.ContinueOnError, out, parserRegistry)
-
-	// Convert to output summary format
-	outSummary := &output.TaskRunSummary{
-		Tasks:         make([]output.TaskResult, len(summary.Tasks)),
-		TotalDuration: summary.TotalDuration,
-		Passed:        summary.Passed,
-		Failed:        summary.Failed,
-		TestCounts:    summary.TestCounts,
-	}
-	for i, t := range summary.Tasks {
-		outSummary.Tasks[i] = output.TaskResult{
-			Name:       t.Name,
-			Success:    t.Success,
-			Duration:   t.Duration,
-			Error:      t.Error,
-			TestCounts: t.TestCounts,
-		}
-	}
-
-	// Print summary
-	out.PrintTaskSummary(task, outSummary)
-
-	if summary.Failed > 0 {
+	// Multiple tasks means root task has dependencies.
+	// Run ONLY the root task directly - mise will handle parallel execution of dependencies.
+	// Running individual dependency tasks first would cause duplicate execution
+	// (once by us sequentially, once by mise in parallel when running root task).
+	if err := executor.RunTask(ctx, task, args); err != nil {
 		return 1
 	}
 	return 0

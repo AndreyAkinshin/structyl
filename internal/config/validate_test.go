@@ -50,6 +50,8 @@ func TestValidateProjectName_Invalid(t *testing.T) {
 }
 
 func TestValidateProjectName_LengthBoundaries(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		length  int
 		wantErr bool
@@ -62,6 +64,8 @@ func TestValidateProjectName_LengthBoundaries(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
 			name := ""
 			for i := 0; i < tt.length; i++ {
 				name += "a"

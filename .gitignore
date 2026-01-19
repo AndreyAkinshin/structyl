@@ -12,6 +12,7 @@ mise.toml
 *.exe
 coverage.out
 coverage*.out
+coverage.html
 
 # Logs
 logs

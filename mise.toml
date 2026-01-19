@@ -23,6 +23,18 @@ run = "go test -v -race ./test/integration/..."
 description = "Run package tests"
 run = "go test -v -race ./pkg/..."
 
+[tasks."test:cover"]
+description = "Run tests with coverage"
+run = "go test -race -coverprofile=coverage.out -covermode=atomic ./..."
+
+[tasks."cover:report"]
+description = "Generate HTML coverage report"
+run = "go tool cover -html=coverage.out -o coverage.html"
+
+[tasks."cover:view"]
+description = "Open coverage report in browser"
+run = "open coverage.html"
+
 [tasks.lint]
 description = "Run golangci-lint"
 run = "golangci-lint run"

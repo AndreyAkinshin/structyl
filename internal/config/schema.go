@@ -147,16 +147,6 @@ type ArtifactSpec struct {
 	Rename      string `json:"rename,omitempty"`
 }
 
-// TargetType represents the type of build target.
-type TargetType string
-
-const (
-	// TargetTypeLanguage represents a language implementation target.
-	TargetTypeLanguage TargetType = "language"
-	// TargetTypeAuxiliary represents an auxiliary build target.
-	TargetTypeAuxiliary TargetType = "auxiliary"
-)
-
 // ToleranceMode represents how float comparison tolerance is applied.
 type ToleranceMode string
 

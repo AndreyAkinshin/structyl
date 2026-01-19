@@ -73,10 +73,10 @@ func validateTargetConfig(name string, target TargetConfig) error {
 		}
 	}
 
-	if target.Type != string(TargetTypeLanguage) && target.Type != string(TargetTypeAuxiliary) {
+	if target.Type != "language" && target.Type != "auxiliary" {
 		return &ValidationError{
 			Field:   fmt.Sprintf("targets.%s.type", name),
-			Message: fmt.Sprintf("must be %q or %q", TargetTypeLanguage, TargetTypeAuxiliary),
+			Message: `must be "language" or "auxiliary"`,
 		}
 	}
 

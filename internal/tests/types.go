@@ -19,12 +19,14 @@ type ComparisonConfig struct {
 }
 
 // DefaultComparisonConfig returns the default comparison settings.
+// Note: NaNEqualsNaN defaults to true for consistency with pkg/testhelper.DefaultOptions().
+// For testing purposes, "expected NaN, got NaN" is typically a pass.
 func DefaultComparisonConfig() ComparisonConfig {
 	return ComparisonConfig{
 		FloatTolerance: 1e-9,
 		ToleranceMode:  "relative",
 		ArrayOrder:     "strict",
-		NaNEqualsNaN:   false,
+		NaNEqualsNaN:   true,
 	}
 }
 

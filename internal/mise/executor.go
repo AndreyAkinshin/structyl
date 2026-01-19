@@ -126,6 +126,9 @@ func (e *Executor) TaskExists(task string) bool {
 
 	output, err := cmd.Output()
 	if err != nil {
+		if e.verbose {
+			fmt.Fprintf(os.Stderr, "[debug] TaskExists: failed to list mise tasks: %v\n", err)
+		}
 		return false
 	}
 

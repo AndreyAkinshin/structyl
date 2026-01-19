@@ -3,6 +3,7 @@ package integration
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
@@ -161,32 +162,5 @@ func mkdir(path string) error {
 }
 
 func containsIgnoreCase(s, substr string) bool {
-	return len(s) >= len(substr) &&
-		(s == substr ||
-			len(substr) == 0 ||
-			(len(s) > 0 && containsIgnoreCaseImpl(s, substr)))
-}
-
-func containsIgnoreCaseImpl(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		match := true
-		for j := 0; j < len(substr); j++ {
-			sc := s[i+j]
-			pc := substr[j]
-			if sc >= 'A' && sc <= 'Z' {
-				sc += 'a' - 'A'
-			}
-			if pc >= 'A' && pc <= 'Z' {
-				pc += 'a' - 'A'
-			}
-			if sc != pc {
-				match = false
-				break
-			}
-		}
-		if match {
-			return true
-		}
-	}
-	return false
+	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
 }

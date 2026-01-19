@@ -71,6 +71,7 @@ func TestGetParallelWorkers_Boundary256(t *testing.T) {
 }
 
 func TestCombineErrors_Empty(t *testing.T) {
+	t.Parallel()
 	err := combineErrors(nil)
 	if err != nil {
 		t.Errorf("combineErrors(nil) = %v, want nil", err)
@@ -78,6 +79,7 @@ func TestCombineErrors_Empty(t *testing.T) {
 }
 
 func TestCombineErrors_Single(t *testing.T) {
+	t.Parallel()
 	original := os.ErrNotExist
 	err := combineErrors([]error{original})
 	if err != original {
@@ -86,6 +88,7 @@ func TestCombineErrors_Single(t *testing.T) {
 }
 
 func TestCombineErrors_Multiple(t *testing.T) {
+	t.Parallel()
 	errors := []error{
 		os.ErrNotExist,
 		os.ErrPermission,
@@ -196,6 +199,56 @@ func TestRunAll_NoTargetsWithCommand_ReturnsNil(t *testing.T) {
 	err = r.RunAll(ctx, "nonexistent_command", RunOptions{})
 	if err != nil {
 		t.Errorf("RunAll() error = %v, want nil", err)
+	}
+}
+
+func TestRunAll_NoTargetsWithCommand_PrintsWarning(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create target directory
+	targetDir := tmpDir + "/img"
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create config with auxiliary target that has no commands
+	cfg := &config.Config{
+		Project: config.ProjectConfig{Name: "test"},
+		Targets: map[string]config.TargetConfig{
+			"img": {
+				Type:      "auxiliary",
+				Title:     "Images",
+				Directory: "img",
+			},
+		},
+	}
+
+	registry, err := target.NewRegistry(cfg, tmpDir)
+	if err != nil {
+		t.Fatalf("failed to create registry: %v", err)
+	}
+
+	// Capture stderr
+	oldStderr := os.Stderr
+	pr, pw, _ := os.Pipe()
+	os.Stderr = pw
+
+	runner := New(registry)
+	ctx := context.Background()
+	_ = runner.RunAll(ctx, "nonexistent_command", RunOptions{})
+
+	pw.Close()
+	os.Stderr = oldStderr
+
+	var buf [512]byte
+	n, _ := pr.Read(buf[:])
+	output := string(buf[:n])
+
+	if !strings.Contains(output, "warning:") {
+		t.Errorf("expected warning in stderr, got: %q", output)
+	}
+	if !strings.Contains(output, "nonexistent_command") {
+		t.Errorf("expected command name in warning, got: %q", output)
 	}
 }
 
@@ -440,6 +493,7 @@ func TestRunParallel_FailFastCancels(t *testing.T) {
 }
 
 func TestCombineErrors_MessageFormat(t *testing.T) {
+	t.Parallel()
 	errs := []error{
 		errors.New("error one"),
 		errors.New("error two"),

@@ -67,6 +67,7 @@ func (r *Runner) RunAll(ctx context.Context, cmd string, opts RunOptions) error 
 	}
 
 	if len(filtered) == 0 {
+		fmt.Fprintf(os.Stderr, "warning: no targets support command %q\n", cmd)
 		return nil
 	}
 
@@ -101,6 +102,7 @@ func (r *Runner) RunTargets(ctx context.Context, targetNames []string, cmd strin
 	}
 
 	if len(filtered) == 0 {
+		fmt.Fprintf(os.Stderr, "warning: no targets support command %q\n", cmd)
 		return nil
 	}
 

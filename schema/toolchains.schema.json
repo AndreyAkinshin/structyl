@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://structyl.akinshin.dev/schema/toolchains.json",
+  "title": "Structyl Toolchains Configuration",
+  "description": "Toolchain definitions for Structyl multi-language project orchestration",
+  "type": "object",
+  "required": ["version", "toolchains"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "version": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Toolchains format version"
+    },
+    "commands": {
+      "type": "object",
+      "description": "Command definitions with descriptions",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["description"],
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Human-readable description of the command"
+          }
+        }
+      }
+    },
+    "aggregateCommands": {
+      "type": "array",
+      "description": "Commands that should be aggregated across all targets",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pipelines": {
+      "type": "object",
+      "description": "Named pipelines (sequences of commands)",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Ordered list of command names to execute"
+      }
+    },
+    "toolchains": {
+      "type": "object",
+      "description": "Toolchain definitions",
+      "additionalProperties": {
+        "$ref": "#/$defs/toolchainEntry"
+      }
+    }
+  },
+  "$defs": {
+    "commandValue": {
+      "oneOf": [
+        {
+          "type": "null",
+          "description": "Command is not available for this toolchain"
+        },
+        {
+          "type": "string",
+          "description": "Shell command to execute"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Sequence of commands to execute"
+        }
+      ]
+    },
+    "miseConfig": {
+      "type": "object",
+      "description": "mise tool configuration",
+      "required": ["primary_tool", "version"],
+      "properties": {
+        "primary_tool": {
+          "type": "string",
+          "description": "Primary tool name (e.g., rust, go, node)"
+        },
+        "version": {
+          "type": "string",
+          "description": "Tool version (e.g., stable, 1.24, latest)"
+        },
+        "extra_tools": {
+          "type": "object",
+          "description": "Additional tools to install",
+          "additionalProperties": {
+            "type": "string",
+            "description": "Tool version"
+          }
+        }
+      }
+    },
+    "toolchainEntry": {
+      "type": "object",
+      "description": "Toolchain definition",
+      "required": ["commands"],
+      "properties": {
+        "mise": {
+          "$ref": "#/$defs/miseConfig"
+        },
+        "commands": {
+          "type": "object",
+          "description": "Command implementations for this toolchain",
+          "additionalProperties": {
+            "$ref": "#/$defs/commandValue"
+          }
+        }
+      }
+    }
+  }
+}

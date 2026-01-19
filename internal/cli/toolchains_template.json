@@ -1,5 +1,5 @@
 {
-  "$schema": "https://structyl.akinshin.dev/schemas/toolchains.json",
+  "$schema": "https://structyl.akinshin.dev/schema/toolchains.json",
   "version": "1.0",
   "commands": {
     "clean": { "description": "Clean build artifacts" },

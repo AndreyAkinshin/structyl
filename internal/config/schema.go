@@ -78,8 +78,8 @@ type TestsConfig struct {
 // ComparisonConfig defines test result comparison settings.
 type ComparisonConfig struct {
 	FloatTolerance float64 `json:"float_tolerance,omitempty"`
-	ToleranceMode  string  `json:"tolerance_mode,omitempty"`  // "relative", "absolute", or "ulp"
-	ArrayOrder     string  `json:"array_order,omitempty"`     // "strict" or "unordered"
+	ToleranceMode  string  `json:"tolerance_mode,omitempty"` // "relative", "absolute", or "ulp"
+	ArrayOrder     string  `json:"array_order,omitempty"`    // "strict" or "unordered"
 	NaNEqualsNaN   bool    `json:"nan_equals_nan,omitempty"`
 }
 

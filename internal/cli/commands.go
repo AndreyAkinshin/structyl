@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -13,7 +12,7 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/project"
 	"github.com/AndreyAkinshin/structyl/internal/release"
-	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: intentionally using deprecated package for backwards compatibility
+	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: Docker runner functionality still needed
 	"github.com/AndreyAkinshin/structyl/internal/target"
 	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
@@ -21,73 +20,10 @@ import (
 // out is the shared output writer for CLI commands.
 var out = output.New()
 
-// getVerbosity converts GlobalOptions to target.Verbosity.
-func getVerbosity(opts *GlobalOptions) target.Verbosity {
-	if opts.Quiet {
-		return target.VerbosityQuiet
-	}
-	if opts.Verbose {
-		return target.VerbosityVerbose
-	}
-	return target.VerbosityDefault
-}
-
 // applyVerbosityToOutput configures the output writer based on verbosity settings.
 func applyVerbosityToOutput(opts *GlobalOptions) {
 	out.SetQuiet(opts.Quiet)
 	out.SetVerbose(opts.Verbose)
-}
-
-// targetResult tracks the result of running a command on a single target.
-type targetResult struct {
-	name     string
-	success  bool
-	err      error
-	duration time.Duration
-}
-
-// printCommandSummary prints a summary of command execution across multiple targets.
-func printCommandSummary(cmd string, results []targetResult, totalDuration time.Duration) {
-	out.SummaryHeader(cmd + " Summary")
-
-	// Print detailed target listing
-	out.SummarySectionLabel("Targets:")
-	for _, r := range results {
-		var errMsg string
-		if r.err != nil {
-			errMsg = r.err.Error()
-		}
-		out.SummaryAction(r.name, r.success, runner.FormatDuration(r.duration), errMsg)
-	}
-	out.Println("")
-
-	// Count results
-	var passed, failed int
-	var failedNames []string
-	for _, r := range results {
-		if r.success {
-			passed++
-		} else {
-			failed++
-			failedNames = append(failedNames, r.name)
-		}
-	}
-
-	// Print summary details
-	out.SummaryItem("Command", cmd)
-	out.SummaryItem("Targets", fmt.Sprintf("%d", len(results)))
-	out.SummaryPassed("Passed", fmt.Sprintf("%d", passed))
-	if failed > 0 {
-		out.SummaryFailed("Failed", fmt.Sprintf("%d (%s)", failed, strings.Join(failedNames, ", ")))
-	}
-	out.SummaryItem("Duration", runner.FormatDuration(totalDuration))
-
-	// Final message
-	if failed == 0 {
-		out.FinalSuccess("All %d targets completed %s successfully.", len(results), cmd)
-	} else {
-		out.FinalFailure("%d of %d targets failed.", failed, len(results))
-	}
 }
 
 // loadProject loads the project configuration and handles errors uniformly.
@@ -99,17 +35,6 @@ func loadProject() (*project.Project, int) {
 		return nil, 1
 	}
 	return proj, 0
-}
-
-// isMiseEnabled checks if mise integration is enabled for the project.
-// Returns true by default (mise.enabled defaults to true).
-func isMiseEnabled(proj *project.Project) bool {
-	if proj.Config.Mise == nil {
-		return true // Default to enabled
-	}
-	// If Mise config exists but Enabled is not set, default to true
-	// Only return false if explicitly set to false
-	return proj.Config.Mise.Enabled || proj.Config.Mise == nil
 }
 
 // ensureMiseConfig ensures mise.toml is up-to-date.
@@ -234,165 +159,20 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 		}
 	}
 
-	// Use mise if enabled and not in Docker mode
-	if isMiseEnabled(proj) && !isDockerMode(opts) {
-		// Check mise is installed
-		if err := EnsureMise(true); err != nil {
-			out.ErrorPrefix("%v", err)
-			PrintMiseInstallInstructions()
-			return 1
-		}
-
-		// Ensure mise.toml is up-to-date
-		if err := ensureMiseConfig(proj, false); err != nil {
-			out.ErrorPrefix("%v", err)
-			return 1
-		}
-
-		return runViaMise(proj, cmd, targetName, cmdArgs, opts)
-	}
-
-	// Fallback to direct execution (Docker mode or mise disabled)
-	if targetName != "" {
-		if t, ok := registry.Get(targetName); ok {
-			return runTargetCommand(t, cmd, cmdArgs, opts)
-		}
-	}
-
-	// No target specified - run command on all targets
-	return runCommandOnAllTargets(registry, cmd, cmdArgs, opts)
-}
-
-// runTargetCommand executes a command on a specific target.
-func runTargetCommand(t target.Target, cmd string, args []string, opts *GlobalOptions) int {
-	applyVerbosityToOutput(opts)
-
-	if _, ok := t.GetCommand(cmd); !ok {
-		out.ErrorPrefix("[%s] command %q not defined", t.Name(), cmd)
-		return 1
-	}
-
-	ctx := context.Background()
-	execOpts := target.ExecOptions{
-		Docker:    isDockerMode(opts),
-		Args:      args,
-		Verbosity: getVerbosity(opts),
-	}
-
-	out.TargetStart(t.Name(), cmd)
-	if err := t.Execute(ctx, cmd, execOpts); err != nil {
-		out.TargetFailed(t.Name(), cmd, err)
-		return 1
-	}
-
-	out.TargetSuccess(t.Name(), cmd)
-	return 0
-}
-
-// runCommandOnAllTargets executes a command on all targets that have it defined.
-func runCommandOnAllTargets(registry *target.Registry, cmd string, args []string, opts *GlobalOptions) int {
-	applyVerbosityToOutput(opts)
-
-	// Get targets in dependency order
-	targets, err := registry.TopologicalOrder()
-	if err != nil {
+	// Check mise is installed
+	if err := EnsureMise(true); err != nil {
 		out.ErrorPrefix("%v", err)
-		return 2
-	}
-
-	// Filter by type if specified
-	if opts.TargetType != "" {
-		targets = filterTargetsByType(targets, target.TargetType(opts.TargetType))
-	}
-
-	// For test command, filter to language targets only by default
-	if cmd == "test" && opts.TargetType == "" {
-		targets = filterTargetsByType(targets, target.TypeLanguage)
-	}
-
-	// Count targets with this command
-	var targetsWithCommand []target.Target
-	for _, t := range targets {
-		if _, ok := t.GetCommand(cmd); ok {
-			targetsWithCommand = append(targetsWithCommand, t)
-		}
-	}
-
-	if len(targetsWithCommand) == 0 {
-		out.ErrorPrefix("unknown command %q (no target defines it)", cmd)
+		PrintMiseInstallInstructions()
 		return 1
 	}
 
-	// Execute command for each target
-	ctx := context.Background()
-	execOpts := target.ExecOptions{
-		Docker:    isDockerMode(opts),
-		Args:      args,
-		Verbosity: getVerbosity(opts),
-	}
-
-	startTime := time.Now()
-	var results []targetResult
-	hasError := false
-
-	for _, t := range targetsWithCommand {
-		targetStart := time.Now()
-		out.TargetStart(t.Name(), cmd)
-
-		err := t.Execute(ctx, cmd, execOpts)
-		targetDuration := time.Since(targetStart)
-
-		if err != nil {
-			out.TargetFailed(t.Name(), cmd, err)
-			results = append(results, targetResult{
-				name:     t.Name(),
-				success:  false,
-				err:      err,
-				duration: targetDuration,
-			})
-			hasError = true
-			if !opts.ContinueOnError {
-				// Print summary even on early exit if we ran multiple targets
-				if len(results) > 1 {
-					printCommandSummary(cmd, results, time.Since(startTime))
-				}
-				return 1
-			}
-		} else {
-			out.TargetSuccess(t.Name(), cmd)
-			results = append(results, targetResult{
-				name:     t.Name(),
-				success:  true,
-				duration: targetDuration,
-			})
-		}
-	}
-
-	// Print summary if multiple targets were run
-	if len(results) > 1 {
-		printCommandSummary(cmd, results, time.Since(startTime))
-	}
-
-	if hasError {
-		return 1
-	}
-	return 0
-}
-
-// cmdMeta executes a command across all targets (used by cmdCI).
-func cmdMeta(cmd string, args []string, opts *GlobalOptions) int {
-	proj, exitCode := loadProject()
-	if proj == nil {
-		return exitCode
-	}
-
-	registry, err := target.NewRegistry(proj.Config, proj.Root)
-	if err != nil {
+	// Ensure mise.toml is up-to-date
+	if err := ensureMiseConfig(proj, false); err != nil {
 		out.ErrorPrefix("%v", err)
-		return 2
+		return 1
 	}
 
-	return runCommandOnAllTargets(registry, cmd, args, opts)
+	return runViaMise(proj, cmd, targetName, cmdArgs, opts)
 }
 
 // cmdTargets lists all configured targets.
@@ -516,79 +296,20 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 		}
 	}
 
-	// Use mise if enabled and not in Docker mode
-	if isMiseEnabled(proj) && !isDockerMode(opts) {
-		// Check mise is installed
-		if err := EnsureMise(true); err != nil {
-			out.ErrorPrefix("%v", err)
-			PrintMiseInstallInstructions()
-			return 1
-		}
-
-		// Ensure mise.toml is up-to-date
-		if err := ensureMiseConfig(proj, false); err != nil {
-			out.ErrorPrefix("%v", err)
-			return 1
-		}
-
-		return runViaMise(proj, cmd, targetName, cmdArgs, opts)
+	// Check mise is installed
+	if err := EnsureMise(true); err != nil {
+		out.ErrorPrefix("%v", err)
+		PrintMiseInstallInstructions()
+		return 1
 	}
 
-	// Fallback to direct execution (Docker mode or mise disabled)
-	// Get CI pipeline from config
-	defaults := toolchain.GetDefaultToolchains()
-	pipelineName := "ci"
-	if cmd == "ci:release" {
-		pipelineName = "ci:release"
-	}
-	commands := toolchain.GetPipeline(defaults, pipelineName)
-	if len(commands) == 0 {
-		// Fallback defaults
-		if cmd == "ci:release" {
-			commands = []string{"clean", "restore", "check", "build:release", "test"}
-		} else {
-			commands = []string{"clean", "restore", "check", "build", "test"}
-		}
+	// Ensure mise.toml is up-to-date
+	if err := ensureMiseConfig(proj, false); err != nil {
+		out.ErrorPrefix("%v", err)
+		return 1
 	}
 
-	startTime := time.Now()
-	ciResult := &runner.CIResult{
-		StartTime:     startTime,
-		PhaseResults:  make([]runner.PhaseResult, 0, len(commands)),
-		TargetResults: make(map[string]runner.TargetResult),
-		Success:       true,
-	}
-
-	for _, c := range commands {
-		phaseStart := time.Now()
-		out.PhaseHeader(c)
-
-		exitCode := cmdMeta(c, args, opts)
-		phaseDuration := time.Since(phaseStart)
-
-		phaseResult := runner.PhaseResult{
-			Name:      c,
-			StartTime: phaseStart,
-			EndTime:   time.Now(),
-			Duration:  phaseDuration,
-			Success:   exitCode == 0,
-		}
-		ciResult.PhaseResults = append(ciResult.PhaseResults, phaseResult)
-
-		if exitCode != 0 {
-			ciResult.Success = false
-			ciResult.EndTime = time.Now()
-			ciResult.Duration = time.Since(startTime)
-			runner.PrintCISummary(ciResult, out)
-			return exitCode
-		}
-	}
-
-	ciResult.EndTime = time.Now()
-	ciResult.Duration = time.Since(startTime)
-	runner.PrintCISummary(ciResult, out)
-
-	return 0
+	return runViaMise(proj, cmd, targetName, cmdArgs, opts)
 }
 
 // filterTargetsByType returns only targets of the specified type.
@@ -632,17 +353,11 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 		return 0
 	}
 
-	// Parse flags
-	force := false
+	// Parse flags (--force is accepted for backwards compatibility but has no effect)
 	for _, arg := range args {
-		switch arg {
-		case "--force":
-			force = true
-		default:
-			if strings.HasPrefix(arg, "-") {
-				out.ErrorPrefix("mise sync: unknown option %q", arg)
-				return 2
-			}
+		if strings.HasPrefix(arg, "-") && arg != "--force" {
+			out.ErrorPrefix("mise sync: unknown option %q", arg)
+			return 2
 		}
 	}
 
@@ -652,7 +367,8 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 	}
 
 	// Generate mise.toml using loaded toolchains
-	created, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, force || true) // Always force on explicit sync
+	// Explicit sync always forces regeneration regardless of --force flag
+	created, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, true)
 	if err != nil {
 		out.ErrorPrefix("mise sync: %v", err)
 		return 1
@@ -942,7 +658,6 @@ func printMiseUsage() {
 
 	w.HelpSection("Examples:")
 	w.HelpExample("structyl mise sync", "Regenerate mise.toml")
-	w.HelpExample("structyl mise sync --force", "Force regenerate mise.toml")
 	w.Println("")
 }
 
@@ -953,19 +668,18 @@ func printMiseSyncUsage() {
 	w.HelpTitle("structyl mise sync - regenerate mise.toml")
 
 	w.HelpSection("Usage:")
-	w.HelpUsage("structyl mise sync [--force]")
+	w.HelpUsage("structyl mise sync")
 
 	w.HelpSection("Description:")
 	w.Println("  Regenerates the mise.toml file from project configuration.")
 	w.Println("  This file defines tasks and tools for the mise task runner.")
+	w.Println("  Always regenerates the file (implicit force mode).")
 
 	w.HelpSection("Options:")
-	w.HelpFlag("--force", "Force regeneration even if file exists", 10)
 	w.HelpFlag("-h, --help", "Show this help", 10)
 
 	w.HelpSection("Examples:")
 	w.HelpExample("structyl mise sync", "Regenerate mise.toml")
-	w.HelpExample("structyl mise sync --force", "Force regenerate mise.toml")
 	w.Println("")
 }
 

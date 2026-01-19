@@ -23,7 +23,7 @@ func cmdTestSummary(args []string) int {
 		// Read from file
 		input, err = os.Open(args[0])
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "structyl test-summary: %v\n", err)
+			out.ErrorPrefix("test-summary: %v", err)
 			return 1
 		}
 		defer func() { _ = input.Close() }()
@@ -37,8 +37,8 @@ func cmdTestSummary(args []string) int {
 	counts := parser.ParseJSON(input)
 
 	if !counts.Parsed {
-		fmt.Fprintln(os.Stderr, "structyl test-summary: no test results found in input")
-		fmt.Fprintln(os.Stderr, "hint: use 'go test -json ./...' to produce JSON output")
+		out.ErrorPrefix("test-summary: no test results found in input")
+		out.Errorln("hint: use 'go test -json ./...' to produce JSON output")
 		return 1
 	}
 

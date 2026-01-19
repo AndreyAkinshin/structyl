@@ -38,6 +38,8 @@ type initOptions struct {
 // cmdInit initializes a new structyl project or updates an existing one.
 // This command is idempotent - it only creates files that don't exist.
 func cmdInit(args []string) int {
+	w := output.New()
+
 	if wantsHelp(args) {
 		printInitUsage()
 		return 0
@@ -51,7 +53,7 @@ func cmdInit(args []string) int {
 			opts.Mise = true
 		default:
 			if strings.HasPrefix(arg, "-") {
-				fmt.Fprintf(os.Stderr, "structyl: init: unknown option %q\n", arg)
+				w.ErrorPrefix("init: unknown option %q", arg)
 				return 2
 			}
 		}
@@ -59,11 +61,9 @@ func cmdInit(args []string) int {
 
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: error: %v\n", err)
+		w.ErrorPrefix("%v", err)
 		return 1
 	}
-
-	w := output.New()
 	structylDir := filepath.Join(cwd, project.ConfigDirName)
 	configPath := filepath.Join(structylDir, project.ConfigFileName)
 
@@ -74,7 +74,7 @@ func cmdInit(args []string) int {
 
 	// Create .structyl directory
 	if err := os.MkdirAll(structylDir, 0755); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: error: %v\n", err)
+		w.ErrorPrefix("%v", err)
 		return 1
 	}
 
@@ -102,13 +102,13 @@ func cmdInit(args []string) int {
 		// Write .structyl/config.json
 		data, err := json.MarshalIndent(cfg, "", "  ")
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: error: %v\n", err)
+			w.ErrorPrefix("%v", err)
 			return 1
 		}
 		data = append(data, '\n')
 
 		if err := os.WriteFile(configPath, data, 0644); err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: error: %v\n", err)
+			w.ErrorPrefix("%v", err)
 			return 3
 		}
 		created = append(created, ".structyl/config.json")
@@ -116,7 +116,7 @@ func cmdInit(args []string) int {
 		// Load existing config
 		cfg, _, err = config.LoadAndValidate(configPath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: error loading config: %v\n", err)
+			w.ErrorPrefix("error loading config: %v", err)
 			return 1
 		}
 	}
@@ -125,7 +125,7 @@ func cmdInit(args []string) int {
 	versionFilePath := filepath.Join(structylDir, project.VersionFileName)
 	if _, err := os.Stat(versionFilePath); os.IsNotExist(err) {
 		if err := os.WriteFile(versionFilePath, []byte(Version+"\n"), 0644); err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: warning: could not create version file: %v\n", err)
+			w.WarningSimple("could not create version file: %v", err)
 		} else {
 			created = append(created, ".structyl/version")
 		}
@@ -135,7 +135,7 @@ func cmdInit(args []string) int {
 	setupShPath := filepath.Join(structylDir, "setup.sh")
 	if _, err := os.Stat(setupShPath); os.IsNotExist(err) {
 		if err := os.WriteFile(setupShPath, []byte(SetupScriptSh), 0755); err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: warning: could not create setup.sh: %v\n", err)
+			w.WarningSimple("could not create setup.sh: %v", err)
 		} else {
 			created = append(created, ".structyl/setup.sh")
 		}
@@ -145,7 +145,7 @@ func cmdInit(args []string) int {
 	setupPs1Path := filepath.Join(structylDir, "setup.ps1")
 	if _, err := os.Stat(setupPs1Path); os.IsNotExist(err) {
 		if err := os.WriteFile(setupPs1Path, []byte(SetupScriptPs1), 0644); err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: warning: could not create setup.ps1: %v\n", err)
+			w.WarningSimple("could not create setup.ps1: %v", err)
 		} else {
 			created = append(created, ".structyl/setup.ps1")
 		}
@@ -155,7 +155,7 @@ func cmdInit(args []string) int {
 	agentsPath := filepath.Join(structylDir, AgentsPromptFileName)
 	if _, err := os.Stat(agentsPath); os.IsNotExist(err) {
 		if err := os.WriteFile(agentsPath, []byte(AgentsPromptContent), 0644); err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: warning: could not create AGENTS.md: %v\n", err)
+			w.WarningSimple("could not create AGENTS.md: %v", err)
 		} else {
 			created = append(created, ".structyl/AGENTS.md")
 		}
@@ -163,7 +163,7 @@ func cmdInit(args []string) int {
 		// File exists on existing project - ask to update
 		if promptConfirm("Update .structyl/AGENTS.md with latest template?") {
 			if err := os.WriteFile(agentsPath, []byte(AgentsPromptContent), 0644); err != nil {
-				fmt.Fprintf(os.Stderr, "structyl: warning: could not update AGENTS.md: %v\n", err)
+				w.WarningSimple("could not update AGENTS.md: %v", err)
 			} else {
 				updated = append(updated, ".structyl/AGENTS.md")
 			}
@@ -174,7 +174,7 @@ func cmdInit(args []string) int {
 	toolchainsPath := filepath.Join(structylDir, project.ToolchainsFileName)
 	if _, err := os.Stat(toolchainsPath); os.IsNotExist(err) {
 		if err := os.WriteFile(toolchainsPath, []byte(ToolchainsTemplate), 0644); err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: warning: could not create toolchains.json: %v\n", err)
+			w.WarningSimple("could not create toolchains.json: %v", err)
 		} else {
 			created = append(created, ".structyl/toolchains.json")
 		}
@@ -182,7 +182,7 @@ func cmdInit(args []string) int {
 		// File exists on existing project - ask to update
 		if promptConfirm("Update .structyl/toolchains.json with latest template?") {
 			if err := os.WriteFile(toolchainsPath, []byte(ToolchainsTemplate), 0644); err != nil {
-				fmt.Fprintf(os.Stderr, "structyl: warning: could not update toolchains.json: %v\n", err)
+				w.WarningSimple("could not update toolchains.json: %v", err)
 			} else {
 				updated = append(updated, ".structyl/toolchains.json")
 			}
@@ -193,7 +193,7 @@ func cmdInit(args []string) int {
 	versionPath := filepath.Join(cwd, "VERSION")
 	if _, err := os.Stat(versionPath); os.IsNotExist(err) {
 		if err := os.WriteFile(versionPath, []byte("0.1.0\n"), 0644); err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: warning: could not create VERSION file: %v\n", err)
+			w.WarningSimple("could not create VERSION file: %v", err)
 		} else {
 			created = append(created, "VERSION")
 		}
@@ -203,7 +203,7 @@ func cmdInit(args []string) int {
 	testsDir := filepath.Join(cwd, "tests")
 	if _, err := os.Stat(testsDir); os.IsNotExist(err) {
 		if err := os.MkdirAll(testsDir, 0755); err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: warning: could not create tests directory: %v\n", err)
+			w.WarningSimple("could not create tests directory: %v", err)
 		} else {
 			created = append(created, "tests/")
 		}
@@ -216,7 +216,7 @@ func cmdInit(args []string) int {
 	if opts.Mise {
 		miseCreated, err := mise.WriteMiseToml(cwd, cfg, true) // force=true to regenerate
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: warning: could not create mise.toml: %v\n", err)
+			w.WarningSimple("could not create mise.toml: %v", err)
 		} else if miseCreated {
 			created = append(created, "mise.toml")
 		}
@@ -396,7 +396,7 @@ func updateGitignore(root string) {
 	}
 
 	if err := os.WriteFile(gitignorePath, []byte(content.String()), 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: warning: could not update .gitignore: %v\n", err)
+		output.New().WarningSimple("could not update .gitignore: %v", err)
 	}
 }
 

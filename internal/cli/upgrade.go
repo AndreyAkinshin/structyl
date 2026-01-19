@@ -50,13 +50,15 @@ type upgradeOptions struct {
 
 // cmdUpgrade handles the 'structyl upgrade' command.
 func cmdUpgrade(args []string) int {
+	w := output.New()
+
 	opts, showHelp, err := parseUpgradeArgs(args)
 	if showHelp {
 		printUpgradeUsage()
 		return 0
 	}
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: error: %v\n", err)
+		w.ErrorPrefix("%v", err)
 		printUpgradeUsage()
 		return 2
 	}
@@ -64,18 +66,16 @@ func cmdUpgrade(args []string) int {
 	// Find project root
 	root, err := project.FindRoot()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: error: %v\n", err)
+		w.ErrorPrefix("%v", err)
 		return 1
 	}
 
 	// Read current pinned version
 	pinnedVersion, err := readPinnedVersion(root)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: error: %v\n", err)
+		w.ErrorPrefix("%v", err)
 		return 1
 	}
-
-	w := output.New()
 
 	if opts.check {
 		return handleCheckMode(w, pinnedVersion)
@@ -86,7 +86,7 @@ func cmdUpgrade(args []string) int {
 		// Fetch latest stable version
 		latest, err := fetchLatestVersion()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: error: failed to fetch latest version: %v\n", err)
+			w.ErrorPrefix("failed to fetch latest version: %v", err)
 			return 1
 		}
 		targetVersion = latest
@@ -129,7 +129,7 @@ func parseUpgradeArgs(args []string) (*upgradeOptions, bool, error) {
 func handleCheckMode(w *output.Writer, pinnedVersion string) int {
 	latest, err := fetchLatestVersion()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: error: failed to fetch latest version: %v\n", err)
+		w.ErrorPrefix("failed to fetch latest version: %v", err)
 		return 1
 	}
 
@@ -168,7 +168,7 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 		w.Println("Fetching nightly version...")
 		nightlyVer, err := fetchNightlyVersion()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: error: failed to fetch nightly version: %v\n", err)
+			w.ErrorPrefix("failed to fetch nightly version: %v", err)
 			return 1
 		}
 		targetVersion = nightlyVer
@@ -177,7 +177,7 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 	// Validate target version (unless nightly)
 	if !isNightlyVersion(targetVersion) {
 		if err := version.Validate(targetVersion); err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: error: invalid version format: %v\n", err)
+			w.ErrorPrefix("invalid version format: %v", err)
 			return 2
 		}
 	}
@@ -196,7 +196,7 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 	if !alreadyInstalled {
 		w.Println("Installing version %s...", targetVersion)
 		if err := installVersionFunc(targetVersion); err != nil {
-			fmt.Fprintf(os.Stderr, "structyl: error: failed to install version: %v\n", err)
+			w.ErrorPrefix("failed to install version: %v", err)
 			w.Println("")
 			w.Println("You can try installing manually with: .structyl/setup.sh")
 			return 1
@@ -211,7 +211,7 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 				w.Println("Successfully installed version %s", actualVersion)
 				targetVersion = actualVersion
 			} else {
-				fmt.Fprintf(os.Stderr, "structyl: error: installation completed but version not found on disk\n")
+				w.ErrorPrefix("installation completed but version not found on disk")
 				return 1
 			}
 		} else {
@@ -222,7 +222,7 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 
 	// Write new pinned version (only after successful installation)
 	if err := writePinnedVersion(root, targetVersion); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: error: %v\n", err)
+		w.ErrorPrefix("%v", err)
 		return 1
 	}
 
@@ -270,22 +270,24 @@ func installVersionReal(ver string) error {
 
 // updateProjectFiles regenerates the install scripts and AGENTS.md in the .structyl directory.
 func updateProjectFiles(structylDir string) {
+	w := output.New()
+
 	// Update setup.sh
 	setupShPath := filepath.Join(structylDir, "setup.sh")
 	if err := os.WriteFile(setupShPath, []byte(SetupScriptSh), 0755); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: warning: could not update setup.sh: %v\n", err)
+		w.WarningSimple("could not update setup.sh: %v", err)
 	}
 
 	// Update setup.ps1
 	setupPs1Path := filepath.Join(structylDir, "setup.ps1")
 	if err := os.WriteFile(setupPs1Path, []byte(SetupScriptPs1), 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: warning: could not update setup.ps1: %v\n", err)
+		w.WarningSimple("could not update setup.ps1: %v", err)
 	}
 
 	// Update AGENTS.md
 	agentsPath := filepath.Join(structylDir, AgentsPromptFileName)
 	if err := os.WriteFile(agentsPath, []byte(AgentsPromptContent), 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: warning: could not update AGENTS.md: %v\n", err)
+		w.WarningSimple("could not update AGENTS.md: %v", err)
 	}
 }
 

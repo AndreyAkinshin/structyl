@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 
@@ -12,6 +11,7 @@ import (
 
 // cmdCompletion generates shell completion scripts.
 func cmdCompletion(args []string) int {
+	w := output.New()
 	shell := ""
 	alias := ""
 
@@ -25,15 +25,15 @@ func cmdCompletion(args []string) int {
 		case strings.HasPrefix(arg, "--alias="):
 			alias = strings.TrimPrefix(arg, "--alias=")
 		case arg == "--alias":
-			fmt.Fprintf(os.Stderr, "structyl completion: --alias requires a value (--alias=<name>)\n")
+			w.ErrorPrefix("completion: --alias requires a value (--alias=<name>)")
 			return 2
 		case strings.HasPrefix(arg, "-"):
-			fmt.Fprintf(os.Stderr, "structyl completion: unknown flag: %s\n", arg)
+			w.ErrorPrefix("completion: unknown flag: %s", arg)
 			printCompletionUsage()
 			return 2
 		default:
 			if shell != "" {
-				fmt.Fprintf(os.Stderr, "structyl completion: unexpected argument: %s\n", arg)
+				w.ErrorPrefix("completion: unexpected argument: %s", arg)
 				return 2
 			}
 			shell = arg
@@ -41,7 +41,7 @@ func cmdCompletion(args []string) int {
 	}
 
 	if shell == "" {
-		fmt.Fprintf(os.Stderr, "structyl completion: shell required (bash, zsh, fish)\n")
+		w.ErrorPrefix("completion: shell required (bash, zsh, fish)")
 		printCompletionUsage()
 		return 2
 	}
@@ -60,7 +60,7 @@ func cmdCompletion(args []string) int {
 	case "fish":
 		fmt.Print(generateFishCompletion(cmdName))
 	default:
-		fmt.Fprintf(os.Stderr, "structyl completion: unsupported shell %q (use bash, zsh, or fish)\n", shell)
+		w.ErrorPrefix("completion: unsupported shell %q (use bash, zsh, or fish)", shell)
 		return 2
 	}
 

@@ -52,7 +52,7 @@ func Run(args []string) int {
 	// Parse global flags
 	opts, remaining, err := parseGlobalFlags(args)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "structyl: %v\n", err)
+		out.ErrorPrefix("%v", err)
 		return 2
 	}
 
@@ -395,7 +395,7 @@ func collectAllCommands(targets []target.Target) []commandInfo {
 		name  string
 		count int
 	}
-	var cmds []cmdFreq
+	cmds := make([]cmdFreq, 0, len(cmdCount))
 	for cmd, count := range cmdCount {
 		cmds = append(cmds, cmdFreq{cmd, count})
 	}

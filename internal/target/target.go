@@ -60,10 +60,3 @@ type ExecOptions struct {
 	Env       map[string]string // Additional environment variables
 	Verbosity Verbosity         // Output verbosity level
 }
-
-// ExecResult contains the result of command execution.
-type ExecResult struct {
-	ExitCode int
-	Stdout   string
-	Stderr   string
-}

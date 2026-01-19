@@ -6,6 +6,12 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/testparser"
 )
 
+// Task name constants for structyl-specific mise tasks.
+const (
+	// TaskSetupStructyl is the task that installs the structyl CLI.
+	TaskSetupStructyl = "setup:structyl"
+)
+
 // MiseTaskMeta represents task metadata from `mise tasks --json`.
 type MiseTaskMeta struct {
 	Name        string   `json:"name"`

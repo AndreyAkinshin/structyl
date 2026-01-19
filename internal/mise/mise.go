@@ -118,7 +118,7 @@ func generateTasksWithToolchains(cfg *config.Config, loaded *toolchain.Toolchain
 	ciPipeline := getCIPipeline(loaded)
 
 	// Setup task for structyl
-	tasks["setup:structyl"] = MiseTask{
+	tasks[TaskSetupStructyl] = MiseTask{
 		Description: "Install structyl CLI",
 		Run:         ".structyl/setup.sh",
 	}

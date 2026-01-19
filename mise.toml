@@ -2,6 +2,8 @@
 go = "1.24"
 golangci-lint = "latest"
 goreleaser = "latest"
+"go:golang.org/x/vuln/cmd/govulncheck" = "latest"
+"go:github.com/securego/gosec/v2/cmd/gosec" = "latest"
 
 [tasks.deps]
 description = "Download Go module dependencies"
@@ -46,3 +48,22 @@ run = "go build -v ./cmd/structyl"
 [tasks.ci]
 description = "Run full CI pipeline (deps, lint, test, build)"
 depends = ["deps", "lint", "test", "build"]
+
+[tasks.security]
+description = "Run all security checks"
+depends = ["security:vuln", "security:gosec"]
+
+[tasks."security:vuln"]
+description = "Check for known vulnerabilities in dependencies"
+run = "govulncheck ./..."
+
+[tasks."security:gosec"]
+description = "Run static security analysis"
+# Exclusions:
+#   G107: URL provided to HTTP request (tool fetches user-specified URLs by design)
+#   G115: Integer overflow conversion (intentional for ULP float comparison)
+#   G204: Subprocess with variable (core functionality - executes user commands)
+#   G301: Directory permissions 0755 (standard for user-accessible directories)
+#   G304: File path from variable (CLI tool reads user-specified files by design)
+#   G306: WriteFile permissions 0644 (standard for config files)
+run = "gosec -quiet -exclude=G107,G115,G204,G301,G304,G306 ./..."

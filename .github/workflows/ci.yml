@@ -78,3 +78,19 @@ jobs:
         with:
           files: coverage.out
           fail_ci_if_error: false
+
+  security:
+    name: Security
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up mise
+        uses: jdx/mise-action@v2
+
+      - name: Check for vulnerabilities
+        run: mise run security:vuln
+
+      - name: Run static security analysis
+        run: mise run security:gosec

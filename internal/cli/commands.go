@@ -174,6 +174,23 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 		return 1
 	}
 
+	// If --type is specified and no specific target given, filter targets by type
+	if opts.TargetType != "" && targetName == "" {
+		targets := registry.All()
+		targets = filterTargetsByType(targets, target.TargetType(opts.TargetType))
+		if len(targets) == 0 {
+			out.WarningSimple("no targets of type %q found", opts.TargetType)
+			return 0
+		}
+		// Run command for each matching target
+		for _, t := range targets {
+			if result := runViaMise(proj, cmd, t.Name(), cmdArgs, opts); result != 0 {
+				return result
+			}
+		}
+		return 0
+	}
+
 	return runViaMise(proj, cmd, targetName, cmdArgs, opts)
 }
 

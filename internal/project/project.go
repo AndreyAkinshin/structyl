@@ -2,10 +2,12 @@ package project
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
 	"github.com/AndreyAkinshin/structyl/internal/toolchain"
+	"github.com/AndreyAkinshin/structyl/internal/version"
 )
 
 // Project represents a loaded structyl project.
@@ -46,6 +48,19 @@ func LoadProjectFrom(root string) (*Project, error) {
 		if err := validateTargetDirectory(targetDir, name); err != nil {
 			return nil, err
 		}
+	}
+
+	// Validate VERSION file if it exists and is configured
+	// (version config is auto-populated with defaults, so only validate if file exists)
+	if cfg.Version != nil && cfg.Version.Source != "" {
+		versionFile := filepath.Join(root, cfg.Version.Source)
+		if _, statErr := os.Stat(versionFile); statErr == nil {
+			// File exists, validate its contents
+			if _, err := version.Read(versionFile); err != nil {
+				return nil, fmt.Errorf("version validation failed: %w", err)
+			}
+		}
+		// If file doesn't exist, that's OK - it's optional until release time
 	}
 
 	return &Project{

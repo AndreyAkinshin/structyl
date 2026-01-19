@@ -1294,9 +1294,14 @@ func TestCmdUpgrade_NightlyToNightly_InstallerReceivesResolvedVersion(t *testing
 	}
 	defer func() { installVersionFunc = originalInstaller }()
 
-	// Mock isVersionInstalled to return false so installation is attempted
+	// Mock isVersionInstalled: first call returns false (triggers install),
+	// second call returns true (version is now installed)
 	originalIsInstalled := isVersionInstalledFunc
-	isVersionInstalledFunc = func(ver string) bool { return false }
+	callCount := 0
+	isVersionInstalledFunc = func(ver string) bool {
+		callCount++
+		return callCount > 1
+	}
 	defer func() { isVersionInstalledFunc = originalIsInstalled }()
 
 	// Create a project with an old nightly version
@@ -1339,9 +1344,14 @@ func TestCmdUpgrade_NightlyWithPlusFormat_InstallerReceivesResolvedVersion(t *te
 	}
 	defer func() { installVersionFunc = originalInstaller }()
 
-	// Mock isVersionInstalled to return false so installation is attempted
+	// Mock isVersionInstalled: first call returns false (triggers install),
+	// second call returns true (version is now installed)
 	originalIsInstalled := isVersionInstalledFunc
-	isVersionInstalledFunc = func(ver string) bool { return false }
+	callCount := 0
+	isVersionInstalledFunc = func(ver string) bool {
+		callCount++
+		return callCount > 1
+	}
 	defer func() { isVersionInstalledFunc = originalIsInstalled }()
 
 	root := createTestProjectWithVersion(t, "1.0.0")

@@ -45,6 +45,11 @@ func (r *Releaser) SetOutput(out *output.Writer) {
 
 // Release performs the release workflow.
 func (r *Releaser) Release(ctx context.Context, opts Options) error {
+	// Check for cancellation at start
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
 	// Validate version format
 	ver, err := version.Parse(opts.Version)
 	if err != nil {
@@ -66,6 +71,9 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 	stepNum := 1
 
 	// 1. Update VERSION file
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	r.out.Step(stepNum, "Setting version to %s", verStr)
 	stepNum++
 	if err := r.setVersion(verStr); err != nil {
@@ -74,6 +82,9 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 
 	// 2. Propagate version to configured files
 	if r.config.Version != nil && len(r.config.Version.Files) > 0 {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		r.out.Step(stepNum, "Propagating version to configured files...")
 		stepNum++
 		// Resolve paths relative to project root
@@ -92,9 +103,15 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 
 	// 3. Run pre-commit commands
 	if r.config.Release != nil && len(r.config.Release.PreCommands) > 0 {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		r.out.Step(stepNum, "Running pre-commit commands...")
 		stepNum++
 		for _, cmdStr := range r.config.Release.PreCommands {
+			if err := ctx.Err(); err != nil {
+				return err
+			}
 			r.out.StepDetail("Running: %s", cmdStr)
 			if err := r.runCommand(ctx, cmdStr); err != nil {
 				return fmt.Errorf("pre-commit command %q failed: %w", cmdStr, err)
@@ -103,6 +120,9 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 	}
 
 	// 4. Git add and commit
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	r.out.Step(stepNum, "Creating commit...")
 	stepNum++
 	if err := r.gitAddAll(ctx); err != nil {
@@ -114,6 +134,9 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 	}
 
 	// 5. Move main branch to HEAD (if configured)
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	branch := r.getBranch()
 	currentBranch, err := r.getCurrentBranch(ctx)
 	if err == nil && currentBranch != branch {
@@ -126,6 +149,9 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 
 	// 6. Push if requested
 	if opts.Push {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		remote := r.getRemote()
 		r.out.Step(stepNum, "Pushing to %s...", remote)
 

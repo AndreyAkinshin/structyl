@@ -191,7 +191,7 @@ func parseGlobalFlags(args []string) (*GlobalOptions, []string, error) {
 
 // isDockerMode determines if Docker mode should be used.
 func isDockerMode(opts *GlobalOptions) bool {
-	return runner.GetDockerMode(opts.Docker, opts.NoDocker, "")
+	return runner.GetDockerMode(opts.Docker, opts.NoDocker)
 }
 
 func printUsage() {

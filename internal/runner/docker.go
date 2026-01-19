@@ -93,6 +93,16 @@ func (r *DockerRunner) Run(ctx context.Context, service, cmd string) error {
 	return dockerCmd.Run()
 }
 
+// shellCommandArgs returns shell wrapper arguments for executing a command.
+// On Windows: ["powershell", "-Command", cmd]
+// On Unix:    ["sh", "-c", cmd]
+func shellCommandArgs(cmd string) []string {
+	if runtime.GOOS == "windows" {
+		return []string{"powershell", "-Command", cmd}
+	}
+	return []string{"sh", "-c", cmd}
+}
+
 // buildRunArgs constructs the docker compose run arguments.
 func (r *DockerRunner) buildRunArgs(service, cmd string) []string {
 	args := []string{"compose", "-f", r.composeFile, "run", "--rm"}
@@ -103,13 +113,7 @@ func (r *DockerRunner) buildRunArgs(service, cmd string) []string {
 	}
 
 	args = append(args, service)
-
-	// Add shell wrapper based on platform
-	if runtime.GOOS == "windows" {
-		args = append(args, "powershell", "-Command", cmd)
-	} else {
-		args = append(args, "sh", "-c", cmd)
-	}
+	args = append(args, shellCommandArgs(cmd)...)
 
 	return args
 }
@@ -227,13 +231,7 @@ func (r *DockerRunner) Exec(ctx context.Context, service, cmd string) error {
 	}
 
 	args = append(args, service)
-
-	// Add shell wrapper based on platform
-	if runtime.GOOS == "windows" {
-		args = append(args, "powershell", "-Command", cmd)
-	} else {
-		args = append(args, "sh", "-c", cmd)
-	}
+	args = append(args, shellCommandArgs(cmd)...)
 
 	dockerCmd := exec.CommandContext(ctx, "docker", args...)
 	dockerCmd.Dir = r.projectRoot
@@ -245,8 +243,8 @@ func (r *DockerRunner) Exec(ctx context.Context, service, cmd string) error {
 }
 
 // GetDockerMode determines if Docker mode should be used based on flags and environment.
-// Precedence: explicit flag > STRUCTYL_DOCKER env var > config default
-func GetDockerMode(explicitDocker, explicitNoDocker bool, envVarName string) bool {
+// Precedence: explicit flag > STRUCTYL_DOCKER env var > default (false)
+func GetDockerMode(explicitDocker, explicitNoDocker bool) bool {
 	// Explicit flags take highest precedence
 	if explicitNoDocker {
 		return false
@@ -256,12 +254,7 @@ func GetDockerMode(explicitDocker, explicitNoDocker bool, envVarName string) boo
 	}
 
 	// Check environment variable
-	envVar := envVarName
-	if envVar == "" {
-		envVar = "STRUCTYL_DOCKER"
-	}
-
-	if env := os.Getenv(envVar); env != "" {
+	if env := os.Getenv("STRUCTYL_DOCKER"); env != "" {
 		env = strings.ToLower(env)
 		return env == "1" || env == "true" || env == "yes"
 	}

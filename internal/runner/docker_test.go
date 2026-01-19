@@ -84,17 +84,17 @@ func TestGetDockerMode_Flags(t *testing.T) {
 	t.Setenv("STRUCTYL_DOCKER", "")
 
 	// Explicit --docker flag
-	if !GetDockerMode(true, false, "") {
+	if !GetDockerMode(true, false) {
 		t.Error("explicit --docker should return true")
 	}
 
 	// Explicit --no-docker flag
-	if GetDockerMode(false, true, "") {
+	if GetDockerMode(false, true) {
 		t.Error("explicit --no-docker should return false")
 	}
 
 	// --no-docker takes precedence over --docker
-	if GetDockerMode(true, true, "") {
+	if GetDockerMode(true, true) {
 		t.Error("--no-docker should take precedence")
 	}
 }
@@ -119,7 +119,7 @@ func TestGetDockerMode_EnvVar(t *testing.T) {
 		t.Run(tt.envValue, func(t *testing.T) {
 			t.Setenv("STRUCTYL_DOCKER", tt.envValue)
 
-			result := GetDockerMode(false, false, "")
+			result := GetDockerMode(false, false)
 			if result != tt.expected {
 				t.Errorf("GetDockerMode() with STRUCTYL_DOCKER=%q = %v, want %v",
 					tt.envValue, result, tt.expected)
@@ -128,19 +128,10 @@ func TestGetDockerMode_EnvVar(t *testing.T) {
 	}
 }
 
-func TestGetDockerMode_CustomEnvVar(t *testing.T) {
-	t.Setenv("MY_DOCKER_VAR", "true")
-
-	result := GetDockerMode(false, false, "MY_DOCKER_VAR")
-	if !result {
-		t.Error("should use custom env var name")
-	}
-}
-
 func TestGetDockerMode_Default(t *testing.T) {
 	t.Setenv("STRUCTYL_DOCKER", "")
 
-	result := GetDockerMode(false, false, "")
+	result := GetDockerMode(false, false)
 	if result {
 		t.Error("default should be false (native execution)")
 	}

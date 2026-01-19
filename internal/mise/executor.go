@@ -13,6 +13,7 @@ import (
 
 	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/testparser"
+	"github.com/AndreyAkinshin/structyl/internal/topsort"
 )
 
 // Executor handles mise task execution.
@@ -112,7 +113,7 @@ func (e *Executor) RunTaskOutput(ctx context.Context, task string, args []string
 
 	err := cmd.Run()
 	if err != nil {
-		return "", fmt.Errorf("%w: %s", err, stderr.String())
+		return "", fmt.Errorf("mise run failed: %w (stderr: %s)", err, stderr.String())
 	}
 
 	return stdout.String(), nil
@@ -212,60 +213,29 @@ func (e *Executor) ResolveTaskDependencies(ctx context.Context, taskName string)
 // resolveTaskDependenciesFromSlice performs topological sort on tasks.
 // This is an internal function that can be tested without calling mise.
 func resolveTaskDependenciesFromSlice(allTasks []MiseTaskMeta, taskName string) ([]MiseTaskMeta, error) {
-	// Build task map for lookup
+	// Build task map and graph
 	taskMap := make(map[string]MiseTaskMeta)
+	graph := make(topsort.Graph)
 	for _, t := range allTasks {
 		taskMap[t.Name] = t
+		graph[t.Name] = t.Depends
 	}
 
 	// Check if the task exists
-	rootTask, exists := taskMap[taskName]
-	if !exists {
+	if _, exists := taskMap[taskName]; !exists {
 		return nil, fmt.Errorf("task %q not found", taskName)
 	}
 
-	// Topological sort with cycle detection
-	var result []MiseTaskMeta
-	visited := make(map[string]bool)
-	inStack := make(map[string]bool)
-
-	var visit func(name string) error
-	visit = func(name string) error {
-		if inStack[name] {
-			return fmt.Errorf("circular dependency detected involving task %q", name)
-		}
-		if visited[name] {
-			return nil
-		}
-
-		inStack[name] = true
-
-		task, exists := taskMap[name]
-		if !exists {
-			return fmt.Errorf("dependency task %q not found", name)
-		}
-
-		// Visit dependencies first
-		for _, dep := range task.Depends {
-			if err := visit(dep); err != nil {
-				return err
-			}
-		}
-
-		visited[name] = true
-		inStack[name] = false
-		result = append(result, task)
-
-		return nil
-	}
-
-	if err := visit(taskName); err != nil {
+	// Use shared topological sort
+	sortedNames, err := topsort.Sort(graph, []string{taskName})
+	if err != nil {
 		return nil, err
 	}
 
-	// If the root task has no dependencies and is a leaf task, return just itself
-	if len(rootTask.Depends) == 0 {
-		return []MiseTaskMeta{rootTask}, nil
+	// Convert names back to task metadata
+	result := make([]MiseTaskMeta, len(sortedNames))
+	for i, name := range sortedNames {
+		result[i] = taskMap[name]
 	}
 
 	return result, nil

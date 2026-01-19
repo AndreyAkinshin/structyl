@@ -2,6 +2,7 @@ package target
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -24,6 +25,49 @@ var varPattern = regexp.MustCompile(`\$\{([^}]+)\}`)
 // This prevents ${var} from being interpreted as a variable reference
 // when the user wants a literal ${var} in the output.
 const escapePlaceholder = "\x00ESCAPED\x00"
+
+// SkipReason indicates why command execution was skipped.
+type SkipReason string
+
+const (
+	// SkipReasonDisabled indicates the command is explicitly disabled (nil).
+	SkipReasonDisabled SkipReason = "disabled"
+	// SkipReasonCommandNotFound indicates the executable was not found in PATH.
+	SkipReasonCommandNotFound SkipReason = "command_not_found"
+	// SkipReasonScriptNotFound indicates an npm/pnpm/yarn/bun script was not found.
+	SkipReasonScriptNotFound SkipReason = "script_not_found"
+)
+
+// SkipError indicates that command execution was skipped (not failed).
+// Callers can use IsSkipError to detect this case and handle it appropriately.
+// Skip errors are distinct from execution failures and may be treated as
+// warnings rather than errors depending on context.
+type SkipError struct {
+	Target  string
+	Command string
+	Reason  SkipReason
+	Detail  string // Additional detail (e.g., missing command name)
+}
+
+func (e *SkipError) Error() string {
+	switch e.Reason {
+	case SkipReasonDisabled:
+		return fmt.Sprintf("[%s] %s: disabled, skipping", e.Target, e.Command)
+	case SkipReasonCommandNotFound:
+		return fmt.Sprintf("[%s] %s: %s not found, skipping", e.Target, e.Command, e.Detail)
+	case SkipReasonScriptNotFound:
+		return fmt.Sprintf("[%s] %s: script '%s' not found in package.json, skipping", e.Target, e.Command, e.Detail)
+	default:
+		return fmt.Sprintf("[%s] %s: skipped (%s)", e.Target, e.Command, e.Reason)
+	}
+}
+
+// IsSkipError returns true if the error is or wraps a SkipError.
+// This allows callers to distinguish between skipped commands and actual failures.
+func IsSkipError(err error) bool {
+	var skipErr *SkipError
+	return errors.As(err, &skipErr)
+}
 
 // targetImpl is the concrete implementation of the Target interface.
 type targetImpl struct {
@@ -123,8 +167,13 @@ func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) 
 	var cmdStr string
 	switch cmdVal := cmdDef.(type) {
 	case nil:
-		// nil command means skip
-		return nil
+		// nil command means explicitly disabled - return skip error for transparency
+		// Callers can use IsSkipError() to detect and handle this gracefully
+		return &SkipError{
+			Target:  t.name,
+			Command: cmd,
+			Reason:  SkipReasonDisabled,
+		}
 
 	case []string:
 		// Handle composite commands (list of command names)
@@ -161,16 +210,23 @@ func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) 
 	// Check if the command is available before executing
 	execName := extractCommandName(cmdStr)
 	if execName != "" && !isCommandAvailable(execName) {
-		fmt.Fprintf(os.Stderr, "[%s] %s: %s not found, skipping\n", t.name, cmd, execName)
-		return nil
+		return &SkipError{
+			Target:  t.name,
+			Command: cmd,
+			Reason:  SkipReasonCommandNotFound,
+			Detail:  execName,
+		}
 	}
 
 	// Check if npm/pnpm/yarn/bun script exists in package.json
 	workDir := filepath.Join(t.rootDir, t.cwd)
 	if available, scriptName := isNpmScriptAvailable(cmdStr, workDir); !available {
-		fmt.Fprintf(os.Stderr, "[%s] %s: script '%s' not found in package.json, skipping\n",
-			t.name, cmd, scriptName)
-		return nil
+		return &SkipError{
+			Target:  t.name,
+			Command: cmd,
+			Reason:  SkipReasonScriptNotFound,
+			Detail:  scriptName,
+		}
 	}
 
 	// Append forwarded arguments

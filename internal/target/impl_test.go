@@ -525,7 +525,7 @@ func TestExecute_UndefinedCommand_ReturnsError(t *testing.T) {
 	}
 }
 
-func TestExecute_NilCommand_SkipsExecution(t *testing.T) {
+func TestExecute_NilCommand_ReturnsSkipError(t *testing.T) {
 	cfg := config.TargetConfig{
 		Type:  "language",
 		Title: "Test",
@@ -540,8 +540,12 @@ func TestExecute_NilCommand_SkipsExecution(t *testing.T) {
 	ctx := context.Background()
 	err := target.Execute(ctx, "skip", ExecOptions{})
 
-	if err != nil {
-		t.Errorf("Execute() error = %v, want nil for nil command", err)
+	if !IsSkipError(err) {
+		t.Errorf("Execute() error = %v, want SkipError for nil command", err)
+	}
+	skipErr, _ := err.(*SkipError)
+	if skipErr.Reason != SkipReasonDisabled {
+		t.Errorf("SkipError.Reason = %q, want %q", skipErr.Reason, SkipReasonDisabled)
 	}
 }
 
@@ -866,7 +870,7 @@ func TestIsCommandAvailable(t *testing.T) {
 	}
 }
 
-func TestExecute_UnavailableCommand_SkipsWithWarning(t *testing.T) {
+func TestExecute_UnavailableCommand_ReturnsSkipError(t *testing.T) {
 	tmpDir := t.TempDir()
 
 	cfg := config.TargetConfig{
@@ -885,15 +889,21 @@ func TestExecute_UnavailableCommand_SkipsWithWarning(t *testing.T) {
 	ctx := context.Background()
 	err := target.Execute(ctx, "lint", ExecOptions{})
 
-	// Should NOT return error - it should skip gracefully
-	if err != nil {
-		t.Errorf("Execute() error = %v, want nil for unavailable command (should skip)", err)
+	// Should return SkipError, not nil, to distinguish from success
+	if !IsSkipError(err) {
+		t.Errorf("Execute() error = %v, want SkipError for unavailable command", err)
+	}
+	skipErr, _ := err.(*SkipError)
+	if skipErr.Reason != SkipReasonCommandNotFound {
+		t.Errorf("SkipError.Reason = %q, want %q", skipErr.Reason, SkipReasonCommandNotFound)
+	}
+	if skipErr.Detail != "nonexistent-tool-xyz-12345" {
+		t.Errorf("SkipError.Detail = %q, want %q", skipErr.Detail, "nonexistent-tool-xyz-12345")
 	}
 }
 
-func TestExecute_CompositeWithUnavailableCommand_ContinuesWithOthers(t *testing.T) {
+func TestExecute_CompositeWithUnavailableCommand_ReturnsSkipError(t *testing.T) {
 	tmpDir := t.TempDir()
-	outputFile := filepath.Join(tmpDir, "output.txt")
 
 	cfg := config.TargetConfig{
 		Type:      "language",
@@ -902,7 +912,7 @@ func TestExecute_CompositeWithUnavailableCommand_ContinuesWithOthers(t *testing.
 		Cwd:       ".",
 		Commands: map[string]interface{}{
 			"lint":  "nonexistent-tool-xyz-12345 run",
-			"vet":   "echo vet-ran > " + outputFile,
+			"vet":   "echo vet-ran",
 			"check": []interface{}{"lint", "vet"},
 		},
 	}
@@ -913,24 +923,14 @@ func TestExecute_CompositeWithUnavailableCommand_ContinuesWithOthers(t *testing.
 	ctx := context.Background()
 	err := target.Execute(ctx, "check", ExecOptions{})
 
-	// Should succeed - lint is skipped, vet runs
-	if err != nil {
-		t.Errorf("Execute() error = %v, want nil", err)
-	}
-
-	// Verify vet ran
-	content, readErr := readTestOutput(outputFile)
-	if readErr != nil {
-		t.Errorf("failed to read output file: %v", readErr)
-		return
-	}
-
-	if !strings.Contains(content, "vet-ran") {
-		t.Errorf("output = %q, want to contain 'vet-ran' (vet should have executed)", content)
+	// Composite commands propagate errors (including skip errors)
+	// The runner layer decides whether to continue, not the target layer
+	if !IsSkipError(err) {
+		t.Errorf("Execute() error = %v, want SkipError for composite with unavailable sub-command", err)
 	}
 }
 
-func TestExecute_MissingNpmScript_SkipsGracefully(t *testing.T) {
+func TestExecute_MissingNpmScript_ReturnsSkipError(t *testing.T) {
 	// Clear cache before test
 	clearPackageJSONCache()
 	defer clearPackageJSONCache()
@@ -960,9 +960,16 @@ func TestExecute_MissingNpmScript_SkipsGracefully(t *testing.T) {
 	ctx := context.Background()
 	err = target.Execute(ctx, "lint", ExecOptions{})
 
-	// Should NOT return error - it should skip gracefully
-	if err != nil {
-		t.Errorf("Execute() error = %v, want nil for missing npm script (should skip)", err)
+	// Should return SkipError to distinguish from success
+	if !IsSkipError(err) {
+		t.Errorf("Execute() error = %v, want SkipError for missing npm script", err)
+	}
+	skipErr, _ := err.(*SkipError)
+	if skipErr.Reason != SkipReasonScriptNotFound {
+		t.Errorf("SkipError.Reason = %q, want %q", skipErr.Reason, SkipReasonScriptNotFound)
+	}
+	if skipErr.Detail != "lint" {
+		t.Errorf("SkipError.Detail = %q, want %q", skipErr.Detail, "lint")
 	}
 }
 
@@ -1014,13 +1021,12 @@ func TestExecute_ExistingNpmScript_Executes(t *testing.T) {
 	}
 }
 
-func TestExecute_CompositeWithMissingNpmScript_ContinuesWithOthers(t *testing.T) {
+func TestExecute_CompositeWithMissingNpmScript_ReturnsSkipError(t *testing.T) {
 	// Clear cache before test
 	clearPackageJSONCache()
 	defer clearPackageJSONCache()
 
 	tmpDir := t.TempDir()
-	outputFile := filepath.Join(tmpDir, "output.txt")
 
 	// Create package.json with only build script, not lint
 	packageJSON := `{"name": "test", "scripts": {"build": "echo building"}}`
@@ -1035,8 +1041,8 @@ func TestExecute_CompositeWithMissingNpmScript_ContinuesWithOthers(t *testing.T)
 		Directory: ".",
 		Cwd:       ".",
 		Commands: map[string]interface{}{
-			"lint":  "npm run lint",                   // Missing script - should skip
-			"build": "echo build-ran > " + outputFile, // Should execute
+			"lint":  "npm run lint",   // Missing script
+			"build": "echo build-ran", // Would execute
 			"check": []interface{}{"lint", "build"},
 		},
 	}
@@ -1047,20 +1053,10 @@ func TestExecute_CompositeWithMissingNpmScript_ContinuesWithOthers(t *testing.T)
 	ctx := context.Background()
 	err = target.Execute(ctx, "check", ExecOptions{})
 
-	// Should succeed - lint is skipped, build runs
-	if err != nil {
-		t.Errorf("Execute() error = %v, want nil", err)
-	}
-
-	// Verify build ran
-	content, readErr := readTestOutput(outputFile)
-	if readErr != nil {
-		t.Errorf("failed to read output file: %v", readErr)
-		return
-	}
-
-	if !strings.Contains(content, "build-ran") {
-		t.Errorf("output = %q, want to contain 'build-ran' (build should have executed)", content)
+	// Composite commands propagate errors (including skip errors)
+	// The runner layer decides whether to continue, not the target layer
+	if !IsSkipError(err) {
+		t.Errorf("Execute() error = %v, want SkipError for composite with missing npm script", err)
 	}
 }
 

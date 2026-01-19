@@ -45,6 +45,11 @@ type Target interface {
 	DemoPath() string                           // Path to demo file for documentation
 
 	// Execution
+	//
+	// Execute runs the specified command. Returns nil on success.
+	// Returns a SkipError if the command was skipped (disabled, missing executable,
+	// or missing npm script). Callers should use IsSkipError() to distinguish
+	// skip errors from execution failures and handle them appropriately.
 	Execute(ctx context.Context, cmd string, opts ExecOptions) error
 }
 

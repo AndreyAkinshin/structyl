@@ -7,6 +7,9 @@ mise.toml
 **/.cargo-docker/
 **/.cache-docker/
 
+# Generated docs schema files (source is in schema/)
+docs/public/schema/
+
 # Go
 /structyl
 *.exe

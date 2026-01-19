@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vitepress dev",
+    "copy-schemas": "cp ../schema/*.schema.json public/schema/",
+    "dev": "pnpm run copy-schemas && vitepress dev",
+    "prebuild": "pnpm run copy-schemas",
     "build": "vitepress build",
     "preview": "vitepress preview"
   },

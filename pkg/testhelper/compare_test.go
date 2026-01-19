@@ -216,6 +216,35 @@ func TestDefaultOptions(t *testing.T) {
 	}
 }
 
+func TestValidateOptions(t *testing.T) {
+	// Valid options
+	validCases := []CompareOptions{
+		DefaultOptions(),
+		{ToleranceMode: "relative", ArrayOrder: "strict"},
+		{ToleranceMode: "absolute", ArrayOrder: "strict"},
+		{ToleranceMode: "ulp", ArrayOrder: "strict"},
+		{ToleranceMode: "relative", ArrayOrder: "unordered"},
+		{ToleranceMode: "", ArrayOrder: ""},  // empty defaults
+	}
+	for _, opts := range validCases {
+		if err := ValidateOptions(opts); err != nil {
+			t.Errorf("ValidateOptions(%+v) returned error: %v", opts, err)
+		}
+	}
+
+	// Invalid ToleranceMode
+	invalidMode := CompareOptions{ToleranceMode: "fuzzy"}
+	if err := ValidateOptions(invalidMode); err == nil {
+		t.Error("ValidateOptions with invalid ToleranceMode should return error")
+	}
+
+	// Invalid ArrayOrder
+	invalidOrder := CompareOptions{ArrayOrder: "random"}
+	if err := ValidateOptions(invalidOrder); err == nil {
+		t.Error("ValidateOptions with invalid ArrayOrder should return error")
+	}
+}
+
 func TestFormatDiff(t *testing.T) {
 	opts := DefaultOptions()
 

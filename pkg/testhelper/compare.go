@@ -33,6 +33,24 @@ func DefaultOptions() CompareOptions {
 	}
 }
 
+// ValidateOptions validates that CompareOptions has valid enum values.
+// Returns nil if valid, or an error describing the invalid field.
+func ValidateOptions(opts CompareOptions) error {
+	switch opts.ToleranceMode {
+	case "", "relative", "absolute", "ulp":
+		// valid (empty defaults to relative)
+	default:
+		return fmt.Errorf("invalid ToleranceMode: %q (must be \"relative\", \"absolute\", or \"ulp\")", opts.ToleranceMode)
+	}
+	switch opts.ArrayOrder {
+	case "", "strict", "unordered":
+		// valid (empty defaults to strict)
+	default:
+		return fmt.Errorf("invalid ArrayOrder: %q (must be \"strict\" or \"unordered\")", opts.ArrayOrder)
+	}
+	return nil
+}
+
 // CompareOutput compares expected and actual outputs.
 // Returns true if they match according to the options.
 func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {

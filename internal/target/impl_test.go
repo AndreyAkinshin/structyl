@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 	"unicode/utf16"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
@@ -792,6 +793,40 @@ func TestExecute_ContextCancellation(t *testing.T) {
 
 	if err == nil {
 		t.Error("Execute() expected error for canceled context")
+	}
+}
+
+func TestExecute_ContextTimeout(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	cfg := config.TargetConfig{
+		Type:      "language",
+		Title:     "Test",
+		Directory: ".",
+		Cwd:       ".",
+		Commands: map[string]interface{}{
+			"sleep": "sleep 10",
+		},
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("test", cfg, tmpDir, resolver)
+
+	// Context with very short timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
+	defer cancel()
+
+	start := time.Now()
+	err := target.Execute(ctx, "sleep", ExecOptions{})
+	elapsed := time.Since(start)
+
+	if err == nil {
+		t.Error("Execute() expected error for timed out context")
+	}
+
+	// Should have returned quickly due to timeout, not after 10 seconds
+	if elapsed > 2*time.Second {
+		t.Errorf("Execute() took %v, expected to abort quickly on timeout", elapsed)
 	}
 }
 

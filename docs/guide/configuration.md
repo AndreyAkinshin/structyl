@@ -135,13 +135,12 @@ See [Testing](./testing) for details on cross-language testing.
 
 ### `mise`
 
-Configure mise integration (enabled by default).
+Configure mise integration.
 
 ```json
 {
   "mise": {
-    "enabled": true,
-    "auto_generate": true,
+    "auto_generate": false,
     "extra_tools": {
       "jq": "latest"
     }
@@ -151,8 +150,7 @@ Configure mise integration (enabled by default).
 
 | Field           | Default | Description                           |
 | --------------- | ------- | ------------------------------------- |
-| `enabled`       | `true`  | Enable mise integration               |
-| `auto_generate` | `true`  | Regenerate mise.toml before each run |
+| `auto_generate` | `false` | Regenerate mise.toml before each run |
 | `extra_tools`   | `{}`    | Additional mise tools to install      |
 
 See [Mise Integration](./mise) for details.

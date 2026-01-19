@@ -244,11 +244,12 @@ Running a null command succeeds with a warning.
 
 ## Global Flags
 
-| Flag            | Description             |
-| --------------- | ----------------------- |
-| `--docker`      | Run in Docker container |
-| `--continue`    | Continue on errors      |
-| `--type=<type>` | Filter by target type   |
+| Flag            | Description                 |
+| --------------- | --------------------------- |
+| `--docker`      | Run in Docker container     |
+| `--no-docker`   | Disable Docker mode         |
+| `--continue`    | Continue on errors          |
+| `--type=<type>` | Filter by target type       |
 
 ## Exit Codes
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
 	"github.com/AndreyAkinshin/structyl/internal/toolchain"
+	"github.com/AndreyAkinshin/structyl/internal/topsort"
 )
 
 // Registry manages a collection of targets.
@@ -94,83 +95,29 @@ func (r *Registry) Names() []string {
 
 // validateDependencies checks for undefined and circular dependencies.
 func (r *Registry) validateDependencies() error {
-	// Check for undefined dependencies
+	return topsort.Validate(r.buildGraph())
+}
+
+// buildGraph creates a topsort.Graph from the target registry.
+func (r *Registry) buildGraph() topsort.Graph {
+	g := make(topsort.Graph, len(r.targets))
 	for name, target := range r.targets {
-		for _, dep := range target.DependsOn() {
-			if dep == name {
-				return fmt.Errorf("target %q depends on itself", name)
-			}
-			if _, ok := r.targets[dep]; !ok {
-				return fmt.Errorf("target %q depends on undefined target %q", name, dep)
-			}
-		}
+		g[name] = target.DependsOn()
 	}
-
-	// Check for circular dependencies
-	visited := make(map[string]bool)
-	inStack := make(map[string]bool)
-
-	var visit func(name string) error
-	visit = func(name string) error {
-		if inStack[name] {
-			return fmt.Errorf("circular dependency detected involving target %q", name)
-		}
-		if visited[name] {
-			return nil
-		}
-
-		visited[name] = true
-		inStack[name] = true
-
-		target := r.targets[name]
-		for _, dep := range target.DependsOn() {
-			if err := visit(dep); err != nil {
-				return err
-			}
-		}
-
-		inStack[name] = false
-		return nil
-	}
-
-	for name := range r.targets {
-		if err := visit(name); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return g
 }
 
 // TopologicalOrder returns targets in dependency order.
 func (r *Registry) TopologicalOrder() ([]Target, error) {
-	var result []Target
-	visited := make(map[string]bool)
-
-	var visit func(name string) error
-	visit = func(name string) error {
-		if visited[name] {
-			return nil
-		}
-		visited[name] = true
-
-		target := r.targets[name]
-		for _, dep := range target.DependsOn() {
-			if err := visit(dep); err != nil {
-				return err
-			}
-		}
-
-		result = append(result, target)
-		return nil
+	// Sort in deterministic order by using sorted names
+	sortedNames, err := topsort.Sort(r.buildGraph(), r.Names())
+	if err != nil {
+		return nil, err
 	}
 
-	// Visit in sorted order for deterministic output
-	for _, name := range r.Names() {
-		if err := visit(name); err != nil {
-			return nil, err
-		}
+	result := make([]Target, len(sortedNames))
+	for i, name := range sortedNames {
+		result[i] = r.targets[name]
 	}
-
 	return result, nil
 }

@@ -35,29 +35,19 @@ func (e *Executor) SetVerbose(v bool) {
 
 // RunTask executes a mise task by name.
 func (e *Executor) RunTask(ctx context.Context, task string, args []string) error {
-	return e.runTask(ctx, task, args, false)
+	return e.runTask(ctx, task, args)
 }
 
 // buildRunArgs constructs the command arguments for mise run.
-// The skipDeps parameter is kept for API compatibility but is not used,
-// as mise does not support a --no-deps flag. Dependencies are managed
-// through task definitions in mise.toml (via depends and run arrays).
-func buildRunArgs(task string, args []string, skipDeps bool) []string {
-	// Note: mise doesn't have a --no-deps flag. Dependencies are handled
-	// by the task definition itself (depends array for parallel, run array
-	// for sequential execution). When structyl manages task ordering, it
-	// runs tasks directly and lets mise handle internal task structure.
-	_ = skipDeps // intentionally unused - kept for API compatibility
+func buildRunArgs(task string, args []string) []string {
 	cmdArgs := []string{"run", task}
 	cmdArgs = append(cmdArgs, args...)
 	return cmdArgs
 }
 
 // runTask executes a mise task.
-// The skipDeps parameter is kept for API compatibility but has no effect,
-// as mise does not support skipping dependencies at runtime.
-func (e *Executor) runTask(ctx context.Context, task string, args []string, skipDeps bool) error {
-	cmdArgs := buildRunArgs(task, args, skipDeps)
+func (e *Executor) runTask(ctx context.Context, task string, args []string) error {
+	cmdArgs := buildRunArgs(task, args)
 
 	cmd := exec.CommandContext(ctx, "mise", cmdArgs...)
 	cmd.Dir = e.projectRoot
@@ -78,13 +68,12 @@ func (e *Executor) runTask(ctx context.Context, task string, args []string, skip
 // RunTaskWithCapture executes a mise task, streaming output while capturing it.
 // Returns the combined stdout+stderr output and any execution error.
 func (e *Executor) RunTaskWithCapture(ctx context.Context, task string, args []string) (string, error) {
-	return e.runTaskWithCapture(ctx, task, args, false)
+	return e.runTaskWithCapture(ctx, task, args)
 }
 
 // runTaskWithCapture executes a mise task, streaming output while capturing it.
-// The skipDeps parameter is kept for API compatibility but has no effect.
-func (e *Executor) runTaskWithCapture(ctx context.Context, task string, args []string, skipDeps bool) (string, error) {
-	cmdArgs := buildRunArgs(task, args, skipDeps)
+func (e *Executor) runTaskWithCapture(ctx context.Context, task string, args []string) (string, error) {
+	cmdArgs := buildRunArgs(task, args)
 
 	cmd := exec.CommandContext(ctx, "mise", cmdArgs...)
 	cmd.Dir = e.projectRoot
@@ -309,13 +298,12 @@ func (e *Executor) RunTasksWithTracking(ctx context.Context, tasks []MiseTaskMet
 		var err error
 		var taskOutput string
 
-		// Use --no-deps since we're managing dependency order ourselves
 		if parser != nil {
 			// Use capture mode for test tasks to parse output
-			taskOutput, err = e.runTaskWithCapture(ctx, task.Name, args, true)
+			taskOutput, err = e.runTaskWithCapture(ctx, task.Name, args)
 		} else {
 			// Use regular execution for non-test tasks
-			err = e.runTask(ctx, task.Name, args, true)
+			err = e.runTask(ctx, task.Name, args)
 		}
 
 		result.Duration = time.Since(taskStart)

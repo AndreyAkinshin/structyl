@@ -41,28 +41,11 @@ func TestBuildRunArgs_WithoutSkipDeps(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := buildRunArgs(tt.task, tt.args, false)
+			got := buildRunArgs(tt.task, tt.args)
 			if !reflect.DeepEqual(got, tt.expected) {
-				t.Errorf("buildRunArgs(%q, %v, false) = %v, want %v", tt.task, tt.args, got, tt.expected)
+				t.Errorf("buildRunArgs(%q, %v) = %v, want %v", tt.task, tt.args, got, tt.expected)
 			}
 		})
-	}
-}
-
-func TestBuildRunArgs_SkipDepsHasNoEffect(t *testing.T) {
-	// Verify that skipDeps=true produces the same result as skipDeps=false
-	// since mise doesn't support --no-deps flag
-	argsWithSkip := buildRunArgs("test", []string{"--coverage"}, true)
-	argsWithoutSkip := buildRunArgs("test", []string{"--coverage"}, false)
-
-	if !reflect.DeepEqual(argsWithSkip, argsWithoutSkip) {
-		t.Errorf("skipDeps should have no effect: with=%v, without=%v", argsWithSkip, argsWithoutSkip)
-	}
-
-	// Both should be: ["run", "test", "--coverage"]
-	expected := []string{"run", "test", "--coverage"}
-	if !reflect.DeepEqual(argsWithSkip, expected) {
-		t.Errorf("args = %v, want %v", argsWithSkip, expected)
 	}
 }
 

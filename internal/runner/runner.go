@@ -12,6 +12,10 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/target"
 )
 
+// maxParallelWorkers is the upper bound for parallel worker count.
+// This prevents resource exhaustion from misconfigured STRUCTYL_PARALLEL values.
+const maxParallelWorkers = 256
+
 // Runner orchestrates command execution across targets.
 type Runner struct {
 	registry *target.Registry
@@ -115,7 +119,7 @@ func (r *Runner) runSequential(ctx context.Context, targets []target.Target, cmd
 		Env:    opts.Env,
 	}
 
-	var errors []error
+	var errs []error
 	for _, t := range targets {
 		select {
 		case <-ctx.Done():
@@ -124,15 +128,20 @@ func (r *Runner) runSequential(ctx context.Context, targets []target.Target, cmd
 		}
 
 		if err := t.Execute(ctx, cmd, execOpts); err != nil {
-			errors = append(errors, fmt.Errorf("[%s] %s failed: %w", t.Name(), cmd, err))
+			// Skip errors are logged but don't cause failure
+			if target.IsSkipError(err) {
+				fmt.Fprintln(os.Stderr, err.Error())
+				continue
+			}
+			errs = append(errs, fmt.Errorf("[%s] %s failed: %w", t.Name(), cmd, err))
 			if !opts.Continue {
-				return errors[0]
+				return errs[0]
 			}
 		}
 	}
 
-	if len(errors) > 0 {
-		return combineErrors(errors)
+	if len(errs) > 0 {
+		return combineErrors(errs)
 	}
 	return nil
 }
@@ -147,9 +156,7 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 
 	var mu sync.Mutex
 	var wg sync.WaitGroup
-	var errors []error
-
-	// Semaphore for limiting workers
+	var errs []error
 	sem := make(chan struct{}, workers)
 
 	execOpts := target.ExecOptions{
@@ -159,8 +166,9 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 	}
 
 	// Process targets concurrently with worker pool limiting.
-	// Note: Dependencies are pre-resolved by TopologicalOrder() before this
-	// function is called, so targets are already in valid execution order.
+	// Note: TopologicalOrder() ensures targets are in valid dependency order,
+	// but this loop launches all goroutines immediately. Actual parallelism
+	// is limited by the semaphore, not by dependency completion.
 	for _, t := range targets {
 		wg.Add(1)
 		go func(t target.Target) {
@@ -179,7 +187,12 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 			defer mu.Unlock()
 
 			if err != nil {
-				errors = append(errors, fmt.Errorf("[%s] %s failed: %w", t.Name(), cmd, err))
+				// Skip errors are logged but don't cause failure
+				if target.IsSkipError(err) {
+					fmt.Fprintln(os.Stderr, err.Error())
+					return
+				}
+				errs = append(errs, fmt.Errorf("[%s] %s failed: %w", t.Name(), cmd, err))
 				if !opts.Continue {
 					cancel()
 				}
@@ -189,8 +202,8 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 
 	wg.Wait()
 
-	if len(errors) > 0 {
-		return combineErrors(errors)
+	if len(errs) > 0 {
+		return combineErrors(errs)
 	}
 	return nil
 }
@@ -199,7 +212,7 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 func getParallelWorkers() int {
 	if env := os.Getenv("STRUCTYL_PARALLEL"); env != "" {
 		n, err := strconv.Atoi(env)
-		if err == nil && n >= 1 && n <= 256 {
+		if err == nil && n >= 1 && n <= maxParallelWorkers {
 			return n
 		}
 	}

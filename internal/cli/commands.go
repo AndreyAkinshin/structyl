@@ -8,6 +8,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
+	"github.com/AndreyAkinshin/structyl/internal/errors"
 	"github.com/AndreyAkinshin/structyl/internal/mise"
 	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/project"
@@ -27,12 +28,13 @@ func applyVerbosityToOutput(opts *GlobalOptions) {
 }
 
 // loadProject loads the project configuration and handles errors uniformly.
-// Returns the project and exit code 0 on success, or nil and exit code 1 on failure.
+// Returns the project and exit code 0 on success, or nil and appropriate exit code on failure.
+// Exit codes: 1 for runtime errors, 2 for config errors (per errors package specification).
 func loadProject() (*project.Project, int) {
 	proj, err := project.LoadProject()
 	if err != nil {
 		out.ErrorPrefix("%v", err)
-		return nil, 1
+		return nil, errors.GetExitCode(err)
 	}
 	return proj, 0
 }

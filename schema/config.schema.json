@@ -111,6 +111,10 @@
             "type": "string",
             "description": "Toolchain preset name (e.g., cargo, dotnet, npm)"
           },
+          "toolchain_version": {
+            "type": "string",
+            "description": "Override mise tool version for this target"
+          },
           "directory": {
             "type": "string",
             "description": "Directory path (defaults to target key)"
@@ -248,6 +252,134 @@
                 "type": "array",
                 "items": {"type": "string"},
                 "description": "Additional volume mounts"
+              }
+            }
+          }
+        }
+      }
+    },
+    "mise": {
+      "type": "object",
+      "description": "Mise build tool integration configuration",
+      "properties": {
+        "auto_generate": {
+          "type": "boolean",
+          "description": "Regenerate mise.toml before each run",
+          "default": false
+        },
+        "extra_tools": {
+          "type": "object",
+          "description": "Additional mise tools to install",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "release": {
+      "type": "object",
+      "description": "Release workflow configuration",
+      "properties": {
+        "tag_format": {
+          "type": "string",
+          "description": "Git tag format with {version} placeholder",
+          "default": "v{version}"
+        },
+        "extra_tags": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Additional tags to create"
+        },
+        "pre_commands": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Commands to run before release"
+        },
+        "remote": {
+          "type": "string",
+          "description": "Git remote name",
+          "default": "origin"
+        },
+        "branch": {
+          "type": "string",
+          "description": "Release branch",
+          "default": "main"
+        }
+      }
+    },
+    "ci": {
+      "type": "object",
+      "description": "CI pipeline configuration",
+      "properties": {
+        "steps": {
+          "type": "array",
+          "description": "CI pipeline step definitions",
+          "items": {
+            "type": "object",
+            "required": ["name", "target", "command"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Step name for display and references"
+              },
+              "target": {
+                "type": "string",
+                "description": "Target name or 'all'"
+              },
+              "command": {
+                "type": "string",
+                "description": "Command to execute"
+              },
+              "flags": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Additional command flags"
+              },
+              "depends_on": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Step names that must complete first"
+              },
+              "continue_on_error": {
+                "type": "boolean",
+                "description": "Continue pipeline if step fails",
+                "default": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "description": "Artifact collection configuration",
+      "properties": {
+        "output_dir": {
+          "type": "string",
+          "description": "Base output directory for artifacts",
+          "default": "artifacts"
+        },
+        "targets": {
+          "type": "object",
+          "description": "Per-target artifact specifications",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["source"],
+              "properties": {
+                "source": {
+                  "type": "string",
+                  "description": "Glob pattern for source files"
+                },
+                "destination": {
+                  "type": "string",
+                  "description": "Subdirectory within output_dir"
+                },
+                "rename": {
+                  "type": "string",
+                  "description": "Rename pattern for collected files"
+                }
               }
             }
           }

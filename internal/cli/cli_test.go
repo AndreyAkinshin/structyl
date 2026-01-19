@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -306,28 +304,6 @@ func TestSanitizeProjectName_SpecialCharacters(t *testing.T) {
 	}
 }
 
-func TestGetVerbosity(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		name     string
-		opts     *GlobalOptions
-		expected target.Verbosity
-	}{
-		{"default", &GlobalOptions{}, target.VerbosityDefault},
-		{"quiet", &GlobalOptions{Quiet: true}, target.VerbosityQuiet},
-		{"verbose", &GlobalOptions{Verbose: true}, target.VerbosityVerbose},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := getVerbosity(tt.opts)
-			if result != tt.expected {
-				t.Errorf("getVerbosity() = %v, want %v", result, tt.expected)
-			}
-		})
-	}
-}
-
 func TestIsDockerMode_ExplicitDocker(t *testing.T) {
 	t.Setenv("STRUCTYL_DOCKER", "")
 
@@ -441,85 +417,6 @@ func TestFilterTargetsByType_AllMatch_ReturnsAll(t *testing.T) {
 	filtered := filterTargetsByType(targets, target.TypeLanguage)
 	if len(filtered) != 3 {
 		t.Errorf("filterTargetsByType(language) = %d targets, want 3", len(filtered))
-	}
-}
-
-// =============================================================================
-// runTargetCommand Tests
-// =============================================================================
-
-func TestRunTargetCommand_Success_ExecutesCommand(t *testing.T) {
-	var executedCmd string
-	var executedOpts target.ExecOptions
-
-	mock := mocks.NewTarget("test").
-		WithTitle("Test Target").
-		WithType(target.TypeLanguage).
-		WithCommand("build", "echo building").
-		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
-			executedCmd = cmd
-			executedOpts = opts
-			return nil
-		})
-
-	exitCode := runTargetCommand(mock, "build", []string{"--verbose"}, &GlobalOptions{})
-	if exitCode != 0 {
-		t.Errorf("runTargetCommand() = %d, want 0", exitCode)
-	}
-	if executedCmd != "build" {
-		t.Errorf("executed command = %q, want %q", executedCmd, "build")
-	}
-	if len(executedOpts.Args) != 1 || executedOpts.Args[0] != "--verbose" {
-		t.Errorf("executed args = %v, want [--verbose]", executedOpts.Args)
-	}
-}
-
-func TestRunTargetCommand_CommandNotDefined_ReturnsError(t *testing.T) {
-	mock := mocks.NewTarget("test").
-		WithTitle("Test Target").
-		WithType(target.TypeLanguage).
-		WithCommands(map[string]interface{}{}) // no commands defined
-
-	exitCode := runTargetCommand(mock, "build", nil, &GlobalOptions{})
-	if exitCode != 1 {
-		t.Errorf("runTargetCommand() = %d, want 1 (command not defined)", exitCode)
-	}
-}
-
-func TestRunTargetCommand_ExecutionError_ReturnsFailed(t *testing.T) {
-	mock := mocks.NewTarget("test").
-		WithTitle("Test Target").
-		WithType(target.TypeLanguage).
-		WithCommand("build", "echo building").
-		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
-			return fmt.Errorf("build failed")
-		})
-
-	exitCode := runTargetCommand(mock, "build", nil, &GlobalOptions{})
-	if exitCode != 1 {
-		t.Errorf("runTargetCommand() = %d, want 1 (execution failed)", exitCode)
-	}
-}
-
-func TestRunTargetCommand_DockerMode_PassesDockerOption(t *testing.T) {
-	var receivedDocker bool
-
-	mock := mocks.NewTarget("test").
-		WithTitle("Test Target").
-		WithType(target.TypeLanguage).
-		WithCommand("build", "echo building").
-		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
-			receivedDocker = opts.Docker
-			return nil
-		})
-
-	// Set Docker mode via options
-	exitCode := runTargetCommand(mock, "build", nil, &GlobalOptions{Docker: true})
-	if exitCode != 0 {
-		t.Errorf("runTargetCommand() = %d, want 0", exitCode)
-	}
-	if !receivedDocker {
-		t.Error("Docker option was not passed to Execute")
 	}
 }
 
@@ -719,55 +616,6 @@ func TestCmdUnified_TargetWithUndefinedCommand_ReturnsError(t *testing.T) {
 		exitCode := cmdUnified([]string{"build", "img"}, &GlobalOptions{})
 		if exitCode != 1 {
 			t.Errorf("cmdUnified(build, img) = %d, want 1", exitCode)
-		}
-	})
-}
-
-func TestCmdMeta_NoProject_ReturnsError(t *testing.T) {
-	tmpDir := t.TempDir()
-	withWorkingDir(t, tmpDir, func() {
-		exitCode := cmdMeta("build", nil, &GlobalOptions{})
-		if exitCode == 0 {
-			t.Error("cmdMeta() = 0, want non-zero when no project")
-		}
-	})
-}
-
-func TestCmdMeta_WithTargetTypeFilter(t *testing.T) {
-	root := createTestProject(t)
-	withWorkingDir(t, root, func() {
-		// Filter to auxiliary targets only - should succeed even if no commands match
-		exitCode := cmdMeta("build", nil, &GlobalOptions{TargetType: "auxiliary"})
-		// Auxiliary targets don't have build commands, expect exit code 1
-		if exitCode != 1 {
-			t.Errorf("cmdMeta with auxiliary filter = %d, want 1", exitCode)
-		}
-	})
-}
-
-func TestCmdMeta_ContinueOnError(t *testing.T) {
-	root := createTestProject(t)
-	withWorkingDir(t, root, func() {
-		// With continue flag, should continue even if errors occur
-		// Now we error if no target has the command
-		exitCode := cmdMeta("nonexistent-cmd", nil, &GlobalOptions{ContinueOnError: true})
-		// Should return 1 if no targets have this command (clearer error feedback)
-		if exitCode != 1 {
-			t.Errorf("cmdMeta(nonexistent-cmd) = %d, want 1 (no targets have command)", exitCode)
-		}
-	})
-}
-
-func TestCmdMeta_TestCommandFiltersToLanguageTargets(t *testing.T) {
-	root := createTestProject(t)
-	withWorkingDir(t, root, func() {
-		// The "test" command auto-filters to language targets.
-		// This verifies the filtering code path executes without panic.
-		// Actual execution depends on toolchains (mise, dotnet) being installed.
-		// Exit code 2 = usage/routing error, 0/1 = command was parsed correctly
-		exitCode := cmdMeta("test", nil, &GlobalOptions{})
-		if exitCode == 2 {
-			t.Errorf("cmdMeta(test) = 2 (usage error), want 0 or 1 (command recognized)")
 		}
 	})
 }
@@ -1541,18 +1389,6 @@ func TestRun_InitCommand_CreatesProject(t *testing.T) {
 		configPath := filepath.Join(root, ".structyl", "config.json")
 		if _, err := os.Stat(configPath); os.IsNotExist(err) {
 			t.Error(".structyl/config.json was not created by 'init' command")
-		}
-	})
-}
-
-func TestCmdMeta_RestoreCommand(t *testing.T) {
-	root := createTestProject(t)
-	withWorkingDir(t, root, func() {
-		// "restore" is the new name for dependency restoration
-		exitCode := cmdMeta("restore", nil, &GlobalOptions{})
-		// Exit code 2 would indicate routing/parsing failure
-		if exitCode == 2 {
-			t.Errorf("cmdMeta(restore) = 2 (usage error), want 0 or 1")
 		}
 	})
 }

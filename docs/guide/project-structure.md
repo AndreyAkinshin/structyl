@@ -204,19 +204,6 @@ Each toolchain manages its own artifacts. Common locations:
 
 The `clean` command removes these artifacts.
 
-## Templates Directory
-
-For documentation generation, templates go in a `templates/` directory:
-
-```
-my-library/
-├── templates/
-│   └── README.md.tmpl
-└── ...
-```
-
-See [Version Management](./version-management) for README generation.
-
 ## Next Steps
 
 - [Targets](./targets) - Configure build targets

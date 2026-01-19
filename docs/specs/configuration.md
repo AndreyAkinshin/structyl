@@ -187,19 +187,6 @@ Reference test system configuration. See [test-system.md](test-system.md) for de
 }
 ```
 
-### `documentation`
-
-Documentation generation settings. See [documentation.md](documentation.md) for details.
-
-```json
-{
-  "documentation": {
-    "readme_template": "templates/README.md.tmpl",
-    "placeholders": ["VERSION", "LANG_TITLE", "INSTALL", "DEMO"]
-  }
-}
-```
-
 ### `docker`
 
 Docker configuration. See [docker.md](docker.md) for details.
@@ -248,7 +235,7 @@ Release workflow configuration.
   "release": {
     "tag_format": "v{version}",
     "extra_tags": ["go/v{version}"],
-    "pre_commands": ["structyl docs generate"],
+    "pre_commands": ["mise run check"],
     "remote": "origin",
     "branch": "main"
   }
@@ -470,10 +457,6 @@ With this minimal config, Structyl uses all defaults:
       "tolerance_mode": "relative",
       "nan_equals_nan": true
     }
-  },
-  "documentation": {
-    "readme_template": "templates/README.md.tmpl",
-    "placeholders": ["VERSION", "LANG_TITLE", "LANG_SLUG", "INSTALL", "DEMO"]
   },
   "docker": {
     "compose_file": "docker-compose.yml",

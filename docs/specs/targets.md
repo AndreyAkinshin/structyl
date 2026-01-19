@@ -32,7 +32,6 @@ Characteristics:
 
 - Included in `structyl test` and `structyl demo`
 - Expected to have reference test integration
-- README generation applies
 
 ### Auxiliary Targets
 

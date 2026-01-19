@@ -94,7 +94,6 @@ structyl build --docker
 | [test-system.md](test-system.md)               | Reference test format and discovery               |
 | [version-management.md](version-management.md) | Version file and propagation patterns             |
 | [docker.md](docker.md)                         | Docker configuration and templates                |
-| [documentation.md](documentation.md)           | README generation system                          |
 | [ci-integration.md](ci-integration.md)         | Local CI simulation                               |
 | [error-handling.md](error-handling.md)         | Exit codes and failure modes                      |
 | [cross-platform.md](cross-platform.md)         | Windows/Unix support                              |
@@ -108,13 +107,12 @@ This specification defines Structyl v1.0. The following are explicitly **in scop
 - Shared reference test system
 - Version management and propagation
 - Docker-based isolated builds
-- README documentation generation (planned, not yet implemented)
 - Local CI simulation
 - Package publishing
 
 The following are explicitly **out of scope** for v1.0:
 
-- Complex documentation generation (PDF, websites)
+- Documentation generation (README, PDF, websites)
 - Plugin system for custom languages
 - Remote execution
 

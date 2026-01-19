@@ -122,11 +122,6 @@ The full configuration structure:
     }
   },
 
-  "documentation": {
-    "readme_template": "string",
-    "placeholders": ["string"]
-  },
-
   "docker": {
     "compose_file": "string",
     "env_var": "string (default: STRUCTYL_DOCKER)",

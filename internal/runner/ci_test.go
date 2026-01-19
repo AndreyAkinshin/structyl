@@ -11,30 +11,6 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/testing/mocks"
 )
 
-func TestFormatDuration_Milliseconds(t *testing.T) {
-	d := 500 * time.Millisecond
-	result := FormatDuration(d)
-	if result != "500ms" {
-		t.Errorf("FormatDuration() = %q, want %q", result, "500ms")
-	}
-}
-
-func TestFormatDuration_Seconds(t *testing.T) {
-	d := 30 * time.Second
-	result := FormatDuration(d)
-	if result != "30.0s" {
-		t.Errorf("FormatDuration() = %q, want %q", result, "30.0s")
-	}
-}
-
-func TestFormatDuration_Minutes(t *testing.T) {
-	d := 2*time.Minute + 30*time.Second
-	result := FormatDuration(d)
-	if result != "2m30s" {
-		t.Errorf("FormatDuration() = %q, want %q", result, "2m30s")
-	}
-}
-
 func TestPhaseOrder_Debug(t *testing.T) {
 	phases := PhaseOrder(false)
 
@@ -131,38 +107,6 @@ func TestCIOptions_Release(t *testing.T) {
 	}
 	if !opts.Parallel {
 		t.Error("Parallel should be true")
-	}
-}
-
-func TestFormatDuration_Boundary999ms(t *testing.T) {
-	d := 999 * time.Millisecond
-	result := FormatDuration(d)
-	if result != "999ms" {
-		t.Errorf("FormatDuration() = %q, want %q", result, "999ms")
-	}
-}
-
-func TestFormatDuration_BoundaryExactlyOneSecond(t *testing.T) {
-	d := time.Second
-	result := FormatDuration(d)
-	if result != "1.0s" {
-		t.Errorf("FormatDuration() = %q, want %q", result, "1.0s")
-	}
-}
-
-func TestFormatDuration_BoundaryExactlyOneMinute(t *testing.T) {
-	d := time.Minute
-	result := FormatDuration(d)
-	if result != "1m0s" {
-		t.Errorf("FormatDuration() = %q, want %q", result, "1m0s")
-	}
-}
-
-func TestFormatDuration_59Seconds(t *testing.T) {
-	d := 59*time.Second + 500*time.Millisecond
-	result := FormatDuration(d)
-	if result != "59.5s" {
-		t.Errorf("FormatDuration() = %q, want %q", result, "59.5s")
 	}
 }
 

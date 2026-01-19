@@ -257,7 +257,7 @@ func PrintCISummary(result *CIResult, out *output.Writer) {
 		if p.Error != nil {
 			errMsg = p.Error.Error()
 		}
-		out.SummaryAction(p.Name, p.Success, FormatDuration(p.Duration), errMsg)
+		out.SummaryAction(p.Name, p.Success, output.FormatDuration(p.Duration), errMsg)
 	}
 	out.Println("")
 
@@ -279,7 +279,7 @@ func PrintCISummary(result *CIResult, out *output.Writer) {
 	}
 
 	// Timing
-	out.SummaryItem("Duration", FormatDuration(result.Duration))
+	out.SummaryItem("Duration", output.FormatDuration(result.Duration))
 
 	// Artifacts
 	if result.ArtifactCount > 0 {
@@ -292,19 +292,6 @@ func PrintCISummary(result *CIResult, out *output.Writer) {
 	} else {
 		out.FinalFailure("CI pipeline failed.")
 	}
-}
-
-// FormatDuration formats a duration in a human-readable way.
-func FormatDuration(d time.Duration) string {
-	if d < time.Second {
-		return fmt.Sprintf("%dms", d.Milliseconds())
-	}
-	if d < time.Minute {
-		return fmt.Sprintf("%.1fs", d.Seconds())
-	}
-	m := int(d.Minutes())
-	s := int(d.Seconds()) % 60
-	return fmt.Sprintf("%dm%ds", m, s)
 }
 
 // getPipeline returns the CI pipeline phases from config or defaults.

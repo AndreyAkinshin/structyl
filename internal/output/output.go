@@ -547,6 +547,8 @@ func (w *Writer) SummarySectionLabel(label string) {
 }
 
 // TaskResult holds task execution result data for summary printing.
+// This type mirrors mise.TaskResult but is defined here to avoid import cycles.
+// The mise package imports output for printing, so output cannot import mise.
 type TaskResult struct {
 	Name       string
 	Success    bool
@@ -556,6 +558,7 @@ type TaskResult struct {
 }
 
 // TaskRunSummary holds summary data for task execution.
+// This type mirrors mise.TaskRunSummary but is defined here to avoid import cycles.
 type TaskRunSummary struct {
 	Tasks         []TaskResult
 	TotalDuration time.Duration

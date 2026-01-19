@@ -20,10 +20,16 @@ import (
 // Compiled once at package init for performance.
 var varPattern = regexp.MustCompile(`\$\{([^}]+)\}`)
 
-// escapePlaceholder is used during variable interpolation to temporarily
-// replace escaped variable syntax ($${var}) with a placeholder.
-// This prevents ${var} from being interpreted as a variable reference
-// when the user wants a literal ${var} in the output.
+// escapePlaceholder is a sentinel value used during variable interpolation
+// to temporarily replace escaped variable syntax ($${var}) with a placeholder.
+// This prevents ${var} from being interpreted as a variable reference when
+// the user wants a literal ${var} in the output.
+//
+// NUL bytes (\x00) are used because they cannot appear in valid shell commands,
+// making collisions impossible. The interpolation process:
+//  1. Replace $${var} with escapePlaceholder
+//  2. Replace ${var} with actual values
+//  3. Restore escapePlaceholder back to ${var} (literal)
 const escapePlaceholder = "\x00ESCAPED\x00"
 
 // SkipReason indicates why command execution was skipped.
@@ -319,7 +325,12 @@ func (t *targetImpl) executeShell(ctx context.Context, cmdStr string, opts ExecO
 	shellCmd.Stdout = os.Stdout
 	shellCmd.Stderr = os.Stderr
 
-	// Set environment, filtering out mise-related variables to prevent interference
+	// Set environment, filtering out mise-related variables to prevent interference.
+	// Environment variable precedence (highest to lowest):
+	//   1. Command-specific env (opts.Env)
+	//   2. Target-level env (t.env)
+	//   3. Inherited process env (os.Environ)
+	// Later appends override earlier ones when the same key appears multiple times.
 	for _, env := range os.Environ() {
 		// Skip mise internal variables that can cause command interception
 		if strings.HasPrefix(env, "__MISE_") || strings.HasPrefix(env, "MISE_SHELL=") {

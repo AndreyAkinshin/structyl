@@ -87,3 +87,77 @@ func TestGetMarkerFiles(t *testing.T) {
 		}
 	}
 }
+
+func TestDetect_Priority(t *testing.T) {
+	// Verify that more specific toolchains are detected before generic ones
+	// when multiple marker files exist
+	tests := []struct {
+		name     string
+		files    []string
+		expected string
+		desc     string
+	}{
+		{
+			name:     "pnpm over npm",
+			files:    []string{"pnpm-lock.yaml", "package.json"},
+			expected: "pnpm",
+			desc:     "pnpm lockfile should take precedence over bare package.json",
+		},
+		{
+			name:     "yarn over npm",
+			files:    []string{"yarn.lock", "package.json"},
+			expected: "yarn",
+			desc:     "yarn lockfile should take precedence over bare package.json",
+		},
+		{
+			name:     "bun over npm",
+			files:    []string{"bun.lockb", "package.json"},
+			expected: "bun",
+			desc:     "bun lockfile should take precedence over bare package.json",
+		},
+		{
+			name:     "uv over python",
+			files:    []string{"uv.lock", "pyproject.toml"},
+			expected: "uv",
+			desc:     "uv lockfile should take precedence over bare pyproject.toml",
+		},
+		{
+			name:     "poetry over python",
+			files:    []string{"poetry.lock", "pyproject.toml"},
+			expected: "poetry",
+			desc:     "poetry lockfile should take precedence over bare pyproject.toml",
+		},
+		{
+			name:     "npm fallback",
+			files:    []string{"package.json"},
+			expected: "npm",
+			desc:     "bare package.json should detect npm when no lockfile exists",
+		},
+		{
+			name:     "python fallback",
+			files:    []string{"pyproject.toml"},
+			expected: "python",
+			desc:     "bare pyproject.toml should detect python when no lockfile exists",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := t.TempDir()
+			for _, file := range tt.files {
+				path := filepath.Join(dir, file)
+				if err := os.WriteFile(path, []byte{}, 0644); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			toolchain, ok := Detect(dir)
+			if !ok {
+				t.Fatalf("Detect() returned ok=false for %v", tt.files)
+			}
+			if toolchain != tt.expected {
+				t.Errorf("%s: Detect() = %q, want %q", tt.desc, toolchain, tt.expected)
+			}
+		})
+	}
+}

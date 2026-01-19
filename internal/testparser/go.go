@@ -5,6 +5,15 @@ import (
 	"strings"
 )
 
+// Static regexes for Go test output parsing.
+// Compiled once at package init for performance.
+var (
+	goPassRegex  = regexp.MustCompile(`(?m)^---\s+PASS:\s+`)
+	goFailRegex  = regexp.MustCompile(`(?m)^---\s+FAIL:\s+(\S+)`)
+	goSkipRegex  = regexp.MustCompile(`(?m)^---\s+SKIP:\s+`)
+	goErrorLine  = regexp.MustCompile(`^\s+\S+\.go:\d+:`)
+)
+
 // GoParser parses Go test output.
 type GoParser struct{}
 
@@ -22,16 +31,11 @@ func (p *GoParser) Name() string {
 func (p *GoParser) Parse(output string) TestCounts {
 	counts := TestCounts{}
 
-	// Match individual test results
-	passRegex := regexp.MustCompile(`(?m)^---\s+PASS:\s+`)
-	failRegex := regexp.MustCompile(`(?m)^---\s+FAIL:\s+(\S+)`)
-	skipRegex := regexp.MustCompile(`(?m)^---\s+SKIP:\s+`)
-
-	counts.Passed = len(passRegex.FindAllString(output, -1))
-	counts.Skipped = len(skipRegex.FindAllString(output, -1))
+	counts.Passed = len(goPassRegex.FindAllString(output, -1))
+	counts.Skipped = len(goSkipRegex.FindAllString(output, -1))
 
 	// Extract failed test names and their reasons
-	failMatches := failRegex.FindAllStringSubmatch(output, -1)
+	failMatches := goFailRegex.FindAllStringSubmatch(output, -1)
 	counts.Failed = len(failMatches)
 
 	if counts.Failed > 0 {
@@ -90,6 +94,7 @@ func (p *GoParser) extractFailedTests(output string, failMatches [][]string) []F
 func (p *GoParser) findFailureReason(lines []string, testName string) string {
 	// Find the FAIL line for this test
 	failLineIdx := -1
+	// Dynamic pattern (includes testName) - must be compiled per call
 	failPattern := regexp.MustCompile(`^---\s+FAIL:\s+` + regexp.QuoteMeta(testName) + `\s+`)
 
 	for i, line := range lines {
@@ -105,7 +110,6 @@ func (p *GoParser) findFailureReason(lines []string, testName string) string {
 
 	// Look backwards for error messages (lines with file:line: pattern)
 	// These are typically indented with spaces/tabs
-	errorPattern := regexp.MustCompile(`^\s+\S+\.go:\d+:`)
 	var reasons []string
 
 	for i := failLineIdx - 1; i >= 0; i-- {
@@ -121,7 +125,7 @@ func (p *GoParser) findFailureReason(lines []string, testName string) string {
 		}
 
 		// Capture error lines (file:line: format)
-		if errorPattern.MatchString(line) && trimmed != "" {
+		if goErrorLine.MatchString(line) && trimmed != "" {
 			reasons = append([]string{trimmed}, reasons...)
 		}
 	}

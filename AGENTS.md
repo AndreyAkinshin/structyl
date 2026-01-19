@@ -646,7 +646,7 @@ func cmdSomething() int {
 
 GitHub Actions workflow (`.github/workflows/ci.yml`):
 
-- **Test matrix**: ubuntu, macos, windows × Go 1.21, 1.22
+- **Test matrix**: ubuntu, macos, windows × Go 1.24
 - **Lint**: golangci-lint
 - **Race detector**: Enabled for all tests
 - **Artifacts**: Built binaries uploaded
@@ -698,6 +698,6 @@ For detailed behavior specifications, see `docs/specs/`:
 Current code quality (as of last audit):
 
 - **Test coverage**: 79.9%-100% per package (avg ~90%)
-- **go vet**: 8 loop variable capture warnings in test files (Go 1.22 style needed)
+- **go vet**: Clean (Go 1.24 required)
 - **Dependencies**: Single external dependency (yaml.v3)
 - **No panics**: Zero panic() or log.Fatal() in production code

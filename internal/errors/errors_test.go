@@ -261,3 +261,68 @@ func TestExitCodeConstants(t *testing.T) {
 		t.Errorf("ExitEnvironmentError = %d, want 3", ExitEnvironmentError)
 	}
 }
+
+func TestErrorChain_Is(t *testing.T) {
+	sentinel := errors.New("sentinel error")
+
+	// Wrap sentinel in StructylError
+	wrapped := Wrap(sentinel, "layer 1")
+
+	// errors.Is should find the sentinel through the chain
+	if !errors.Is(wrapped, sentinel) {
+		t.Error("errors.Is(wrapped, sentinel) = false, want true")
+	}
+
+	// Double-wrapped
+	doubleWrapped := Wrap(wrapped, "layer 2")
+	if !errors.Is(doubleWrapped, sentinel) {
+		t.Error("errors.Is(doubleWrapped, sentinel) = false, want true")
+	}
+}
+
+func TestErrorChain_As(t *testing.T) {
+	// Create a chain: generic error -> StructylError (config) -> StructylError (runtime)
+	rootCause := errors.New("root cause")
+	configErr := &StructylError{Kind: KindConfig, Message: "config issue", Cause: rootCause}
+	runtimeErr := Wrap(configErr, "runtime wrapper")
+
+	// Should be able to extract StructylError from chain
+	var target *StructylError
+	if !errors.As(runtimeErr, &target) {
+		t.Error("errors.As(runtimeErr, &StructylError) = false, want true")
+	}
+	if target != runtimeErr {
+		t.Error("errors.As should return the outermost StructylError")
+	}
+
+	// Should be able to extract inner StructylError too
+	if !errors.As(configErr, &target) {
+		t.Error("errors.As(configErr, &StructylError) = false, want true")
+	}
+	if target.Kind != KindConfig {
+		t.Errorf("target.Kind = %v, want %v", target.Kind, KindConfig)
+	}
+}
+
+func TestErrorChain_MultiLevel(t *testing.T) {
+	// Three levels deep
+	level1 := errors.New("level 1")
+	level2 := Wrap(level1, "level 2")
+	level3 := Wrap(level2, "level 3")
+
+	// Unwrap should traverse the chain
+	unwrapped1 := level3.Unwrap()
+	if unwrapped1 != level2 {
+		t.Errorf("level3.Unwrap() = %v, want level2", unwrapped1)
+	}
+
+	unwrapped2 := level2.Unwrap()
+	if unwrapped2 != level1 {
+		t.Errorf("level2.Unwrap() = %v, want level1", unwrapped2)
+	}
+
+	// errors.Is should find level1 through the whole chain
+	if !errors.Is(level3, level1) {
+		t.Error("errors.Is(level3, level1) = false, want true")
+	}
+}

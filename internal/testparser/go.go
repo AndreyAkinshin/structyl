@@ -90,15 +90,17 @@ func (p *GoParser) extractFailedTests(output string, failMatches [][]string) []F
 	return failedTests
 }
 
+// Static regex for matching FAIL lines generically (captures test name).
+var goFailLineRegex = regexp.MustCompile(`^---\s+FAIL:\s+(\S+)\s+`)
+
 // findFailureReason searches for the failure reason for a given test.
 func (p *GoParser) findFailureReason(lines []string, testName string) string {
 	// Find the FAIL line for this test
 	failLineIdx := -1
-	// Dynamic pattern (includes testName) - must be compiled per call
-	failPattern := regexp.MustCompile(`^---\s+FAIL:\s+` + regexp.QuoteMeta(testName) + `\s+`)
 
 	for i, line := range lines {
-		if failPattern.MatchString(line) {
+		match := goFailLineRegex.FindStringSubmatch(line)
+		if match != nil && match[1] == testName {
 			failLineIdx = i
 			break
 		}

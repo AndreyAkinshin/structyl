@@ -4,6 +4,8 @@
 
 > **Terminology:** This specification uses [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) keywords (MUST, MUST NOT, SHOULD, SHOULD NOT, MAY) to indicate requirement levels.
 
+> **Normative vs Informative:** Text containing RFC 2119 keywords is normative (defines requirements). Sections marked with "Note:", "Example:", or similar labels are informative (explanatory, non-binding). VitePress admonition blocks (:::info, :::warning, :::tip) are informative unless they contain RFC 2119 keywords.
+
 ---
 
 ## What is Structyl?

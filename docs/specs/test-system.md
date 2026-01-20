@@ -146,6 +146,7 @@ A file reference is a JSON object with exactly one key `$file`:
 | `{"$file": "data/input.bin"}`    | ✓     | Subdirectory allowed         |
 | `{"$file": ""}`                  | ✗     | Empty path                   |
 | `{"$file": "../input.bin"}`      | ✗     | Parent reference not allowed |
+| `{"$file": "/etc/passwd"}`       | ✗     | Absolute paths not allowed   |
 | `{"$file": "x.bin", "extra": 1}` | ✗     | Extra keys not allowed       |
 | `{"FILE": "input.bin"}`          | ✗     | Wrong key (case-sensitive)   |
 
@@ -162,7 +163,9 @@ Subdirectory references are permitted:
 - Reference: `{"$file": "data/input.bin"}`
 - Resolved path: `tests/image-processing/data/input.bin`
 
-Parent directory references (`../`) are NOT permitted and will cause a load error.
+Parent directory references (`../`) and absolute paths (starting with `/` on Unix or drive letters on Windows) are NOT permitted and will cause a load error. Only relative paths within the suite directory are valid.
+
+**Symlink handling:** Symlinks are followed during resolution. However, if the resolved target path is outside the suite directory, the reference MUST be rejected.
 
 ::: warning Public API Limitation
 The `$file` syntax is only available in Structyl's internal test runner. The public Go package `pkg/testhelper` does NOT support `$file` references. Test cases using this syntax must use the internal `internal/tests` package or embed data directly in JSON.

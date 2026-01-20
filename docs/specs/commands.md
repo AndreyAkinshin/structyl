@@ -173,7 +173,30 @@ These commands operate across all targets.
 | `config validate`        | Validate configuration without running commands                                                             |
 | `docker-build [targets]` | Build Docker images (see [docker.md](docker.md#docker-commands))                                            |
 | `docker-clean`           | Remove Docker containers, images, and volumes                                                               |
-| `completion <shell>`     | Generate shell completion script (bash, zsh, fish, powershell)                                              |
+| `completion <shell>`     | Generate shell completion script (bash, zsh, fish)                                                          |
+
+### Completion Command
+
+```
+structyl completion <shell> [--alias=<name>]
+```
+
+| Flag            | Description                                                   |
+| --------------- | ------------------------------------------------------------- |
+| `--alias=<name>`| Generate completion for a command alias instead of `structyl` |
+
+**Supported shells:** bash, zsh, fish
+
+**Examples:**
+
+```bash
+# Add to shell config
+eval "$(structyl completion bash)"
+
+# Generate completion for an alias
+alias st="structyl"
+eval "$(structyl completion bash --alias=st)"
+```
 
 ## Global Flags
 

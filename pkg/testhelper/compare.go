@@ -16,7 +16,8 @@ type CompareOptions struct {
 	FloatTolerance float64
 
 	// ToleranceMode specifies how tolerance is applied.
-	// Values: "relative", "absolute", "ulp"
+	// Use the ToleranceMode* constants: ToleranceModeRelative (default),
+	// ToleranceModeAbsolute, or ToleranceModeULP.
 	// For "ulp" mode, FloatTolerance is truncated to int64 for ULP distance
 	// calculation. Behavior near int64 limits (extremely large ULP distances)
 	// is undefined.
@@ -26,9 +27,36 @@ type CompareOptions struct {
 	NaNEqualsNaN bool
 
 	// ArrayOrder specifies array comparison order.
-	// Values: "strict" (default), "unordered"
+	// Use the ArrayOrder* constants: ArrayOrderStrict (default) or
+	// ArrayOrderUnordered.
 	ArrayOrder string
 }
+
+// ToleranceMode constants for CompareOptions.ToleranceMode.
+// Using these constants prevents typos and enables IDE autocomplete.
+const (
+	// ToleranceModeRelative compares floats using relative tolerance.
+	// The comparison passes if |expected - actual| / |expected| <= tolerance.
+	ToleranceModeRelative = "relative"
+
+	// ToleranceModeAbsolute compares floats using absolute tolerance.
+	// The comparison passes if |expected - actual| <= tolerance.
+	ToleranceModeAbsolute = "absolute"
+
+	// ToleranceModeULP compares floats using ULP (Units in Last Place) distance.
+	// FloatTolerance is truncated to int64 for ULP calculation.
+	ToleranceModeULP = "ulp"
+)
+
+// ArrayOrder constants for CompareOptions.ArrayOrder.
+// Using these constants prevents typos and enables IDE autocomplete.
+const (
+	// ArrayOrderStrict requires array elements to match in order.
+	ArrayOrderStrict = "strict"
+
+	// ArrayOrderUnordered allows array elements to match in any order.
+	ArrayOrderUnordered = "unordered"
+)
 
 // DefaultOptions returns the default comparison options.
 func DefaultOptions() CompareOptions {
@@ -332,11 +360,10 @@ func pathStr(path string) string {
 	return strings.TrimPrefix(path, ".")
 }
 
-// FormatDiff formats a comparison diff for display.
-//
-// Deprecated: FormatDiff returns "values are equal" when values match, which is
-// semantically inconsistent. Use FormatComparisonResult for clearer semantics:
-// it returns an empty string on match and a descriptive diff on mismatch.
+// Deprecated: Use FormatComparisonResult instead. FormatDiff returns "values
+// are equal" when values match, which is semantically inconsistent.
+// FormatComparisonResult has clearer semantics: empty string on match,
+// descriptive diff on mismatch.
 func FormatDiff(expected, actual interface{}, opts CompareOptions) string {
 	_, diff := Compare(expected, actual, opts)
 	if diff == "" {

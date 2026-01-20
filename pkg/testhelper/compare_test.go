@@ -730,3 +730,69 @@ func TestCompare_InvalidArrayOrder_Panics(t *testing.T) {
 
 	Compare([]interface{}{1}, []interface{}{1}, opts)
 }
+
+// =============================================================================
+// Enum Constants Tests
+// =============================================================================
+
+func TestToleranceModeConstants(t *testing.T) {
+	// Verify constants match the validation switch cases
+	validModes := []string{ToleranceModeRelative, ToleranceModeAbsolute, ToleranceModeULP}
+	for _, mode := range validModes {
+		opts := CompareOptions{ToleranceMode: mode}
+		if err := ValidateOptions(opts); err != nil {
+			t.Errorf("constant %q should be valid, got error: %v", mode, err)
+		}
+	}
+
+	// Verify constant values
+	if ToleranceModeRelative != "relative" {
+		t.Errorf("ToleranceModeRelative = %q, want %q", ToleranceModeRelative, "relative")
+	}
+	if ToleranceModeAbsolute != "absolute" {
+		t.Errorf("ToleranceModeAbsolute = %q, want %q", ToleranceModeAbsolute, "absolute")
+	}
+	if ToleranceModeULP != "ulp" {
+		t.Errorf("ToleranceModeULP = %q, want %q", ToleranceModeULP, "ulp")
+	}
+}
+
+func TestArrayOrderConstants(t *testing.T) {
+	// Verify constants match the validation switch cases
+	validOrders := []string{ArrayOrderStrict, ArrayOrderUnordered}
+	for _, order := range validOrders {
+		opts := CompareOptions{ArrayOrder: order}
+		if err := ValidateOptions(opts); err != nil {
+			t.Errorf("constant %q should be valid, got error: %v", order, err)
+		}
+	}
+
+	// Verify constant values
+	if ArrayOrderStrict != "strict" {
+		t.Errorf("ArrayOrderStrict = %q, want %q", ArrayOrderStrict, "strict")
+	}
+	if ArrayOrderUnordered != "unordered" {
+		t.Errorf("ArrayOrderUnordered = %q, want %q", ArrayOrderUnordered, "unordered")
+	}
+}
+
+func TestConstantsWithCompare(t *testing.T) {
+	// Test using constants in actual comparisons
+	opts := CompareOptions{
+		FloatTolerance: 0.01,
+		ToleranceMode:  ToleranceModeAbsolute,
+		ArrayOrder:     ArrayOrderUnordered,
+	}
+
+	// Float comparison with absolute tolerance
+	if !CompareOutput(1.0, 1.005, opts) {
+		t.Error("expected absolute tolerance to pass")
+	}
+
+	// Array comparison with unordered mode
+	expected := []interface{}{float64(1), float64(2), float64(3)}
+	actual := []interface{}{float64(3), float64(1), float64(2)}
+	if !CompareOutput(expected, actual, opts) {
+		t.Error("expected unordered array comparison to pass")
+	}
+}

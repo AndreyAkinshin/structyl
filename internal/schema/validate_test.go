@@ -248,3 +248,167 @@ func TestValidateConfig_ErrorMessageContainsPath(t *testing.T) {
 		t.Error("error message should not be empty")
 	}
 }
+
+func TestSchemaInvalidToolchainsMalformedJSON(t *testing.T) {
+	data := []byte(`{invalid json}`)
+	err := ValidateToolchains(data)
+	if err == nil {
+		t.Error("expected validation error for malformed JSON in toolchains, got nil")
+	}
+}
+
+func TestSchemaInvalidConfigArray(t *testing.T) {
+	err := ValidateConfig([]byte(`[]`))
+	if err == nil {
+		t.Error("expected validation error for array instead of object, got nil")
+	}
+}
+
+func TestSchemaInvalidConfigNull(t *testing.T) {
+	err := ValidateConfig([]byte(`null`))
+	if err == nil {
+		t.Error("expected validation error for null config, got nil")
+	}
+}
+
+func TestSchemaInvalidToolchainsNotObject(t *testing.T) {
+	err := ValidateToolchains([]byte(`"string"`))
+	if err == nil {
+		t.Error("expected validation error for non-object toolchains, got nil")
+	}
+}
+
+func TestSchemaInvalidToolchainsNull(t *testing.T) {
+	err := ValidateToolchains([]byte(`null`))
+	if err == nil {
+		t.Error("expected validation error for null toolchains, got nil")
+	}
+}
+
+func TestSchemaInvalidToolchainsArray(t *testing.T) {
+	err := ValidateToolchains([]byte(`[]`))
+	if err == nil {
+		t.Error("expected validation error for array toolchains, got nil")
+	}
+}
+
+func TestSchemaConfigWithAllOptionalSections(t *testing.T) {
+	// Test a comprehensive config with most optional sections
+	data := []byte(`{
+		"project": {"name": "comprehensive-test"},
+		"version": {
+			"file": "VERSION",
+			"propagate": true
+		},
+		"targets": {
+			"go": {
+				"type": "language",
+				"title": "Go",
+				"toolchain": "go",
+				"directory": "go",
+				"depends_on": []
+			}
+		},
+		"mise": {
+			"auto_generate": true
+		},
+		"docker": {
+			"compose_file": "docker-compose.yml"
+		}
+	}`)
+
+	if err := ValidateConfig(data); err != nil {
+		t.Errorf("expected valid comprehensive config, got error: %v", err)
+	}
+}
+
+func TestSchemaToolchainsWithAllFields(t *testing.T) {
+	// Test a comprehensive toolchains config
+	data := []byte(`{
+		"version": "1.0",
+		"toolchains": {
+			"custom": {
+				"mise": {
+					"primary_tool": "go",
+					"version": "1.24",
+					"extra_tools": {"golangci-lint": "latest"}
+				},
+				"commands": {
+					"build": "make build",
+					"test": "make test",
+					"check": ["lint", "format"],
+					"clean": null,
+					"restore": "go mod download",
+					"ci": "make ci"
+				},
+				"descriptions": {
+					"build": "Build the project",
+					"test": "Run tests"
+				}
+			}
+		}
+	}`)
+
+	if err := ValidateToolchains(data); err != nil {
+		t.Errorf("expected valid comprehensive toolchains, got error: %v", err)
+	}
+}
+
+func TestSchemaInvalidToolchainsInvalidCommandType(t *testing.T) {
+	data := []byte(`{
+		"version": "1.0",
+		"toolchains": {
+			"test": {
+				"commands": {
+					"build": 123
+				}
+			}
+		}
+	}`)
+
+	err := ValidateToolchains(data)
+	if err == nil {
+		t.Error("expected validation error for invalid command type (number), got nil")
+	}
+}
+
+func TestSchemaConfigNestedValidationError(t *testing.T) {
+	// Test deep nesting validation
+	data := []byte(`{
+		"project": {"name": "test"},
+		"targets": {
+			"go": {
+				"type": "language",
+				"title": "Go",
+				"commands": {
+					"build": 123
+				}
+			}
+		}
+	}`)
+
+	err := ValidateConfig(data)
+	if err == nil {
+		t.Error("expected validation error for invalid nested command type, got nil")
+	}
+}
+
+func TestSchemaConfigInvalidProjectNamePattern(t *testing.T) {
+	// Project name must match pattern ^[a-z][a-z0-9-]*$
+	invalidNames := []string{
+		"TestProject",  // uppercase
+		"123project",   // starts with number
+		"test_project", // underscore
+		"test.project", // dot
+	}
+
+	for _, name := range invalidNames {
+		t.Run(name, func(t *testing.T) {
+			data := []byte(`{"project": {"name": "` + name + `"}}`)
+			err := ValidateConfig(data)
+			if err == nil {
+				t.Errorf("expected validation error for invalid project name %q, got nil", name)
+			}
+		})
+	}
+}

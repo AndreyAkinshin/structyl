@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"golang.org/x/text/cases"
@@ -15,6 +16,7 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/project"
 	"github.com/AndreyAkinshin/structyl/internal/release"
 	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: Docker runner functionality still needed
+	"github.com/AndreyAkinshin/structyl/internal/schema"
 	"github.com/AndreyAkinshin/structyl/internal/target"
 	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
@@ -245,6 +247,22 @@ func cmdConfigValidate() int {
 	proj, exitCode := loadProject()
 	if proj == nil {
 		return exitCode
+	}
+
+	// Run JSON Schema validation on raw config file.
+	// LoadProject performs Go struct parsing and semantic validation,
+	// but schema validation catches additional issues like type mismatches
+	// and constraint violations defined in the JSON Schema.
+	configPath := proj.ConfigPath()
+	configData, err := os.ReadFile(configPath)
+	if err != nil {
+		out.ErrorPrefix("failed to read config for schema validation: %v", err)
+		return internalerrors.ExitRuntimeError
+	}
+
+	if err := schema.ValidateConfig(configData); err != nil {
+		out.ErrorPrefix("schema validation failed: %v", err)
+		return internalerrors.ExitConfigError
 	}
 
 	// Print warnings

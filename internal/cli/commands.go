@@ -388,8 +388,8 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 	// Parse flags
 	for _, arg := range args {
 		if arg == "--force" {
-			// Silently ignore deprecated flag for backward compatibility.
-			// mise sync always regenerates, so --force has no effect.
+			// Deprecated flag: mise sync always regenerates, so --force has no effect.
+			out.Warning("--force is deprecated: mise sync always regenerates")
 			continue
 		}
 		if strings.HasPrefix(arg, "-") {

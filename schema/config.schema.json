@@ -293,7 +293,7 @@
         "auto_generate": {
           "type": "boolean",
           "description": "Regenerate mise.toml before each run",
-          "default": false
+          "default": true
         },
         "extra_tools": {
           "type": "object",
@@ -352,7 +352,8 @@
               },
               "target": {
                 "type": "string",
-                "description": "Target name or 'all'"
+                "description": "Target name or 'all'",
+                "minLength": 1
               },
               "command": {
                 "type": "string",

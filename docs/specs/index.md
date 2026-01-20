@@ -14,11 +14,11 @@ Structyl is a Go-based build orchestration system designed for multi-language so
 
 ## Design Principles
 
-1. **Language Agnosticism** - Shared test data in JSON, common documentation templates, single source of truth for version information, ecosystem-specific adapters for build/test/publish.
+- **Language Agnosticism** - Shared test data in JSON, common documentation templates, single source of truth for version information, ecosystem-specific adapters for build/test/publish.
 
-2. **Convention over Configuration** - Reasonable defaults that work out of the box. Users can customize everything, but shouldn't have to.
+- **Convention over Configuration** - Reasonable defaults that work out of the box. Users can customize everything, but shouldn't have to.
 
-3. **Graceful Degradation** - Projects work without Docker, without all languages installed, and individual language failures don't block others.
+- **Graceful Degradation** - Projects work without Docker, without all languages installed, and individual language failures don't block others.
 
 ## Design Philosophy
 

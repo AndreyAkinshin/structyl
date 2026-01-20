@@ -701,3 +701,16 @@ Current code quality (as of last audit):
 - **go vet**: Clean (Go 1.24 required)
 - **Dependencies**: Single external dependency (yaml.v3)
 - **No panics**: Zero panic() or log.Fatal() in production code
+
+### Known Limitations
+
+**Parallel execution does not respect target dependencies** (`internal/runner/runner.go:152-211`)
+
+When `--parallel` is enabled, `runParallel()` launches all target goroutines immediately with a semaphore limiting concurrency. However, this means targets with `depends_on` relationships may execute before their dependencies complete. The topological order ensures dependencies are *scheduled* first, but actual execution order under parallelism is not guaranteed to respect the dependency graph.
+
+**Workaround**: For projects with inter-target dependencies, either:
+1. Use sequential execution (omit `--parallel`)
+2. Ensure dependencies are idempotent and can be re-executed safely
+3. Use external tools (mise, make) for true dependency-aware parallelism
+
+A proper fix would require implementing a dependency-tracking scheduler that only allows targets to start once all their dependencies have completed successfully.

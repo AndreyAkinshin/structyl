@@ -42,7 +42,10 @@ var markerFiles = []MarkerFile{
 	{"CMakeLists.txt", "cmake"},
 	// Generic
 	{"Makefile", "make"},
-	// .NET (glob patterns)
+	// .NET - solution/props files often at root, csproj in subdirs
+	{"*.sln", "dotnet"},
+	{"Directory.Build.props", "dotnet"},
+	{"global.json", "dotnet"},
 	{"*.csproj", "dotnet"},
 	{"*.fsproj", "dotnet"},
 	// Ruby

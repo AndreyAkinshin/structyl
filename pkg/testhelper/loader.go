@@ -50,9 +50,6 @@ import (
 // Note: JSON does not distinguish integers from floats. All numbers in Input
 // and Output are unmarshaled as float64. Callers should convert as needed
 // (e.g., int(tc.Input["count"].(float64))).
-//
-// The Input field must be present but may be an empty object ({}).
-// A nil Input (missing field) causes a validation error.
 type TestCase struct {
 	// Name is the test case name (derived from filename).
 	Name string `json:"-"`
@@ -63,9 +60,13 @@ type TestCase struct {
 	Suite string `json:"-"`
 
 	// Input contains the input data for the test.
+	// Input must be present but may be an empty object ({}).
+	// A nil Input (missing field) causes a validation error.
 	Input map[string]interface{} `json:"input"`
 
 	// Output contains the expected output.
+	// Output must not be nil; a nil Output causes a validation error.
+	// Use an explicit value (e.g., empty string, empty object) for expected empty output.
 	Output interface{} `json:"output"`
 
 	// Description provides optional documentation.
@@ -106,9 +107,22 @@ func LoadTestSuite(projectRoot, suite string) ([]TestCase, error) {
 // or is missing required fields (input and output).
 //
 // Note: This function sets TestCase.Name from the filename but does NOT set
-// TestCase.Suite. Use LoadTestSuite to load test cases with suite information,
-// or set the Suite field manually after loading.
+// TestCase.Suite. Use LoadTestCaseWithSuite or LoadTestSuite to load test cases
+// with suite information, or set the Suite field manually after loading.
 func LoadTestCase(path string) (*TestCase, error) {
+	return loadTestCaseInternal(path, "")
+}
+
+// LoadTestCaseWithSuite loads a single test case from a JSON file and sets the suite name.
+// This is a convenience function that combines LoadTestCase with setting the Suite field.
+// Returns an error if the file cannot be read, contains invalid JSON,
+// or is missing required fields (input and output).
+func LoadTestCaseWithSuite(path, suite string) (*TestCase, error) {
+	return loadTestCaseInternal(path, suite)
+}
+
+// loadTestCaseInternal is the shared implementation for LoadTestCase and LoadTestCaseWithSuite.
+func loadTestCaseInternal(path, suite string) (*TestCase, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
@@ -128,6 +142,7 @@ func LoadTestCase(path string) (*TestCase, error) {
 	}
 
 	tc.Name = strings.TrimSuffix(filepath.Base(path), ".json")
+	tc.Suite = suite
 	return &tc, nil
 }
 

@@ -62,9 +62,9 @@ const (
 func DefaultOptions() CompareOptions {
 	return CompareOptions{
 		FloatTolerance: 1e-9,
-		ToleranceMode:  "relative",
+		ToleranceMode:  ToleranceModeRelative,
 		NaNEqualsNaN:   true,
-		ArrayOrder:     "strict",
+		ArrayOrder:     ArrayOrderStrict,
 	}
 }
 
@@ -360,10 +360,10 @@ func pathStr(path string) string {
 	return strings.TrimPrefix(path, ".")
 }
 
-// Deprecated: Use FormatComparisonResult instead. FormatDiff returns "values
-// are equal" when values match, which is semantically inconsistent.
-// FormatComparisonResult has clearer semantics: empty string on match,
-// descriptive diff on mismatch.
+// Deprecated: FormatDiff is deprecated since v0.1.0 and will be removed in v1.0.
+// Use FormatComparisonResult instead. FormatDiff returns "values are equal"
+// when values match, which is semantically inconsistent. FormatComparisonResult
+// has clearer semantics: empty string on match, descriptive diff on mismatch.
 func FormatDiff(expected, actual interface{}, opts CompareOptions) string {
 	_, diff := Compare(expected, actual, opts)
 	if diff == "" {

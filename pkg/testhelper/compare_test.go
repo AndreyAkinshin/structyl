@@ -384,6 +384,50 @@ func TestUlpDiff_Symmetric(t *testing.T) {
 	}
 }
 
+func TestUlpDiff_MixedSigns(t *testing.T) {
+	// Test ULP difference across zero crossing (positive vs negative)
+	// This is a known edge case for ULP algorithms
+	posSmall := math.SmallestNonzeroFloat64
+	negSmall := -math.SmallestNonzeroFloat64
+
+	// The ULP distance from smallest positive to smallest negative
+	// should be 2 (through zero)
+	diff := ulpDiff(posSmall, negSmall)
+	if diff != 2 {
+		t.Errorf("ulpDiff(SmallestPositive, SmallestNegative) = %d, want 2", diff)
+	}
+
+	// Test with larger values across zero
+	a := 1.0
+	b := -1.0
+	diff = ulpDiff(a, b)
+	// Diff should be positive and large (the number of representable floats between -1 and 1)
+	if diff <= 0 {
+		t.Errorf("ulpDiff(1.0, -1.0) = %d, should be positive", diff)
+	}
+}
+
+func TestUlpDiff_ExtremeValues(t *testing.T) {
+	// Test with extreme values to ensure no overflow
+	maxVal := math.MaxFloat64
+	negMaxVal := -math.MaxFloat64
+
+	// Same extreme values should have 0 diff
+	if diff := ulpDiff(maxVal, maxVal); diff != 0 {
+		t.Errorf("ulpDiff(MaxFloat64, MaxFloat64) = %d, want 0", diff)
+	}
+	if diff := ulpDiff(negMaxVal, negMaxVal); diff != 0 {
+		t.Errorf("ulpDiff(-MaxFloat64, -MaxFloat64) = %d, want 0", diff)
+	}
+
+	// Adjacent to max value
+	almostMax := math.Nextafter(maxVal, 0)
+	diff := ulpDiff(maxVal, almostMax)
+	if diff != 1 {
+		t.Errorf("ulpDiff(MaxFloat64, nextafter) = %d, want 1", diff)
+	}
+}
+
 func TestCompareOutput_UlpTolerance(t *testing.T) {
 	// Test ULP tolerance mode
 	a := 1.0

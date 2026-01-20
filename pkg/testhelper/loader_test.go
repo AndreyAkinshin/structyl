@@ -33,6 +33,33 @@ func TestLoadTestCase(t *testing.T) {
 	if tc.Input["a"] != float64(1) {
 		t.Errorf("Input[a] = %v, want 1", tc.Input["a"])
 	}
+	// LoadTestCase should not set Suite
+	if tc.Suite != "" {
+		t.Errorf("Suite = %q, want empty string", tc.Suite)
+	}
+}
+
+func TestLoadTestCaseWithSuite(t *testing.T) {
+	// Create temp file
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "test1.json")
+	content := `{
+		"input": {"a": 1, "b": 2},
+		"output": {"sum": 3}
+	}`
+	os.WriteFile(testFile, []byte(content), 0644)
+
+	tc, err := LoadTestCaseWithSuite(testFile, "math")
+	if err != nil {
+		t.Fatalf("LoadTestCaseWithSuite() error = %v", err)
+	}
+
+	if tc.Name != "test1" {
+		t.Errorf("Name = %q, want %q", tc.Name, "test1")
+	}
+	if tc.Suite != "math" {
+		t.Errorf("Suite = %q, want %q", tc.Suite, "math")
+	}
 }
 
 func TestLoadTestSuite(t *testing.T) {

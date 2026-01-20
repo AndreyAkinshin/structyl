@@ -20,23 +20,17 @@ hero:
       link: https://github.com/AndreyAkinshin/structyl
 
 features:
-  - icon: 🔧
-    title: Unified Commands
+  - title: Unified Commands
     details: Run build, test, clean, and lint across all your language implementations with a single command.
-  - icon: 📦
-    title: 27 Built-in Toolchains
+  - title: 27 Built-in Toolchains
     details: Pre-configured support for Cargo, Go, npm/pnpm/yarn/bun, pip/uv/poetry, .NET, Maven, Gradle, Swift, and more.
-  - icon: 🧪
-    title: Cross-Language Testing
+  - title: Cross-Language Testing
     details: JSON-based reference tests verify semantic equivalence across all implementations automatically.
-  - icon: 🏷️
-    title: Version Propagation
+  - title: Version Propagation
     details: Single VERSION file updates all language manifests (Cargo.toml, package.json, pyproject.toml, etc.).
-  - icon: 🐳
-    title: Docker Integration
+  - title: Docker Integration
     details: Run builds in isolated containers with --docker flag. Auto-generates docker-compose configuration.
-  - icon: ⚡
-    title: Parallel Execution
+  - title: Parallel Execution
     details: Builds run in parallel with configurable worker count. Fail-fast or continue modes available.
 ---
 

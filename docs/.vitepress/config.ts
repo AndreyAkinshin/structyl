@@ -94,8 +94,7 @@ export default defineConfig({
     ],
 
     footer: {
-      message: 'Released under the MIT License.',
-      copyright: 'Copyright © 2026 Andrey Akinshin',
+      message: '© 2026 Andrey Akinshin <a href="https://opensource.org/licenses/MIT">MIT</a>',
     },
 
     search: {

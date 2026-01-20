@@ -91,7 +91,7 @@ func runViaMise(proj *project.Project, cmd string, targetName string, args []str
 	executor.SetVerbose(opts.Verbose)
 
 	if err := executor.RunTask(ctx, task, args); err != nil {
-		return 1
+		return errors.ExitRuntimeError
 	}
 	return 0
 }
@@ -360,9 +360,13 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 		return 0
 	}
 
-	// Parse flags (--force is accepted for backwards compatibility but has no effect)
+	// Parse flags
 	for _, arg := range args {
-		if strings.HasPrefix(arg, "-") && arg != "--force" {
+		if arg == "--force" {
+			out.WarningSimple("--force flag is deprecated and has no effect (mise sync always regenerates)")
+			continue
+		}
+		if strings.HasPrefix(arg, "-") {
 			out.ErrorPrefix("mise sync: unknown option %q", arg)
 			return errors.ExitConfigError
 		}

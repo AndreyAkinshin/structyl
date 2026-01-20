@@ -46,7 +46,7 @@ func DiscoverTargets(root string) (map[string]string, error) {
 	return targets, nil
 }
 
-// isExcludedDir returns true for directories that should never be auto-discovered as targets.
+// excludedDirs contains directories that should never be auto-discovered as targets.
 // These directories fall into three categories:
 //
 // 1. Dependency directories (contain third-party code, not project targets):
@@ -63,24 +63,26 @@ func DiscoverTargets(root string) (map[string]string, error) {
 //   - templates: project templates, scaffolding
 //   - docs: documentation (VitePress, etc.)
 //   - scripts: build/CI scripts
+var excludedDirs = map[string]bool{
+	// Dependency directories
+	"node_modules": true,
+	"vendor":       true,
+	// Build output directories
+	"build":     true,
+	"dist":      true,
+	"out":       true,
+	"target":    true,
+	"artifacts": true,
+	// Support directories
+	"tests":     true,
+	"templates": true,
+	"docs":      true,
+	"scripts":   true,
+}
+
+// isExcludedDir returns true for directories that should never be auto-discovered as targets.
 func isExcludedDir(name string) bool {
-	excluded := map[string]bool{
-		// Dependency directories
-		"node_modules": true,
-		"vendor":       true,
-		// Build output directories
-		"build":     true,
-		"dist":      true,
-		"out":       true,
-		"target":    true,
-		"artifacts": true,
-		// Support directories
-		"tests":     true,
-		"templates": true,
-		"docs":      true,
-		"scripts":   true,
-	}
-	return excluded[name]
+	return excludedDirs[name]
 }
 
 // validateTargetDirectory checks if a target directory exists.

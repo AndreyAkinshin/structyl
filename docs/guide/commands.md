@@ -252,7 +252,7 @@ Running a null command succeeds with a warning.
 | `--type=<type>` | Filter by target type                                                       |
 | `-q, --quiet`   | Minimal output (errors only)                                                |
 | `-v, --verbose` | Maximum detail                                                              |
-| `--no-color`    | Disable colored output (not yet implemented; use `NO_COLOR` env var instead)|
+| ~~`--no-color`~~| *(Not yet implemented)* Disable colored output (use `NO_COLOR` env var instead)|
 
 ## Exit Codes
 

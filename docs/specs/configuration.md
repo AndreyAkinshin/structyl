@@ -526,6 +526,8 @@ Or use the local schema file (relative to project root):
 }
 ```
 
+> **Note:** The local schema file is named `config.schema.json` following the `.schema.json` naming convention, but the published URL uses `config.json` for brevity. Both refer to the same schema.
+
 ### Schema vs Runtime Validation
 
 The JSON Schema is designed for **IDE validation** (autocomplete, syntax checking). Structyl's runtime parser applies **lenient validation** to support forward compatibility:

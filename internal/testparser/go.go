@@ -8,10 +8,10 @@ import (
 // Static regexes for Go test output parsing.
 // Compiled once at package init for performance.
 var (
-	goPassRegex  = regexp.MustCompile(`(?m)^---\s+PASS:\s+`)
-	goFailRegex  = regexp.MustCompile(`(?m)^---\s+FAIL:\s+(\S+)`)
-	goSkipRegex  = regexp.MustCompile(`(?m)^---\s+SKIP:\s+`)
-	goErrorLine  = regexp.MustCompile(`^\s+\S+\.go:\d+:`)
+	goPassRegex = regexp.MustCompile(`(?m)^---\s+PASS:\s+`)
+	goFailRegex = regexp.MustCompile(`(?m)^---\s+FAIL:\s+(\S+)`)
+	goSkipRegex = regexp.MustCompile(`(?m)^---\s+SKIP:\s+`)
+	goErrorLine = regexp.MustCompile(`^\s+\S+\.go:\d+:`)
 )
 
 // GoParser parses Go test output.

@@ -576,9 +576,9 @@ type Config struct {
 
 3. Add validation in `internal/config/validate.go` if needed
 
-4. Update `specs/configuration.md`
+4. Update `docs/specs/configuration.md`
 
-5. Update `specs/structyl.schema.json`
+5. Update `schema/config.schema.json`
 
 ## Code Style Guidelines
 

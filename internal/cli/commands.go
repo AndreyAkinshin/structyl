@@ -424,13 +424,13 @@ func cmdDockerBuild(args []string, opts *GlobalOptions) int {
 		if dockerErr, ok := err.(*runner.DockerUnavailableError); ok {
 			return dockerErr.ExitCode()
 		}
-		return 1
+		return errors.ExitRuntimeError
 	}
 
 	ctx := context.Background()
 	if err := dockerRunner.Build(ctx, args...); err != nil {
 		out.ErrorPrefix("docker-build failed: %v", err)
-		return 1
+		return errors.ExitRuntimeError
 	}
 
 	out.Success("Docker images built successfully.")
@@ -457,13 +457,13 @@ func cmdDockerClean(args []string, opts *GlobalOptions) int {
 		if dockerErr, ok := err.(*runner.DockerUnavailableError); ok {
 			return dockerErr.ExitCode()
 		}
-		return 1
+		return errors.ExitRuntimeError
 	}
 
 	ctx := context.Background()
 	if err := dockerRunner.Clean(ctx); err != nil {
 		out.ErrorPrefix("docker-clean failed: %v", err)
-		return 1
+		return errors.ExitRuntimeError
 	}
 
 	out.Success("Docker containers and images cleaned successfully.")

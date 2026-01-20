@@ -131,7 +131,7 @@ structyl/
 │   ├── toolchains.md
 │   └── ...
 ├── go.mod                      # Go module (github.com/AndreyAkinshin/structyl)
-└── go.sum                      # Dependency lock (yaml.v3, golang.org/x/text)
+└── go.sum                      # Dependency lock (yaml.v3, x/text, jsonschema/v6)
 ```
 
 ## Key Interfaces
@@ -699,7 +699,7 @@ Current code quality (as of last audit):
 
 - **Test coverage**: 79.9%-100% per package (avg ~90%)
 - **go vet**: Clean (Go 1.24 required)
-- **Dependencies**: Single external dependency (yaml.v3)
+- **Dependencies**: 3 external dependencies (yaml.v3, golang.org/x/text, jsonschema/v6)
 - **No panics**: Zero panic() or log.Fatal() in production code
 
 ### Known Limitations

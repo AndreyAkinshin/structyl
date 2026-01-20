@@ -94,12 +94,12 @@
       },
       "additionalProperties": {
         "type": "object",
-        "required": ["type", "title"],
+        "required": ["title"],
         "properties": {
           "type": {
             "type": "string",
             "enum": ["language", "auxiliary"],
-            "description": "Target type"
+            "description": "Target type. Can be omitted for known language slugs (cs, go, kt, py, rs, ts) which default to 'language'"
           },
           "title": {
             "type": "string",
@@ -252,6 +252,34 @@
                 "type": "array",
                 "items": {"type": "string"},
                 "description": "Additional volume mounts"
+              }
+            }
+          }
+        },
+        "targets": {
+          "type": "object",
+          "description": "Per-target Docker configuration",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "platform": {
+                "type": "string",
+                "description": "Target platform (e.g., linux/amd64)"
+              },
+              "cache_volume": {
+                "type": "string",
+                "description": "Volume path for build cache"
+              },
+              "entrypoint": {
+                "type": "string",
+                "description": "Container entrypoint override"
+              },
+              "environment": {
+                "type": "object",
+                "description": "Additional environment variables",
+                "additionalProperties": {
+                  "type": "string"
+                }
               }
             }
           }

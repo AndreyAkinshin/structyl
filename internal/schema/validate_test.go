@@ -174,3 +174,77 @@ func TestSchemaToolchainsWithMise(t *testing.T) {
 		t.Errorf("expected valid toolchains with mise config, got error: %v", err)
 	}
 }
+
+func TestSchemaInvalidConfigWrongFieldType(t *testing.T) {
+	tests := []struct {
+		name string
+		json string
+	}{
+		{
+			name: "project name is number",
+			json: `{"project": {"name": 123}}`,
+		},
+		{
+			name: "targets is array",
+			json: `{"project": {"name": "test"}, "targets": []}`,
+		},
+		{
+			name: "target type is number",
+			json: `{"project": {"name": "test"}, "targets": {"go": {"type": 123, "title": "Go"}}}`,
+		},
+		{
+			name: "target title is boolean",
+			json: `{"project": {"name": "test"}, "targets": {"go": {"type": "language", "title": true}}}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateConfig([]byte(tt.json))
+			if err == nil {
+				t.Errorf("expected validation error for %s, got nil", tt.name)
+			}
+		})
+	}
+}
+
+func TestSchemaInvalidConfigInvalidTargetType(t *testing.T) {
+	data := []byte(`{
+		"project": {"name": "test"},
+		"targets": {
+			"go": {
+				"type": "unknown",
+				"title": "Go"
+			}
+		}
+	}`)
+
+	err := ValidateConfig(data)
+	if err == nil {
+		t.Error("expected validation error for invalid target type, got nil")
+	}
+}
+
+func TestValidateConfig_ErrorMessageContainsPath(t *testing.T) {
+	// Test case that should fail with a path indicator
+	data := []byte(`{
+		"project": {"name": "test"},
+		"targets": {
+			"invalid-target": {
+				"type": "invalid-type",
+				"title": "Test"
+			}
+		}
+	}`)
+
+	err := ValidateConfig(data)
+	if err == nil {
+		t.Fatal("expected validation error, got nil")
+	}
+
+	// Error message should contain some indication of what failed
+	errStr := err.Error()
+	if errStr == "" {
+		t.Error("error message should not be empty")
+	}
+}

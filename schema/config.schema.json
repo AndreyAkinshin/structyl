@@ -61,7 +61,7 @@
               },
               "pattern": {
                 "type": "string",
-                "description": "Regex pattern to match version string (Go regexp package syntax)"
+                "description": "Regex pattern to match version string (RE2 syntax)"
               },
               "replace": {
                 "type": "string",

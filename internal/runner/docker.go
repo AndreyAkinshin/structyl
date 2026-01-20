@@ -22,6 +22,7 @@ type DockerRunner struct {
 }
 
 // NewDockerRunner creates a new DockerRunner.
+// Uses composeFileName from compose.go to determine the compose file path.
 func NewDockerRunner(projectRoot string, cfg *config.DockerConfig) *DockerRunner {
 	return &DockerRunner{
 		composeFile: composeFileName(cfg),

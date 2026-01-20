@@ -351,6 +351,11 @@ func filterMiseEnv(environ []string) []string {
 	return filtered
 }
 
+// copyMap returns a copy of the map, or nil if the map is nil or empty.
+// Returning nil for empty maps is intentional: in JSON unmarshaling, nil signals
+// "not configured" while an empty map signals "explicitly configured as empty".
+// Since configuration rarely distinguishes these cases, we normalize both to nil
+// to simplify downstream nil checks.
 func copyMap(m map[string]string) map[string]string {
 	if len(m) == 0 {
 		return nil

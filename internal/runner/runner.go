@@ -158,6 +158,14 @@ func (r *Runner) runSequential(ctx context.Context, targets []target.Target, cmd
 func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd string, opts RunOptions) error {
 	workers := getParallelWorkers()
 
+	// Warn if any targets have dependencies - parallel mode doesn't respect them
+	for _, t := range targets {
+		if len(t.DependsOn()) > 0 {
+			out.WarningSimple("parallel mode does not respect depends_on ordering; targets may execute before dependencies complete")
+			break
+		}
+	}
+
 	// Create cancellable context for fail-fast
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()

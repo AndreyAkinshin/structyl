@@ -28,7 +28,11 @@ A target that must be built before another target. Specified via the `depends_on
 
 ### Fail-fast
 
-A execution strategy where processing stops on first failure. In fail-fast mode, when one target fails, pending targets are cancelled (though already-running targets complete). Contrast with `--continue` mode, which runs all targets regardless of individual failures.
+An execution strategy where processing stops on first failure. In fail-fast mode, when one target fails, pending targets are cancelled (though already-running targets complete). Contrast with `--continue` mode, which runs all targets regardless of individual failures.
+
+### Forward Compatibility
+
+The property that older software can accept data or configuration from newer versions without error. Structyl achieves forward compatibility by ignoring unknown configuration fields with a warning, per [Extensibility Rule 3](./index.md#extensibility-rules).
 
 ### Idempotent
 
@@ -57,6 +61,10 @@ A file whose presence indicates a specific toolchain. Examples: `Cargo.toml` ind
 
 A command that operates across multiple targets. Examples: `structyl build` (all targets), `structyl test` (all language targets), `structyl ci` (full pipeline).
 
+### Mise
+
+A polyglot tool version manager and task runner. Structyl integrates with mise for tool version management and task execution. See [mise.jdx.dev](https://mise.jdx.dev/).
+
 ### Project Root
 
 The directory containing `.structyl/config.json`. Structyl locates this by walking up from the current working directory.
@@ -72,8 +80,6 @@ See **Target Name**.
 ### Target Name
 
 The target key in the `targets` configuration object. Used as the identifier in commands (e.g., `structyl build cs`). The corresponding directory MAY differ via the `directory` field. Examples: `cs`, `py`, `rs`, `img`.
-
-> **Historical note:** Some documentation may use the term "slug" as a synonym for target name.
 
 ### Suite
 

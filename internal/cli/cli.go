@@ -70,7 +70,8 @@ func Run(args []string) int {
 	case "init":
 		return cmdInit(cmdArgs)
 
-	// Deprecated: "new" is now "init"
+	// Deprecated: "new" is now "init". Hidden from help text intentionally.
+	// Emits deprecation warning but still works for backward compatibility.
 	case "new":
 		out.WarningSimple("'structyl new' is deprecated, use 'structyl init'")
 		return cmdInit(cmdArgs)
@@ -348,7 +349,7 @@ func printGlobalFlags(w *output.Writer) {
 	w.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
 	w.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
 	w.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
-	w.HelpFlag("--continue", "Continue on error (don't fail-fast)", helpFlagWidthGlobal)
+	w.HelpFlag("--continue", "Continue on error (no effect with mise backend)", helpFlagWidthGlobal)
 	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
 	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
 	w.HelpFlag("--version", "Show version", helpFlagWidthGlobal)

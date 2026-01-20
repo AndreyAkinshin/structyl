@@ -371,7 +371,8 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 	// Parse flags
 	for _, arg := range args {
 		if arg == "--force" {
-			out.WarningSimple("--force flag is deprecated and has no effect (mise sync always regenerates)")
+			// Silently ignore deprecated flag for backward compatibility.
+			// mise sync always regenerates, so --force has no effect.
 			continue
 		}
 		if strings.HasPrefix(arg, "-") {
@@ -559,7 +560,7 @@ func printUnifiedUsage(cmd string) {
 	w.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
 	w.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
 	w.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
-	w.HelpFlag("--continue", "Continue on error (don't fail-fast)", helpFlagWidthGlobal)
+	w.HelpFlag("--continue", "Continue on error (no effect with mise backend)", helpFlagWidthGlobal)
 	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
 	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
 
@@ -631,7 +632,7 @@ func printCIUsage(cmd string) {
 	w.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
 	w.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
 	w.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
-	w.HelpFlag("--continue", "Continue on error (don't fail-fast)", helpFlagWidthGlobal)
+	w.HelpFlag("--continue", "Continue on error (no effect with mise backend)", helpFlagWidthGlobal)
 	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
 	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
 

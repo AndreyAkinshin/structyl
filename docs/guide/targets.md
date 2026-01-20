@@ -228,11 +228,11 @@ Auxiliary:
   pdf  PDF Manual (depends: img)
 ```
 
-## Default Language Slugs
+## Default Language Target Names
 
-These slugs are recognized as language targets:
+These target names are recognized as language targets:
 
-| Slug    | Language   | Default Toolchain |
+| Name    | Language   | Default Toolchain |
 | ------- | ---------- | ----------------- |
 | `c`     | C          | cmake             |
 | `cpp`   | C++        | cmake             |

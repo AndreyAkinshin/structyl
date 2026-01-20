@@ -251,7 +251,7 @@ Built-in variables:
 
 | Variable        | Description                    |
 | --------------- | ------------------------------ |
-| `${target}`     | Target slug (e.g., `cs`, `py`) |
+| `${target}`     | Target name (e.g., `cs`, `py`) |
 | `${target_dir}` | Target directory path          |
 | `${root}`       | Project root directory         |
 | `${version}`    | Project version                |

@@ -85,6 +85,10 @@ func LoadTestSuite(projectRoot, suite string) ([]TestCase, error) {
 // LoadTestCase loads a single test case from a JSON file.
 // Returns an error if the file cannot be read, contains invalid JSON,
 // or is missing required fields (input and output).
+//
+// Note: This function sets TestCase.Name from the filename but does NOT set
+// TestCase.Suite. Use LoadTestSuite to load test cases with suite information,
+// or set the Suite field manually after loading.
 func LoadTestCase(path string) (*TestCase, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {

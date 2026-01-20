@@ -308,10 +308,90 @@ func TestWrite_InvalidVersion(t *testing.T) {
 func TestWrite_InvalidPath(t *testing.T) {
 	t.Parallel()
 	// Try to write to a path where the parent directory doesn't exist
-	path := filepath.Join("/nonexistent-dir-xyz-12345", "VERSION")
+	dir := t.TempDir()
+	path := filepath.Join(dir, "nested", "deeply", "VERSION")
 
 	err := Write(path, "1.2.3")
 	if err == nil {
 		t.Error("Write() expected error for invalid path")
+	}
+}
+
+func TestRead_EmptyFile(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "VERSION")
+
+	// Create empty file
+	if err := os.WriteFile(path, []byte(""), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := Read(path)
+	if err == nil {
+		t.Error("Read() expected error for empty file")
+	}
+}
+
+func TestRead_WhitespaceOnlyFile(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "VERSION")
+
+	// Create file with only whitespace
+	if err := os.WriteFile(path, []byte("   \n\t\n  "), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := Read(path)
+	if err == nil {
+		t.Error("Read() expected error for whitespace-only file")
+	}
+}
+
+func TestCompareInt_EqualValues(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		a, b int
+		want int
+	}{
+		{0, 0, 0},
+		{1, 1, 0},
+		{-1, -1, 0},
+		{100, 100, 0},
+		{-100, -100, 0},
+	}
+
+	for _, tt := range tests {
+		got := compareInt(tt.a, tt.b)
+		if got != tt.want {
+			t.Errorf("compareInt(%d, %d) = %d, want %d", tt.a, tt.b, got, tt.want)
+		}
+	}
+}
+
+func TestCompare_IdenticalVersions(t *testing.T) {
+	t.Parallel()
+	tests := []string{
+		"1.0.0",
+		"1.2.3",
+		"0.0.0",
+		"1.0.0-alpha",
+		"1.0.0-alpha.1",
+		"1.0.0+build",
+		"1.0.0-rc.1+build.123",
+	}
+
+	for _, v := range tests {
+		t.Run(v, func(t *testing.T) {
+			t.Parallel()
+			got, err := Compare(v, v)
+			if err != nil {
+				t.Fatalf("Compare() error = %v", err)
+			}
+			if got != 0 {
+				t.Errorf("Compare(%q, %q) = %d, want 0", v, v, got)
+			}
+		})
 	}
 }

@@ -283,11 +283,11 @@ func floatsEqual(expected, actual float64, opts CompareOptions) bool {
 	}
 
 	switch opts.ToleranceMode {
-	case "absolute":
+	case ToleranceModeAbsolute:
 		return math.Abs(expected-actual) <= opts.FloatTolerance
-	case "ulp":
+	case ToleranceModeULP:
 		return ulpDiff(expected, actual) <= int64(opts.FloatTolerance)
-	case "relative":
+	case ToleranceModeRelative, "":
 		fallthrough
 	default:
 		if expected == 0 {
@@ -374,7 +374,7 @@ func compareArray(expected []interface{}, actual interface{}, opts CompareOption
 		return false, fmt.Sprintf("%s: array length mismatch (expected=%d, actual=%d)", pathStr(path), len(expected), len(a))
 	}
 
-	if opts.ArrayOrder == "unordered" {
+	if opts.ArrayOrder == ArrayOrderUnordered {
 		return compareUnorderedArray(expected, a, opts, path)
 	}
 

@@ -101,6 +101,8 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 > **Note:** The `build:release` command is only provided by toolchains that have distinct release/optimized build modes (e.g., `cargo`, `dotnet`, `swift`, `make`, `zig`). Toolchains without a native release mode (e.g., `npm`, `gradle`, `python`) do not define this variant. For these toolchains, configure a custom `build:release` command in target configuration if needed.
 
+> **Note:** The `test:coverage` command is OPTIONAL. Most built-in toolchains do not provide a default implementation because coverage tools vary significantly by ecosystem and project setup. Configure a custom `test:coverage` command in target configuration if needed. See [commands.md](commands.md) for command semantics.
+
 ---
 
 ## Built-in Toolchains
@@ -782,6 +784,7 @@ Define custom toolchains in `.structyl/config.json`:
 {
   "toolchains": {
     "my-toolchain": {
+      "version": "1.0.0",
       "commands": {
         "build": "custom-build-tool compile",
         "build:release": "custom-build-tool compile --optimize",

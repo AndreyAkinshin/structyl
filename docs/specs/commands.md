@@ -234,6 +234,8 @@ STRUCTYL_DOCKER=1 structyl --no-docker build  # Runs natively (--no-docker wins)
 STRUCTYL_DOCKER=0 structyl --docker build     # Runs in Docker (--docker wins)
 ```
 
+If both `--docker` and `--no-docker` are passed simultaneously, `--no-docker` takes precedence (Docker mode disabled).
+
 ## Null Commands
 
 A command value of `null` indicates the command is not available for this target. Toolchains use `null` for commands that don't apply to their ecosystem.

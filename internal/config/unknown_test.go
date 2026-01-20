@@ -102,3 +102,20 @@ func TestLoadAndValidate_WithUnknownFields(t *testing.T) {
 		t.Error("Expected warnings for unknown field")
 	}
 }
+
+func TestDetectUnknownFields_InvalidJSON(t *testing.T) {
+	// This tests the edge case where re-parsing fails.
+	// In practice, this shouldn't happen since LoadWithWarnings
+	// already successfully parsed the data.
+	invalidJSON := []byte(`not valid json`)
+	warnings := detectUnknownFields(invalidJSON)
+
+	// Should return an internal warning rather than silently returning nil
+	if len(warnings) != 1 {
+		t.Errorf("detectUnknownFields(invalid) returned %d warnings, want 1", len(warnings))
+		return
+	}
+	if !strings.Contains(warnings[0], "internal") {
+		t.Errorf("Expected internal warning, got: %s", warnings[0])
+	}
+}

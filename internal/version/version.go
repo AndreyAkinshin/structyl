@@ -63,6 +63,7 @@ func Parse(version string) (*Semver, error) {
 		return nil, fmt.Errorf("invalid semver format: %q", version)
 	}
 
+	// Errors ignored: regex guarantees these capture groups contain only digits
 	major, _ := strconv.Atoi(match[1])
 	minor, _ := strconv.Atoi(match[2])
 	patch, _ := strconv.Atoi(match[3])

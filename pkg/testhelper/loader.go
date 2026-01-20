@@ -4,6 +4,11 @@
 // This package is designed to be used by individual language implementations
 // to load test cases and compare their outputs against expected values.
 //
+// Limitations:
+//   - $file references are not supported. File reference resolution is only
+//     available in the internal test runner. Test cases using $file syntax
+//     should use the internal tests package or embed data directly in JSON.
+//
 // Example usage in a Go test:
 //
 //	func TestCalculation(t *testing.T) {

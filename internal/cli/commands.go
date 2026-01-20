@@ -49,7 +49,8 @@ func ensureMiseConfig(proj *project.Project, force bool) error {
 		autoGen = proj.Config.Mise.AutoGenerate
 	}
 
-	if force || autoGen || !mise.MiseTomlExists(proj.Root) {
+	needsRegeneration := force || autoGen || !mise.MiseTomlExists(proj.Root)
+	if needsRegeneration {
 		_, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, true)
 		if err != nil {
 			return fmt.Errorf("failed to generate mise.toml: %w", err)
@@ -118,7 +119,7 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 
 	if len(args) == 0 {
 		out.ErrorPrefix("usage: structyl <command> [target] [args] or structyl <command> [args]")
-		return 2
+		return errors.ExitConfigError
 	}
 
 	// Check for help flag early (after command name)
@@ -140,7 +141,7 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 	registry, err := target.NewRegistry(proj.Config, proj.Root)
 	if err != nil {
 		out.ErrorPrefix("%v", err)
-		return 2
+		return errors.ExitConfigError
 	}
 
 	// First argument is always the command
@@ -209,7 +210,7 @@ func cmdTargets(args []string, opts *GlobalOptions) int {
 	registry, err := target.NewRegistry(proj.Config, proj.Root)
 	if err != nil {
 		out.ErrorPrefix("%v", err)
-		return 2
+		return errors.ExitConfigError
 	}
 
 	targets := registry.All()
@@ -233,7 +234,7 @@ func cmdTargets(args []string, opts *GlobalOptions) int {
 func cmdConfig(args []string) int {
 	if len(args) == 0 {
 		out.ErrorPrefix("config: subcommand required (validate)")
-		return 2
+		return errors.ExitConfigError
 	}
 
 	switch args[0] {
@@ -244,7 +245,7 @@ func cmdConfig(args []string) int {
 		return 0
 	default:
 		out.ErrorPrefix("config: unknown subcommand %q", args[0])
-		return 2
+		return errors.ExitConfigError
 	}
 }
 
@@ -263,7 +264,7 @@ func cmdConfigValidate() int {
 	registry, err := target.NewRegistry(proj.Config, proj.Root)
 	if err != nil {
 		out.ErrorPrefix("%v", err)
-		return 2
+		return errors.ExitConfigError
 	}
 
 	// Count targets by type
@@ -347,7 +348,7 @@ func cmdMise(args []string, opts *GlobalOptions) int {
 	if len(args) == 0 {
 		out.ErrorPrefix("mise: subcommand required (sync)")
 		out.Println("usage: structyl mise sync [--force]")
-		return 2
+		return errors.ExitConfigError
 	}
 
 	// Check if first arg is a known subcommand - if so, route to it
@@ -361,7 +362,7 @@ func cmdMise(args []string, opts *GlobalOptions) int {
 	default:
 		out.ErrorPrefix("mise: unknown subcommand %q", args[0])
 		out.Println("usage: structyl mise sync [--force]")
-		return 2
+		return errors.ExitConfigError
 	}
 }
 
@@ -376,7 +377,7 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 	for _, arg := range args {
 		if strings.HasPrefix(arg, "-") && arg != "--force" {
 			out.ErrorPrefix("mise sync: unknown option %q", arg)
-			return 2
+			return errors.ExitConfigError
 		}
 	}
 
@@ -506,7 +507,7 @@ func cmdRelease(args []string, opts *GlobalOptions) int {
 	if len(remaining) == 0 {
 		out.ErrorPrefix("release: version required")
 		out.Errorln("usage: structyl release <version> [--push] [--dry-run] [--force]")
-		return 2
+		return errors.ExitConfigError
 	}
 
 	releaseOpts.Version = remaining[0]

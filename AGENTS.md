@@ -462,32 +462,26 @@ test/fixtures/
 ```bash
 # Development build
 mise run build
-
-# Install to $GOPATH/bin
-mise run install
 ```
 
-### Lint & Format
+### Lint
 
 ```bash
-# Format code
-mise run fmt
-
-# Lint
+# Run golangci-lint
 mise run lint
-
-# Vet
-mise run vet
 ```
 
 ### Test
 
 ```bash
-# Run all tests
+# Run all tests (includes race detector)
 mise run test
 
-# Run tests with race detector
-mise run test:race
+# Run unit tests only
+mise run test:unit
+
+# Run integration tests only
+mise run test:integration
 
 # Run tests with coverage
 mise run test:cover
@@ -629,11 +623,13 @@ func cmdSomething() int {
 
 ## Dependencies
 
-**Production dependencies:**
+**External dependencies (3):**
 
-- `gopkg.in/yaml.v3` v3.0.1 - YAML parsing (indirect, for some config scenarios)
+- `gopkg.in/yaml.v3` v3.0.1 - YAML parsing
+- `golang.org/x/text` v0.33.0 - Text processing utilities
+- `github.com/santhosh-tekuri/jsonschema/v6` v6.0.2 - JSON Schema validation
 
-**Standard library (no external deps for core):**
+**Standard library modules used:**
 
 - `encoding/json` - Configuration parsing
 - `os/exec` - Command execution

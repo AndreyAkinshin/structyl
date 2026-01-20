@@ -128,6 +128,7 @@ func TestValidateTargetName_Invalid(t *testing.T) {
 }
 
 func TestValidate_MissingProjectName(t *testing.T) {
+	t.Parallel()
 	cfg := &Config{}
 	_, err := Validate(cfg)
 	if err == nil {
@@ -143,6 +144,7 @@ func TestValidate_MissingProjectName(t *testing.T) {
 }
 
 func TestValidate_InvalidTargetType(t *testing.T) {
+	t.Parallel()
 	cfg := &Config{
 		Project: ProjectConfig{Name: "myproject"},
 		Targets: map[string]TargetConfig{
@@ -159,6 +161,7 @@ func TestValidate_InvalidTargetType(t *testing.T) {
 }
 
 func TestValidate_MissingTargetTitle(t *testing.T) {
+	t.Parallel()
 	cfg := &Config{
 		Project: ProjectConfig{Name: "myproject"},
 		Targets: map[string]TargetConfig{
@@ -174,6 +177,7 @@ func TestValidate_MissingTargetTitle(t *testing.T) {
 }
 
 func TestValidate_ValidConfig(t *testing.T) {
+	t.Parallel()
 	cfg := &Config{
 		Project: ProjectConfig{Name: "myproject"},
 		Targets: map[string]TargetConfig{
@@ -199,6 +203,7 @@ func TestValidate_ValidConfig(t *testing.T) {
 // Note: Target names allow consecutive hyphens and trailing hyphens per the regex
 // pattern ^[a-z][a-z0-9-]*$. This is intentionally more permissive than project names.
 func TestValidateTargetName_AllowsConsecutiveHyphens(t *testing.T) {
+	t.Parallel()
 	// Target names permit consecutive hyphens unlike project names
 	if err := ValidateTargetName("my--target"); err != nil {
 		t.Errorf("ValidateTargetName(\"my--target\") = %v, want nil (consecutive hyphens allowed)", err)
@@ -206,6 +211,7 @@ func TestValidateTargetName_AllowsConsecutiveHyphens(t *testing.T) {
 }
 
 func TestValidateTargetName_AllowsTrailingHyphen(t *testing.T) {
+	t.Parallel()
 	// Target names permit trailing hyphens unlike project names
 	if err := ValidateTargetName("target-"); err != nil {
 		t.Errorf("ValidateTargetName(\"target-\") = %v, want nil (trailing hyphen allowed)", err)
@@ -213,6 +219,7 @@ func TestValidateTargetName_AllowsTrailingHyphen(t *testing.T) {
 }
 
 func TestValidate_EmptyTargetType(t *testing.T) {
+	t.Parallel()
 	cfg := &Config{
 		Project: ProjectConfig{Name: "myproject"},
 		Targets: map[string]TargetConfig{
@@ -230,6 +237,7 @@ func TestValidate_EmptyTargetType(t *testing.T) {
 }
 
 func TestValidate_AuxiliaryTargetType(t *testing.T) {
+	t.Parallel()
 	cfg := &Config{
 		Project: ProjectConfig{Name: "myproject"},
 		Targets: map[string]TargetConfig{
@@ -249,6 +257,7 @@ func TestValidate_AuxiliaryTargetType(t *testing.T) {
 }
 
 func TestValidationError_Error(t *testing.T) {
+	t.Parallel()
 	err := &ValidationError{
 		Field:   "project.name",
 		Message: "is required",

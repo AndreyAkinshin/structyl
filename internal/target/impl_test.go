@@ -591,6 +591,78 @@ func TestInterpolateVars_MixedVariables(t *testing.T) {
 	}
 }
 
+func TestInterpolateVars_NestedEscapeSequence(t *testing.T) {
+	cfg := config.TargetConfig{
+		Type:  "language",
+		Title: "Test",
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("test", cfg, "/project", resolver)
+	impl := target.(*targetImpl)
+
+	// $$${target} - the implementation replaces "$${" as a unit.
+	// In "$$${target}", there is no "$${" sequence (it's "$$" followed by "${").
+	// So: "$$${target}" stays as "$$${target}" in step 1 (no $${)
+	// Then ${target} -> test, giving "$$test"
+	// Wait, actually: "$$${target}" DOES contain "$${" starting at index 1.
+	// Let's trace: strings.ReplaceAll("$$${target}", "$${", placeholder)
+	// Finds "$${" at position 1 -> "$$${target}" becomes "$" + placeholder + "target}"
+	// = "$\x00ESCAPED\x00target}"
+	// Then ${...} pattern matches... there's no ${...} left.
+	// Then restore: placeholder -> "${" gives "$${target}"
+	//
+	// So the actual behavior is that "$$${target}" becomes "$${target}" (the inner
+	// ${target} is treated as an escaped literal).
+	result := impl.interpolateVars("echo $$${target}")
+	// Actual behavior: $${target} within $$${target} is detected and escaped
+	expected := "echo $${target}"
+	if result != expected {
+		t.Errorf("interpolateVars($$${target}) = %q, want %q", result, expected)
+	}
+}
+
+func TestInterpolateVars_MultipleEscapeSequences(t *testing.T) {
+	cfg := config.TargetConfig{
+		Type:  "language",
+		Title: "Test",
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("test", cfg, "/project", resolver)
+	impl := target.(*targetImpl)
+
+	// Multiple escaped variables in one string
+	result := impl.interpolateVars("$${HOME}:$${PATH}:${target}")
+	expected := "${HOME}:${PATH}:test"
+	if result != expected {
+		t.Errorf("interpolateVars() = %q, want %q", result, expected)
+	}
+}
+
+func TestInterpolateVars_EscapeAtBoundary(t *testing.T) {
+	cfg := config.TargetConfig{
+		Type:  "language",
+		Title: "Test",
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("test", cfg, "/project", resolver)
+	impl := target.(*targetImpl)
+
+	// Escaped at start of string
+	result := impl.interpolateVars("$${VAR}")
+	if result != "${VAR}" {
+		t.Errorf("interpolateVars($${VAR}) = %q, want %q", result, "${VAR}")
+	}
+
+	// Escaped at end of string
+	result = impl.interpolateVars("prefix $${VAR}")
+	if result != "prefix ${VAR}" {
+		t.Errorf("interpolateVars(prefix $${VAR}) = %q, want %q", result, "prefix ${VAR}")
+	}
+}
+
 func TestResolveCommandVariant(t *testing.T) {
 	// Use a target with explicit verbose/quiet variants to test the resolution logic
 	cfg := config.TargetConfig{

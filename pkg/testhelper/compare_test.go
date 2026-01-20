@@ -217,6 +217,76 @@ func TestDefaultOptions(t *testing.T) {
 	}
 }
 
+func TestCompareOptions_String(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		opts     CompareOptions
+		contains []string
+	}{
+		{
+			name: "default options",
+			opts: DefaultOptions(),
+			contains: []string{
+				"ToleranceMode:relative",
+				"FloatTolerance:1e-09",
+				"NaNEqualsNaN:true",
+				"ArrayOrder:strict",
+			},
+		},
+		{
+			name: "custom options",
+			opts: CompareOptions{
+				FloatTolerance: 0.01,
+				ToleranceMode:  ToleranceModeAbsolute,
+				NaNEqualsNaN:   false,
+				ArrayOrder:     ArrayOrderUnordered,
+			},
+			contains: []string{
+				"ToleranceMode:absolute",
+				"FloatTolerance:0.01",
+				"NaNEqualsNaN:false",
+				"ArrayOrder:unordered",
+			},
+		},
+		{
+			name: "empty mode defaults to relative",
+			opts: CompareOptions{
+				ToleranceMode: "",
+				ArrayOrder:    "",
+			},
+			contains: []string{
+				"ToleranceMode:relative",
+				"ArrayOrder:strict",
+			},
+		},
+		{
+			name: "ulp mode",
+			opts: CompareOptions{
+				FloatTolerance: 5,
+				ToleranceMode:  ToleranceModeULP,
+			},
+			contains: []string{
+				"ToleranceMode:ulp",
+				"FloatTolerance:5",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := tt.opts.String()
+			for _, want := range tt.contains {
+				if !strings.Contains(result, want) {
+					t.Errorf("String() = %q, want to contain %q", result, want)
+				}
+			}
+		})
+	}
+}
+
 func TestValidateOptions(t *testing.T) {
 	// Valid options
 	validCases := []CompareOptions{
@@ -319,10 +389,6 @@ func TestPathStr(t *testing.T) {
 		})
 	}
 }
-
-// =============================================================================
-// Work Item 8: ULP Diff Tests
-// =============================================================================
 
 func TestUlpDiff_IdenticalValues(t *testing.T) {
 	tests := []struct {
@@ -480,10 +546,6 @@ func TestCompareOutput_UlpTolerance(t *testing.T) {
 		t.Error("expected 3 ULP difference to pass with tolerance 3")
 	}
 }
-
-// =============================================================================
-// Work Item 5: Additional Coverage Tests
-// =============================================================================
 
 func TestCompareOutput_TypeMismatch(t *testing.T) {
 	opts := DefaultOptions()
@@ -794,10 +856,6 @@ func TestCompare_InvalidArrayOrder_Panics(t *testing.T) {
 	Compare([]interface{}{1}, []interface{}{1}, opts)
 }
 
-// =============================================================================
-// Enum Constants Tests
-// =============================================================================
-
 func TestToleranceModeConstants(t *testing.T) {
 	// Verify constants match the validation switch cases
 	validModes := []string{ToleranceModeRelative, ToleranceModeAbsolute, ToleranceModeULP}
@@ -859,10 +917,6 @@ func TestConstantsWithCompare(t *testing.T) {
 		t.Error("expected unordered array comparison to pass")
 	}
 }
-
-// =============================================================================
-// ULP Edge Case Tests (documenting behavior for extreme tolerances)
-// =============================================================================
 
 func TestCompareOutput_UlpTolerance_Truncation(t *testing.T) {
 	// Test that FloatTolerance is truncated to integer for ULP mode
@@ -926,10 +980,6 @@ func TestCompareOutput_UlpTolerance_LargeTolerance(t *testing.T) {
 	}
 }
 
-// =============================================================================
-// Empty String Default Behavior Tests
-// =============================================================================
-
 func TestCompareOutput_EmptyToleranceMode_DefaultsToRelative(t *testing.T) {
 	// Verify that empty ToleranceMode defaults to relative tolerance behavior
 	opts := CompareOptions{
@@ -990,10 +1040,6 @@ func TestCompareOutput_EmptyArrayOrder_DefaultsToStrict(t *testing.T) {
 		t.Error("empty ArrayOrder should behave identically to explicit strict mode")
 	}
 }
-
-// =============================================================================
-// Work Item 6: +Infinity String Support Test
-// =============================================================================
 
 func TestCompare_PlusInfinityString(t *testing.T) {
 	opts := DefaultOptions()

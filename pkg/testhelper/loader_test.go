@@ -329,9 +329,58 @@ func TestTestCase_Fields(t *testing.T) {
 	}
 }
 
-// =============================================================================
-// Work Item 9: FindProjectRoot Tests
-// =============================================================================
+func TestTestCase_String(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		tc   TestCase
+		want string
+	}{
+		{
+			name: "name only",
+			tc: TestCase{
+				Name: "basic",
+			},
+			want: "TestCase{basic}",
+		},
+		{
+			name: "with suite",
+			tc: TestCase{
+				Name:  "addition",
+				Suite: "math",
+			},
+			want: "TestCase{math/addition}",
+		},
+		{
+			name: "with skip flag",
+			tc: TestCase{
+				Name: "skipped_test",
+				Skip: true,
+			},
+			want: "TestCase{skipped_test [SKIP]}",
+		},
+		{
+			name: "with suite and skip",
+			tc: TestCase{
+				Name:  "broken",
+				Suite: "integration",
+				Skip:  true,
+			},
+			want: "TestCase{integration/broken [SKIP]}",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := tt.tc.String()
+			if result != tt.want {
+				t.Errorf("String() = %q, want %q", result, tt.want)
+			}
+		})
+	}
+}
 
 // withWorkingDir changes to the specified directory for the duration of the
 // function call, then restores the original working directory.
@@ -427,10 +476,6 @@ func TestFindProjectRoot_NotFound_ReturnsError(t *testing.T) {
 		}
 	})
 }
-
-// =============================================================================
-// Work Item 5: Additional Coverage Tests
-// =============================================================================
 
 func TestLoadTestCase_InvalidJSON_ReturnsError(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -564,10 +609,6 @@ func TestLoadAllSuites_EmptySuite_Skipped(t *testing.T) {
 		t.Error("suite with tests should be included in results")
 	}
 }
-
-// =============================================================================
-// Work Item 5: Deterministic Ordering Test
-// =============================================================================
 
 func TestLoadTestSuite_DeterministicOrdering(t *testing.T) {
 	tmpDir := t.TempDir()

@@ -110,6 +110,7 @@ func TestCombineErrors_Multiple(t *testing.T) {
 
 // Helper to create a minimal test registry
 func createTestRegistry(t *testing.T) (*target.Registry, string) {
+	t.Helper()
 	tmpDir := t.TempDir()
 
 	// Create target directory

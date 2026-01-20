@@ -38,7 +38,7 @@ func Run(args []string) int {
 
 	cmd := args[0]
 
-	// Handle help and version first
+	// Handle help and version first (no update check for meta commands)
 	switch cmd {
 	case "-h", "--help", "help":
 		printUsage()
@@ -62,6 +62,12 @@ func Run(args []string) int {
 	}
 	cmd = remaining[0]
 	cmdArgs := remaining[1:]
+
+	// Start background update check (non-blocking)
+	initUpdateCheck(opts.Quiet)
+
+	// Show notification at the end of the run (unless skipped)
+	defer showUpdateNotification()
 
 	// Route to command handler
 	switch cmd {
@@ -111,8 +117,10 @@ func Run(args []string) int {
 	case "config":
 		return cmdConfig(cmdArgs)
 	case "upgrade":
+		skipUpdateNotification()
 		return cmdUpgrade(cmdArgs)
 	case "completion":
+		skipUpdateNotification()
 		return cmdCompletion(cmdArgs)
 
 	default:

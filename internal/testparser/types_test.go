@@ -2,6 +2,18 @@ package testparser
 
 import "testing"
 
+func TestTestCountsAdd_NilReceiver(t *testing.T) {
+	// Document that nil receiver panics (standard Go behavior)
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("expected panic on nil receiver, got none")
+		}
+	}()
+
+	var tc *TestCounts
+	tc.Add(&TestCounts{Passed: 1})
+}
+
 func TestTestCountsAdd(t *testing.T) {
 	tests := []struct {
 		name     string

@@ -311,7 +311,7 @@ func fetchLatestVersion() (string, error) {
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
+		return "", fmt.Errorf("github API returned status %d", resp.StatusCode)
 	}
 
 	var release GitHubRelease
@@ -347,7 +347,7 @@ func fetchNightlyVersion() (string, error) {
 		return "", fmt.Errorf("no nightly release found")
 	}
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("GitHub API returned status %d", resp.StatusCode)
+		return "", fmt.Errorf("github API returned status %d", resp.StatusCode)
 	}
 
 	var release GitHubRelease

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/AndreyAkinshin/structyl/internal/errors"
 	"github.com/AndreyAkinshin/structyl/internal/target"
 )
 
@@ -39,7 +40,7 @@ func New(registry *target.Registry) *Runner {
 func (r *Runner) Run(ctx context.Context, targetName, cmd string, opts RunOptions) error {
 	t, ok := r.registry.Get(targetName)
 	if !ok {
-		return fmt.Errorf("unknown target: %s", targetName)
+		return errors.NotFound("target", targetName)
 	}
 
 	execOpts := target.ExecOptions{
@@ -242,5 +243,5 @@ func combineErrors(errs []error) error {
 	for _, err := range errs {
 		msg += fmt.Sprintf("  - %v\n", err)
 	}
-	return fmt.Errorf("%s", msg)
+	return errors.New(msg)
 }

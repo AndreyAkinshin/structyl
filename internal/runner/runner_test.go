@@ -161,8 +161,8 @@ func TestRun_UnknownTarget_ReturnsError(t *testing.T) {
 	if err == nil {
 		t.Error("Run() expected error for unknown target")
 	}
-	if !strings.Contains(err.Error(), "unknown target") {
-		t.Errorf("error = %q, want to contain 'unknown target'", err.Error())
+	if !strings.Contains(err.Error(), "not found") {
+		t.Errorf("error = %q, want to contain 'not found'", err.Error())
 	}
 }
 

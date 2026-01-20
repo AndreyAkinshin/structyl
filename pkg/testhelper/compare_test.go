@@ -1073,3 +1073,74 @@ func TestCompare_PlusInfinityString(t *testing.T) {
 		t.Error("expected diff message for type mismatch")
 	}
 }
+
+func TestULPDiff_BasicCases(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		a    float64
+		b    float64
+		want int64
+	}{
+		{"identical", 1.0, 1.0, 0},
+		{"adjacent", 1.0, math.Nextafter(1.0, 2.0), 1},
+		{"symmetric", 1.0, 1.5, ULPDiff(1.5, 1.0)}, // ULPDiff(a,b) == ULPDiff(b,a)
+		{"zero", 0.0, 0.0, 0},
+		{"negative zero", 0.0, math.Copysign(0, -1), 0}, // -0 and +0 differ by 0 ULPs in practice
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := ULPDiff(tt.a, tt.b)
+			if tt.name == "symmetric" {
+				// For symmetric test, verify a == b
+				if got != tt.want {
+					t.Errorf("ULPDiff(%v, %v) != ULPDiff(%v, %v)", tt.a, tt.b, tt.b, tt.a)
+				}
+			} else if got != tt.want {
+				t.Errorf("ULPDiff(%v, %v) = %d, want %d", tt.a, tt.b, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestULPDiff_Symmetry(t *testing.T) {
+	t.Parallel()
+
+	// Verify ULPDiff(a, b) == ULPDiff(b, a) for various value pairs
+	pairs := [][2]float64{
+		{1.0, 2.0},
+		{-1.0, 1.0},
+		{0.0, 1.0},
+		{math.SmallestNonzeroFloat64, 0.0},
+		{1.0, math.Nextafter(1.0, 2.0)},
+	}
+
+	for _, pair := range pairs {
+		a, b := pair[0], pair[1]
+		ab := ULPDiff(a, b)
+		ba := ULPDiff(b, a)
+		if ab != ba {
+			t.Errorf("ULPDiff(%v, %v) = %d != ULPDiff(%v, %v) = %d", a, b, ab, b, a, ba)
+		}
+	}
+}
+
+func TestULPDiff_AdjacentValues(t *testing.T) {
+	t.Parallel()
+
+	// Adjacent representable values should differ by exactly 1 ULP
+	base := 1.0
+	next := math.Nextafter(base, 2.0)
+	prev := math.Nextafter(base, 0.0)
+
+	if got := ULPDiff(base, next); got != 1 {
+		t.Errorf("ULPDiff(1.0, nextafter(1.0, 2.0)) = %d, want 1", got)
+	}
+
+	if got := ULPDiff(base, prev); got != 1 {
+		t.Errorf("ULPDiff(1.0, nextafter(1.0, 0.0)) = %d, want 1", got)
+	}
+}

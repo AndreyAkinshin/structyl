@@ -297,6 +297,22 @@ func floatsEqual(expected, actual float64, opts CompareOptions) bool {
 	}
 }
 
+// ULPDiff returns the ULP (Units in Last Place) distance between two float64 values.
+// This measures how many representable floating-point values exist between a and b.
+// Returns 0 for identical values, 1 for adjacent representable values.
+// The result is always non-negative and symmetric: ULPDiff(a, b) == ULPDiff(b, a).
+//
+// Special cases:
+//   - ULPDiff(x, x) = 0 for any finite x
+//   - ULPDiff(NaN, y) returns a large value (behavior is undefined for NaN inputs)
+//   - ULPDiff(+Inf, -Inf) returns maximum int64
+//
+// Use this function for debugging float comparisons or implementing custom
+// tolerance logic based on ULP distance.
+func ULPDiff(a, b float64) int64 {
+	return ulpDiff(a, b)
+}
+
 func ulpDiff(a, b float64) int64 {
 	ai := int64(math.Float64bits(a))
 	bi := int64(math.Float64bits(b))

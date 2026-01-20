@@ -430,54 +430,6 @@
           "type": "array",
           "items": {"type": "string"},
           "description": "Sequence of commands or references"
-        },
-        {
-          "type": "object",
-          "description": "Command with options",
-          "oneOf": [
-            {
-              "properties": {
-                "run": {
-                  "type": "string",
-                  "description": "Shell command to execute"
-                },
-                "cwd": {
-                  "type": "string",
-                  "description": "Working directory for this command"
-                },
-                "env": {
-                  "type": "object",
-                  "description": "Environment variables for this command",
-                  "additionalProperties": {"type": "string"}
-                }
-              },
-              "required": ["run"],
-              "not": {"anyOf": [{"required": ["unix"]}, {"required": ["windows"]}]}
-            },
-            {
-              "properties": {
-                "unix": {
-                  "type": "string",
-                  "description": "Command for Unix platforms"
-                },
-                "windows": {
-                  "type": "string",
-                  "description": "Command for Windows platform"
-                },
-                "cwd": {
-                  "type": "string",
-                  "description": "Working directory for this command"
-                },
-                "env": {
-                  "type": "object",
-                  "description": "Environment variables for this command",
-                  "additionalProperties": {"type": "string"}
-                }
-              },
-              "required": ["unix", "windows"],
-              "not": {"required": ["run"]}
-            }
-          ]
         }
       ]
     },

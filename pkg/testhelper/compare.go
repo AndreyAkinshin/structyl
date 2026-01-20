@@ -433,6 +433,7 @@ func FormatDiff(expected, actual interface{}, opts CompareOptions) string {
 
 // FormatComparisonResult compares expected and actual values, returning a
 // human-readable description of any differences.
+// Panics if opts contains invalid enum values (use ValidateOptions to check beforehand).
 //
 // Returns:
 //   - "" (empty string) if values match

@@ -8,6 +8,8 @@ This document defines the built-in toolchain presets for Structyl.
 
 A **toolchain** is a preset that provides default commands for a specific build ecosystem. Toolchains eliminate boilerplate by mapping Structyl's standard command vocabulary to ecosystem-specific invocations.
 
+Structyl includes **27 built-in toolchains** covering major programming languages and build systems.
+
 ## Usage
 
 Specify the toolchain in target configuration:
@@ -97,6 +99,8 @@ All toolchains implement this vocabulary:
 
 Commands not applicable to a toolchain are set to `null` (skipped).
 
+> **Note:** The `build:release` command is only provided by toolchains that have distinct release/optimized build modes (e.g., `cargo`, `dotnet`, `swift`, `make`, `zig`). Toolchains without a native release mode (e.g., `npm`, `gradle`, `python`) do not define this variant. For these toolchains, configure a custom `build:release` command in target configuration if needed.
+
 ---
 
 ## Built-in Toolchains
@@ -178,6 +182,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** Node.js (npm)
 
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `npm run clean`                                                          |
+| `restore`       | `npm ci`                                                                 |
+| `build`         | `npm run build`                                                          |
+| `build:release` | —                                                                        |
+| `test`          | `npm test`                                                               |
+| `check`         | `npm run lint` + `npm run typecheck` + `npm run format:check`            |
+| `check:fix`     | `npm run lint -- --fix` + `npm run format`                               |
+| `bench`         | —                                                                        |
+| `demo`          | `npm run demo`                                                           |
+| `doc`           | —                                                                        |
+| `pack`          | `npm pack`                                                               |
+| `publish`       | `npm publish`                                                            |
+| `publish:dry`   | `npm publish --dry-run`                                                  |
+
 <ToolchainCommands name="npm" variant="spec" />
 
 - Note: Assumes `package.json` defines corresponding scripts
@@ -188,6 +208,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** Node.js (pnpm)
 
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `pnpm run clean`                                                         |
+| `restore`       | `pnpm install --frozen-lockfile`                                         |
+| `build`         | `pnpm build`                                                             |
+| `build:release` | —                                                                        |
+| `test`          | `pnpm test`                                                              |
+| `check`         | `pnpm lint` + `pnpm typecheck` + `pnpm format:check`                     |
+| `check:fix`     | `pnpm lint --fix` + `pnpm format`                                        |
+| `bench`         | —                                                                        |
+| `demo`          | `pnpm run demo`                                                          |
+| `doc`           | —                                                                        |
+| `pack`          | `pnpm pack`                                                              |
+| `publish`       | `pnpm publish`                                                           |
+| `publish:dry`   | `pnpm publish --dry-run`                                                 |
+
 <ToolchainCommands name="pnpm" variant="spec" />
 
 ---
@@ -195,6 +231,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 ### `yarn`
 
 **Ecosystem:** Node.js (Yarn)
+
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `yarn clean`                                                             |
+| `restore`       | `yarn install --frozen-lockfile`                                         |
+| `build`         | `yarn build`                                                             |
+| `build:release` | —                                                                        |
+| `test`          | `yarn test`                                                              |
+| `check`         | `yarn lint` + `yarn typecheck` + `yarn format:check`                     |
+| `check:fix`     | `yarn lint --fix` + `yarn format`                                        |
+| `bench`         | —                                                                        |
+| `demo`          | `yarn run demo`                                                          |
+| `doc`           | —                                                                        |
+| `pack`          | `yarn pack`                                                              |
+| `publish`       | `yarn npm publish`                                                       |
+| `publish:dry`   | `yarn npm publish --dry-run`                                             |
 
 <ToolchainCommands name="yarn" variant="spec" />
 
@@ -204,6 +256,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** Bun
 
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `bun run clean`                                                          |
+| `restore`       | `bun install --frozen-lockfile`                                          |
+| `build`         | `bun run build`                                                          |
+| `build:release` | —                                                                        |
+| `test`          | `bun test`                                                               |
+| `check`         | `bun run lint` + `bun run typecheck` + `bun run format:check`            |
+| `check:fix`     | `bun run lint --fix` + `bun run format`                                  |
+| `bench`         | —                                                                        |
+| `demo`          | `bun run demo`                                                           |
+| `doc`           | —                                                                        |
+| `pack`          | `bun pm pack`                                                            |
+| `publish`       | `bun publish`                                                            |
+| `publish:dry`   | `bun publish --dry-run`                                                  |
+
 <ToolchainCommands name="bun" variant="spec" />
 
 ---
@@ -211,6 +279,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 ### `python`
 
 **Ecosystem:** Python (pip/setuptools)
+
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `rm -rf dist/ build/ *.egg-info **/__pycache__/`                         |
+| `restore`       | `pip install -e .`                                                       |
+| `build`         | `python -m build`                                                        |
+| `build:release` | —                                                                        |
+| `test`          | `pytest`                                                                 |
+| `check`         | `ruff check .` + `mypy .` + `ruff format --check .`                      |
+| `check:fix`     | `ruff check --fix .` + `ruff format .`                                   |
+| `bench`         | —                                                                        |
+| `demo`          | `python demo.py`                                                         |
+| `doc`           | —                                                                        |
+| `pack`          | `python -m build`                                                        |
+| `publish`       | `twine upload dist/*`                                                    |
+| `publish:dry`   | —                                                                        |
 
 <ToolchainCommands name="python" variant="spec" />
 
@@ -222,6 +306,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** Python (uv)
 
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `rm -rf dist/ build/ *.egg-info .venv/`                                  |
+| `restore`       | `uv sync --all-extras`                                                   |
+| `build`         | `uv build`                                                               |
+| `build:release` | —                                                                        |
+| `test`          | `uv run pytest`                                                          |
+| `check`         | `uv run ruff check .` + `uv run mypy .` + `uv run ruff format --check .` |
+| `check:fix`     | `uv run ruff check --fix .` + `uv run ruff format .`                     |
+| `bench`         | —                                                                        |
+| `demo`          | `uv run python demo.py`                                                  |
+| `doc`           | —                                                                        |
+| `pack`          | `uv build`                                                               |
+| `publish`       | `uv publish`                                                             |
+| `publish:dry`   | —                                                                        |
+
 <ToolchainCommands name="uv" variant="spec" />
 
 ---
@@ -230,6 +330,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** Python (Poetry)
 
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `rm -rf dist/`                                                           |
+| `restore`       | `poetry install`                                                         |
+| `build`         | `poetry build`                                                           |
+| `build:release` | —                                                                        |
+| `test`          | `poetry run pytest`                                                      |
+| `check`         | `poetry run ruff check .` + `poetry run mypy .` + `poetry run ruff format --check .` |
+| `check:fix`     | `poetry run ruff check --fix .` + `poetry run ruff format .`             |
+| `bench`         | —                                                                        |
+| `demo`          | `poetry run python demo.py`                                              |
+| `doc`           | —                                                                        |
+| `pack`          | `poetry build`                                                           |
+| `publish`       | `poetry publish`                                                         |
+| `publish:dry`   | `poetry publish --dry-run`                                               |
+
 <ToolchainCommands name="poetry" variant="spec" />
 
 ---
@@ -237,6 +353,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 ### `gradle`
 
 **Ecosystem:** JVM (Gradle)
+
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `gradle clean`                                                           |
+| `restore`       | —                                                                        |
+| `build`         | `gradle build -x test`                                                   |
+| `build:release` | —                                                                        |
+| `test`          | `gradle test`                                                            |
+| `check`         | `gradle check -x test` + `gradle spotlessCheck`                          |
+| `check:fix`     | `gradle spotlessApply`                                                   |
+| `bench`         | —                                                                        |
+| `demo`          | `gradle run`                                                             |
+| `doc`           | `gradle javadoc`                                                         |
+| `pack`          | `gradle jar`                                                             |
+| `publish`       | `gradle publish`                                                         |
+| `publish:dry`   | —                                                                        |
 
 <ToolchainCommands name="gradle" variant="spec" />
 
@@ -248,6 +380,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** JVM (Maven)
 
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `mvn clean`                                                              |
+| `restore`       | `mvn dependency:resolve`                                                 |
+| `build`         | `mvn compile`                                                            |
+| `build:release` | —                                                                        |
+| `test`          | `mvn test`                                                               |
+| `check`         | `mvn checkstyle:check` + `mvn spotless:check`                            |
+| `check:fix`     | `mvn spotless:apply`                                                     |
+| `bench`         | —                                                                        |
+| `demo`          | `mvn exec:java`                                                          |
+| `doc`           | `mvn javadoc:javadoc`                                                    |
+| `pack`          | `mvn package -DskipTests`                                                |
+| `publish`       | `mvn deploy`                                                             |
+| `publish:dry`   | —                                                                        |
+
 <ToolchainCommands name="maven" variant="spec" />
 
 - Note: `format` and `format-check` require the Spotless Maven plugin
@@ -257,6 +405,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 ### `make`
 
 **Ecosystem:** Generic (Make)
+
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `make clean`                                                             |
+| `restore`       | —                                                                        |
+| `build`         | `make`                                                                   |
+| `build:release` | `make release`                                                           |
+| `test`          | `make test`                                                              |
+| `check`         | `make check`                                                             |
+| `check:fix`     | `make fix`                                                               |
+| `bench`         | `make bench`                                                             |
+| `demo`          | `make demo`                                                              |
+| `doc`           | `make doc`                                                               |
+| `pack`          | `make dist`                                                              |
+| `publish`       | `make publish`                                                           |
+| `publish:dry`   | `make publish-dry`                                                       |
 
 <ToolchainCommands name="make" variant="spec" />
 
@@ -268,6 +432,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** C/C++ (CMake)
 
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `cmake --build build --target clean`                                     |
+| `restore`       | `cmake -B build -S .`                                                    |
+| `build`         | `cmake --build build`                                                    |
+| `build:release` | —                                                                        |
+| `test`          | `ctest --test-dir build`                                                 |
+| `check`         | `cmake --build build --target lint` + `cmake --build build --target format-check` |
+| `check:fix`     | `cmake --build build --target format`                                    |
+| `bench`         | —                                                                        |
+| `demo`          | `cmake --build build --target demo && ./build/demo`                      |
+| `doc`           | `cmake --build build --target doc`                                       |
+| `pack`          | `cmake --build build --target package`                                   |
+| `publish`       | —                                                                        |
+| `publish:dry`   | —                                                                        |
+
 <ToolchainCommands name="cmake" variant="spec" />
 
 - Note: `lint`, `format`, and `format-check` require corresponding CMake targets to be defined
@@ -278,6 +458,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** Swift
 
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `swift package clean`                                                    |
+| `restore`       | `swift package resolve`                                                  |
+| `build`         | `swift build`                                                            |
+| `build:release` | `swift build -c release`                                                 |
+| `test`          | `swift test`                                                             |
+| `check`         | `swiftlint` + `swiftformat --lint .`                                     |
+| `check:fix`     | `swiftlint --fix` + `swiftformat .`                                      |
+| `bench`         | —                                                                        |
+| `demo`          | `swift run Demo`                                                         |
+| `doc`           | —                                                                        |
+| `pack`          | —                                                                        |
+| `publish`       | —                                                                        |
+| `publish:dry`   | —                                                                        |
+
 <ToolchainCommands name="swift" variant="spec" />
 
 ---
@@ -286,6 +482,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** Deno (TypeScript/JavaScript)
 
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | —                                                                        |
+| `restore`       | `deno install`                                                           |
+| `build`         | —                                                                        |
+| `build:release` | —                                                                        |
+| `test`          | `deno test`                                                              |
+| `check`         | `deno lint` + `deno check **/*.ts` + `deno fmt --check`                  |
+| `check:fix`     | `deno fmt`                                                               |
+| `bench`         | `deno bench`                                                             |
+| `demo`          | `deno run demo.ts`                                                       |
+| `doc`           | `deno doc`                                                               |
+| `pack`          | —                                                                        |
+| `publish`       | `deno publish`                                                           |
+| `publish:dry`   | `deno publish --dry-run`                                                 |
+
 <ToolchainCommands name="deno" variant="spec" />
 
 ---
@@ -293,6 +505,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 ### `r`
 
 **Ecosystem:** R
+
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `rm -rf *.tar.gz *.Rcheck/`                                              |
+| `restore`       | —                                                                        |
+| `build`         | `R CMD build .`                                                          |
+| `build:release` | —                                                                        |
+| `test`          | `Rscript -e "devtools::test()"`                                          |
+| `check`         | `Rscript -e "lintr::lint_package()"` + `Rscript -e "styler::style_pkg(dry='on')"` |
+| `check:fix`     | `Rscript -e "styler::style_pkg()"`                                       |
+| `bench`         | —                                                                        |
+| `demo`          | `Rscript demo.R`                                                         |
+| `doc`           | `Rscript -e "roxygen2::roxygenise()"`                                    |
+| `pack`          | `R CMD build .`                                                          |
+| `publish`       | `Rscript -e "devtools::release()"`                                       |
+| `publish:dry`   | —                                                                        |
 
 <ToolchainCommands name="r" variant="spec" />
 
@@ -304,6 +532,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** Ruby (Bundler)
 
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `bundle clean`                                                           |
+| `restore`       | `bundle install`                                                         |
+| `build`         | `bundle exec rake build`                                                 |
+| `build:release` | —                                                                        |
+| `test`          | `bundle exec rake test`                                                  |
+| `check`         | `bundle exec rubocop`                                                    |
+| `check:fix`     | `bundle exec rubocop -a`                                                 |
+| `bench`         | —                                                                        |
+| `demo`          | `bundle exec ruby demo.rb`                                               |
+| `doc`           | `bundle exec yard doc`                                                   |
+| `pack`          | `gem build *.gemspec`                                                    |
+| `publish`       | `gem push *.gem`                                                         |
+| `publish:dry`   | —                                                                        |
+
 <ToolchainCommands name="bundler" variant="spec" />
 
 ---
@@ -311,6 +555,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 ### `composer`
 
 **Ecosystem:** PHP (Composer)
+
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | —                                                                        |
+| `restore`       | `composer install`                                                       |
+| `build`         | —                                                                        |
+| `build:release` | —                                                                        |
+| `test`          | `composer test`                                                          |
+| `check`         | `composer run-script lint` + `composer run-script format:check`          |
+| `check:fix`     | `composer run-script format`                                             |
+| `bench`         | —                                                                        |
+| `demo`          | `php demo.php`                                                           |
+| `doc`           | —                                                                        |
+| `pack`          | —                                                                        |
+| `publish`       | —                                                                        |
+| `publish:dry`   | —                                                                        |
 
 <ToolchainCommands name="composer" variant="spec" />
 
@@ -322,6 +582,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** Elixir (Mix)
 
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `mix clean`                                                              |
+| `restore`       | `mix deps.get`                                                           |
+| `build`         | `mix compile`                                                            |
+| `build:release` | —                                                                        |
+| `test`          | `mix test`                                                               |
+| `check`         | `mix credo` + `mix dialyzer` + `mix format --check-formatted`            |
+| `check:fix`     | `mix format`                                                             |
+| `bench`         | —                                                                        |
+| `demo`          | `mix run demo.exs`                                                       |
+| `doc`           | `mix docs`                                                               |
+| `pack`          | —                                                                        |
+| `publish`       | `mix hex.publish`                                                        |
+| `publish:dry`   | `mix hex.publish --dry-run`                                              |
+
 <ToolchainCommands name="mix" variant="spec" />
 
 ---
@@ -330,6 +606,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** Scala (sbt)
 
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `sbt clean`                                                              |
+| `restore`       | `sbt update`                                                             |
+| `build`         | `sbt compile`                                                            |
+| `build:release` | —                                                                        |
+| `test`          | `sbt test`                                                               |
+| `check`         | `sbt scalafmtCheck`                                                      |
+| `check:fix`     | `sbt scalafmt`                                                           |
+| `bench`         | —                                                                        |
+| `demo`          | `sbt run`                                                                |
+| `doc`           | `sbt doc`                                                                |
+| `pack`          | `sbt package`                                                            |
+| `publish`       | `sbt publish`                                                            |
+| `publish:dry`   | —                                                                        |
+
 <ToolchainCommands name="sbt" variant="spec" />
 
 ---
@@ -337,6 +629,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 ### `cabal`
 
 **Ecosystem:** Haskell (Cabal)
+
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `cabal clean`                                                            |
+| `restore`       | `cabal update`                                                           |
+| `build`         | `cabal build`                                                            |
+| `build:release` | —                                                                        |
+| `test`          | `cabal test`                                                             |
+| `check`         | `cabal check` + `hlint .` + `ormolu --mode check $(find . -name '*.hs')` |
+| `check:fix`     | `ormolu --mode inplace $(find . -name '*.hs')`                           |
+| `bench`         | `cabal bench`                                                            |
+| `demo`          | `cabal run`                                                              |
+| `doc`           | `cabal haddock`                                                          |
+| `pack`          | —                                                                        |
+| `publish`       | `cabal upload`                                                           |
+| `publish:dry`   | `cabal upload --candidate`                                               |
 
 <ToolchainCommands name="cabal" variant="spec" />
 
@@ -348,6 +656,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** Haskell (Stack)
 
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `stack clean`                                                            |
+| `restore`       | `stack setup`                                                            |
+| `build`         | `stack build`                                                            |
+| `build:release` | —                                                                        |
+| `test`          | `stack test`                                                             |
+| `check`         | `stack exec -- hlint .` + `stack exec -- ormolu --mode check $(find . -name '*.hs')` |
+| `check:fix`     | `stack exec -- ormolu --mode inplace $(find . -name '*.hs')`             |
+| `bench`         | `stack bench`                                                            |
+| `demo`          | `stack run`                                                              |
+| `doc`           | `stack haddock`                                                          |
+| `pack`          | —                                                                        |
+| `publish`       | `stack upload`                                                           |
+| `publish:dry`   | `stack upload --candidate`                                               |
+
 <ToolchainCommands name="stack" variant="spec" />
 
 ---
@@ -356,6 +680,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** OCaml (Dune)
 
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `dune clean`                                                             |
+| `restore`       | `opam install . --deps-only`                                             |
+| `build`         | `dune build`                                                             |
+| `build:release` | —                                                                        |
+| `test`          | `dune runtest`                                                           |
+| `check`         | `dune fmt --preview`                                                     |
+| `check:fix`     | `dune fmt`                                                               |
+| `bench`         | —                                                                        |
+| `demo`          | `dune exec demo`                                                         |
+| `doc`           | `dune build @doc`                                                        |
+| `pack`          | —                                                                        |
+| `publish`       | `opam publish`                                                           |
+| `publish:dry`   | —                                                                        |
+
 <ToolchainCommands name="dune" variant="spec" />
 
 ---
@@ -363,6 +703,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 ### `lein`
 
 **Ecosystem:** Clojure (Leiningen)
+
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `lein clean`                                                             |
+| `restore`       | `lein deps`                                                              |
+| `build`         | `lein compile`                                                           |
+| `build:release` | —                                                                        |
+| `test`          | `lein test`                                                              |
+| `check`         | `lein check` + `lein eastwood` + `lein cljfmt check`                     |
+| `check:fix`     | `lein cljfmt fix`                                                        |
+| `bench`         | —                                                                        |
+| `demo`          | `lein run`                                                               |
+| `doc`           | `lein codox`                                                             |
+| `pack`          | `lein jar`                                                               |
+| `publish`       | `lein deploy clojars`                                                    |
+| `publish:dry`   | —                                                                        |
 
 <ToolchainCommands name="lein" variant="spec" />
 
@@ -374,6 +730,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** Zig
 
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | —                                                                        |
+| `restore`       | —                                                                        |
+| `build`         | `zig build`                                                              |
+| `build:release` | `zig build -Doptimize=ReleaseFast`                                       |
+| `test`          | `zig build test`                                                         |
+| `check`         | `zig fmt --check .`                                                      |
+| `check:fix`     | `zig fmt .`                                                              |
+| `bench`         | —                                                                        |
+| `demo`          | `zig build run`                                                          |
+| `doc`           | —                                                                        |
+| `pack`          | —                                                                        |
+| `publish`       | —                                                                        |
+| `publish:dry`   | —                                                                        |
+
 <ToolchainCommands name="zig" variant="spec" />
 
 ---
@@ -381,6 +753,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 ### `rebar3`
 
 **Ecosystem:** Erlang (Rebar3)
+
+| Command         | Implementation                                                           |
+| --------------- | ------------------------------------------------------------------------ |
+| `clean`         | `rebar3 clean`                                                           |
+| `restore`       | `rebar3 get-deps`                                                        |
+| `build`         | `rebar3 compile`                                                         |
+| `build:release` | —                                                                        |
+| `test`          | `rebar3 eunit`                                                           |
+| `check`         | `rebar3 dialyzer` + `rebar3 lint`                                        |
+| `check:fix`     | `rebar3 format`                                                          |
+| `bench`         | —                                                                        |
+| `demo`          | `rebar3 shell`                                                           |
+| `doc`           | `rebar3 edoc`                                                            |
+| `pack`          | `rebar3 tar`                                                             |
+| `publish`       | `rebar3 hex publish`                                                     |
+| `publish:dry`   | `rebar3 hex publish --dry-run`                                           |
 
 <ToolchainCommands name="rebar3" variant="spec" />
 

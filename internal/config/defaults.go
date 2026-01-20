@@ -8,6 +8,7 @@ const (
 	DefaultToleranceMode     = "relative"
 	DefaultDockerComposeFile = "docker-compose.yml"
 	DefaultDockerEnvVar      = "STRUCTYL_DOCKER"
+	DefaultMiseAutoGenerate  = true
 )
 
 // applyDefaults fills in default values for unset configuration fields.

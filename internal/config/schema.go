@@ -64,7 +64,7 @@ type ToolchainConfig struct {
 // MiseConfig configures mise integration.
 // Note: mise is always required; there is no way to disable it.
 type MiseConfig struct {
-	AutoGenerate bool              `json:"auto_generate,omitempty"` // Regenerate mise.toml before each run
+	AutoGenerate *bool             `json:"auto_generate,omitempty"` // Regenerate mise.toml before each run (default: true)
 	ExtraTools   map[string]string `json:"extra_tools,omitempty"`   // Additional mise tools to install
 }
 

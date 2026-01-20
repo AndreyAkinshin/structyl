@@ -18,6 +18,7 @@ type CompareOptions struct {
 	// ToleranceMode specifies how tolerance is applied.
 	// Use the ToleranceMode* constants: ToleranceModeRelative (default),
 	// ToleranceModeAbsolute, or ToleranceModeULP.
+	// Empty string ("") is treated as ToleranceModeRelative.
 	// For "ulp" mode, FloatTolerance is truncated to int64 for ULP distance
 	// calculation. Behavior near int64 limits (extremely large ULP distances)
 	// is undefined.
@@ -28,7 +29,7 @@ type CompareOptions struct {
 
 	// ArrayOrder specifies array comparison order.
 	// Use the ArrayOrder* constants: ArrayOrderStrict (default) or
-	// ArrayOrderUnordered.
+	// ArrayOrderUnordered. Empty string ("") is treated as ArrayOrderStrict.
 	ArrayOrder string
 }
 

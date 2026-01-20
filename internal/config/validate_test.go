@@ -86,6 +86,7 @@ func TestValidateProjectName_LengthBoundaries(t *testing.T) {
 }
 
 func TestValidateTargetName_Valid(t *testing.T) {
+	t.Parallel()
 	tests := []string{
 		"a",
 		"cs",
@@ -96,6 +97,7 @@ func TestValidateTargetName_Valid(t *testing.T) {
 	}
 	for _, name := range tests {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			if err := ValidateTargetName(name); err != nil {
 				t.Errorf("ValidateTargetName(%q) = %v, want nil", name, err)
 			}
@@ -104,6 +106,7 @@ func TestValidateTargetName_Valid(t *testing.T) {
 }
 
 func TestValidateTargetName_Invalid(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		desc string
@@ -116,6 +119,7 @@ func TestValidateTargetName_Invalid(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
 			if err := ValidateTargetName(tt.name); err == nil {
 				t.Errorf("ValidateTargetName(%q) = nil, want error", tt.name)
 			}

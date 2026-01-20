@@ -281,13 +281,14 @@ For the example above:
 
 ### Parallel Execution
 
-Targets execute in parallel when all their dependencies have completed. Targets at the same dependency depth MAY execute concurrently.
+Targets are scheduled for execution in dependency order. When `STRUCTYL_PARALLEL=1`, targets execute sequentially with strict dependency guarantees. When `STRUCTYL_PARALLEL > 1`, targets at the same dependency depth MAY execute concurrently (see [Known Limitation](#known-limitation-parallel-execution-and-dependencies) below).
 
 **Execution model:**
 
-- A target becomes eligible when all targets in its `depends_on` list have completed successfully
+- A target becomes eligible when all targets in its `depends_on` list have been scheduled
 - Multiple eligible targets execute in parallel (up to `STRUCTYL_PARALLEL` workers)
 - Language targets without explicit dependencies are immediately eligible
+- **Note:** Parallel mode does not guarantee dependency completion before dependent execution
 
 **Example:**
 

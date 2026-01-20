@@ -30,6 +30,7 @@ package testhelper
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -49,6 +50,9 @@ import (
 // Note: JSON does not distinguish integers from floats. All numbers in Input
 // and Output are unmarshaled as float64. Callers should convert as needed
 // (e.g., int(tc.Input["count"].(float64))).
+//
+// The Input field must be present but may be an empty object ({}).
+// A nil Input (missing field) causes a validation error.
 type TestCase struct {
 	// Name is the test case name (derived from filename).
 	Name string `json:"-"`
@@ -75,7 +79,8 @@ type TestCase struct {
 }
 
 // LoadTestSuite loads all test cases from a suite directory.
-// It looks for JSON files in <projectRoot>/tests/<suite>/*.json
+// It looks for JSON files in <projectRoot>/tests/<suite>/*.json.
+// Returns an empty slice (not nil) if the suite exists but contains no JSON files.
 func LoadTestSuite(projectRoot, suite string) ([]TestCase, error) {
 	pattern := filepath.Join(projectRoot, "tests", suite, "*.json")
 	files, err := filepath.Glob(pattern)
@@ -188,6 +193,10 @@ func FindProjectRootFrom(startDir string) (string, error) {
 	return "", &ProjectNotFoundError{StartDir: startDir}
 }
 
+// ErrProjectNotFound is returned when .structyl/config.json cannot be found.
+// Use errors.Is(err, ErrProjectNotFound) to check for this condition.
+var ErrProjectNotFound = errors.New("project not found")
+
 // ProjectNotFoundError indicates .structyl/config.json was not found.
 type ProjectNotFoundError struct {
 	StartDir string
@@ -195,6 +204,11 @@ type ProjectNotFoundError struct {
 
 func (e *ProjectNotFoundError) Error() string {
 	return ".structyl/config.json not found (searched from " + e.StartDir + ")"
+}
+
+// Is implements error matching for errors.Is().
+func (e *ProjectNotFoundError) Is(target error) bool {
+	return target == ErrProjectNotFound
 }
 
 // ListSuites returns the names of all available test suites.

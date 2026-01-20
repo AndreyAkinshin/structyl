@@ -1,6 +1,7 @@
 package testhelper
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -151,6 +152,34 @@ func TestProjectNotFoundError(t *testing.T) {
 
 	if err.Error() == "" {
 		t.Error("Error() should return message")
+	}
+}
+
+func TestProjectNotFoundError_Is(t *testing.T) {
+	err := &ProjectNotFoundError{StartDir: "/some/path"}
+
+	// Test errors.Is with sentinel
+	if !errors.Is(err, ErrProjectNotFound) {
+		t.Error("errors.Is(ProjectNotFoundError, ErrProjectNotFound) should return true")
+	}
+
+	// Test errors.Is with unrelated error
+	if errors.Is(err, errors.New("unrelated")) {
+		t.Error("errors.Is should return false for unrelated errors")
+	}
+}
+
+func TestErrProjectNotFound_FromFindProjectRoot(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	_, err := FindProjectRootFrom(tmpDir)
+	if err == nil {
+		t.Fatal("expected error")
+	}
+
+	// Should match sentinel via errors.Is
+	if !errors.Is(err, ErrProjectNotFound) {
+		t.Error("FindProjectRootFrom error should match ErrProjectNotFound via errors.Is")
 	}
 }
 

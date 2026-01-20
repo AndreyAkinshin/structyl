@@ -73,38 +73,16 @@ func formatMiseTaskName(cmd string, target string) string {
 }
 
 // runViaMise executes a command via mise.
+// Mise handles dependency resolution and parallel execution internally,
+// so we simply delegate to RunTask regardless of the task structure.
 func runViaMise(proj *project.Project, cmd string, targetName string, args []string, opts *GlobalOptions) int {
 	ctx := context.Background()
 
-	// Format task name
 	task := formatMiseTaskName(cmd, targetName)
 
-	// Create executor
 	executor := mise.NewExecutor(proj.Root)
 	executor.SetVerbose(opts.Verbose)
 
-	// Try to resolve dependencies to check if this is an aggregate task
-	tasks, err := executor.ResolveTaskDependencies(ctx, task)
-	if err != nil {
-		// Fall back to direct execution if dependency resolution fails
-		if err := executor.RunTask(ctx, task, args); err != nil {
-			return 1
-		}
-		return 0
-	}
-
-	// If single task with no dependencies, use direct execution (no tracking overhead)
-	if len(tasks) == 1 {
-		if err := executor.RunTask(ctx, task, args); err != nil {
-			return 1
-		}
-		return 0
-	}
-
-	// Multiple tasks means root task has dependencies.
-	// Run ONLY the root task directly - mise will handle parallel execution of dependencies.
-	// Running individual dependency tasks first would cause duplicate execution
-	// (once by us sequentially, once by mise in parallel when running root task).
 	if err := executor.RunTask(ctx, task, args); err != nil {
 		return 1
 	}

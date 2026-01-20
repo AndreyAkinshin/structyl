@@ -268,3 +268,136 @@ func TestCapitalize(t *testing.T) {
 		})
 	}
 }
+
+func TestWriteMiseToml_ReadOnlyDirectory(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	// Create a read-only directory
+	readOnlyDir := filepath.Join(tmpDir, "readonly")
+	if err := os.Mkdir(readOnlyDir, 0444); err != nil {
+		t.Fatalf("failed to create readonly dir: %v", err)
+	}
+	t.Cleanup(func() {
+		// Restore permissions for cleanup
+		os.Chmod(readOnlyDir, 0755)
+	})
+
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"rs": {Toolchain: "cargo"},
+		},
+	}
+
+	_, err := WriteMiseToml(readOnlyDir, cfg, true)
+	if err == nil {
+		t.Error("WriteMiseToml() expected error for read-only directory, got nil")
+	}
+}
+
+func TestGenerateMiseToml_AllToolchains(t *testing.T) {
+	t.Parallel()
+
+	// Test that all supported toolchains generate valid mise.toml
+	toolchains := []string{
+		"cargo", "go", "npm", "dotnet", "gradle", "maven", "uv",
+	}
+
+	for _, tc := range toolchains {
+		t.Run(tc, func(t *testing.T) {
+			cfg := &config.Config{
+				Targets: map[string]config.TargetConfig{
+					"target": {Toolchain: tc, Title: "Test"},
+				},
+			}
+
+			content, err := GenerateMiseToml(cfg)
+			if err != nil {
+				t.Fatalf("GenerateMiseToml() error = %v", err)
+			}
+
+			// All should generate a setup task
+			if !strings.Contains(content, `[tasks."setup:structyl"]`) {
+				t.Error("missing setup:structyl task")
+			}
+
+			// CI task should be generated
+			if !strings.Contains(content, `[tasks."ci:target"]`) {
+				t.Error("missing ci:target task")
+			}
+		})
+	}
+}
+
+func TestGenerateMiseToml_TargetWithManyCommands(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"rs": {
+				Toolchain: "cargo",
+				Title:     "Rust",
+				Directory: "rs",
+				Commands: map[string]interface{}{
+					"build":         "cargo build",
+					"build:release": "cargo build --release",
+					"test":          "cargo test",
+					"check":         []interface{}{"cargo fmt --check", "cargo clippy"},
+					"bench":         "cargo bench",
+				},
+			},
+		},
+	}
+
+	content, err := GenerateMiseToml(cfg)
+	if err != nil {
+		t.Fatalf("GenerateMiseToml() error = %v", err)
+	}
+
+	// Verify tasks are generated
+	expectedTasks := []string{
+		`[tasks."build:rs"]`,
+		`[tasks."build:release:rs"]`,
+		`[tasks."test:rs"]`,
+		`[tasks."check:rs"]`,
+		`[tasks."bench:rs"]`,
+	}
+
+	for _, task := range expectedTasks {
+		if !strings.Contains(content, task) {
+			t.Errorf("missing task: %s", task)
+		}
+	}
+}
+
+func TestGenerateMiseToml_DisabledCommands(t *testing.T) {
+	t.Parallel()
+
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"rs": {
+				Toolchain: "cargo",
+				Title:     "Rust",
+				Commands: map[string]interface{}{
+					"build": "cargo build",
+					"test":  nil, // Explicitly disabled
+				},
+			},
+		},
+	}
+
+	content, err := GenerateMiseToml(cfg)
+	if err != nil {
+		t.Fatalf("GenerateMiseToml() error = %v", err)
+	}
+
+	// Build should exist
+	if !strings.Contains(content, `[tasks."build:rs"]`) {
+		t.Error("missing build:rs task")
+	}
+
+	// Test should NOT exist (disabled)
+	if strings.Contains(content, `[tasks."test:rs"]`) {
+		t.Error("test:rs task should not exist (disabled)")
+	}
+}

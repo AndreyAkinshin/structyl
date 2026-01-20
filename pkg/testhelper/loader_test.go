@@ -564,8 +564,9 @@ func TestLoadTestCase_MissingOutput_ReturnsError(t *testing.T) {
 	if err == nil {
 		t.Error("LoadTestCase() expected error for missing output field")
 	}
-	if err != nil && !strings.Contains(err.Error(), "missing required field \"output\"") {
-		t.Errorf("error should mention missing output field, got: %v", err)
+	// Error message mentions both missing and null since they result in same nil value
+	if err != nil && !strings.Contains(err.Error(), "output") {
+		t.Errorf("error should mention output field, got: %v", err)
 	}
 }
 
@@ -586,8 +587,9 @@ func TestLoadTestCase_NullOutput_ReturnsError(t *testing.T) {
 	if err == nil {
 		t.Error("LoadTestCase() expected error for null output")
 	}
-	if err != nil && !strings.Contains(err.Error(), "missing required field \"output\"") {
-		t.Errorf("error should mention missing output field, got: %v", err)
+	// Error message should clarify that null is not valid
+	if err != nil && !strings.Contains(err.Error(), "null") {
+		t.Errorf("error should mention null is invalid, got: %v", err)
 	}
 }
 
@@ -690,5 +692,27 @@ func TestLoadTestSuite_DeterministicOrdering(t *testing.T) {
 		if tc.Name != expectedOrder[i] {
 			t.Errorf("cases[%d].Name = %q, want %q", i, tc.Name, expectedOrder[i])
 		}
+	}
+}
+
+func TestLoadTestCase_FileReference_ReturnsError(t *testing.T) {
+	// $file references are not supported in pkg/testhelper (internal feature only).
+	// This test verifies the error is returned correctly.
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "file_ref.json")
+
+	content := `{"input": {"data": {"$file": "binary.bin"}}, "output": 1}`
+	if err := os.WriteFile(testFile, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadTestCase(testFile)
+	if err == nil {
+		t.Fatal("LoadTestCase() expected error for $file reference")
+	}
+
+	// Verify it's the correct error type
+	if !errors.Is(err, ErrFileReferenceNotSupported) {
+		t.Errorf("error should be ErrFileReferenceNotSupported, got: %v", err)
 	}
 }

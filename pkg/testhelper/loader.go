@@ -75,6 +75,9 @@ type TestCase struct {
 	// Zero value ("") indicates suite was not set. Use LoadTestSuite for
 	// automatic population, or LoadTestCaseWithSuite to set explicitly.
 	// Note: LoadTestCase does NOT populate this field.
+	// Empty string is never a valid suite name; suite directories must have
+	// non-empty names, so a zero value always means "not set" rather than
+	// "suite named empty string".
 	Suite string `json:"-"`
 
 	// Input contains the input data for the test as a JSON object.
@@ -205,7 +208,7 @@ func loadTestCaseInternal(path, suite string) (*TestCase, error) {
 		return nil, fmt.Errorf("%s: missing required field \"input\"", filepath.Base(path))
 	}
 	if tc.Output == nil {
-		return nil, fmt.Errorf("%s: missing required field \"output\"", filepath.Base(path))
+		return nil, fmt.Errorf("%s: missing or null \"output\" field (use empty string, object, or array instead of null)", filepath.Base(path))
 	}
 
 	tc.Name = strings.TrimSuffix(filepath.Base(path), ".json")
@@ -254,7 +257,7 @@ func LoadAllSuites(projectRoot string) (map[string][]TestCase, error) {
 func FindProjectRoot() (string, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("FindProjectRoot: cannot determine working directory: %w", err)
 	}
 	return FindProjectRootFrom(cwd)
 }

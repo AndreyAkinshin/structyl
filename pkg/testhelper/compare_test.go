@@ -262,6 +262,25 @@ func TestFormatDiff(t *testing.T) {
 	}
 }
 
+func TestFormatComparisonResult(t *testing.T) {
+	opts := DefaultOptions()
+
+	// Equal values - should return empty string
+	result := FormatComparisonResult("hello", "hello", opts)
+	if result != "" {
+		t.Errorf("expected empty string for equal values, got %q", result)
+	}
+
+	// Different values - should return diff description
+	result = FormatComparisonResult("hello", "world", opts)
+	if result == "" {
+		t.Error("expected diff message for different values, got empty string")
+	}
+	if !strings.Contains(result, "hello") || !strings.Contains(result, "world") {
+		t.Errorf("diff should contain expected and actual values, got %q", result)
+	}
+}
+
 func TestPathStr(t *testing.T) {
 	tests := []struct {
 		path     string

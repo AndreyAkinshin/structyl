@@ -75,6 +75,22 @@ func TestLoadTestSuite_Empty(t *testing.T) {
 	}
 }
 
+func TestLoadTestSuite_EmptyDirectory_ReturnsEmptySlice(t *testing.T) {
+	tmpDir := t.TempDir()
+	suiteDir := filepath.Join(tmpDir, "tests", "empty")
+	os.MkdirAll(suiteDir, 0755)
+
+	cases, err := LoadTestSuite(tmpDir, "empty")
+	if err != nil {
+		t.Fatalf("LoadTestSuite() error = %v", err)
+	}
+
+	// Verify empty slice (not nil) for consistency with ListSuites/LoadAllSuites
+	if cases == nil {
+		t.Error("LoadTestSuite() should return empty slice, not nil")
+	}
+}
+
 func TestLoadAllSuites(t *testing.T) {
 	tmpDir := t.TempDir()
 

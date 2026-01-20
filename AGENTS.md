@@ -708,7 +708,7 @@ Current code quality (as of last audit):
 
 **Parallel execution does not respect target dependencies**
 
-See [docs/specs/targets.md#known-limitation-parallel-execution-and-dependencies](docs/specs/targets.md#known-limitation-parallel-execution-and-dependencies) for the formal specification of this limitation and recommended workarounds.
+See [Known Limitation: Parallel Execution and Dependencies](docs/specs/targets.md#known-limitation-parallel-execution-and-dependencies) for the formal specification and recommended workarounds.
 
 **Implementation:** `internal/runner/runner.go:152-211` (`runParallel()`).
 

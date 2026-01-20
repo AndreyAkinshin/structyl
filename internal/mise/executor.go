@@ -42,6 +42,8 @@ func buildRunArgs(task string, args []string) []string {
 }
 
 // RunTask executes a mise task by name.
+// Errors from mise (including non-zero exit) are returned as-is.
+// Mise outputs its own diagnostics to stderr.
 func (e *Executor) RunTask(ctx context.Context, task string, args []string) error {
 	cmdArgs := buildRunArgs(task, args)
 
@@ -122,9 +124,24 @@ func (e *Executor) TaskExists(task string) bool {
 		return false
 	}
 
-	// Simple check - look for task name in output
-	return strings.Contains(string(output), fmt.Sprintf(`"name":"%s"`, task)) ||
-		strings.Contains(string(output), fmt.Sprintf(`"name": "%s"`, task))
+	return taskExistsInJSON(output, task)
+}
+
+// taskExistsInJSON checks if a task name exists in mise JSON output.
+// Separated for testability without calling mise.
+func taskExistsInJSON(jsonData []byte, task string) bool {
+	var tasks []struct {
+		Name string `json:"name"`
+	}
+	if err := json.Unmarshal(jsonData, &tasks); err != nil {
+		return false
+	}
+	for _, t := range tasks {
+		if t.Name == task {
+			return true
+		}
+	}
+	return false
 }
 
 // ListTasks returns a list of available mise tasks.

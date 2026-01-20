@@ -7,6 +7,7 @@ import (
 )
 
 func TestSchemaValidConfig(t *testing.T) {
+	t.Parallel()
 	validFixtures := []string{
 		"minimal",
 		"multi-language",
@@ -29,6 +30,7 @@ func TestSchemaValidConfig(t *testing.T) {
 }
 
 func TestSchemaValidConfigSemanticErrors(t *testing.T) {
+	t.Parallel()
 	// These fixtures are semantically invalid (circular deps, invalid toolchain ref)
 	// but structurally valid according to the schema.
 	semanticOnlyInvalid := []string{
@@ -52,6 +54,7 @@ func TestSchemaValidConfigSemanticErrors(t *testing.T) {
 }
 
 func TestSchemaInvalidConfigMissingName(t *testing.T) {
+	t.Parallel()
 	path := filepath.Join("..", "..", "test", "fixtures", "invalid", "missing-name", ".structyl", "config.json")
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -65,6 +68,7 @@ func TestSchemaInvalidConfigMissingName(t *testing.T) {
 }
 
 func TestSchemaInvalidConfigMalformedJSON(t *testing.T) {
+	t.Parallel()
 	path := filepath.Join("..", "..", "test", "fixtures", "invalid", "malformed-json", ".structyl", "config.json")
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -78,6 +82,7 @@ func TestSchemaInvalidConfigMalformedJSON(t *testing.T) {
 }
 
 func TestSchemaInvalidConfigEmpty(t *testing.T) {
+	t.Parallel()
 	err := ValidateConfig([]byte("{}"))
 	if err == nil {
 		t.Error("expected validation error for empty object, got nil")
@@ -85,6 +90,7 @@ func TestSchemaInvalidConfigEmpty(t *testing.T) {
 }
 
 func TestSchemaInvalidConfigNotObject(t *testing.T) {
+	t.Parallel()
 	err := ValidateConfig([]byte(`"string"`))
 	if err == nil {
 		t.Error("expected validation error for non-object, got nil")
@@ -92,6 +98,7 @@ func TestSchemaInvalidConfigNotObject(t *testing.T) {
 }
 
 func TestSchemaValidToolchains(t *testing.T) {
+	t.Parallel()
 	path := filepath.Join("..", "cli", "toolchains_template.json")
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -104,6 +111,7 @@ func TestSchemaValidToolchains(t *testing.T) {
 }
 
 func TestSchemaInvalidToolchainsMissingVersion(t *testing.T) {
+	t.Parallel()
 	data := []byte(`{"toolchains": {}}`)
 	err := ValidateToolchains(data)
 	if err == nil {
@@ -112,6 +120,7 @@ func TestSchemaInvalidToolchainsMissingVersion(t *testing.T) {
 }
 
 func TestSchemaInvalidToolchainsMissingToolchains(t *testing.T) {
+	t.Parallel()
 	data := []byte(`{"version": "1.0"}`)
 	err := ValidateToolchains(data)
 	if err == nil {
@@ -120,6 +129,7 @@ func TestSchemaInvalidToolchainsMissingToolchains(t *testing.T) {
 }
 
 func TestSchemaInvalidToolchainsWrongVersion(t *testing.T) {
+	t.Parallel()
 	data := []byte(`{"version": "2.0", "toolchains": {}}`)
 	err := ValidateToolchains(data)
 	if err == nil {
@@ -128,6 +138,7 @@ func TestSchemaInvalidToolchainsWrongVersion(t *testing.T) {
 }
 
 func TestSchemaToolchainsMinimal(t *testing.T) {
+	t.Parallel()
 	data := []byte(`{"version": "1.0", "toolchains": {}}`)
 	if err := ValidateToolchains(data); err != nil {
 		t.Errorf("expected valid minimal toolchains, got error: %v", err)
@@ -135,6 +146,7 @@ func TestSchemaToolchainsMinimal(t *testing.T) {
 }
 
 func TestSchemaToolchainsWithSimpleToolchain(t *testing.T) {
+	t.Parallel()
 	data := []byte(`{
 		"version": "1.0",
 		"toolchains": {
@@ -153,6 +165,7 @@ func TestSchemaToolchainsWithSimpleToolchain(t *testing.T) {
 }
 
 func TestSchemaToolchainsWithMise(t *testing.T) {
+	t.Parallel()
 	data := []byte(`{
 		"version": "1.0",
 		"toolchains": {
@@ -176,6 +189,7 @@ func TestSchemaToolchainsWithMise(t *testing.T) {
 }
 
 func TestSchemaInvalidConfigWrongFieldType(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		json string
@@ -209,6 +223,7 @@ func TestSchemaInvalidConfigWrongFieldType(t *testing.T) {
 }
 
 func TestSchemaInvalidConfigInvalidTargetType(t *testing.T) {
+	t.Parallel()
 	data := []byte(`{
 		"project": {"name": "test"},
 		"targets": {
@@ -226,6 +241,7 @@ func TestSchemaInvalidConfigInvalidTargetType(t *testing.T) {
 }
 
 func TestValidateConfig_ErrorMessageContainsPath(t *testing.T) {
+	t.Parallel()
 	// Test case that should fail with a path indicator
 	data := []byte(`{
 		"project": {"name": "test"},
@@ -250,6 +266,7 @@ func TestValidateConfig_ErrorMessageContainsPath(t *testing.T) {
 }
 
 func TestSchemaInvalidToolchainsMalformedJSON(t *testing.T) {
+	t.Parallel()
 	data := []byte(`{invalid json}`)
 	err := ValidateToolchains(data)
 	if err == nil {
@@ -258,6 +275,7 @@ func TestSchemaInvalidToolchainsMalformedJSON(t *testing.T) {
 }
 
 func TestSchemaInvalidConfigArray(t *testing.T) {
+	t.Parallel()
 	err := ValidateConfig([]byte(`[]`))
 	if err == nil {
 		t.Error("expected validation error for array instead of object, got nil")
@@ -265,6 +283,7 @@ func TestSchemaInvalidConfigArray(t *testing.T) {
 }
 
 func TestSchemaInvalidConfigNull(t *testing.T) {
+	t.Parallel()
 	err := ValidateConfig([]byte(`null`))
 	if err == nil {
 		t.Error("expected validation error for null config, got nil")
@@ -272,6 +291,7 @@ func TestSchemaInvalidConfigNull(t *testing.T) {
 }
 
 func TestSchemaInvalidToolchainsNotObject(t *testing.T) {
+	t.Parallel()
 	err := ValidateToolchains([]byte(`"string"`))
 	if err == nil {
 		t.Error("expected validation error for non-object toolchains, got nil")
@@ -279,6 +299,7 @@ func TestSchemaInvalidToolchainsNotObject(t *testing.T) {
 }
 
 func TestSchemaInvalidToolchainsNull(t *testing.T) {
+	t.Parallel()
 	err := ValidateToolchains([]byte(`null`))
 	if err == nil {
 		t.Error("expected validation error for null toolchains, got nil")
@@ -286,6 +307,7 @@ func TestSchemaInvalidToolchainsNull(t *testing.T) {
 }
 
 func TestSchemaInvalidToolchainsArray(t *testing.T) {
+	t.Parallel()
 	err := ValidateToolchains([]byte(`[]`))
 	if err == nil {
 		t.Error("expected validation error for array toolchains, got nil")
@@ -293,6 +315,7 @@ func TestSchemaInvalidToolchainsArray(t *testing.T) {
 }
 
 func TestSchemaConfigWithAllOptionalSections(t *testing.T) {
+	t.Parallel()
 	// Test a comprehensive config with most optional sections
 	data := []byte(`{
 		"project": {"name": "comprehensive-test"},
@@ -323,6 +346,7 @@ func TestSchemaConfigWithAllOptionalSections(t *testing.T) {
 }
 
 func TestSchemaToolchainsWithAllFields(t *testing.T) {
+	t.Parallel()
 	// Test a comprehensive toolchains config
 	data := []byte(`{
 		"version": "1.0",
@@ -355,6 +379,7 @@ func TestSchemaToolchainsWithAllFields(t *testing.T) {
 }
 
 func TestSchemaInvalidToolchainsInvalidCommandType(t *testing.T) {
+	t.Parallel()
 	data := []byte(`{
 		"version": "1.0",
 		"toolchains": {
@@ -373,6 +398,7 @@ func TestSchemaInvalidToolchainsInvalidCommandType(t *testing.T) {
 }
 
 func TestSchemaConfigNestedValidationError(t *testing.T) {
+	t.Parallel()
 	// Test deep nesting validation
 	data := []byte(`{
 		"project": {"name": "test"},
@@ -394,6 +420,7 @@ func TestSchemaConfigNestedValidationError(t *testing.T) {
 }
 
 func TestSchemaConfigInvalidProjectNamePattern(t *testing.T) {
+	t.Parallel()
 	// Project name must match pattern ^[a-z][a-z0-9-]*$
 	invalidNames := []string{
 		"TestProject",  // uppercase

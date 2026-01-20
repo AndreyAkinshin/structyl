@@ -61,7 +61,7 @@
               },
               "pattern": {
                 "type": "string",
-                "description": "Regex pattern to match version string"
+                "description": "Regex pattern to match version string (Go regexp package syntax)"
               },
               "replace": {
                 "type": "string",
@@ -176,7 +176,7 @@
           "properties": {
             "float_tolerance": {
               "type": "number",
-              "description": "Tolerance for floating point comparisons",
+              "description": "Tolerance for floating point comparisons. Use 0 for exact match requirement.",
               "minimum": 0,
               "default": 1e-9
             },
@@ -232,7 +232,7 @@
         },
         "services": {
           "type": "object",
-          "description": "Per-target Docker service overrides",
+          "description": "Per-target Docker service overrides for image building (base_image, dockerfile, platform, volumes). Use 'targets' for runtime configuration.",
           "additionalProperties": {
             "type": "object",
             "properties": {
@@ -258,7 +258,7 @@
         },
         "targets": {
           "type": "object",
-          "description": "Per-target Docker configuration",
+          "description": "Per-target Docker runtime configuration (platform, cache_volume, entrypoint, environment). Use 'services' for image building options.",
           "additionalProperties": {
             "type": "object",
             "properties": {

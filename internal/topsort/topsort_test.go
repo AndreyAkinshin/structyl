@@ -105,6 +105,45 @@ func TestSort_Cycle(t *testing.T) {
 	}
 }
 
+func TestSort_LongCycle(t *testing.T) {
+	// 4-node cycle: a -> b -> c -> d -> a
+	g := Graph{
+		"a": {"b"},
+		"b": {"c"},
+		"c": {"d"},
+		"d": {"a"},
+	}
+	_, err := Sort(g, nil)
+	if err == nil {
+		t.Error("Sort() expected error for 4-node cycle, got nil")
+	}
+	if !strings.Contains(err.Error(), "circular") {
+		t.Errorf("Sort() error = %v, want to contain 'circular'", err)
+	}
+}
+
+func TestSort_CycleWithBranch(t *testing.T) {
+	// Graph with a cycle and a branch:
+	//   a -> b -> c -> d -> b (cycle: b -> c -> d -> b)
+	//        |
+	//        v
+	//        e
+	g := Graph{
+		"a": {"b"},
+		"b": {"c", "e"},
+		"c": {"d"},
+		"d": {"b"},
+		"e": nil,
+	}
+	_, err := Sort(g, nil)
+	if err == nil {
+		t.Error("Sort() expected error for cycle with branch, got nil")
+	}
+	if !strings.Contains(err.Error(), "circular") {
+		t.Errorf("Sort() error = %v, want to contain 'circular'", err)
+	}
+}
+
 func TestSort_SelfReference(t *testing.T) {
 	g := Graph{
 		"a": {"a"},

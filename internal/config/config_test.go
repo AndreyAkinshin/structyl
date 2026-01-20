@@ -169,7 +169,7 @@ func TestLoadWithDefaults_DockerConfig(t *testing.T) {
 	}
 }
 
-func TestLoadWithDefaults_DockerConfigDefaults(t *testing.T) {
+func TestLoadWithDefaults_DockerConfigPreservesCustomValues(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	path := filepath.Join(dir, "config.json")

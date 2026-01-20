@@ -116,19 +116,18 @@ structyl: <message>
 **Target-specific failures** (build, test failures):
 
 ```
-[<target>] <command> failed: <error>
+[<target>] <command>: <message>
 ```
 
 ### Format Grammar
 
 ```
 cli_error := "structyl: " message LF
-target_error := "[" target "] " command " failed: " error LF
+target_error := "[" target "] " command ": " message LF
 
 target := [a-z][a-z0-9-]*
 command := [a-z]+
 message := <single line, no newline>
-error := <error description>
 LF := "\n"
 ```
 
@@ -160,11 +159,11 @@ warning: unknown field "foo" in targets.cs
 
 ### Verbosity Levels
 
-| Level   | Flag      | Output                       |
-| ------- | --------- | ---------------------------- |
-| Quiet   | `-q`      | Errors only                  |
-| Normal  | (default) | Errors + summary             |
-| Verbose | `-v`      | Full output from all targets |
+| Level   | Flag              | Output                       |
+| ------- | ----------------- | ---------------------------- |
+| Quiet   | `-q`, `--quiet`   | Errors only                  |
+| Normal  | (default)         | Errors + summary             |
+| Verbose | `-v`, `--verbose` | Full output from all targets |
 
 ## Command Exit Codes
 

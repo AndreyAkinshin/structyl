@@ -186,6 +186,21 @@ These commands operate across all targets.
 | `-h, --help`    | Show help message                                         |
 | `--version`     | Show Structyl version                                     |
 
+### Docker Mode Precedence
+
+Docker mode is determined with the following precedence (highest to lowest):
+
+1. `--no-docker` flag → Docker mode disabled
+2. `--docker` flag → Docker mode enabled
+3. `STRUCTYL_DOCKER` environment variable → Docker mode enabled if `1`, `true`, or `yes` (case-insensitive)
+4. Default → Docker mode disabled (native execution)
+
+```bash
+# Explicit flags override environment variable
+STRUCTYL_DOCKER=1 structyl --no-docker build  # Runs natively (--no-docker wins)
+STRUCTYL_DOCKER=0 structyl --docker build     # Runs in Docker (--docker wins)
+```
+
 ## Null Commands
 
 A command value of `null` indicates the command is not available for this target. Toolchains use `null` for commands that don't apply to their ecosystem.

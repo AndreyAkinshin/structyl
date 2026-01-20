@@ -92,19 +92,19 @@ Each target needs a Dockerfile. Options:
 
 ### 1. Built-in Templates (Default)
 
-Structyl provides default Dockerfiles for common languages. Base image versions are derived from mise toolchain configurations (see [toolchains.md](toolchains.md)):
+Structyl provides default Dockerfiles for common languages. Base image versions are determined by the toolchain's `mise` configuration. See [toolchains.md](toolchains.md) for current defaults.
 
-| Language   | Base Image (varies by mise config)     |
-| ---------- | -------------------------------------- |
-| C#         | `mcr.microsoft.com/dotnet/sdk:10.0`    |
-| Go         | `golang:1.24`                          |
-| Kotlin     | `gradle:8-jdk23`                       |
-| Python     | `python:3.13-slim`                     |
-| R          | `rocker/verse:4.4`                     |
-| Rust       | `rust:stable`                          |
-| TypeScript | `node:22-slim`                         |
+| Language   | Base Image Pattern               |
+| ---------- | -------------------------------- |
+| C#         | `mcr.microsoft.com/dotnet/sdk`   |
+| Go         | `golang`                         |
+| Kotlin     | `gradle`                         |
+| Python     | `python`                         |
+| R          | `rocker/verse`                   |
+| Rust       | `rust`                           |
+| TypeScript | `node`                           |
 
-> **Note**: These versions are indicative. Actual versions are determined by the toolchain's `mise` configuration. See [toolchains.md](toolchains.md) for current defaults.
+Structyl generates Dockerfiles using `FROM <base-image>:<version>` where the version is derived from the toolchain configuration.
 
 ### 2. Custom Dockerfile
 

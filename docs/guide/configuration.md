@@ -179,7 +179,7 @@ Each target supports these options:
 
 | Field               | Type   | Default        | Description                   |
 | ------------------- | ------ | -------------- | ----------------------------- |
-| `type`              | string | Required       | `"language"` or `"auxiliary"` |
+| `type`              | string | Auto-inferred  | `"language"` or `"auxiliary"`. Known slugs (cs, go, kt, py, rs, ts) default to `language` |
 | `title`             | string | Required       | Display name                  |
 | `toolchain`         | string | Auto-detect    | Toolchain preset              |
 | `toolchain_version` | string | From toolchain | Override mise tool version    |

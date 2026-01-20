@@ -815,3 +815,32 @@ Define custom toolchains in `.structyl/config.json`:
 ```
 
 The `extends` field inherits all commands from the base toolchain, with specified commands overridden.
+
+### Toolchain Version Resolution
+
+When Structyl generates `mise.toml`, it determines tool versions using this precedence (highest to lowest):
+
+1. **`target.toolchain_version`** — Per-target override in target configuration
+2. **`toolchains[name].version`** — Custom toolchain version in toolchains section
+3. **Built-in toolchain default** — Version defined in the built-in toolchain preset
+4. **`"latest"`** — Fallback when no version is specified
+
+Example:
+
+```json
+{
+  "targets": {
+    "rs": {
+      "toolchain": "cargo",
+      "toolchain_version": "1.80.0"  // Takes precedence
+    }
+  },
+  "toolchains": {
+    "cargo": {
+      "version": "1.79.0"  // Overridden by target
+    }
+  }
+}
+```
+
+In this example, the `rs` target uses Rust `1.80.0` (from `toolchain_version`), not `1.79.0`.

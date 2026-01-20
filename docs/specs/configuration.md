@@ -116,18 +116,19 @@ Build targets configuration. See [targets.md](targets.md) for details.
 
 #### Target Fields
 
-| Field        | Type   | Default        | Description                                           |
-| ------------ | ------ | -------------- | ----------------------------------------------------- |
-| `type`       | string | Required       | `"language"` or `"auxiliary"`                         |
-| `title`      | string | Required       | Display name                                          |
-| `toolchain`  | string | Auto-detect    | Toolchain preset (see [toolchains.md](toolchains.md)) |
-| `directory`  | string | Target key     | Directory path relative to root                       |
-| `cwd`        | string | `directory`    | Working directory for commands                        |
-| `commands`   | object | From toolchain | Command definitions/overrides                         |
-| `vars`       | object | `{}`           | Variables for command interpolation                   |
-| `env`        | object | `{}`           | Environment variables                                 |
-| `depends_on` | array  | `[]`           | Targets that must build first                         |
-| `demo_path`  | string | None           | Path to demo source (for doc generation)              |
+| Field              | Type   | Default        | Description                                           |
+| ------------------ | ------ | -------------- | ----------------------------------------------------- |
+| `type`             | string | Auto-inferred  | `"language"` or `"auxiliary"`. Known slugs (cs, go, kt, py, rs, ts) default to `language` |
+| `title`            | string | Required       | Display name                                          |
+| `toolchain`        | string | Auto-detect    | Toolchain preset (see [toolchains.md](toolchains.md)) |
+| `toolchain_version`| string | From toolchain | Override mise tool version for this target            |
+| `directory`        | string | Target key     | Directory path relative to root                       |
+| `cwd`              | string | `directory`    | Working directory for commands                        |
+| `commands`         | object | From toolchain | Command definitions/overrides                         |
+| `vars`             | object | `{}`           | Variables for command interpolation                   |
+| `env`              | object | `{}`           | Environment variables                                 |
+| `depends_on`       | array  | `[]`           | Targets that must build first                         |
+| `demo_path`        | string | None           | Path to demo source (for doc generation)              |
 
 #### Command Definitions
 

@@ -208,7 +208,7 @@ version = "1.2.3"
 }
 ```
 
-#### Python (**init**.py)
+#### Python (`__init__.py`)
 
 ```python
 __version__ = "1.2.3"

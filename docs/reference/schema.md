@@ -136,6 +136,10 @@ The full configuration structure:
 }
 ```
 
+::: tip Complete Schema
+This reference shows the most common configuration fields. For the complete schema including `mise`, `release`, `ci`, and `artifacts` sections, see the [JSON Schema file](/schema/config.schema.json).
+:::
+
 ## Required Fields
 
 Only `project.name` is required. All other fields have sensible defaults.

@@ -234,18 +234,20 @@ These slugs are recognized as language targets:
 
 | Slug    | Language   | Default Toolchain |
 | ------- | ---------- | ----------------- |
-| `rs`    | Rust       | cargo             |
-| `py`    | Python     | python            |
-| `go`    | Go         | go                |
-| `ts`    | TypeScript | npm               |
-| `js`    | JavaScript | npm               |
-| `cs`    | C#         | dotnet            |
-| `kt`    | Kotlin     | gradle            |
-| `java`  | Java       | gradle            |
-| `rb`    | Ruby       | —                 |
-| `swift` | Swift      | swift             |
-| `cpp`   | C++        | cmake             |
 | `c`     | C          | cmake             |
+| `cpp`   | C++        | cmake             |
+| `cs`    | C#         | dotnet            |
+| `go`    | Go         | go                |
+| `java`  | Java       | gradle            |
+| `js`    | JavaScript | npm               |
+| `kt`    | Kotlin     | gradle            |
+| `py`    | Python     | python            |
+| `r`     | R          | —                 |
+| `rb`    | Ruby       | —                 |
+| `rs`    | Rust       | cargo             |
+| `scala` | Scala      | gradle            |
+| `swift` | Swift      | swift             |
+| `ts`    | TypeScript | npm               |
 
 Unknown slugs default to auxiliary type.
 

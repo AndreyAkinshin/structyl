@@ -67,6 +67,25 @@ const (
 	ArrayOrderUnordered = "unordered"
 )
 
+// Special float string constants for JSON test cases.
+// JSON cannot represent NaN or Infinity directly, so these strings are used
+// in expected output to indicate special float values.
+// Using these constants prevents typos and enables IDE autocomplete.
+const (
+	// SpecialFloatNaN matches actual NaN values (per NaNEqualsNaN option).
+	SpecialFloatNaN = "NaN"
+
+	// SpecialFloatInfinity matches actual positive infinity (+Inf).
+	// Equivalent to SpecialFloatPosInfinity.
+	SpecialFloatInfinity = "Infinity"
+
+	// SpecialFloatPosInfinity matches actual positive infinity (+Inf).
+	SpecialFloatPosInfinity = "+Infinity"
+
+	// SpecialFloatNegInfinity matches actual negative infinity (-Inf).
+	SpecialFloatNegInfinity = "-Infinity"
+)
+
 // String returns a human-readable representation of CompareOptions for debugging.
 func (o CompareOptions) String() string {
 	mode := o.ToleranceMode
@@ -186,7 +205,8 @@ func compareValues(expected, actual interface{}, opts CompareOptions, path strin
 
 	// Handle special float strings
 	if expStr, ok := expected.(string); ok {
-		if expStr == "NaN" || expStr == "Infinity" || expStr == "+Infinity" || expStr == "-Infinity" {
+		if expStr == SpecialFloatNaN || expStr == SpecialFloatInfinity ||
+			expStr == SpecialFloatPosInfinity || expStr == SpecialFloatNegInfinity {
 			return compareSpecialFloat(expStr, actual, opts, path)
 		}
 	}
@@ -305,7 +325,7 @@ func compareSpecialFloat(expected string, actual interface{}, opts CompareOption
 	}
 
 	switch expected {
-	case "NaN":
+	case SpecialFloatNaN:
 		if math.IsNaN(a) {
 			if opts.NaNEqualsNaN {
 				return true, ""
@@ -313,12 +333,12 @@ func compareSpecialFloat(expected string, actual interface{}, opts CompareOption
 			return false, fmt.Sprintf("%s: NaN mismatch (NaNEqualsNaN is false)", pathStr(path))
 		}
 		return false, fmt.Sprintf("%s: expected NaN, got %v", pathStr(path), a)
-	case "Infinity", "+Infinity":
+	case SpecialFloatInfinity, SpecialFloatPosInfinity:
 		if math.IsInf(a, 1) {
 			return true, ""
 		}
 		return false, fmt.Sprintf("%s: expected +Infinity, got %v", pathStr(path), a)
-	case "-Infinity":
+	case SpecialFloatNegInfinity:
 		if math.IsInf(a, -1) {
 			return true, ""
 		}

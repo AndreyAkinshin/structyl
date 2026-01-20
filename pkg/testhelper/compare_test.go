@@ -646,3 +646,30 @@ func TestCompareOutput_NilMismatch(t *testing.T) {
 		t.Error("expected diff message for nil mismatch")
 	}
 }
+
+// TestCompare_InvalidToleranceModeFallback documents that invalid ToleranceMode
+// values fall through to the default (relative) behavior. ValidateOptions should
+// be called before Compare to catch invalid modes.
+func TestCompare_InvalidToleranceModeFallback(t *testing.T) {
+	// Invalid mode falls through to relative tolerance (default)
+	opts := CompareOptions{
+		FloatTolerance: 0.01,
+		ToleranceMode:  "invalid", // Not a valid mode
+	}
+
+	// With relative tolerance 0.01, 1.0 and 1.005 should pass (0.5% difference)
+	if !CompareOutput(1.0, 1.005, opts) {
+		t.Error("invalid ToleranceMode should fall through to relative mode")
+	}
+
+	// 1.0 and 1.02 should fail (2% difference > 1%)
+	if CompareOutput(1.0, 1.02, opts) {
+		t.Error("invalid ToleranceMode should fall through to relative mode")
+	}
+
+	// ValidateOptions should catch the invalid mode
+	err := ValidateOptions(opts)
+	if err == nil {
+		t.Error("ValidateOptions should reject invalid ToleranceMode")
+	}
+}

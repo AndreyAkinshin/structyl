@@ -229,12 +229,12 @@ Docker configuration. See [docker.md](docker.md) for details.
 }
 ```
 
-| Field          | Type   | Default              | Description                      |
-| -------------- | ------ | -------------------- | -------------------------------- |
-| `compose_file` | string | `docker-compose.yml` | Path to compose file             |
-| `env_var`      | string | `STRUCTYL_DOCKER`    | Env var to enable Docker mode    |
-| `services`     | object | `{}`                 | Per-target service overrides     |
-| `targets`      | object | `{}`                 | Per-target Docker configuration  |
+| Field          | Type   | Default              | Description                                            |
+| -------------- | ------ | -------------------- | ------------------------------------------------------ |
+| `compose_file` | string | `docker-compose.yml` | Path to compose file                                   |
+| `env_var`      | string | `STRUCTYL_DOCKER`    | Env var to enable Docker mode                          |
+| `services`     | object | `{}`                 | Per-target Docker service overrides for image building |
+| `targets`      | object | `{}`                 | Per-target Docker runtime configuration                |
 
 ### `mise`
 

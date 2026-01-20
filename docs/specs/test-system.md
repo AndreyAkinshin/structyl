@@ -308,6 +308,10 @@ Example:
 
 > **Note:** This section is **informative only**. The code examples illustrate one possible implementation approach. Conforming implementations MAY use different designs, APIs, or patterns as long as they satisfy the functional requirements.
 
+::: warning pkg/testhelper Limitation
+The public Go `pkg/testhelper` package does NOT support `$file` references. File reference resolution is only available in Structyl's internal test runner. Test cases using `$file` syntax should either use the internal `internal/tests` package or embed data directly in JSON.
+:::
+
 Each language must implement a test loader. Required functionality:
 
 1. **Locate project root** via marker file traversal

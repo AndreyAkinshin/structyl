@@ -1,4 +1,23 @@
 // Package errors provides structured error types and exit codes for Structyl.
+//
+// # Error Types
+//
+// Structyl uses two distinct error types for different purposes:
+//
+//   - StructylError: Runtime, configuration, validation, and environment errors
+//     that represent actual failures. Use GetExitCode() to determine the
+//     appropriate exit code. StructylError implements Unwrap() for error chain
+//     inspection with errors.Is() and errors.As().
+//
+//   - target.SkipError: Indicates a command was skipped (not failed). Skip
+//     scenarios include disabled commands (nil in config), missing executables,
+//     and missing npm scripts. Use target.IsSkipError() to detect. Skip errors
+//     are informational and are logged as warnings rather than causing command
+//     failure. They are NOT included in combined error results.
+//
+// The Runner layer handles both types: StructylError causes failure (possibly
+// collected with Continue mode), while SkipError is logged and execution
+// continues to the next target.
 package errors
 
 import (

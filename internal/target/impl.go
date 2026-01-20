@@ -47,6 +47,12 @@ const (
 // Callers can use IsSkipError to detect this case and handle it appropriately.
 // Skip errors are distinct from execution failures and may be treated as
 // warnings rather than errors depending on context.
+//
+// SkipError is intentionally separate from errors.StructylError because it
+// represents a non-failure condition. The Runner layer handles both types:
+// StructylError triggers failure handling, while SkipError is logged and
+// execution continues. See internal/errors package documentation for the
+// full error type taxonomy.
 type SkipError struct {
 	Target  string
 	Command string

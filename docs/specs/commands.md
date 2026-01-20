@@ -35,13 +35,18 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 
 <StandardCommands />
 
-> **Note:** The `test:coverage` command is part of the standard vocabulary but few toolchains provide a default implementation. Toolchains MAY define this command; it is OPTIONAL and not required for toolchain conformance. Coverage tool selection and output format are implementation-defined.
+> **Note:** The `test:coverage` command is part of the standard vocabulary but few toolchains provide a default implementation. Toolchains MAY define this command; it is OPTIONAL and not required for toolchain conformance.
+>
+> **Semantics (when defined):**
+> - Coverage output location: implementation-defined (commonly `coverage/` or tool default)
+> - Output format: implementation-defined
+> - Exit code: SHOULD return 0 if tests pass regardless of coverage percentage; coverage enforcement is out of scope
 
 ### Command Semantics
 
 #### `clean`
 
-Removes all build artifacts and caches. After `clean`, a fresh `build` MUST produce semantically equivalent artifacts to a clean checkout. Byte-level identity is not required—file timestamps, embedded build IDs, and other non-functional metadata may differ.
+Removes all build artifacts and caches. After `clean`, a fresh `build` MUST produce semantically equivalent artifacts to a clean checkout. Byte-level identity is NOT REQUIRED—file timestamps, embedded build IDs, and other non-functional metadata MAY differ.
 
 ```bash
 structyl clean cs
@@ -200,16 +205,17 @@ eval "$(structyl completion bash --alias=st)"
 
 ## Global Flags
 
-| Flag            | Description                                               |
-| --------------- | --------------------------------------------------------- |
-| `--docker`      | Run command in Docker container                           |
-| `--no-docker`   | Disable Docker mode (overrides `STRUCTYL_DOCKER` env var) |
-| `--continue`    | Continue on error (don't fail-fast)                       |
-| `--type=<type>` | Filter targets by type (`language` or `auxiliary`)        |
-| `-q, --quiet`   | Minimal output (errors only)                              |
-| `-v, --verbose` | Maximum detail                                            |
-| `-h, --help`    | Show help message                                         |
-| `--version`     | Show Structyl version                                     |
+| Flag            | Description                                                |
+| --------------- | ---------------------------------------------------------- |
+| `--docker`      | Run command in Docker container                            |
+| `--no-docker`   | Disable Docker mode (overrides `STRUCTYL_DOCKER` env var)  |
+| `--continue`    | Continue on error (don't fail-fast). See [parallel execution limitation](targets.md#known-limitation-parallel-execution-and-dependencies) |
+| `--type=<type>` | Filter targets by type (`language` or `auxiliary`)         |
+| `-q, --quiet`   | Minimal output (errors only)                               |
+| `-v, --verbose` | Maximum detail                                             |
+| `--no-color`    | Disable colored output (also respects `NO_COLOR` env var)  |
+| `-h, --help`    | Show help message                                          |
+| `--version`     | Show Structyl version                                      |
 
 Note: `-q, --quiet` and `-v, --verbose` are mutually exclusive.
 

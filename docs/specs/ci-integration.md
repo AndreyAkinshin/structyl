@@ -62,6 +62,10 @@ clean → restore → check → build:release → test
 
 Targets are processed in dependency order, respecting `depends_on` declarations.
 
+::: warning Parallel Execution Limitation
+When `STRUCTYL_PARALLEL > 1`, Structyl does not guarantee that targets in `depends_on` complete before the dependent target starts. See [targets.md#known-limitation-parallel-execution-and-dependencies](targets.md#known-limitation-parallel-execution-and-dependencies) for details and workarounds.
+:::
+
 ## Artifact Collection
 
 After successful builds, artifacts are collected:

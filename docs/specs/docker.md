@@ -265,6 +265,17 @@ ENV GOCACHE=/tmp/.cache
 ENV GOPATH=/tmp/go
 ```
 
+## `services` vs `targets` Configuration
+
+The Docker configuration has two per-target sections with distinct purposes:
+
+| Section    | Purpose                | Use For                                                |
+| ---------- | ---------------------- | ------------------------------------------------------ |
+| `services` | Image **building**     | `base_image`, `dockerfile`, build-time `volumes`       |
+| `targets`  | Container **runtime**  | `platform`, `cache_volume`, `entrypoint`, `environment` |
+
+Note: `platform` in `services` affects the built image architecture; `platform` in `targets` affects which architecture Docker uses to run the container.
+
 ## Configuration Reference
 
 ```json

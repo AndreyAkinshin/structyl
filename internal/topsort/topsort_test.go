@@ -229,3 +229,42 @@ func TestValidate_Cycle(t *testing.T) {
 		t.Errorf("Validate() error = %v, want to contain 'circular'", err)
 	}
 }
+
+func TestSort_LargeGraph(t *testing.T) {
+	// Build a linear chain of 100 nodes: n0 <- n1 <- n2 <- ... <- n99
+	const nodeCount = 100
+	g := make(Graph, nodeCount)
+
+	for i := 0; i < nodeCount; i++ {
+		name := "n" + string(rune('0'+i/100)) + string(rune('0'+(i/10)%10)) + string(rune('0'+i%10))
+		if i == 0 {
+			g[name] = nil
+		} else {
+			prevName := "n" + string(rune('0'+(i-1)/100)) + string(rune('0'+((i-1)/10)%10)) + string(rune('0'+(i-1)%10))
+			g[name] = []string{prevName}
+		}
+	}
+
+	result, err := Sort(g, nil)
+	if err != nil {
+		t.Fatalf("Sort() error = %v, want nil", err)
+	}
+
+	if len(result) != nodeCount {
+		t.Errorf("Sort() returned %d nodes, want %d", len(result), nodeCount)
+	}
+
+	// Verify ordering: each node should appear after its dependency
+	indexOf := make(map[string]int, nodeCount)
+	for i, name := range result {
+		indexOf[name] = i
+	}
+
+	for name, deps := range g {
+		for _, dep := range deps {
+			if indexOf[dep] >= indexOf[name] {
+				t.Errorf("Sort() dependency %s should come before %s", dep, name)
+			}
+		}
+	}
+}

@@ -86,6 +86,12 @@ func formatMiseTaskName(cmd string, target string) string {
 func runViaMise(proj *project.Project, cmd string, targetName string, args []string, opts *GlobalOptions) int {
 	ctx := context.Background()
 
+	// Warn if --continue is used: mise backend stops on first failure.
+	// The --continue flag has no effect when running via mise.
+	if opts.ContinueOnError {
+		out.WarningSimple("--continue flag has no effect with mise backend (mise stops on first failure)")
+	}
+
 	task := formatMiseTaskName(cmd, targetName)
 
 	executor := mise.NewExecutor(proj.Root)

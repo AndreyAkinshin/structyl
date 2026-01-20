@@ -186,6 +186,11 @@ func parseGlobalFlags(args []string) (*GlobalOptions, []string, error) {
 		return nil, nil, fmt.Errorf("--quiet and --verbose are mutually exclusive")
 	}
 
+	// Validate mutual exclusivity of docker and no-docker
+	if opts.Docker && opts.NoDocker {
+		return nil, nil, fmt.Errorf("--docker and --no-docker are mutually exclusive")
+	}
+
 	return opts, remaining, nil
 }
 

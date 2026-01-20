@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/errors"
 	"github.com/AndreyAkinshin/structyl/internal/mise"
 	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/project"
@@ -54,7 +55,7 @@ func cmdInit(args []string) int {
 		default:
 			if strings.HasPrefix(arg, "-") {
 				w.ErrorPrefix("init: unknown option %q", arg)
-				return 2
+				return errors.ExitConfigError
 			}
 		}
 	}
@@ -62,7 +63,7 @@ func cmdInit(args []string) int {
 	cwd, err := os.Getwd()
 	if err != nil {
 		w.ErrorPrefix("%v", err)
-		return 1
+		return errors.ExitRuntimeError
 	}
 	structylDir := filepath.Join(cwd, project.ConfigDirName)
 	configPath := filepath.Join(structylDir, project.ConfigFileName)
@@ -75,7 +76,7 @@ func cmdInit(args []string) int {
 	// Create .structyl directory
 	if err := os.MkdirAll(structylDir, 0755); err != nil {
 		w.ErrorPrefix("%v", err)
-		return 1
+		return errors.ExitRuntimeError
 	}
 
 	// Check if this is a new project or existing
@@ -103,13 +104,13 @@ func cmdInit(args []string) int {
 		data, err := json.MarshalIndent(cfg, "", "  ")
 		if err != nil {
 			w.ErrorPrefix("%v", err)
-			return 1
+			return errors.ExitRuntimeError
 		}
 		data = append(data, '\n')
 
 		if err := os.WriteFile(configPath, data, 0644); err != nil {
 			w.ErrorPrefix("%v", err)
-			return 3
+			return errors.ExitRuntimeError
 		}
 		created = append(created, ".structyl/config.json")
 	} else {
@@ -117,7 +118,7 @@ func cmdInit(args []string) int {
 		cfg, _, err = config.LoadAndValidate(configPath)
 		if err != nil {
 			w.ErrorPrefix("error loading config: %v", err)
-			return 1
+			return errors.ExitConfigError
 		}
 	}
 

@@ -2,13 +2,14 @@ package cli
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/AndreyAkinshin/structyl/internal/errors"
+	internalerrors "github.com/AndreyAkinshin/structyl/internal/errors"
 	"github.com/AndreyAkinshin/structyl/internal/mise"
 	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/project"
@@ -40,7 +41,7 @@ func loadProject() (*project.Project, int) {
 	proj, err := project.LoadProject()
 	if err != nil {
 		out.ErrorPrefix("%v", err)
-		return nil, errors.GetExitCode(err)
+		return nil, internalerrors.GetExitCode(err)
 	}
 	return proj, 0
 }
@@ -91,7 +92,7 @@ func runViaMise(proj *project.Project, cmd string, targetName string, args []str
 	executor.SetVerbose(opts.Verbose)
 
 	if err := executor.RunTask(ctx, task, args); err != nil {
-		return errors.ExitRuntimeError
+		return internalerrors.ExitRuntimeError
 	}
 	return 0
 }
@@ -104,7 +105,7 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 
 	if len(args) == 0 {
 		out.ErrorPrefix("usage: structyl <command> [target] [args] or structyl <command> [args]")
-		return errors.ExitConfigError
+		return internalerrors.ExitConfigError
 	}
 
 	// Check for help flag early (after command name)
@@ -126,7 +127,7 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 	registry, err := target.NewRegistry(proj.Config, proj.Root)
 	if err != nil {
 		out.ErrorPrefix("%v", err)
-		return errors.ExitConfigError
+		return internalerrors.ExitConfigError
 	}
 
 	// First argument is always the command
@@ -151,13 +152,13 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 	if err := EnsureMise(true); err != nil {
 		out.ErrorPrefix("%v", err)
 		PrintMiseInstallInstructions()
-		return errors.ExitEnvironmentError
+		return internalerrors.ExitEnvironmentError
 	}
 
 	// Ensure mise.toml is up-to-date
 	if err := ensureMiseConfig(proj, false); err != nil {
 		out.ErrorPrefix("%v", err)
-		return errors.ExitRuntimeError
+		return internalerrors.ExitRuntimeError
 	}
 
 	// If --type is specified and no specific target given, filter targets by type
@@ -195,7 +196,7 @@ func cmdTargets(args []string, opts *GlobalOptions) int {
 	registry, err := target.NewRegistry(proj.Config, proj.Root)
 	if err != nil {
 		out.ErrorPrefix("%v", err)
-		return errors.ExitConfigError
+		return internalerrors.ExitConfigError
 	}
 
 	targets := registry.All()
@@ -219,7 +220,7 @@ func cmdTargets(args []string, opts *GlobalOptions) int {
 func cmdConfig(args []string) int {
 	if len(args) == 0 {
 		out.ErrorPrefix("config: subcommand required (validate)")
-		return errors.ExitConfigError
+		return internalerrors.ExitConfigError
 	}
 
 	switch args[0] {
@@ -230,7 +231,7 @@ func cmdConfig(args []string) int {
 		return 0
 	default:
 		out.ErrorPrefix("config: unknown subcommand %q", args[0])
-		return errors.ExitConfigError
+		return internalerrors.ExitConfigError
 	}
 }
 
@@ -249,7 +250,7 @@ func cmdConfigValidate() int {
 	registry, err := target.NewRegistry(proj.Config, proj.Root)
 	if err != nil {
 		out.ErrorPrefix("%v", err)
-		return errors.ExitConfigError
+		return internalerrors.ExitConfigError
 	}
 
 	// Count targets by type
@@ -307,13 +308,13 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 	if err := EnsureMise(true); err != nil {
 		out.ErrorPrefix("%v", err)
 		PrintMiseInstallInstructions()
-		return errors.ExitEnvironmentError
+		return internalerrors.ExitEnvironmentError
 	}
 
 	// Ensure mise.toml is up-to-date
 	if err := ensureMiseConfig(proj, false); err != nil {
 		out.ErrorPrefix("%v", err)
-		return errors.ExitRuntimeError
+		return internalerrors.ExitRuntimeError
 	}
 
 	return runViaMise(proj, cmd, targetName, cmdArgs, opts)
@@ -335,7 +336,7 @@ func cmdMise(args []string, opts *GlobalOptions) int {
 	if len(args) == 0 {
 		out.ErrorPrefix("mise: subcommand required (sync)")
 		out.Println("usage: structyl mise sync [--force]")
-		return errors.ExitConfigError
+		return internalerrors.ExitConfigError
 	}
 
 	// Check if first arg is a known subcommand - if so, route to it
@@ -349,7 +350,7 @@ func cmdMise(args []string, opts *GlobalOptions) int {
 	default:
 		out.ErrorPrefix("mise: unknown subcommand %q", args[0])
 		out.Println("usage: structyl mise sync [--force]")
-		return errors.ExitConfigError
+		return internalerrors.ExitConfigError
 	}
 }
 
@@ -368,7 +369,7 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 		}
 		if strings.HasPrefix(arg, "-") {
 			out.ErrorPrefix("mise sync: unknown option %q", arg)
-			return errors.ExitConfigError
+			return internalerrors.ExitConfigError
 		}
 	}
 
@@ -382,7 +383,7 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 	created, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, true)
 	if err != nil {
 		out.ErrorPrefix("mise sync: %v", err)
-		return errors.ExitRuntimeError
+		return internalerrors.ExitRuntimeError
 	}
 
 	if created {
@@ -421,16 +422,17 @@ func cmdDockerBuild(args []string, opts *GlobalOptions) int {
 	// Check Docker availability
 	if err := runner.CheckDockerAvailable(); err != nil {
 		out.ErrorPrefix("%v", err)
-		if dockerErr, ok := err.(*runner.DockerUnavailableError); ok {
+		var dockerErr *runner.DockerUnavailableError
+		if errors.As(err, &dockerErr) {
 			return dockerErr.ExitCode()
 		}
-		return errors.ExitRuntimeError
+		return internalerrors.ExitRuntimeError
 	}
 
 	ctx := context.Background()
 	if err := dockerRunner.Build(ctx, args...); err != nil {
 		out.ErrorPrefix("docker-build failed: %v", err)
-		return errors.ExitRuntimeError
+		return internalerrors.ExitRuntimeError
 	}
 
 	out.Success("Docker images built successfully.")
@@ -454,16 +456,17 @@ func cmdDockerClean(args []string, opts *GlobalOptions) int {
 	// Check Docker availability
 	if err := runner.CheckDockerAvailable(); err != nil {
 		out.ErrorPrefix("%v", err)
-		if dockerErr, ok := err.(*runner.DockerUnavailableError); ok {
+		var dockerErr *runner.DockerUnavailableError
+		if errors.As(err, &dockerErr) {
 			return dockerErr.ExitCode()
 		}
-		return errors.ExitRuntimeError
+		return internalerrors.ExitRuntimeError
 	}
 
 	ctx := context.Background()
 	if err := dockerRunner.Clean(ctx); err != nil {
 		out.ErrorPrefix("docker-clean failed: %v", err)
-		return errors.ExitRuntimeError
+		return internalerrors.ExitRuntimeError
 	}
 
 	out.Success("Docker containers and images cleaned successfully.")
@@ -498,7 +501,7 @@ func cmdRelease(args []string, opts *GlobalOptions) int {
 	if len(remaining) == 0 {
 		out.ErrorPrefix("release: version required")
 		out.Errorln("usage: structyl release <version> [--push] [--dry-run] [--force]")
-		return errors.ExitConfigError
+		return internalerrors.ExitConfigError
 	}
 
 	releaseOpts.Version = remaining[0]
@@ -513,7 +516,7 @@ func cmdRelease(args []string, opts *GlobalOptions) int {
 	ctx := context.Background()
 	if err := releaser.Release(ctx, releaseOpts); err != nil {
 		out.ErrorPrefix("release: %v", err)
-		return 1
+		return internalerrors.ExitRuntimeError
 	}
 
 	return 0

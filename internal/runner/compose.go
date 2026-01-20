@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -143,11 +142,6 @@ func getDefaultImage(toolchain string) string {
 		return img
 	}
 	return "alpine:latest"
-}
-
-// getPlatform returns the Docker platform string for the current architecture.
-func getPlatform() string {
-	return "linux/" + runtime.GOARCH
 }
 
 // composeFileName returns the compose file name from config, defaulting to docker-compose.yml.

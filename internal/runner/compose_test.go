@@ -257,13 +257,6 @@ func TestMergeServices(t *testing.T) {
 	}
 }
 
-func TestGetPlatform(t *testing.T) {
-	platform := getPlatform()
-	if !strings.HasPrefix(platform, "linux/") {
-		t.Errorf("getPlatform() = %q, want linux/...", platform)
-	}
-}
-
 func TestWriteComposeFile_CreatesFile(t *testing.T) {
 	tmpDir := t.TempDir()
 

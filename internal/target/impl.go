@@ -147,8 +147,8 @@ func (t *targetImpl) DependsOn() []string {
 	copy(result, t.dependsOn)
 	return result
 }
-func (t *targetImpl) Env() map[string]string  { return t.env }
-func (t *targetImpl) Vars() map[string]string { return t.vars }
+func (t *targetImpl) Env() map[string]string  { return copyMap(t.env) }
+func (t *targetImpl) Vars() map[string]string { return copyMap(t.vars) }
 func (t *targetImpl) DemoPath() string        { return t.demoPath }
 
 func (t *targetImpl) Commands() []string {

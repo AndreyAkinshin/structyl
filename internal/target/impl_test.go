@@ -16,6 +16,29 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
 
+func TestTargetType_IsValid(t *testing.T) {
+	tests := []struct {
+		typ  TargetType
+		want bool
+	}{
+		{TypeLanguage, true},
+		{TypeAuxiliary, true},
+		{"language", true},
+		{"auxiliary", true},
+		{"", false},
+		{"unknown", false},
+		{"Language", false}, // case sensitive
+	}
+
+	for _, tt := range tests {
+		t.Run(string(tt.typ), func(t *testing.T) {
+			if got := tt.typ.IsValid(); got != tt.want {
+				t.Errorf("TargetType(%q).IsValid() = %v, want %v", tt.typ, got, tt.want)
+			}
+		})
+	}
+}
+
 // readTestOutput reads a file and decodes it to a string, handling Windows UTF-16 encoding.
 // On Windows, PowerShell's redirection operator creates UTF-16 LE files with BOM.
 func readTestOutput(path string) (string, error) {
@@ -381,6 +404,60 @@ func TestTarget_Vars(t *testing.T) {
 	vars := target.Vars()
 	if vars["test_project"] != "MyProject.Tests" {
 		t.Errorf("Vars()[test_project] = %q, want %q", vars["test_project"], "MyProject.Tests")
+	}
+}
+
+func TestTarget_Env_ReturnsCopy(t *testing.T) {
+	cfg := config.TargetConfig{
+		Type:  "language",
+		Title: "Python",
+		Env: map[string]string{
+			"KEY": "original",
+		},
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("py", cfg, "/project", resolver)
+
+	// Get env and mutate it
+	env := target.Env()
+	env["KEY"] = "mutated"
+	env["NEW_KEY"] = "new_value"
+
+	// Get env again - should reflect original state
+	env2 := target.Env()
+	if env2["KEY"] != "original" {
+		t.Errorf("Env() returned mutable map: KEY = %q, want %q", env2["KEY"], "original")
+	}
+	if _, exists := env2["NEW_KEY"]; exists {
+		t.Error("Env() returned mutable map: NEW_KEY should not exist")
+	}
+}
+
+func TestTarget_Vars_ReturnsCopy(t *testing.T) {
+	cfg := config.TargetConfig{
+		Type:  "language",
+		Title: "C#",
+		Vars: map[string]string{
+			"key": "original",
+		},
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("cs", cfg, "/project", resolver)
+
+	// Get vars and mutate it
+	vars := target.Vars()
+	vars["key"] = "mutated"
+	vars["new_key"] = "new_value"
+
+	// Get vars again - should reflect original state
+	vars2 := target.Vars()
+	if vars2["key"] != "original" {
+		t.Errorf("Vars() returned mutable map: key = %q, want %q", vars2["key"], "original")
+	}
+	if _, exists := vars2["new_key"]; exists {
+		t.Error("Vars() returned mutable map: new_key should not exist")
 	}
 }
 

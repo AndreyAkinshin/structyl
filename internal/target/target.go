@@ -25,6 +25,11 @@ const (
 	TypeAuxiliary TargetType = "auxiliary"
 )
 
+// IsValid returns true if the target type is a known valid value.
+func (t TargetType) IsValid() bool {
+	return t == TypeLanguage || t == TypeAuxiliary
+}
+
 // Target represents a build target (language or auxiliary).
 type Target interface {
 	// Identification

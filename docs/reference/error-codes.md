@@ -99,26 +99,14 @@ structyl test
 
 ### Continue Mode
 
-Runs all targets regardless of failures:
+::: warning DEPRECATED
+The `--continue` flag is deprecated and **has no effect** when Structyl executes commands via mise (the default backend). The flag is parsed for backwards compatibility but does not change execution behavior.
+:::
 
-```bash
-structyl test --continue
-```
+**Alternatives:**
 
-Output:
-
-```
-[cs] Tests passed
-[go] Tests FAILED
-[py] Tests passed
-[rs] Tests FAILED
-
-Summary: 2 passed, 2 failed
-
-Failed targets:
-  - go: exit code 1
-  - rs: exit code 1
-```
+1. Use `continue_on_error: true` in CI pipeline step definitions (see [CI Integration](../specs/ci-integration.md))
+2. Configure individual mise tasks with shell-level error handling (e.g., `|| true`)
 
 ## Error Message Format
 

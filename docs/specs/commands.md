@@ -179,8 +179,35 @@ These commands operate across all targets.
 | `config validate`        | Validate configuration without running commands                                                             |
 | `docker-build [targets]` | Build Docker images (see [docker.md](docker.md#docker-commands))                                            |
 | `docker-clean`           | Remove Docker containers, images, and volumes                                                               |
+| `dockerfile`             | Generate Dockerfiles with mise integration                                                                  |
+| `github`                 | Generate GitHub Actions CI workflow                                                                         |
+| `mise sync`              | Regenerate `mise.toml` from configuration                                                                   |
 | `completion <shell>`     | Generate shell completion script (bash, zsh, fish)                                                          |
 | `test-summary`           | Parse and summarize `go test -json` output                                                                  |
+
+### `config validate` Command
+
+```
+structyl config validate
+```
+
+Validates `.structyl/config.json` without executing any build commands.
+
+**Checks performed:**
+
+- JSON syntax validity
+- Schema conformance
+- Toolchain references exist
+- Dependency graph is acyclic
+- Target directories exist
+
+**Exit codes:**
+
+| Code | Condition                                                    |
+| ---- | ------------------------------------------------------------ |
+| 0    | Configuration is valid                                       |
+| 2    | Configuration error (invalid JSON, schema violation, semantic error) |
+| 3    | Environment error (cannot read file)                         |
 
 ### `init` Command
 
@@ -288,7 +315,7 @@ go test -json ./... 2>&1 | tee test.json && structyl test-summary test.json
 | `-q, --quiet`   | Minimal output (errors only)                               |
 | `-v, --verbose` | Maximum detail                                             |
 | `-h, --help`    | Show help message                                          |
-| `--version`     | Show Structyl version                                      |
+| `--version`     | Show Structyl version (also accepts `version` as command)  |
 
 To disable colored output, set the `NO_COLOR` environment variable (any non-empty value). See [no-color.org](https://no-color.org/) for the standard.
 

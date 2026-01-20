@@ -42,9 +42,9 @@ Edit `.structyl/config.json` to define your language implementations:
 }
 ```
 
-## Create the Version File
+## Create the Version Source File
 
-Create a VERSION file in the .structyl directory:
+Create a PROJECT_VERSION file in the .structyl directory:
 
 ```bash
 echo "0.1.0" > .structyl/PROJECT_VERSION

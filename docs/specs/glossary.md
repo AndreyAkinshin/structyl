@@ -73,6 +73,10 @@ The directory containing `.structyl/config.json`. Structyl locates this by walki
 
 A test case defined in JSON format in the `tests/` directory. Reference tests are language-agnostic and shared across all language implementations.
 
+### Skip Error
+
+An informational error indicating a command was skipped (not failed). Skip scenarios include disabled commands (`null` in configuration), missing executables, and missing npm scripts. Skip errors are logged as warnings rather than causing command failure and are excluded from combined error results.
+
 ### Slug
 
 See **Target Name**.

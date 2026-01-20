@@ -244,12 +244,15 @@ Running a null command succeeds with a warning.
 
 ## Global Flags
 
-| Flag            | Description                 |
-| --------------- | --------------------------- |
-| `--docker`      | Run in Docker container     |
-| `--no-docker`   | Disable Docker mode         |
-| `--continue`    | Continue on errors          |
-| `--type=<type>` | Filter by target type       |
+| Flag            | Description                                                                 |
+| --------------- | --------------------------------------------------------------------------- |
+| `--docker`      | Run in Docker container                                                     |
+| `--no-docker`   | Disable Docker mode                                                         |
+| `--continue`    | Continue on errors (note: has limitations with mise backend)                |
+| `--type=<type>` | Filter by target type                                                       |
+| `-q, --quiet`   | Minimal output (errors only)                                                |
+| `-v, --verbose` | Maximum detail                                                              |
+| `--no-color`    | Disable colored output (not yet implemented; use `NO_COLOR` env var instead)|
 
 ## Exit Codes
 

@@ -515,7 +515,7 @@ When a command is defined as an object, the following validation rules apply:
 | Condition                          | Requirement                                   |
 | ---------------------------------- | --------------------------------------------- |
 | `run` without `unix`/`windows`     | Valid—`run` is the cross-platform command     |
-| `unix` and `windows` without `run` | Valid—platform-specific commands              |
+| `unix` and `windows` without `run` | Valid—both MUST be specified together         |
 | `run` with `unix` or `windows`     | **Error**—mutually exclusive                  |
 | Neither `run` nor `unix`/`windows` | **Error** if object has no executable command |
 

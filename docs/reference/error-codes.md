@@ -51,7 +51,7 @@ The Structyl configuration is invalid. Fix `.structyl/config.json` before procee
 - Invalid version format
 
 ```
-structyl: error: invalid configuration
+structyl: invalid configuration
   - project.name: required field missing
 ```
 
@@ -67,7 +67,7 @@ An external system or resource is unavailable.
 - Missing toolchain binary
 
 ```
-structyl: error: Docker is not available
+structyl: Docker is not available
   Install from: https://docs.docker.com/get-docker/
 ```
 
@@ -122,20 +122,34 @@ Failed targets:
 
 ## Error Message Format
 
-```
-structyl: error: <message>
-```
-
-Target-specific errors:
+CLI-level errors (configuration, usage, environment):
 
 ```
-structyl: error [cs]: command "build" failed with exit code 1
+structyl: <message>
 ```
 
-Multi-line errors:
+Target-specific failures (build, test failures):
 
 ```
-structyl: error: invalid configuration
+[<target>] <command>: <message>
+```
+
+**Example - CLI error:**
+
+```
+structyl: configuration file not found
+```
+
+**Example - Target failure:**
+
+```
+[cs] build: command failed with exit code 1
+```
+
+**Example - Multi-line error:**
+
+```
+structyl: invalid configuration
   - project.name: required field missing
   - targets.cs.type: must be "language" or "auxiliary"
 ```

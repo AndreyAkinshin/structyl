@@ -1391,3 +1391,44 @@ func TestExecute_NpmBuiltinCommand_AlwaysAvailable(t *testing.T) {
 		t.Errorf("Execute() error = %v, want nil", err)
 	}
 }
+
+func TestExecute_CompositeCommand_FirstSubCommandDisabled_StopsExecution(t *testing.T) {
+	tmpDir := t.TempDir()
+	markerFile := filepath.Join(tmpDir, "second_ran.txt")
+
+	// Use platform-specific command syntax
+	var createMarker string
+	if runtime.GOOS == "windows" {
+		createMarker = fmt.Sprintf(`'marker' | Out-File -FilePath '%s' -Encoding utf8`, markerFile)
+	} else {
+		createMarker = "echo marker > " + markerFile
+	}
+
+	cfg := config.TargetConfig{
+		Type:      "language",
+		Title:     "Test",
+		Directory: ".",
+		Cwd:       ".",
+		Commands: map[string]interface{}{
+			"first":  nil, // Disabled - returns SkipError
+			"second": createMarker,
+			"both":   []interface{}{"first", "second"},
+		},
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("test", cfg, tmpDir, resolver)
+
+	ctx := context.Background()
+	err := target.Execute(ctx, "both", ExecOptions{})
+
+	// Should return SkipError from "first" command
+	if !IsSkipError(err) {
+		t.Errorf("Execute() error = %v, want SkipError", err)
+	}
+
+	// Verify "second" command did NOT run by checking marker file doesn't exist
+	if _, statErr := os.Stat(markerFile); statErr == nil {
+		t.Error("second command ran but should have been skipped due to first command's SkipError")
+	}
+}

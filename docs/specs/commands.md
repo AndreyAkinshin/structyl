@@ -35,6 +35,8 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 
 <StandardCommands />
 
+> **Note:** The `test:coverage` command is part of the standard vocabulary but few toolchains provide a default implementation. Toolchains MAY define this command; it is OPTIONAL and not required for toolchain conformance. Coverage tool selection and output format are implementation-defined.
+
 ### Command Semantics
 
 #### `clean`
@@ -67,8 +69,8 @@ Runs all read-only validation commands. The exact composition is toolchain-speci
 
 ```bash
 structyl check rs  # → lint, format-check
-structyl check py  # → lint, typecheck
-structyl check go  # → lint, vet
+structyl check py  # → lint, typecheck, format-check
+structyl check go  # → lint, vet, format-check
 ```
 
 See [toolchains.md](toolchains.md) for each toolchain's `check` composition.

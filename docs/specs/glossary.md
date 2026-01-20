@@ -67,6 +67,10 @@ A test case defined in JSON format in the `tests/` directory. Reference tests ar
 
 The target key in the `targets` configuration object. Used as the identifier in commands (e.g., `structyl build cs`). The corresponding directory MAY differ via the `directory` field. Examples: `cs`, `py`, `rs`, `img`.
 
+### Target Name
+
+Synonym for **Slug**. The terms "target name" and "slug" are used interchangeably throughout the documentation.
+
 ### Suite
 
 A collection of related test cases, organized as a subdirectory of `tests/`. Example: `tests/center/` is the "center" suite.

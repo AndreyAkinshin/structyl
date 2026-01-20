@@ -307,17 +307,19 @@ Execution order:
 1. `gen` and `rs` start immediately (no dependencies)
 2. When `gen` completes, `cs` and `py` become eligible and start in parallel
 
-::: warning Known Limitation
-The current implementation does **not** enforce dependency completion before starting dependent targets. Topological ordering ensures dependencies are *scheduled* first, but concurrent execution may cause dependent targets to start before their dependencies complete.
+### Known Limitation: Parallel Execution and Dependencies
+
+When `STRUCTYL_PARALLEL > 1`, Structyl DOES NOT guarantee that targets in `depends_on` complete before the dependent target starts execution. Topological ordering ensures dependencies are *scheduled* first, but the semaphore-based worker pool MAY execute dependent targets before their dependencies finish.
+
+**Formal Statement:** Implementations requiring strict dependency ordering MUST use `STRUCTYL_PARALLEL=1` or external orchestration.
 
 **Workarounds:**
 
 1. Use sequential execution (`STRUCTYL_PARALLEL=1`)
-2. Ensure dependency relationships are idempotent
+2. Ensure dependency relationships are idempotent (safe to re-run)
 3. Use external orchestration (mise, make) for strict dependency-aware parallelism
 
 This is a known limitation tracked for future improvement.
-:::
 
 | `STRUCTYL_PARALLEL` Value                  | Behavior                                 |
 | ------------------------------------------ | ---------------------------------------- |

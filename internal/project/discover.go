@@ -5,59 +5,15 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
 
-// ToolchainMarker defines a file pattern and its associated toolchain.
-type ToolchainMarker struct {
-	Pattern   string
-	Toolchain string
-}
-
-// toolchainMarkers defines the auto-detection order for toolchains.
-// First match wins.
-var toolchainMarkers = []ToolchainMarker{
-	{"Cargo.toml", "cargo"},
-	{"go.mod", "go"},
-	{"pnpm-lock.yaml", "pnpm"},
-	{"yarn.lock", "yarn"},
-	{"bun.lockb", "bun"},
-	{"package.json", "npm"},
-	{"uv.lock", "uv"},
-	{"poetry.lock", "poetry"},
-	{"pyproject.toml", "python"},
-	{"setup.py", "python"},
-	{"build.gradle.kts", "gradle"},
-	{"build.gradle", "gradle"},
-	{"pom.xml", "maven"},
-	{"Package.swift", "swift"},
-	{"CMakeLists.txt", "cmake"},
-	{"Makefile", "make"},
-	// .NET indicators (solution/props files often at root, csproj in subdirs)
-	{"*.sln", "dotnet"},
-	{"Directory.Build.props", "dotnet"},
-	{"global.json", "dotnet"},
-	{"*.csproj", "dotnet"},
-	{"*.fsproj", "dotnet"},
-}
-
 // DetectToolchain attempts to auto-detect the toolchain for a directory.
+// This delegates to toolchain.Detect to maintain a single source of truth
+// for marker file patterns.
 func DetectToolchain(dir string) (string, bool) {
-	for _, marker := range toolchainMarkers {
-		if strings.Contains(marker.Pattern, "*") {
-			// Glob pattern
-			matches, err := filepath.Glob(filepath.Join(dir, marker.Pattern))
-			if err == nil && len(matches) > 0 {
-				return marker.Toolchain, true
-			}
-		} else {
-			// Exact file match
-			path := filepath.Join(dir, marker.Pattern)
-			if _, err := os.Stat(path); err == nil {
-				return marker.Toolchain, true
-			}
-		}
-	}
-	return "", false
+	return toolchain.Detect(dir)
 }
 
 // DiscoverTargets finds all potential targets in a project root.
@@ -91,19 +47,38 @@ func DiscoverTargets(root string) (map[string]string, error) {
 }
 
 // isExcludedDir returns true for directories that should never be auto-discovered as targets.
+// These directories fall into three categories:
+//
+// 1. Dependency directories (contain third-party code, not project targets):
+//   - node_modules: npm/pnpm/yarn packages
+//   - vendor: Go modules, PHP composer, Ruby bundler
+//
+// 2. Build output directories (generated artifacts, not source targets):
+//   - build, dist, out: common output directories
+//   - target: Rust/Cargo build directory
+//   - artifacts: structyl output directory
+//
+// 3. Support directories (auxiliary content, not buildable targets):
+//   - tests: cross-language test data (JSON fixtures)
+//   - templates: project templates, scaffolding
+//   - docs: documentation (VitePress, etc.)
+//   - scripts: build/CI scripts
 func isExcludedDir(name string) bool {
 	excluded := map[string]bool{
+		// Dependency directories
 		"node_modules": true,
 		"vendor":       true,
-		"tests":        true,
-		"templates":    true,
-		"artifacts":    true,
-		"docs":         true,
-		"scripts":      true,
-		"build":        true,
-		"dist":         true,
-		"out":          true,
-		"target":       true, // Rust build dir
+		// Build output directories
+		"build":     true,
+		"dist":      true,
+		"out":       true,
+		"target":    true,
+		"artifacts": true,
+		// Support directories
+		"tests":     true,
+		"templates": true,
+		"docs":      true,
+		"scripts":   true,
 	}
 	return excluded[name]
 }

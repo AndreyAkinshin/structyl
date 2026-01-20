@@ -82,6 +82,17 @@ Version management configuration. See [version-management.md](version-management
 }
 ```
 
+**Version file fields:**
+
+| Field        | Type    | Default | Description                                              |
+| ------------ | ------- | ------- | -------------------------------------------------------- |
+| `path`       | string  | Required| File path relative to project root                       |
+| `pattern`    | string  | Required| Regex pattern to match (RE2 syntax)                      |
+| `replace`    | string  | Required| Replacement string with `{version}` placeholder          |
+| `replace_all`| boolean | `false` | Replace all matches instead of requiring exactly one     |
+
+By default, the pattern MUST match exactly once. Set `replace_all: true` for files with multiple version occurrences.
+
 ### `targets`
 
 Build targets configuration. See [targets.md](targets.md) for details.
@@ -315,15 +326,34 @@ Custom CI pipeline configuration. Overrides the default `ci` command steps.
 }
 ```
 
-| Field                      | Type     | Default   | Description                          |
-| -------------------------- | -------- | --------- | ------------------------------------ |
-| `steps`                    | array    | `[]`      | CI pipeline step definitions         |
-| `steps[].name`             | string   | Required  | Step name for display and references |
-| `steps[].target`           | string   | Required  | Target name or `"all"`               |
-| `steps[].command`          | string   | Required  | Command to execute                   |
-| `steps[].flags`            | string[] | `[]`      | Additional command flags             |
-| `steps[].depends_on`       | string[] | `[]`      | Step names that must complete first  |
-| `steps[].continue_on_error`| boolean  | `false`   | Continue pipeline if step fails      |
+| Field                      | Type     | Default   | Description                                          |
+| -------------------------- | -------- | --------- | ---------------------------------------------------- |
+| `steps`                    | array    | `[]`      | CI pipeline step definitions                         |
+| `steps[].name`             | string   | Required  | Step name for display and references                 |
+| `steps[].target`           | string   | Required  | Target name or `"all"`                               |
+| `steps[].command`          | string   | Required  | Command to execute                                   |
+| `steps[].flags`            | string[] | `[]`      | Additional flags appended to the command invocation  |
+| `steps[].depends_on`       | string[] | `[]`      | Step names that must complete first                  |
+| `steps[].continue_on_error`| boolean  | `false`   | Continue pipeline if step fails                      |
+
+**Example with flags:**
+
+```json
+{
+  "ci": {
+    "steps": [
+      {
+        "name": "test-verbose",
+        "target": "rs",
+        "command": "test",
+        "flags": ["--", "--nocapture"]
+      }
+    ]
+  }
+}
+```
+
+When executed, flags are appended to the resolved command: `cargo test -- --nocapture`.
 
 ### `artifacts`
 

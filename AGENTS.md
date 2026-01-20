@@ -626,6 +626,12 @@ func cmdSomething() int {
 | ------------------- | -------------------------- | ------------------ |
 | `STRUCTYL_DOCKER`   | Enable Docker mode         | `false`            |
 | `STRUCTYL_PARALLEL` | Number of parallel workers | `runtime.NumCPU()` |
+| `NO_COLOR`          | Disable colored output     | (unset)            |
+
+**`STRUCTYL_PARALLEL` behavior:**
+- Value `0` or negative: Uses `runtime.NumCPU()`
+- Value `> 256`: Capped to 256 (safety limit)
+- Invalid (non-numeric): Falls back to `runtime.NumCPU()`
 
 ## Dependencies
 

@@ -575,3 +575,36 @@ func TestLoadAllSuites_EmptySuite_Skipped(t *testing.T) {
 		t.Error("suite with tests should be included in results")
 	}
 }
+
+// =============================================================================
+// Work Item 5: Deterministic Ordering Test
+// =============================================================================
+
+func TestLoadTestSuite_DeterministicOrdering(t *testing.T) {
+	tmpDir := t.TempDir()
+	suiteDir := filepath.Join(tmpDir, "tests", "ordering")
+	os.MkdirAll(suiteDir, 0755)
+
+	// Create files in non-alphabetical order to test sorting
+	os.WriteFile(filepath.Join(suiteDir, "zebra.json"), []byte(`{"input": {}, "output": "z"}`), 0644)
+	os.WriteFile(filepath.Join(suiteDir, "alpha.json"), []byte(`{"input": {}, "output": "a"}`), 0644)
+	os.WriteFile(filepath.Join(suiteDir, "middle.json"), []byte(`{"input": {}, "output": "m"}`), 0644)
+	os.WriteFile(filepath.Join(suiteDir, "beta.json"), []byte(`{"input": {}, "output": "b"}`), 0644)
+
+	cases, err := LoadTestSuite(tmpDir, "ordering")
+	if err != nil {
+		t.Fatalf("LoadTestSuite() error = %v", err)
+	}
+
+	if len(cases) != 4 {
+		t.Fatalf("expected 4 test cases, got %d", len(cases))
+	}
+
+	// Verify alphabetical ordering by name
+	expectedOrder := []string{"alpha", "beta", "middle", "zebra"}
+	for i, tc := range cases {
+		if tc.Name != expectedOrder[i] {
+			t.Errorf("cases[%d].Name = %q, want %q", i, tc.Name, expectedOrder[i])
+		}
+	}
+}

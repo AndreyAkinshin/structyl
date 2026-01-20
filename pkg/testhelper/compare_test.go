@@ -978,3 +978,40 @@ func TestCompareOutput_EmptyArrayOrder_DefaultsToStrict(t *testing.T) {
 		t.Error("empty ArrayOrder should behave identically to explicit strict mode")
 	}
 }
+
+// =============================================================================
+// Work Item 6: +Infinity String Support Test
+// =============================================================================
+
+func TestCompare_PlusInfinityString(t *testing.T) {
+	opts := DefaultOptions()
+
+	// "+Infinity" should match positive infinity (same as "Infinity")
+	if !CompareOutput("+Infinity", math.Inf(1), opts) {
+		t.Error("expected \"+Infinity\" string to match math.Inf(1)")
+	}
+
+	// "+Infinity" should NOT match negative infinity
+	if CompareOutput("+Infinity", math.Inf(-1), opts) {
+		t.Error("expected \"+Infinity\" string to NOT match math.Inf(-1)")
+	}
+
+	// "+Infinity" should NOT match regular numbers
+	if CompareOutput("+Infinity", float64(42), opts) {
+		t.Error("expected \"+Infinity\" string to NOT match regular number")
+	}
+
+	// "+Infinity" should NOT match NaN
+	if CompareOutput("+Infinity", math.NaN(), opts) {
+		t.Error("expected \"+Infinity\" string to NOT match NaN")
+	}
+
+	// Type mismatch: "+Infinity" vs string (not treated as special float)
+	ok, diff := Compare("+Infinity", "infinity", opts)
+	if ok {
+		t.Error("expected \"+Infinity\" vs string to fail (type mismatch)")
+	}
+	if diff == "" {
+		t.Error("expected diff message for type mismatch")
+	}
+}

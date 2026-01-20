@@ -472,6 +472,54 @@ func TestValidate_CIStepDuplicateName_ReturnsError(t *testing.T) {
 	}
 }
 
+func TestValidate_CIStepEmptyTarget_ReturnsError(t *testing.T) {
+	t.Parallel()
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Targets: map[string]TargetConfig{
+			"rs": {Type: "language", Title: "Rust"},
+		},
+		CI: &CIConfig{
+			Steps: []CIStep{
+				{Name: "build", Target: "", Command: "build"},
+			},
+		},
+	}
+
+	_, err := Validate(cfg)
+	if err == nil {
+		t.Fatal("Validate() expected error for empty CI step target")
+	}
+
+	valErr, ok := err.(*ValidationError)
+	if !ok {
+		t.Fatalf("expected ValidationError, got %T", err)
+	}
+	if valErr.Field != "ci.steps[0].target" {
+		t.Errorf("ValidationError.Field = %q, want %q", valErr.Field, "ci.steps[0].target")
+	}
+}
+
+func TestValidate_CIStepTargetAll_Succeeds(t *testing.T) {
+	t.Parallel()
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Targets: map[string]TargetConfig{
+			"rs": {Type: "language", Title: "Rust"},
+		},
+		CI: &CIConfig{
+			Steps: []CIStep{
+				{Name: "build-all", Target: "all", Command: "build"},
+			},
+		},
+	}
+
+	_, err := Validate(cfg)
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil for target 'all'", err)
+	}
+}
+
 func TestValidate_ToleranceMode_Valid(t *testing.T) {
 	t.Parallel()
 	validModes := []string{"", "relative", "absolute", "ulp"}

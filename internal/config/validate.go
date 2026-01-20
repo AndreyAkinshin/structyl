@@ -77,8 +77,16 @@ func validateCI(cfg *Config) error {
 		}
 		stepNames[step.Name] = true
 
-		// Step target must reference a defined target
-		if step.Target != "" {
+		// Step target must not be empty
+		if step.Target == "" {
+			return &ValidationError{
+				Field:   fmt.Sprintf("ci.steps[%d].target", i),
+				Message: "required",
+			}
+		}
+
+		// Step target must reference a defined target (unless it's "all")
+		if step.Target != "all" {
 			if _, ok := cfg.Targets[step.Target]; !ok {
 				return &ValidationError{
 					Field:   fmt.Sprintf("ci.%s.target", step.Name),

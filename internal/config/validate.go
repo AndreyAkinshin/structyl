@@ -8,8 +8,6 @@ import (
 // Validation limits.
 const (
 	maxProjectNameLength = 128
-	maxTargetNameLength  = 64
-	maxTargetTitleLength = 64
 )
 
 // Validation patterns from the specification.

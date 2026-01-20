@@ -204,6 +204,34 @@ func TestParseGlobalFlags_TypeMissingValue(t *testing.T) {
 	}
 }
 
+func TestParseGlobalFlags_UnknownFlagsPassThrough(t *testing.T) {
+	// Unknown flags are passed through to commands (not rejected at global level)
+	// This allows command-specific flags like "build --release"
+	t.Parallel()
+	tests := []struct {
+		name       string
+		args       []string
+		wantRemain []string
+	}{
+		{"unknown long flag", []string{"--unknown-flag", "build"}, []string{"--unknown-flag", "build"}},
+		{"unknown short flag", []string{"-x", "build"}, []string{"-x", "build"}},
+		{"command with unknown flag", []string{"build", "--release"}, []string{"build", "--release"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			_, remaining, err := parseGlobalFlags(tt.args)
+			if err != nil {
+				t.Errorf("parseGlobalFlags(%v) unexpected error: %v", tt.args, err)
+			}
+			if len(remaining) != len(tt.wantRemain) {
+				t.Errorf("remaining = %v, want %v", remaining, tt.wantRemain)
+			}
+		})
+	}
+}
+
 func TestRun_Help(t *testing.T) {
 	tests := []struct {
 		name string

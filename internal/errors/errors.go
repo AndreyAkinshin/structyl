@@ -85,6 +85,23 @@ func Configf(format string, args ...interface{}) *StructylError {
 	return Config(fmt.Sprintf(format, args...))
 }
 
+// Validation creates a new validation error.
+// Validation errors are distinct from configuration errors: configuration
+// errors indicate the configuration file is malformed or has invalid syntax,
+// while validation errors indicate the configuration is syntactically valid
+// but contains semantic errors (e.g., invalid version format, pattern not found).
+func Validation(message string) *StructylError {
+	return &StructylError{
+		Kind:    KindValidation,
+		Message: message,
+	}
+}
+
+// Validationf creates a new validation error with formatting.
+func Validationf(format string, args ...interface{}) *StructylError {
+	return Validation(fmt.Sprintf(format, args...))
+}
+
 // Environment creates a new environment error.
 func Environment(message string) *StructylError {
 	return &StructylError{

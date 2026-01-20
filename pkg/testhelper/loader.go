@@ -30,6 +30,7 @@ package testhelper
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -82,6 +83,8 @@ func LoadTestSuite(projectRoot, suite string) ([]TestCase, error) {
 }
 
 // LoadTestCase loads a single test case from a JSON file.
+// Returns an error if the file cannot be read, contains invalid JSON,
+// or is missing required fields (input and output).
 func LoadTestCase(path string) (*TestCase, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -93,15 +96,27 @@ func LoadTestCase(path string) (*TestCase, error) {
 		return nil, err
 	}
 
+	// Validate required fields per spec
+	if tc.Input == nil {
+		return nil, fmt.Errorf("%s: missing required field \"input\"", filepath.Base(path))
+	}
+	if tc.Output == nil {
+		return nil, fmt.Errorf("%s: missing required field \"output\"", filepath.Base(path))
+	}
+
 	tc.Name = strings.TrimSuffix(filepath.Base(path), ".json")
 	return &tc, nil
 }
 
 // LoadAllSuites loads test cases from all suites in the tests directory.
+// Returns an empty map (not nil) if the tests directory doesn't exist.
 func LoadAllSuites(projectRoot string) (map[string][]TestCase, error) {
 	testsDir := filepath.Join(projectRoot, "tests")
 	entries, err := os.ReadDir(testsDir)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return map[string][]TestCase{}, nil
+		}
 		return nil, err
 	}
 
@@ -165,12 +180,13 @@ func (e *ProjectNotFoundError) Error() string {
 }
 
 // ListSuites returns the names of all available test suites.
+// Returns an empty slice (not nil) if the tests directory doesn't exist.
 func ListSuites(projectRoot string) ([]string, error) {
 	testsDir := filepath.Join(projectRoot, "tests")
 	entries, err := os.ReadDir(testsDir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, nil
+			return []string{}, nil
 		}
 		return nil, err
 	}

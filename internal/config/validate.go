@@ -57,24 +57,43 @@ func validateCI(cfg *Config) error {
 		return nil
 	}
 
-	// Build set of defined step names
+	// Build set of defined step names and check for duplicates/empty names
 	stepNames := make(map[string]bool)
-	for _, step := range cfg.CI.Steps {
-		if step.Name != "" {
-			stepNames[step.Name] = true
+	for i, step := range cfg.CI.Steps {
+		// Step name must not be empty
+		if step.Name == "" {
+			return &ValidationError{
+				Field:   fmt.Sprintf("ci.steps[%d].name", i),
+				Message: "required",
+			}
+		}
+
+		// Step name must be unique
+		if stepNames[step.Name] {
+			return &ValidationError{
+				Field:   fmt.Sprintf("ci.%s.name", step.Name),
+				Message: "duplicate step name",
+			}
+		}
+		stepNames[step.Name] = true
+
+		// Step target must reference a defined target
+		if step.Target != "" {
+			if _, ok := cfg.Targets[step.Target]; !ok {
+				return &ValidationError{
+					Field:   fmt.Sprintf("ci.%s.target", step.Name),
+					Message: fmt.Sprintf("references undefined target %q", step.Target),
+				}
+			}
 		}
 	}
 
 	// Validate DependsOn references
-	for i, step := range cfg.CI.Steps {
+	for _, step := range cfg.CI.Steps {
 		for _, dep := range step.DependsOn {
 			if !stepNames[dep] {
-				stepID := step.Name
-				if stepID == "" {
-					stepID = fmt.Sprintf("steps[%d]", i)
-				}
 				return &ValidationError{
-					Field:   fmt.Sprintf("ci.%s.depends_on", stepID),
+					Field:   fmt.Sprintf("ci.%s.depends_on", step.Name),
 					Message: fmt.Sprintf("references undefined step %q", dep),
 				}
 			}

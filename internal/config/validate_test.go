@@ -403,6 +403,75 @@ func TestValidate_CIStepDependsOnValid_Succeeds(t *testing.T) {
 	}
 }
 
+func TestValidate_CIStepTargetUndefined_ReturnsError(t *testing.T) {
+	t.Parallel()
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Targets: map[string]TargetConfig{
+			"rs": {Type: "language", Title: "Rust"},
+		},
+		CI: &CIConfig{
+			Steps: []CIStep{
+				{Name: "build", Target: "nonexistent", Command: "build"},
+			},
+		},
+	}
+
+	_, err := Validate(cfg)
+	if err == nil {
+		t.Fatal("Validate() expected error for undefined CI step target")
+	}
+
+	valErr, ok := err.(*ValidationError)
+	if !ok {
+		t.Fatalf("expected ValidationError, got %T", err)
+	}
+	if valErr.Field != "ci.build.target" {
+		t.Errorf("ValidationError.Field = %q, want %q", valErr.Field, "ci.build.target")
+	}
+}
+
+func TestValidate_CIStepEmptyName_ReturnsError(t *testing.T) {
+	t.Parallel()
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Targets: map[string]TargetConfig{
+			"rs": {Type: "language", Title: "Rust"},
+		},
+		CI: &CIConfig{
+			Steps: []CIStep{
+				{Name: "", Target: "rs", Command: "build"},
+			},
+		},
+	}
+
+	_, err := Validate(cfg)
+	if err == nil {
+		t.Fatal("Validate() expected error for empty CI step name")
+	}
+}
+
+func TestValidate_CIStepDuplicateName_ReturnsError(t *testing.T) {
+	t.Parallel()
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Targets: map[string]TargetConfig{
+			"rs": {Type: "language", Title: "Rust"},
+		},
+		CI: &CIConfig{
+			Steps: []CIStep{
+				{Name: "build", Target: "rs", Command: "build"},
+				{Name: "build", Target: "rs", Command: "test"}, // Duplicate name
+			},
+		},
+	}
+
+	_, err := Validate(cfg)
+	if err == nil {
+		t.Fatal("Validate() expected error for duplicate CI step name")
+	}
+}
+
 func TestValidate_ToleranceMode_Valid(t *testing.T) {
 	t.Parallel()
 	validModes := []string{"", "relative", "absolute", "ulp"}

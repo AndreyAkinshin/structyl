@@ -497,23 +497,29 @@ mise tasks
 
 ### Adding a New Toolchain
 
-1. Edit `internal/toolchain/builtin.go`:
+1. Edit `internal/cli/toolchains_template.json` (canonical source of truth):
 
-```go
-var builtinToolchains = map[string]*Toolchain{
-    // ... existing toolchains
+```json
+{
+  "toolchains": {
     "newtool": {
-        Name: "newtool",
-        Commands: map[string]interface{}{
-            "clean":   "newtool clean",
-            "restore": "newtool deps",
-            "build":   "newtool build",
-            "test":    "newtool test",
-            // ... standard commands
-        },
-    },
+      "mise": {
+        "primary_tool": "newtool",
+        "version": "latest"
+      },
+      "commands": {
+        "clean": "newtool clean",
+        "restore": "newtool deps",
+        "build": "newtool build",
+        "test": "newtool test"
+      }
+    }
+  }
 }
 ```
+
+> **Note:** `internal/toolchain/builtin.go` is a legacy fallback that mirrors this JSON.
+> Always edit the JSON template first; the Go file exists for backwards compatibility.
 
 2. Add marker file detection in `internal/toolchain/detect.go`:
 

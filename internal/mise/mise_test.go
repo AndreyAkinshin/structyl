@@ -3,6 +3,7 @@ package mise
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -270,6 +271,9 @@ func TestCapitalize(t *testing.T) {
 }
 
 func TestWriteMiseToml_ReadOnlyDirectory(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows read-only directory permissions do not prevent file creation")
+	}
 	t.Parallel()
 	tmpDir := t.TempDir()
 

@@ -431,7 +431,7 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 
 // cmdDockerBuild builds Docker images for services.
 func cmdDockerBuild(args []string, opts *GlobalOptions) int {
-	_ = opts // Reserved for future use (e.g., verbosity, parallel builds)
+	applyVerbosityToOutput(opts)
 
 	if wantsHelp(args) {
 		printDockerBuildUsage()
@@ -468,7 +468,7 @@ func cmdDockerBuild(args []string, opts *GlobalOptions) int {
 
 // cmdDockerClean removes Docker containers and images.
 func cmdDockerClean(args []string, opts *GlobalOptions) int {
-	_ = opts // Reserved for future use (e.g., verbosity, force removal)
+	applyVerbosityToOutput(opts)
 
 	if wantsHelp(args) {
 		printDockerCleanUsage()

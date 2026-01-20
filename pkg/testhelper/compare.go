@@ -71,6 +71,9 @@ func DefaultOptions() CompareOptions {
 // ValidateOptions validates that CompareOptions has valid enum values.
 // Returns nil if valid, or an error describing the invalid field.
 func ValidateOptions(opts CompareOptions) error {
+	if opts.FloatTolerance < 0 {
+		return fmt.Errorf("invalid FloatTolerance: %v (must be >= 0)", opts.FloatTolerance)
+	}
 	switch opts.ToleranceMode {
 	case "", "relative", "absolute", "ulp":
 		// valid (empty defaults to relative)

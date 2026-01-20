@@ -41,7 +41,43 @@ func Validate(cfg *Config) (warnings []string, err error) {
 		return nil, err
 	}
 
+	if err := validateCI(cfg); err != nil {
+		return nil, err
+	}
+
 	return nil, nil
+}
+
+func validateCI(cfg *Config) error {
+	if cfg.CI == nil || len(cfg.CI.Steps) == 0 {
+		return nil
+	}
+
+	// Build set of defined step names
+	stepNames := make(map[string]bool)
+	for _, step := range cfg.CI.Steps {
+		if step.Name != "" {
+			stepNames[step.Name] = true
+		}
+	}
+
+	// Validate DependsOn references
+	for i, step := range cfg.CI.Steps {
+		for _, dep := range step.DependsOn {
+			if !stepNames[dep] {
+				stepID := step.Name
+				if stepID == "" {
+					stepID = fmt.Sprintf("steps[%d]", i)
+				}
+				return &ValidationError{
+					Field:   fmt.Sprintf("ci.%s.depends_on", stepID),
+					Message: fmt.Sprintf("references undefined step %q", dep),
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 func validateProject(cfg *Config) error {

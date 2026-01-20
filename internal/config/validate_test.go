@@ -352,3 +352,53 @@ func TestValidate_ValidCommandTypes_Succeeds(t *testing.T) {
 		t.Errorf("Validate() error = %v, want nil for valid command types", err)
 	}
 }
+
+func TestValidate_CIStepDependsOnUndefined_ReturnsError(t *testing.T) {
+	t.Parallel()
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Targets: map[string]TargetConfig{
+			"rs": {Type: "language", Title: "Rust"},
+		},
+		CI: &CIConfig{
+			Steps: []CIStep{
+				{Name: "build", Target: "rs", Command: "build"},
+				{Name: "test", Target: "rs", Command: "test", DependsOn: []string{"nonexistent"}},
+			},
+		},
+	}
+
+	_, err := Validate(cfg)
+	if err == nil {
+		t.Fatal("Validate() expected error for undefined CI step dependency")
+	}
+
+	valErr, ok := err.(*ValidationError)
+	if !ok {
+		t.Fatalf("expected ValidationError, got %T", err)
+	}
+	if valErr.Field != "ci.test.depends_on" {
+		t.Errorf("ValidationError.Field = %q, want %q", valErr.Field, "ci.test.depends_on")
+	}
+}
+
+func TestValidate_CIStepDependsOnValid_Succeeds(t *testing.T) {
+	t.Parallel()
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Targets: map[string]TargetConfig{
+			"rs": {Type: "language", Title: "Rust"},
+		},
+		CI: &CIConfig{
+			Steps: []CIStep{
+				{Name: "build", Target: "rs", Command: "build"},
+				{Name: "test", Target: "rs", Command: "test", DependsOn: []string{"build"}},
+			},
+		},
+	}
+
+	_, err := Validate(cfg)
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil for valid CI step dependencies", err)
+	}
+}

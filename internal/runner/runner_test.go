@@ -5,7 +5,6 @@ import (
 	"errors"
 	"os"
 	"strings"
-	"sync"
 	"testing"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
@@ -490,97 +489,8 @@ func TestCombineErrors_Unwrappable(t *testing.T) {
 }
 
 // =============================================================================
-// Docker Mode Tests
+// Options Propagation Tests
 // =============================================================================
-
-func TestRunSequential_WithDockerOption_PassesToAllTargets(t *testing.T) {
-	t.Parallel()
-	var receivedDocker []bool
-
-	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
-		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
-			receivedDocker = append(receivedDocker, opts.Docker)
-			return nil
-		})
-	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage).
-		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
-			receivedDocker = append(receivedDocker, opts.Docker)
-			return nil
-		})
-
-	targets := []target.Target{target1, target2}
-
-	registry, _ := createTestRegistry(t)
-	r := New(registry)
-
-	ctx := context.Background()
-	err := r.runSequential(ctx, targets, "build", RunOptions{Docker: true})
-
-	if err != nil {
-		t.Errorf("runSequential() error = %v", err)
-	}
-
-	if len(receivedDocker) != 2 {
-		t.Fatalf("expected 2 executions, got %d", len(receivedDocker))
-	}
-
-	for i, received := range receivedDocker {
-		if !received {
-			t.Errorf("target %d: Docker option not passed (received false)", i)
-		}
-	}
-}
-
-func TestRunParallel_WithDockerOption_PassesToAllTargets(t *testing.T) {
-	t.Setenv("STRUCTYL_PARALLEL", "4")
-
-	var mu sync.Mutex
-	var receivedDocker []bool
-
-	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
-		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
-			mu.Lock()
-			receivedDocker = append(receivedDocker, opts.Docker)
-			mu.Unlock()
-			return nil
-		})
-	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage).
-		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
-			mu.Lock()
-			receivedDocker = append(receivedDocker, opts.Docker)
-			mu.Unlock()
-			return nil
-		})
-	target3 := mocks.NewTarget("t3").WithType(target.TypeLanguage).
-		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
-			mu.Lock()
-			receivedDocker = append(receivedDocker, opts.Docker)
-			mu.Unlock()
-			return nil
-		})
-
-	targets := []target.Target{target1, target2, target3}
-
-	registry, _ := createTestRegistry(t)
-	r := New(registry)
-
-	ctx := context.Background()
-	err := r.runParallel(ctx, targets, "build", RunOptions{Docker: true})
-
-	if err != nil {
-		t.Errorf("runParallel() error = %v", err)
-	}
-
-	if len(receivedDocker) != 3 {
-		t.Fatalf("expected 3 executions, got %d", len(receivedDocker))
-	}
-
-	for i, received := range receivedDocker {
-		if !received {
-			t.Errorf("target %d: Docker option not passed (received false)", i)
-		}
-	}
-}
 
 func TestRunSequential_WithEnvOption_PassesToAllTargets(t *testing.T) {
 	t.Parallel()
@@ -614,6 +524,44 @@ func TestRunSequential_WithEnvOption_PassesToAllTargets(t *testing.T) {
 	}
 	if receivedEnv[0]["BAZ"] != "qux" {
 		t.Errorf("expected BAZ=qux, got BAZ=%s", receivedEnv[0]["BAZ"])
+	}
+}
+
+func TestRunSequential_WithVerbosityOption_PassesToAllTargets(t *testing.T) {
+	t.Parallel()
+	var receivedVerbosity []target.Verbosity
+
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			receivedVerbosity = append(receivedVerbosity, opts.Verbosity)
+			return nil
+		})
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			receivedVerbosity = append(receivedVerbosity, opts.Verbosity)
+			return nil
+		})
+
+	targets := []target.Target{target1, target2}
+
+	registry, _ := createTestRegistry(t)
+	r := New(registry)
+
+	ctx := context.Background()
+	err := r.runSequential(ctx, targets, "build", RunOptions{Verbosity: target.VerbosityVerbose})
+
+	if err != nil {
+		t.Errorf("runSequential() error = %v", err)
+	}
+
+	if len(receivedVerbosity) != 2 {
+		t.Fatalf("expected 2 executions, got %d", len(receivedVerbosity))
+	}
+
+	for i, received := range receivedVerbosity {
+		if received != target.VerbosityVerbose {
+			t.Errorf("target %d: Verbosity = %v, want VerbosityVerbose", i, received)
+		}
 	}
 }
 
@@ -738,5 +686,154 @@ func TestRunSequential_AllFail_CombinesAllErrors(t *testing.T) {
 	}
 	if !strings.Contains(errMsg, "t2 failed") {
 		t.Errorf("error should mention 't2 failed', got %q", errMsg)
+	}
+}
+
+// =============================================================================
+// SkipError Handling Tests
+// =============================================================================
+
+func TestRunSequential_SkipError_ContinuesWithoutFailure(t *testing.T) {
+	t.Parallel()
+
+	// SkipError should be logged but not treated as a failure
+	skipErr := &target.SkipError{
+		Target:  "t1",
+		Command: "build",
+		Reason:  target.SkipReasonDisabled,
+	}
+
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			return skipErr
+		})
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage)
+	target3 := mocks.NewTarget("t3").WithType(target.TypeLanguage)
+
+	targets := []target.Target{target1, target2, target3}
+
+	registry, _ := createTestRegistry(t)
+	r := New(registry)
+
+	ctx := context.Background()
+	err := r.runSequential(ctx, targets, "build", RunOptions{})
+
+	// Should return nil because SkipErrors are not failures
+	if err != nil {
+		t.Errorf("runSequential() error = %v, want nil (SkipError should not cause failure)", err)
+	}
+
+	// All targets should still execute
+	if target1.ExecCount() != 1 {
+		t.Errorf("target1.ExecCount() = %d, want 1", target1.ExecCount())
+	}
+	if target2.ExecCount() != 1 {
+		t.Errorf("target2.ExecCount() = %d, want 1 (should continue after SkipError)", target2.ExecCount())
+	}
+	if target3.ExecCount() != 1 {
+		t.Errorf("target3.ExecCount() = %d, want 1 (should continue after SkipError)", target3.ExecCount())
+	}
+}
+
+func TestRunParallel_SkipError_ContinuesWithoutFailure(t *testing.T) {
+	t.Setenv("STRUCTYL_PARALLEL", "4")
+
+	// SkipError should be logged but not treated as a failure in parallel mode
+	skipErr := &target.SkipError{
+		Target:  "t1",
+		Command: "build",
+		Reason:  target.SkipReasonCommandNotFound,
+		Detail:  "golangci-lint",
+	}
+
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			return skipErr
+		})
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage)
+	target3 := mocks.NewTarget("t3").WithType(target.TypeLanguage)
+
+	targets := []target.Target{target1, target2, target3}
+
+	registry, _ := createTestRegistry(t)
+	r := New(registry)
+
+	ctx := context.Background()
+	err := r.runParallel(ctx, targets, "build", RunOptions{})
+
+	// Should return nil because SkipErrors are not failures
+	if err != nil {
+		t.Errorf("runParallel() error = %v, want nil (SkipError should not cause failure)", err)
+	}
+
+	// All targets should still execute
+	if target1.ExecCount() != 1 {
+		t.Errorf("target1.ExecCount() = %d, want 1", target1.ExecCount())
+	}
+	if target2.ExecCount() != 1 {
+		t.Errorf("target2.ExecCount() = %d, want 1", target2.ExecCount())
+	}
+	if target3.ExecCount() != 1 {
+		t.Errorf("target3.ExecCount() = %d, want 1", target3.ExecCount())
+	}
+}
+
+func TestRunSequential_MixedErrors_SkipErrorNotInCombined(t *testing.T) {
+	t.Parallel()
+
+	// When we have both SkipErrors and real errors, SkipErrors should not be
+	// included in the combined error, but real errors should be.
+	skipErr := &target.SkipError{
+		Target:  "t1",
+		Command: "build",
+		Reason:  target.SkipReasonDisabled,
+	}
+	realErr := errors.New("t2 failed")
+
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			return skipErr
+		})
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			return realErr
+		})
+	target3 := mocks.NewTarget("t3").WithType(target.TypeLanguage)
+
+	targets := []target.Target{target1, target2, target3}
+
+	registry, _ := createTestRegistry(t)
+	r := New(registry)
+
+	ctx := context.Background()
+	err := r.runSequential(ctx, targets, "build", RunOptions{Continue: true})
+
+	// Should return error because t2 failed with a real error
+	if err == nil {
+		t.Fatal("runSequential() expected error for real failure")
+	}
+
+	errMsg := err.Error()
+
+	// Real error should be in the message
+	if !strings.Contains(errMsg, "t2 failed") {
+		t.Errorf("error = %q, want to contain 't2 failed'", errMsg)
+	}
+
+	// SkipError reason should NOT be in the combined error message
+	// (it was logged separately, not collected into errs slice)
+	if strings.Contains(errMsg, "disabled") {
+		t.Errorf("error = %q, should not contain SkipError details (disabled)", errMsg)
+	}
+
+	// All three targets should have executed with Continue: true
+	if target1.ExecCount() != 1 {
+		t.Errorf("target1.ExecCount() = %d, want 1", target1.ExecCount())
+	}
+	if target2.ExecCount() != 1 {
+		t.Errorf("target2.ExecCount() = %d, want 1", target2.ExecCount())
+	}
+	if target3.ExecCount() != 1 {
+		t.Errorf("target3.ExecCount() = %d, want 1", target3.ExecCount())
 	}
 }

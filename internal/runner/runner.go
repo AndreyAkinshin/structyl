@@ -32,11 +32,18 @@ type Runner struct {
 
 // RunOptions configures execution behavior.
 type RunOptions struct {
-	Docker   bool              // Run in Docker container
-	Continue bool              // Continue on error (don't fail-fast)
-	Parallel bool              // Run in parallel where dependencies allow
-	Args     []string          // Arguments to pass to commands
-	Env      map[string]string // Additional environment variables
+	Docker   bool // Run in Docker container
+	Continue bool // Continue on error (don't fail-fast)
+	// Parallel enables concurrent target execution with a worker pool.
+	// KNOWN LIMITATION: Parallel mode does NOT respect depends_on ordering.
+	// Targets may execute before their dependencies complete. For dependency-
+	// aware parallel execution, use mise tasks instead (structyl delegates to
+	// mise which handles dependencies correctly). This field is primarily for
+	// internal use; CLI commands use mise for orchestration.
+	Parallel  bool
+	Args      []string          // Arguments to pass to commands
+	Env       map[string]string // Additional environment variables
+	Verbosity target.Verbosity  // Output verbosity level
 }
 
 // New creates a new Runner.
@@ -52,9 +59,9 @@ func (r *Runner) Run(ctx context.Context, targetName, cmd string, opts RunOption
 	}
 
 	execOpts := target.ExecOptions{
-		Docker: opts.Docker,
-		Args:   opts.Args,
-		Env:    opts.Env,
+		Args:      opts.Args,
+		Env:       opts.Env,
+		Verbosity: opts.Verbosity,
 	}
 
 	return t.Execute(ctx, cmd, execOpts)
@@ -125,9 +132,9 @@ func (r *Runner) RunTargets(ctx context.Context, targetNames []string, cmd strin
 // runSequential executes targets one at a time in order.
 func (r *Runner) runSequential(ctx context.Context, targets []target.Target, cmd string, opts RunOptions) error {
 	execOpts := target.ExecOptions{
-		Docker: opts.Docker,
-		Args:   opts.Args,
-		Env:    opts.Env,
+		Args:      opts.Args,
+		Env:       opts.Env,
+		Verbosity: opts.Verbosity,
 	}
 
 	var errs []error
@@ -179,9 +186,9 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 	sem := make(chan struct{}, workers)
 
 	execOpts := target.ExecOptions{
-		Docker: opts.Docker,
-		Args:   opts.Args,
-		Env:    opts.Env,
+		Args:      opts.Args,
+		Env:       opts.Env,
+		Verbosity: opts.Verbosity,
 	}
 
 	// Process targets concurrently with worker pool limiting.

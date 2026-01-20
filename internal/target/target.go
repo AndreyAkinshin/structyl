@@ -80,7 +80,6 @@ type Target interface {
 
 // ExecOptions contains options for command execution.
 type ExecOptions struct {
-	Docker    bool              // Run in Docker container
 	Args      []string          // Additional arguments
 	Env       map[string]string // Additional environment variables
 	Verbosity Verbosity         // Output verbosity level

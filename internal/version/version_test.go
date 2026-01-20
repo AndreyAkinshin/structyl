@@ -354,27 +354,6 @@ func TestRead_WhitespaceOnlyFile(t *testing.T) {
 	}
 }
 
-func TestCompareInt_EqualValues(t *testing.T) {
-	t.Parallel()
-	tests := []struct {
-		a, b int
-		want int
-	}{
-		{0, 0, 0},
-		{1, 1, 0},
-		{-1, -1, 0},
-		{100, 100, 0},
-		{-100, -100, 0},
-	}
-
-	for _, tt := range tests {
-		got := compareInt(tt.a, tt.b)
-		if got != tt.want {
-			t.Errorf("compareInt(%d, %d) = %d, want %d", tt.a, tt.b, got, tt.want)
-		}
-	}
-}
-
 func TestCompare_IdenticalVersions(t *testing.T) {
 	t.Parallel()
 	tests := []string{

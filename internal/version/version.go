@@ -2,6 +2,7 @@
 package version
 
 import (
+	"cmp"
 	"fmt"
 	"os"
 	"regexp"
@@ -169,13 +170,13 @@ func Compare(a, b string) (int, error) {
 	}
 
 	if va.Major != vb.Major {
-		return compareInt(va.Major, vb.Major), nil
+		return cmp.Compare(va.Major, vb.Major), nil
 	}
 	if va.Minor != vb.Minor {
-		return compareInt(va.Minor, vb.Minor), nil
+		return cmp.Compare(va.Minor, vb.Minor), nil
 	}
 	if va.Patch != vb.Patch {
-		return compareInt(va.Patch, vb.Patch), nil
+		return cmp.Compare(va.Patch, vb.Patch), nil
 	}
 
 	// Prerelease comparison: version without prerelease is greater (SemVer §9)
@@ -215,7 +216,7 @@ func comparePrerelease(a, b string) int {
 	}
 
 	// Longer prerelease has higher precedence if all shared identifiers are equal
-	return compareInt(len(partsA), len(partsB))
+	return cmp.Compare(len(partsA), len(partsB))
 }
 
 // compareIdentifier compares two prerelease identifiers per SemVer §11.
@@ -225,7 +226,7 @@ func compareIdentifier(a, b string) int {
 
 	// Both numeric: compare as integers
 	if aIsNum && bIsNum {
-		return compareInt(aNum, bNum)
+		return cmp.Compare(aNum, bNum)
 	}
 	// Numeric has lower precedence than alphanumeric
 	if aIsNum {
@@ -258,14 +259,4 @@ func parseNumeric(s string) (int, bool) {
 		n = n*10 + int(c-'0')
 	}
 	return n, true
-}
-
-func compareInt(a, b int) int {
-	if a < b {
-		return -1
-	}
-	if a > b {
-		return 1
-	}
-	return 0
 }

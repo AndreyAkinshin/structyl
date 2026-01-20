@@ -16,8 +16,8 @@ This document provides comprehensive information for AI agents and developers wo
 # Always use mise to run commands
 mise run build        # Build the project
 mise run test         # Run tests
-mise run lint         # Run linter
-mise run fmt          # Format code
+mise run check        # Run lint and static analysis
+mise run check:fix    # Auto-fix formatting issues
 
 # List available tasks
 mise tasks
@@ -323,7 +323,7 @@ errors.GetExitCode(err) int                             // Get exit code
 
 ### Built-in Toolchains
 
-Defined in `internal/toolchain/defaults.go`. There are **27 built-in toolchains**.
+Defined in `internal/toolchain/builtin.go`. There are **27 built-in toolchains**.
 
 **Common toolchains:**
 
@@ -385,11 +385,8 @@ func DetectToolchain(dir string) string {
 **Always use mise to run tests:**
 
 ```bash
-# All tests
+# All tests (includes race detector)
 mise run test
-
-# With race detector
-mise run test:race
 
 # With coverage
 mise run test:cover
@@ -464,11 +461,14 @@ test/fixtures/
 mise run build
 ```
 
-### Lint
+### Static Analysis
 
 ```bash
-# Run golangci-lint
-mise run lint
+# Run lint and static analysis
+mise run check
+
+# Auto-fix formatting issues
+mise run check:fix
 ```
 
 ### Test
@@ -677,8 +677,8 @@ Edit files in `test/fixtures/` directly. Fixtures are JSON files that are loaded
 ### Check for regressions
 
 ```bash
-# Run full test suite with race detector
-mise run test:race
+# Run full test suite (includes race detector)
+mise run test
 
 # Check coverage
 mise run test:cover
@@ -703,9 +703,9 @@ For detailed behavior specifications, see `docs/specs/`:
 
 ## Known Issues / TODOs
 
-Current code quality (as of last audit):
+Current code quality:
 
-- **Test coverage**: 79.9%-100% per package (avg ~90%)
+- **Test coverage**: Comprehensive coverage across all packages (run `mise run test:cover` for current metrics)
 - **go vet**: Clean (Go 1.24 required)
 - **Dependencies**: 3 external dependencies (yaml.v3, golang.org/x/text, jsonschema/v6)
 - **No panics**: Zero panic() or log.Fatal() in production code

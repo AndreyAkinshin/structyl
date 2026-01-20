@@ -522,3 +522,64 @@ func TestValidate_Tests_NilComparison_Succeeds(t *testing.T) {
 		t.Errorf("Validate() with nil comparison error = %v, want nil", err)
 	}
 }
+
+// TestValidate_TargetNames_CaseSensitive verifies that target names differing
+// only by case are both valid (the validator doesn't reject case variants).
+// Note: Target names must be lowercase per the validation regex, so "Rs" and "RS"
+// are invalid anyway. This test documents the expected behavior.
+func TestValidate_TargetNames_CaseSensitive(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		targets map[string]TargetConfig
+		wantErr bool
+	}{
+		{
+			name: "lowercase_valid",
+			targets: map[string]TargetConfig{
+				"rs": {Type: "language", Title: "Rust"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "uppercase_invalid",
+			targets: map[string]TargetConfig{
+				"RS": {Type: "language", Title: "Rust"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "mixed_case_invalid",
+			targets: map[string]TargetConfig{
+				"Rs": {Type: "language", Title: "Rust"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "similar_lowercase_names_valid",
+			targets: map[string]TargetConfig{
+				"rs":    {Type: "language", Title: "Rust"},
+				"rs-v2": {Type: "language", Title: "Rust v2"},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			cfg := &Config{
+				Project: ProjectConfig{Name: "myproject"},
+				Targets: tt.targets,
+			}
+			_, err := Validate(cfg)
+			if tt.wantErr && err == nil {
+				t.Errorf("Validate() expected error for targets %v, got nil", tt.targets)
+			}
+			if !tt.wantErr && err != nil {
+				t.Errorf("Validate() unexpected error = %v", err)
+			}
+		})
+	}
+}

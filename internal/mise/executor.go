@@ -34,11 +34,6 @@ func (e *Executor) SetVerbose(v bool) {
 	e.verbose = v
 }
 
-// RunTask executes a mise task by name.
-func (e *Executor) RunTask(ctx context.Context, task string, args []string) error {
-	return e.runTask(ctx, task, args)
-}
-
 // buildRunArgs constructs the command arguments for mise run.
 func buildRunArgs(task string, args []string) []string {
 	cmdArgs := []string{"run", task}
@@ -46,8 +41,8 @@ func buildRunArgs(task string, args []string) []string {
 	return cmdArgs
 }
 
-// runTask executes a mise task.
-func (e *Executor) runTask(ctx context.Context, task string, args []string) error {
+// RunTask executes a mise task by name.
+func (e *Executor) RunTask(ctx context.Context, task string, args []string) error {
 	cmdArgs := buildRunArgs(task, args)
 
 	cmd := exec.CommandContext(ctx, "mise", cmdArgs...)
@@ -69,11 +64,6 @@ func (e *Executor) runTask(ctx context.Context, task string, args []string) erro
 // RunTaskWithCapture executes a mise task, streaming output while capturing it.
 // Returns the combined stdout+stderr output and any execution error.
 func (e *Executor) RunTaskWithCapture(ctx context.Context, task string, args []string) (string, error) {
-	return e.runTaskWithCapture(ctx, task, args)
-}
-
-// runTaskWithCapture executes a mise task, streaming output while capturing it.
-func (e *Executor) runTaskWithCapture(ctx context.Context, task string, args []string) (string, error) {
 	cmdArgs := buildRunArgs(task, args)
 
 	cmd := exec.CommandContext(ctx, "mise", cmdArgs...)
@@ -273,10 +263,10 @@ func (e *Executor) RunTasksWithTracking(ctx context.Context, tasks []MiseTaskMet
 
 		if parser != nil {
 			// Use capture mode for test tasks to parse output
-			taskOutput, err = e.runTaskWithCapture(ctx, task.Name, args)
+			taskOutput, err = e.RunTaskWithCapture(ctx, task.Name, args)
 		} else {
 			// Use regular execution for non-test tasks
-			err = e.runTask(ctx, task.Name, args)
+			err = e.RunTask(ctx, task.Name, args)
 		}
 
 		result.Duration = time.Since(taskStart)

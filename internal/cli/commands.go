@@ -53,8 +53,8 @@ func loadProject() (*project.Project, int) {
 func ensureMiseConfig(proj *project.Project, force bool) error {
 	autoGen := true // default to auto-generation so mise.toml stays in sync
 
-	if proj.Config.Mise != nil {
-		autoGen = proj.Config.Mise.AutoGenerate
+	if proj.Config.Mise != nil && proj.Config.Mise.AutoGenerate != nil {
+		autoGen = *proj.Config.Mise.AutoGenerate
 	}
 
 	miseTomlMissing := !mise.MiseTomlExists(proj.Root)
@@ -143,18 +143,7 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 	remaining := args[1:]
 
 	// Determine target name (if specified)
-	var targetName string
-	var cmdArgs []string
-
-	if len(remaining) > 0 {
-		if _, ok := registry.Get(remaining[0]); ok {
-			// It's a target
-			targetName = remaining[0]
-			cmdArgs = remaining[1:]
-		} else {
-			cmdArgs = remaining
-		}
-	}
+	targetName, cmdArgs := extractTargetArg(remaining, registry)
 
 	// Check mise is installed
 	if err := EnsureMise(true); err != nil {
@@ -314,18 +303,13 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 	// Determine target name from args
 	var targetName string
 	var cmdArgs []string
-	if len(args) > 0 {
-		registry, err := target.NewRegistry(proj.Config, proj.Root)
-		if err != nil {
-			// Registry failed to load - log warning and treat all args as command args
-			out.WarningSimple("could not load target registry: %v", err)
-			cmdArgs = args
-		} else if _, ok := registry.Get(args[0]); ok {
-			targetName = args[0]
-			cmdArgs = args[1:]
-		} else {
-			cmdArgs = args
-		}
+	registry, err := target.NewRegistry(proj.Config, proj.Root)
+	if err != nil {
+		// Registry failed to load - log warning and treat all args as command args
+		out.WarningSimple("could not load target registry: %v", err)
+		cmdArgs = args
+	} else {
+		targetName, cmdArgs = extractTargetArg(args, registry)
 	}
 
 	// Check mise is installed
@@ -342,6 +326,19 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 	}
 
 	return runViaMise(proj, cmd, targetName, cmdArgs, opts)
+}
+
+// extractTargetArg extracts an optional target name from args if the first arg is a known target.
+// Returns (targetName, remaining args). If registry is nil or first arg is not a target,
+// returns empty targetName and all original args.
+func extractTargetArg(args []string, registry *target.Registry) (string, []string) {
+	if len(args) == 0 || registry == nil {
+		return "", args
+	}
+	if _, ok := registry.Get(args[0]); ok {
+		return args[0], args[1:]
+	}
+	return "", args
 }
 
 // filterTargetsByType returns only targets of the specified type.

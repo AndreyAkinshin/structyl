@@ -253,9 +253,10 @@ eval "$(structyl completion bash --alias=st)"
 | `--type=<type>` | Filter targets by type (`language` or `auxiliary`)         |
 | `-q, --quiet`   | Minimal output (errors only)                               |
 | `-v, --verbose` | Maximum detail                                             |
-| ~~`--no-color`~~| *(Not yet implemented)* Disable colored output (also respects `NO_COLOR` env var) |
 | `-h, --help`    | Show help message                                          |
 | `--version`     | Show Structyl version                                      |
+
+To disable colored output, set the `NO_COLOR` environment variable (any non-empty value). See [no-color.org](https://no-color.org/) for the standard.
 
 Note: `-q, --quiet` and `-v, --verbose` are mutually exclusive.
 

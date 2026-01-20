@@ -571,13 +571,13 @@ func printReleaseUsage() {
 	w.Println("  committing the changes, and optionally pushing to the remote.")
 
 	w.HelpSection("Arguments:")
-	w.HelpFlag("<version>", "Version number (e.g., 1.2.3)", 10)
+	w.HelpFlag("<version>", "Version number (e.g., 1.2.3)", helpFlagWidthShort)
 
 	w.HelpSection("Options:")
-	w.HelpFlag("--push", "Push to remote with tags after commit", 10)
-	w.HelpFlag("--dry-run", "Print what would be done without making changes", 10)
-	w.HelpFlag("--force", "Force release with uncommitted changes", 10)
-	w.HelpFlag("-h, --help", "Show this help", 10)
+	w.HelpFlag("--push", "Push to remote with tags after commit", helpFlagWidthShort)
+	w.HelpFlag("--dry-run", "Print what would be done without making changes", helpFlagWidthShort)
+	w.HelpFlag("--force", "Force release with uncommitted changes", helpFlagWidthShort)
+	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthShort)
 
 	w.HelpSection("Examples:")
 	w.HelpExample("structyl release 1.2.3", "Create release 1.2.3")
@@ -638,10 +638,10 @@ func printConfigUsage() {
 	w.HelpUsage("structyl config <subcommand>")
 
 	w.HelpSection("Subcommands:")
-	w.HelpCommand("validate", "Validate the project configuration", 10)
+	w.HelpCommand("validate", "Validate the project configuration", helpFlagWidthShort)
 
 	w.HelpSection("Options:")
-	w.HelpFlag("-h, --help", "Show this help", 10)
+	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthShort)
 
 	w.HelpSection("Examples:")
 	w.HelpExample("structyl config validate", "Validate project configuration")
@@ -661,7 +661,7 @@ func printMiseUsage() {
 	w.HelpCommand("sync", "Regenerate mise.toml from project configuration", 6)
 
 	w.HelpSection("Options:")
-	w.HelpFlag("-h, --help", "Show this help", 10)
+	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthShort)
 
 	w.HelpSection("Examples:")
 	w.HelpExample("structyl mise sync", "Regenerate mise.toml")
@@ -683,7 +683,7 @@ func printMiseSyncUsage() {
 	w.Println("  Always regenerates the file (implicit force mode).")
 
 	w.HelpSection("Options:")
-	w.HelpFlag("-h, --help", "Show this help", 10)
+	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthShort)
 
 	w.HelpSection("Examples:")
 	w.HelpExample("structyl mise sync", "Regenerate mise.toml")
@@ -704,10 +704,10 @@ func printDockerBuildUsage() {
 	w.Println("  if none specified). Uses docker compose build under the hood.")
 
 	w.HelpSection("Arguments:")
-	w.HelpFlag("[services]", "Service names to build (optional, builds all if omitted)", 12)
+	w.HelpFlag("[services]", "Service names to build (optional, builds all if omitted)", helpFlagWidthShort+2)
 
 	w.HelpSection("Options:")
-	w.HelpFlag("-h, --help", "Show this help", 10)
+	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthShort)
 
 	w.HelpSection("Examples:")
 	w.HelpExample("structyl docker-build", "Build all Docker images")
@@ -729,7 +729,7 @@ func printDockerCleanUsage() {
 	w.Println("  Uses docker compose down --rmi all under the hood.")
 
 	w.HelpSection("Options:")
-	w.HelpFlag("-h, --help", "Show this help", 10)
+	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthShort)
 
 	w.HelpSection("Examples:")
 	w.HelpExample("structyl docker-clean", "Remove all Docker containers and images")
@@ -750,8 +750,8 @@ func printTargetsUsage() {
 	w.Println("  title, available commands, and dependencies.")
 
 	w.HelpSection("Options:")
-	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", 14)
-	w.HelpFlag("-h, --help", "Show this help", 14)
+	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
+	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
 
 	w.HelpSection("Examples:")
 	w.HelpExample("structyl targets", "List all targets")

@@ -181,15 +181,6 @@ func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) 
 			Reason:  SkipReasonDisabled,
 		}
 
-	case []string:
-		// Handle composite commands (list of command names)
-		for _, subCmd := range cmdVal {
-			if err := t.Execute(ctx, subCmd, opts); err != nil {
-				return err
-			}
-		}
-		return nil
-
 	case []interface{}:
 		// Handle []interface{} (JSON unmarshals arrays as []interface{})
 		for _, subCmd := range cmdVal {
@@ -331,13 +322,7 @@ func (t *targetImpl) executeShell(ctx context.Context, cmdStr string, opts ExecO
 	//   2. Target-level env (t.env)
 	//   3. Inherited process env (os.Environ)
 	// Later appends override earlier ones when the same key appears multiple times.
-	for _, env := range os.Environ() {
-		// Skip mise internal variables that can cause command interception
-		if strings.HasPrefix(env, "__MISE_") || strings.HasPrefix(env, "MISE_SHELL=") {
-			continue
-		}
-		shellCmd.Env = append(shellCmd.Env, env)
-	}
+	shellCmd.Env = filterMiseEnv(os.Environ())
 	for k, v := range t.env {
 		shellCmd.Env = append(shellCmd.Env, k+"="+v)
 	}
@@ -346,6 +331,18 @@ func (t *targetImpl) executeShell(ctx context.Context, cmdStr string, opts ExecO
 	}
 
 	return shellCmd.Run()
+}
+
+// filterMiseEnv removes mise internal variables that can cause command interception.
+func filterMiseEnv(environ []string) []string {
+	filtered := make([]string, 0, len(environ))
+	for _, env := range environ {
+		if strings.HasPrefix(env, "__MISE_") || strings.HasPrefix(env, "MISE_SHELL=") {
+			continue
+		}
+		filtered = append(filtered, env)
+	}
+	return filtered
 }
 
 func copyMap(m map[string]string) map[string]string {

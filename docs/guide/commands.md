@@ -256,7 +256,7 @@ Running a null command succeeds with a warning.
 | --------------- | --------------------------------------------------------------------------- |
 | `--docker`      | Run in Docker container                                                     |
 | `--no-docker`   | Disable Docker mode                                                         |
-| `--continue`    | Continue on errors (no effect with mise backend); see [limitation](/specs/commands#continue-flag-limitation) |
+| `--continue`    | **[DEPRECATED]** Continue on errors (no effect with mise backend); see [limitation](/specs/commands#continue-flag-limitation) |
 | `--type=<type>` | Filter by target type                                                       |
 | `-q, --quiet`   | Minimal output (errors only)                                       |
 | `-v, --verbose` | Maximum detail                                                     |

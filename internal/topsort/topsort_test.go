@@ -269,6 +269,80 @@ func TestValidate_Cycle(t *testing.T) {
 	}
 }
 
+func TestSort_DisconnectedWithCycle(t *testing.T) {
+	// Graph with two disconnected components:
+	// Component 1: a -> b (valid)
+	// Component 2: c -> d -> c (cycle)
+	g := Graph{
+		"a": {"b"},
+		"b": nil,
+		"c": {"d"},
+		"d": {"c"},
+	}
+	_, err := Sort(g, nil)
+	if err == nil {
+		t.Error("Sort() expected error for cycle in disconnected component, got nil")
+	}
+	if !strings.Contains(err.Error(), "circular") {
+		t.Errorf("Sort() error = %v, want to contain 'circular'", err)
+	}
+}
+
+func TestValidate_DisconnectedWithCycle(t *testing.T) {
+	// Graph with two disconnected components where one has a cycle
+	g := Graph{
+		"a": nil,
+		"b": {"a"},
+		"c": {"d"},
+		"d": {"e"},
+		"e": {"c"}, // cycle in second component
+	}
+	err := Validate(g)
+	if err == nil {
+		t.Error("Validate() expected error for cycle in disconnected component, got nil")
+	}
+	if !strings.Contains(err.Error(), "circular") {
+		t.Errorf("Validate() error = %v, want to contain 'circular'", err)
+	}
+}
+
+func TestSort_MultipleDisconnectedComponents(t *testing.T) {
+	// Graph with three disconnected components, all valid
+	g := Graph{
+		"a": nil,
+		"b": {"a"},
+		"c": nil,
+		"d": {"c"},
+		"e": nil,
+	}
+	result, err := Sort(g, nil)
+	if err != nil {
+		t.Errorf("Sort() error = %v, want nil", err)
+	}
+	if len(result) != 5 {
+		t.Errorf("Sort() returned %d nodes, want 5", len(result))
+	}
+
+	// Verify ordering within components
+	indexOf := func(s string) int {
+		for i, v := range result {
+			if v == s {
+				return i
+			}
+		}
+		return -1
+	}
+
+	// a must come before b
+	if indexOf("a") >= indexOf("b") {
+		t.Errorf("Sort() a should come before b: %v", result)
+	}
+	// c must come before d
+	if indexOf("c") >= indexOf("d") {
+		t.Errorf("Sort() c should come before d: %v", result)
+	}
+}
+
 func TestSort_LargeGraph(t *testing.T) {
 	// Build a linear chain of 100 nodes: n0 <- n1 <- n2 <- ... <- n99
 	const nodeCount = 100

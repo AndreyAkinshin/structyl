@@ -268,3 +268,87 @@ func TestValidationError_Error(t *testing.T) {
 		t.Errorf("Error() = %q, want %q", err.Error(), expected)
 	}
 }
+
+func TestValidate_ObjectFormCommand_ReturnsError(t *testing.T) {
+	t.Parallel()
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Targets: map[string]TargetConfig{
+			"rs": {
+				Type:  "language",
+				Title: "Rust",
+				Commands: map[string]interface{}{
+					"build": map[string]interface{}{
+						"run": "cargo build",
+						"cwd": "src",
+					},
+				},
+			},
+		},
+	}
+
+	_, err := Validate(cfg)
+	if err == nil {
+		t.Fatal("Validate() expected error for object-form command")
+	}
+
+	valErr, ok := err.(*ValidationError)
+	if !ok {
+		t.Fatalf("expected ValidationError, got %T", err)
+	}
+	if valErr.Field != "targets.rs.commands.build" {
+		t.Errorf("ValidationError.Field = %q, want %q", valErr.Field, "targets.rs.commands.build")
+	}
+}
+
+func TestValidate_InvalidCommandListElement_ReturnsError(t *testing.T) {
+	t.Parallel()
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Targets: map[string]TargetConfig{
+			"rs": {
+				Type:  "language",
+				Title: "Rust",
+				Commands: map[string]interface{}{
+					"check": []interface{}{"lint", 123}, // 123 is invalid
+				},
+			},
+		},
+	}
+
+	_, err := Validate(cfg)
+	if err == nil {
+		t.Fatal("Validate() expected error for invalid command list element")
+	}
+
+	valErr, ok := err.(*ValidationError)
+	if !ok {
+		t.Fatalf("expected ValidationError, got %T", err)
+	}
+	if valErr.Field != "targets.rs.commands.check[1]" {
+		t.Errorf("ValidationError.Field = %q, want %q", valErr.Field, "targets.rs.commands.check[1]")
+	}
+}
+
+func TestValidate_ValidCommandTypes_Succeeds(t *testing.T) {
+	t.Parallel()
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Targets: map[string]TargetConfig{
+			"rs": {
+				Type:  "language",
+				Title: "Rust",
+				Commands: map[string]interface{}{
+					"build":   "cargo build",                // string
+					"restore": nil,                          // nil (disabled)
+					"check":   []interface{}{"lint", "vet"}, // array of strings
+				},
+			},
+		},
+	}
+
+	_, err := Validate(cfg)
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil for valid command types", err)
+	}
+}

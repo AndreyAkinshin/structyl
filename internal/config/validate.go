@@ -92,7 +92,57 @@ func validateTargetConfig(name string, target TargetConfig) error {
 		}
 	}
 
+	// Validate command definitions
+	if err := validateCommands(name, target.Commands); err != nil {
+		return err
+	}
+
 	return nil
+}
+
+// validateCommands checks that all command definitions use supported types.
+// Supported: string, nil, []interface{} (command list).
+// NOT supported: map/object form (e.g., {run, cwd, env}) - reject at load time.
+func validateCommands(targetName string, commands map[string]interface{}) error {
+	for cmdName, cmdDef := range commands {
+		if err := validateCommandDef(targetName, cmdName, cmdDef); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateCommandDef(targetName, cmdName string, cmdDef interface{}) error {
+	switch v := cmdDef.(type) {
+	case nil, string:
+		// Valid types
+		return nil
+	case []interface{}:
+		// Validate each element in the command list
+		for i, elem := range v {
+			switch elem.(type) {
+			case string:
+				// Valid - command reference
+			default:
+				return &ValidationError{
+					Field:   fmt.Sprintf("targets.%s.commands.%s[%d]", targetName, cmdName, i),
+					Message: fmt.Sprintf("command list elements must be strings, got %T", elem),
+				}
+			}
+		}
+		return nil
+	case map[string]interface{}:
+		// Object-form commands ({run, cwd, env}) are not implemented
+		return &ValidationError{
+			Field:   fmt.Sprintf("targets.%s.commands.%s", targetName, cmdName),
+			Message: "object-form commands are not supported; use string or array syntax",
+		}
+	default:
+		return &ValidationError{
+			Field:   fmt.Sprintf("targets.%s.commands.%s", targetName, cmdName),
+			Message: fmt.Sprintf("invalid command type %T; must be string, null, or array", cmdDef),
+		}
+	}
 }
 
 // ValidateProjectName checks if a project name is valid.

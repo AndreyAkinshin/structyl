@@ -131,6 +131,32 @@ func TestConfigf(t *testing.T) {
 	}
 }
 
+func TestValidation(t *testing.T) {
+	err := Validation("invalid version format")
+
+	if err.Kind != KindValidation {
+		t.Errorf("Kind = %v, want %v", err.Kind, KindValidation)
+	}
+	if err.Message != "invalid version format" {
+		t.Errorf("Message = %q, want %q", err.Message, "invalid version format")
+	}
+	if err.ExitCode() != ExitConfigError {
+		t.Errorf("ExitCode() = %d, want %d", err.ExitCode(), ExitConfigError)
+	}
+}
+
+func TestValidationf(t *testing.T) {
+	err := Validationf("version %q: %s", "1.0.invalid", "not semantic version")
+
+	if err.Kind != KindValidation {
+		t.Errorf("Kind = %v, want %v", err.Kind, KindValidation)
+	}
+	expected := `version "1.0.invalid": not semantic version`
+	if err.Message != expected {
+		t.Errorf("Message = %q, want %q", err.Message, expected)
+	}
+}
+
 func TestEnvironment(t *testing.T) {
 	err := Environment("Docker not available")
 
@@ -219,7 +245,7 @@ func TestGetExitCode(t *testing.T) {
 		{"nil error", nil, ExitSuccess},
 		{"StructylError runtime", New("runtime"), ExitRuntimeError},
 		{"StructylError config", Config("config"), ExitConfigError},
-		{"StructylError validation", &StructylError{Kind: KindValidation}, ExitConfigError},
+		{"StructylError validation", Validation("validation"), ExitConfigError},
 		{"StructylError environment", Environment("env"), ExitEnvironmentError},
 		{"generic error", errors.New("generic"), ExitRuntimeError},
 	}

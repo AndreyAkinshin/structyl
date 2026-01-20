@@ -489,6 +489,10 @@
           "type": "string",
           "description": "Base toolchain to extend"
         },
+        "version": {
+          "type": "string",
+          "description": "Tool version for mise integration (e.g., '1.80.0', 'latest')"
+        },
         "commands": {
           "type": "object",
           "description": "Command definitions",

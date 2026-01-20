@@ -492,18 +492,18 @@ To enable IDE autocomplete and validation, add the schema reference:
 
 ```json
 {
-  "$schema": "https://structyl.akinshin.dev/structyl.schema.json",
+  "$schema": "https://structyl.akinshin.dev/schema/config.json",
   "project": {
     "name": "myproject"
   }
 }
 ```
 
-Or use the local schema file:
+Or use the local schema file (relative to project root):
 
 ```json
 {
-  "$schema": "./specs/structyl.schema.json",
+  "$schema": "./schema/config.schema.json",
   "project": {
     "name": "myproject"
   }

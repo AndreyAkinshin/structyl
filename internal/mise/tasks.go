@@ -1,10 +1,6 @@
 package mise
 
-import (
-	"time"
-
-	"github.com/AndreyAkinshin/structyl/internal/testparser"
-)
+import "github.com/AndreyAkinshin/structyl/internal/model"
 
 // Task name constants for structyl-specific mise tasks.
 const (
@@ -20,20 +16,8 @@ type MiseTaskMeta struct {
 	Run         []string `json:"run"`
 }
 
-// TaskResult tracks execution result of a single task.
-type TaskResult struct {
-	Name       string
-	Success    bool
-	Duration   time.Duration
-	Error      error
-	TestCounts *testparser.TestCounts
-}
+// TaskResult is an alias for the shared model type.
+type TaskResult = model.TaskResult
 
-// TaskRunSummary contains aggregated results.
-type TaskRunSummary struct {
-	Tasks         []TaskResult
-	TotalDuration time.Duration
-	Passed        int
-	Failed        int
-	TestCounts    *testparser.TestCounts // Aggregated test counts
-}
+// TaskRunSummary is an alias for the shared model type.
+type TaskRunSummary = model.TaskRunSummary

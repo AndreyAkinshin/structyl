@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/AndreyAkinshin/structyl/internal/model"
 	"github.com/AndreyAkinshin/structyl/internal/testparser"
 )
 
@@ -546,26 +547,11 @@ func (w *Writer) SummarySectionLabel(label string) {
 	}
 }
 
-// TaskResult holds task execution result data for summary printing.
-// This type mirrors mise.TaskResult but is defined here to avoid import cycles.
-// The mise package imports output for printing, so output cannot import mise.
-type TaskResult struct {
-	Name       string
-	Success    bool
-	Duration   time.Duration
-	Error      error
-	TestCounts *testparser.TestCounts
-}
+// TaskResult is an alias for the shared model type.
+type TaskResult = model.TaskResult
 
-// TaskRunSummary holds summary data for task execution.
-// This type mirrors mise.TaskRunSummary but is defined here to avoid import cycles.
-type TaskRunSummary struct {
-	Tasks         []TaskResult
-	TotalDuration time.Duration
-	Passed        int
-	Failed        int
-	TestCounts    *testparser.TestCounts
-}
+// TaskRunSummary is an alias for the shared model type.
+type TaskRunSummary = model.TaskRunSummary
 
 // FormatTestCounts formats test counts for display.
 // Returns empty string if counts are nil or not parsed.

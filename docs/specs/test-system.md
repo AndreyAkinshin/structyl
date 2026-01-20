@@ -175,10 +175,6 @@ Parent directory references (`../`) and absolute paths (starting with `/` on Uni
 
 **Symlink handling:** Symlinks are followed during resolution. However, if the resolved target path is outside the suite directory, the reference MUST be rejected.
 
-::: warning Public API Limitation
-The `$file` syntax is only available in Structyl's internal test runner. The public Go package `pkg/testhelper` does NOT support `$file` references. Test cases using this syntax MUST use the internal `internal/tests` package or embed data directly in JSON.
-:::
-
 Binary files are stored alongside the JSON file:
 
 ```

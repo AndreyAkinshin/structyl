@@ -63,6 +63,13 @@ type Target interface {
 	//
 	// For composite commands ([]string), sub-commands execute sequentially.
 	// If any sub-command fails, execution stops and the error is returned.
+	//
+	// Context cancellation:
+	//   - Uses exec.CommandContext which sends SIGKILL (Unix) or TerminateProcess (Windows)
+	//     when the context is canceled or times out.
+	//   - Child processes are terminated immediately; no graceful shutdown period.
+	//   - Partial stdout/stderr output may be available depending on buffering.
+	//   - Returns context.Canceled or context.DeadlineExceeded as appropriate.
 	Execute(ctx context.Context, cmd string, opts ExecOptions) error
 }
 

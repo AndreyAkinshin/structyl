@@ -388,6 +388,7 @@ func isCommandAvailable(cmdName string) bool {
 
 // shellBuiltins is the set of common shell builtins that don't exist as
 // external commands in PATH but are always available via sh -c.
+// Reference: IEEE Std 1003.1-2017 (POSIX.1-2017) and common shell implementations.
 var shellBuiltins = map[string]bool{
 	"exit":     true,
 	"test":     true,

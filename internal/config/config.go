@@ -47,10 +47,17 @@ func LoadAndValidate(path string) (*Config, []string, error) {
 	applyDefaults(cfg)
 
 	validationWarnings, err := Validate(cfg)
+
+	// Combine warnings using explicit allocation to avoid slice aliasing.
+	// Using append directly on unknownWarnings could modify its underlying array
+	// if it has remaining capacity, corrupting data in edge cases.
+	allWarnings := make([]string, 0, len(unknownWarnings)+len(validationWarnings))
+	allWarnings = append(allWarnings, unknownWarnings...)
+	allWarnings = append(allWarnings, validationWarnings...)
+
 	if err != nil {
-		return nil, append(unknownWarnings, validationWarnings...), err
+		return nil, allWarnings, err
 	}
 
-	allWarnings := append(unknownWarnings, validationWarnings...)
 	return cfg, allWarnings, nil
 }

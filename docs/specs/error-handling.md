@@ -17,7 +17,7 @@ This document defines error handling semantics for Structyl.
 
 **Code 1 (Failure)** indicates the user's project has an issue that Structyl correctly detected. The configuration is valid; the build/test simply failed.
 
-**Code 2 (Configuration Error)** indicates the Structyl configuration itself is invalid or contains semantic errors. The user must fix `.structyl/config.json` or related configuration before proceeding.
+**Code 2 (Configuration Error)** indicates the Structyl configuration itself is invalid or contains semantic errors. The user MUST fix `.structyl/config.json` or related configuration before proceeding.
 
 **Code 3 (Environment Error)** indicates an external system or resource is unavailable. The configuration may be valid, but the environment cannot support the requested operation.
 
@@ -178,7 +178,7 @@ warning: unknown field "foo" in targets.cs
 
 ## Command Exit Codes
 
-Commands executed by Structyl should use standard exit codes. Structyl normalizes exit codes as follows:
+Commands executed by Structyl SHOULD use standard exit codes. Structyl normalizes exit codes as follows:
 
 | Target Exit Code | Structyl Exit Code |
 | ---------------- | ------------------ |
@@ -292,13 +292,13 @@ Each log line includes a timestamp:
 
 ### Colors
 
-Colors are enabled by default for terminal output. Disable with:
+Colors are enabled by default for terminal output. Disable with the `NO_COLOR` environment variable:
 
 ```bash
-structyl build --no-color
-# or
 NO_COLOR=1 structyl build
 ```
+
+> **Note**: The `--no-color` flag is not yet implemented. Use the `NO_COLOR` environment variable instead.
 
 ## Recovery Strategies
 

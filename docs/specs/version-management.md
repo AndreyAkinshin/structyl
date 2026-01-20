@@ -407,7 +407,7 @@ The `.structyl/version` file contains a single line with the pinned CLI version:
 1.2.3
 ```
 
-This file is created by `structyl init` and should be committed to version control.
+This file is created by `structyl init` and SHOULD be committed to version control.
 
 ### Upgrade Command
 

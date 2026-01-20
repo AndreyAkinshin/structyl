@@ -209,11 +209,11 @@ eval "$(structyl completion bash --alias=st)"
 | --------------- | ---------------------------------------------------------- |
 | `--docker`      | Run command in Docker container                            |
 | `--no-docker`   | Disable Docker mode (overrides `STRUCTYL_DOCKER` env var)  |
-| `--continue`    | Continue on error (don't fail-fast). See [parallel execution limitation](targets.md#known-limitation-parallel-execution-and-dependencies) |
+| `--continue`    | Continue on error (don't fail-fast). *Limited effect with mise backend* — see [limitations](#continue-flag-limitation) |
 | `--type=<type>` | Filter targets by type (`language` or `auxiliary`)         |
 | `-q, --quiet`   | Minimal output (errors only)                               |
 | `-v, --verbose` | Maximum detail                                             |
-| `--no-color`    | Disable colored output (also respects `NO_COLOR` env var)  |
+| `--no-color`    | Disable colored output (also respects `NO_COLOR` env var). *Not yet implemented* |
 | `-h, --help`    | Show help message                                          |
 | `--version`     | Show Structyl version                                      |
 
@@ -235,6 +235,16 @@ STRUCTYL_DOCKER=0 structyl --docker build     # Runs in Docker (--docker wins)
 ```
 
 If both `--docker` and `--no-docker` are passed simultaneously, `--no-docker` takes precedence (Docker mode disabled).
+
+### `--continue` Flag Limitation
+
+The `--continue` flag has limited effect when using the mise backend for task execution. Currently:
+
+- Structyl parses and accepts the `--continue` flag
+- The flag is NOT propagated to mise task execution
+- Mise handles its own error propagation internally
+
+**Workaround:** For continue-on-error semantics, configure individual mise tasks with appropriate error handling, or use the `continue_on_error` option in CI pipeline step definitions (see [CI Integration](ci-integration.md)).
 
 ## Null Commands
 

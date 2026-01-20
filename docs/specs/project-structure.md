@@ -269,4 +269,4 @@ artifacts/
 **/.gradle-docker/
 ```
 
-**Note:** The `.structyl/` directory should be version controlled as it contains essential project configuration (`config.json`, `version`, `setup.sh`, `setup.ps1`, `AGENTS.md`).
+**Note:** The `.structyl/` directory SHOULD be version controlled as it contains essential project configuration (`config.json`, `version`, `setup.sh`, `setup.ps1`, `AGENTS.md`).

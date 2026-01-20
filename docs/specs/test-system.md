@@ -168,7 +168,7 @@ Parent directory references (`../`) and absolute paths (starting with `/` on Uni
 **Symlink handling:** Symlinks are followed during resolution. However, if the resolved target path is outside the suite directory, the reference MUST be rejected.
 
 ::: warning Public API Limitation
-The `$file` syntax is only available in Structyl's internal test runner. The public Go package `pkg/testhelper` does NOT support `$file` references. Test cases using this syntax must use the internal `internal/tests` package or embed data directly in JSON.
+The `$file` syntax is only available in Structyl's internal test runner. The public Go package `pkg/testhelper` does NOT support `$file` references. Test cases using this syntax MUST use the internal `internal/tests` package or embed data directly in JSON.
 :::
 
 Binary files are stored alongside the JSON file:
@@ -326,10 +326,10 @@ Example:
 > **Note:** This section is **informative only**. The code examples illustrate one possible implementation approach. Conforming implementations MAY use different designs, APIs, or patterns as long as they satisfy the functional requirements.
 
 ::: warning pkg/testhelper Limitation
-The public Go `pkg/testhelper` package does NOT support `$file` references. File reference resolution is only available in Structyl's internal test runner. Test cases using `$file` syntax should either use the internal `internal/tests` package or embed data directly in JSON.
+The public Go `pkg/testhelper` package does NOT support `$file` references. File reference resolution is only available in Structyl's internal test runner. Test cases using `$file` syntax SHOULD either use the internal `internal/tests` package or embed data directly in JSON.
 :::
 
-Each language must implement a test loader. Required functionality:
+Each language MUST implement a test loader. Required functionality:
 
 1. **Locate project root** via marker file traversal
 2. **Discover test suites** by scanning test directory

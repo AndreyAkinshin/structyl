@@ -15,7 +15,7 @@ Every Structyl project requires a `.structyl/config.json` file at the project ro
 
 ## File Location
 
-The configuration file must be named `.structyl/config.json` and placed at the project root directory. Structyl locates the project root by walking up from the current directory until it finds this file.
+The configuration file MUST be named `.structyl/config.json` and placed at the project root directory. Structyl locates the project root by walking up from the current directory until it finds this file.
 
 ## Format
 

@@ -51,7 +51,9 @@ The `cargo build` command works the same on Windows, macOS, and Linux.
 
 ### Platform-Specific Commands
 
-For commands that differ by platform, use shell conditionals or separate targets:
+For commands that differ by platform, use shell conditionals or separate targets.
+
+**Unix-only example** (Bash shell conditional):
 
 ```json
 {
@@ -65,6 +67,8 @@ For commands that differ by platform, use shell conditionals or separate targets
   }
 }
 ```
+
+> **Note:** Shell conditionals like the above use Bash syntax and only work on Unix systems (macOS, Linux). On Windows, commands execute via PowerShell, which uses different syntax.
 
 Or define platform-specific commands:
 

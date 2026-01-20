@@ -9,7 +9,6 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/errors"
 	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/project"
-	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: intentionally using deprecated package for backwards compatibility
 	"github.com/AndreyAkinshin/structyl/internal/target"
 	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
@@ -199,11 +198,6 @@ func parseGlobalFlags(args []string) (*GlobalOptions, []string, error) {
 	return opts, remaining, nil
 }
 
-// isDockerMode determines if Docker mode should be used.
-func isDockerMode(opts *GlobalOptions) bool {
-	return runner.GetDockerMode(opts.Docker, opts.NoDocker)
-}
-
 func printUsage() {
 	w := output.New()
 
@@ -349,7 +343,7 @@ func printGlobalFlags(w *output.Writer) {
 	w.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
 	w.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
 	w.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
-	w.HelpFlag("--continue", "Continue on error (no effect with mise backend)", helpFlagWidthGlobal)
+	w.HelpFlag("--continue", "[DEPRECATED] No effect with mise backend", helpFlagWidthGlobal)
 	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
 	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
 	w.HelpFlag("--version", "Show version", helpFlagWidthGlobal)

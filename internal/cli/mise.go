@@ -4,12 +4,15 @@ import (
 	"sort"
 	"strings"
 
+	internalerrors "github.com/AndreyAkinshin/structyl/internal/errors"
 	"github.com/AndreyAkinshin/structyl/internal/mise"
 	"github.com/AndreyAkinshin/structyl/internal/output"
 )
 
 // cmdDockerfile generates Dockerfiles for targets using mise.
 func cmdDockerfile(args []string, opts *GlobalOptions) int {
+	_ = opts // Unused: dockerfile command doesn't use global flags like --docker
+
 	if wantsHelp(args) {
 		printDockerfileUsage()
 		return 0
@@ -23,7 +26,7 @@ func cmdDockerfile(args []string, opts *GlobalOptions) int {
 			force = true
 		default:
 			out.ErrorPrefix("dockerfile: unknown option %q", arg)
-			return 2
+			return internalerrors.ExitConfigError
 		}
 	}
 
@@ -40,7 +43,7 @@ func cmdDockerfile(args []string, opts *GlobalOptions) int {
 	results, err := mise.WriteAllDockerfiles(proj.Root, proj.Config, force)
 	if err != nil {
 		out.ErrorPrefix("dockerfile: %v", err)
-		return 1
+		return internalerrors.ExitRuntimeError
 	}
 
 	if len(results) == 0 {
@@ -76,6 +79,8 @@ func cmdDockerfile(args []string, opts *GlobalOptions) int {
 
 // cmdGitHub generates a GitHub Actions CI workflow using mise.
 func cmdGitHub(args []string, opts *GlobalOptions) int {
+	_ = opts // Unused: github command doesn't use global flags like --docker
+
 	if wantsHelp(args) {
 		printGitHubUsage()
 		return 0
@@ -89,7 +94,7 @@ func cmdGitHub(args []string, opts *GlobalOptions) int {
 			force = true
 		default:
 			out.ErrorPrefix("github: unknown option %q", arg)
-			return 2
+			return internalerrors.ExitConfigError
 		}
 	}
 
@@ -112,7 +117,7 @@ func cmdGitHub(args []string, opts *GlobalOptions) int {
 	created, err := mise.WriteGitHubWorkflow(proj.Root, proj.Config, force)
 	if err != nil {
 		out.ErrorPrefix("github: %v", err)
-		return 1
+		return internalerrors.ExitRuntimeError
 	}
 
 	if created {

@@ -1,13 +1,31 @@
 package cli
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
+
+	"github.com/AndreyAkinshin/structyl/internal/output"
 )
+
+// Error constructors for mise-related errors.
+func errMiseNotInstalled() error {
+	return fmt.Errorf("mise is not installed. Install it from https://mise.jdx.dev")
+}
+
+func errMiseRequired() error {
+	return fmt.Errorf("mise is required. Install it from https://mise.jdx.dev")
+}
+
+func errInstallMise(err error) error {
+	return fmt.Errorf("failed to install mise: %w", err)
+}
+
+func errMiseNotInPath() error {
+	return fmt.Errorf("mise installed but not in PATH")
+}
 
 // MiseStatus represents the mise installation status.
 type MiseStatus struct {
@@ -53,23 +71,16 @@ func EnsureMise(interactive bool) error {
 	}
 
 	if !interactive {
-		return fmt.Errorf("mise is not installed. Install it from https://mise.jdx.dev")
+		return errMiseNotInstalled()
 	}
 
-	// Interactive mode - ask user if they want to install
-	fmt.Println("mise is not installed. mise is required to run structyl commands.")
-	fmt.Println("")
-	fmt.Println("Would you like to install mise now? [y/N]")
+	// Interactive mode - explain context and ask user if they want to install
+	w := output.New()
+	w.Println("mise is not installed. mise is required to run structyl commands.")
+	w.Println("")
 
-	reader := bufio.NewReader(os.Stdin)
-	response, err := reader.ReadString('\n')
-	if err != nil {
-		return fmt.Errorf("failed to read response: %w", err)
-	}
-
-	response = strings.TrimSpace(strings.ToLower(response))
-	if response != "y" && response != "yes" {
-		return fmt.Errorf("mise is required. Install it from https://mise.jdx.dev")
+	if !promptConfirm("Would you like to install mise now?") {
+		return errMiseRequired()
 	}
 
 	return InstallMise()
@@ -77,7 +88,8 @@ func EnsureMise(interactive bool) error {
 
 // InstallMise installs mise using the official installer script.
 func InstallMise() error {
-	fmt.Println("Installing mise...")
+	w := output.New()
+	w.Println("Installing mise...")
 
 	var cmd *exec.Cmd
 
@@ -95,50 +107,51 @@ func InstallMise() error {
 	cmd.Stdin = os.Stdin
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("failed to install mise: %w", err)
+		return errInstallMise(err)
 	}
 
 	// Verify installation
 	status := CheckMise()
 	if !status.Installed {
-		fmt.Println("")
-		fmt.Println("mise was installed but is not in your PATH.")
-		fmt.Println("Please add mise to your PATH and restart your shell:")
-		fmt.Println("")
+		w.Println("")
+		w.Println("mise was installed but is not in your PATH.")
+		w.Println("Please add mise to your PATH and restart your shell:")
+		w.Println("")
 		switch runtime.GOOS {
 		case "darwin", "linux":
-			fmt.Println("  echo 'eval \"$(~/.local/bin/mise activate bash)\"' >> ~/.bashrc")
-			fmt.Println("  # or for zsh:")
-			fmt.Println("  echo 'eval \"$(~/.local/bin/mise activate zsh)\"' >> ~/.zshrc")
+			w.Println("  echo 'eval \"$(~/.local/bin/mise activate bash)\"' >> ~/.bashrc")
+			w.Println("  # or for zsh:")
+			w.Println("  echo 'eval \"$(~/.local/bin/mise activate zsh)\"' >> ~/.zshrc")
 		case "windows":
 			userprofile := "%USERPROFILE%"
-			fmt.Println("  Add " + userprofile + "\\.local\\bin to your PATH")
+			w.Println("  Add " + userprofile + "\\.local\\bin to your PATH")
 		}
-		return fmt.Errorf("mise installed but not in PATH")
+		return errMiseNotInPath()
 	}
 
-	fmt.Printf("mise %s installed successfully.\n", status.Version)
+	w.Println("mise %s installed successfully.", status.Version)
 	return nil
 }
 
 // PrintMiseInstallInstructions prints instructions for installing mise.
 func PrintMiseInstallInstructions() {
-	fmt.Println("mise is not installed.")
-	fmt.Println("")
-	fmt.Println("To install mise, run:")
-	fmt.Println("")
+	w := output.New()
+	w.Println("mise is not installed.")
+	w.Println("")
+	w.Println("To install mise, run:")
+	w.Println("")
 	switch runtime.GOOS {
 	case "darwin":
-		fmt.Println("  brew install mise")
-		fmt.Println("  # or")
-		fmt.Println("  curl https://mise.run | sh")
+		w.Println("  brew install mise")
+		w.Println("  # or")
+		w.Println("  curl https://mise.run | sh")
 	case "linux":
-		fmt.Println("  curl https://mise.run | sh")
+		w.Println("  curl https://mise.run | sh")
 	case "windows":
-		fmt.Println("  irm https://mise.run | iex")
+		w.Println("  irm https://mise.run | iex")
 	default:
-		fmt.Println("  curl https://mise.run | sh")
+		w.Println("  curl https://mise.run | sh")
 	}
-	fmt.Println("")
-	fmt.Println("For more information, visit: https://mise.jdx.dev")
+	w.Println("")
+	w.Println("For more information, visit: https://mise.jdx.dev")
 }

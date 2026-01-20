@@ -51,8 +51,8 @@ func loadProject() (*project.Project, int) {
 // If auto_generate is enabled, regenerates the file.
 // If force is true, always regenerates.
 func ensureMiseConfig(proj *project.Project, force bool) error {
-	// Check if auto-generate is enabled
-	autoGen := true // default
+	autoGen := true // default to auto-generation so mise.toml stays in sync
+
 	if proj.Config.Mise != nil {
 		autoGen = proj.Config.Mise.AutoGenerate
 	}
@@ -429,6 +429,16 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 	return 0
 }
 
+// handleDockerError logs a Docker availability error and returns the appropriate exit code.
+func handleDockerError(err error) int {
+	out.ErrorPrefix("%v", err)
+	var dockerErr *runner.DockerUnavailableError
+	if errors.As(err, &dockerErr) {
+		return dockerErr.ExitCode()
+	}
+	return internalerrors.ExitRuntimeError
+}
+
 // cmdDockerBuild builds Docker images for services.
 func cmdDockerBuild(args []string, opts *GlobalOptions) int {
 	applyVerbosityToOutput(opts)
@@ -446,14 +456,8 @@ func cmdDockerBuild(args []string, opts *GlobalOptions) int {
 	// Use the full config runner to support per-target Dockerfiles
 	dockerRunner := runner.NewDockerRunnerWithConfig(proj.Root, proj.Config)
 
-	// Check Docker availability
 	if err := runner.CheckDockerAvailable(); err != nil {
-		out.ErrorPrefix("%v", err)
-		var dockerErr *runner.DockerUnavailableError
-		if errors.As(err, &dockerErr) {
-			return dockerErr.ExitCode()
-		}
-		return internalerrors.ExitRuntimeError
+		return handleDockerError(err)
 	}
 
 	ctx := context.Background()
@@ -482,14 +486,8 @@ func cmdDockerClean(args []string, opts *GlobalOptions) int {
 
 	dockerRunner := runner.NewDockerRunner(proj.Root, proj.Config.Docker)
 
-	// Check Docker availability
 	if err := runner.CheckDockerAvailable(); err != nil {
-		out.ErrorPrefix("%v", err)
-		var dockerErr *runner.DockerUnavailableError
-		if errors.As(err, &dockerErr) {
-			return dockerErr.ExitCode()
-		}
-		return internalerrors.ExitRuntimeError
+		return handleDockerError(err)
 	}
 
 	ctx := context.Background()
@@ -581,7 +579,7 @@ func printUnifiedUsage(cmd string) {
 	w.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
 	w.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
 	w.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
-	w.HelpFlag("--continue", "Continue on error (no effect with mise backend)", helpFlagWidthGlobal)
+	w.HelpFlag("--continue", "[DEPRECATED] No effect with mise backend", helpFlagWidthGlobal)
 	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
 	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
 
@@ -653,7 +651,7 @@ func printCIUsage(cmd string) {
 	w.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
 	w.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
 	w.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
-	w.HelpFlag("--continue", "Continue on error (no effect with mise backend)", helpFlagWidthGlobal)
+	w.HelpFlag("--continue", "[DEPRECATED] No effect with mise backend", helpFlagWidthGlobal)
 	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
 	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
 

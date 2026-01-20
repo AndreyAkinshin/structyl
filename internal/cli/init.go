@@ -4,7 +4,6 @@ import (
 	"bufio"
 	_ "embed"
 	"encoding/json"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -372,7 +371,14 @@ func updateGitignore(root string) {
 	}
 
 	existingContent := ""
-	if data, err := os.ReadFile(gitignorePath); err == nil {
+	if data, err := os.ReadFile(gitignorePath); err != nil {
+		if !os.IsNotExist(err) {
+			// File exists but can't be read (permissions, etc.) - warn and skip
+			output.New().WarningSimple("could not read .gitignore: %v", err)
+			return
+		}
+		// File doesn't exist - will be created below
+	} else {
 		existingContent = string(data)
 	}
 
@@ -441,8 +447,11 @@ func printInitUsage() {
 }
 
 // promptConfirm asks the user a yes/no question and returns true if they confirm.
+// The prompt is displayed on a single line with "[y/N]" suffix.
+// Uses output.Writer for consistent output handling.
 func promptConfirm(question string) bool {
-	fmt.Printf("%s [y/N] ", question)
+	w := output.New()
+	w.Print("%s [y/N] ", question)
 
 	reader := bufio.NewReader(os.Stdin)
 	response, err := reader.ReadString('\n')

@@ -9,8 +9,7 @@ import (
 
 // cmdTestSummary parses go test -json output and prints a summary.
 func cmdTestSummary(args []string) int {
-	// Check for help
-	if len(args) > 0 && (args[0] == "-h" || args[0] == "--help") {
+	if wantsHelp(args) {
 		printTestSummaryUsage()
 		return 0
 	}
@@ -19,6 +18,7 @@ func cmdTestSummary(args []string) int {
 	var input *os.File
 	var err error
 
+	// Treat "-" as stdin (Unix convention)
 	if len(args) > 0 && args[0] != "-" {
 		// Read from file
 		input, err = os.Open(args[0])

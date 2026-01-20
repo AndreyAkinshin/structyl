@@ -99,6 +99,8 @@ All toolchains implement this vocabulary:
 
 Commands not applicable to a toolchain are set to `null` (skipped).
 
+> **Table notation:** In command tables below, `—` (em-dash) indicates the command is not available for this toolchain (equivalent to `null` in configuration). Invoking a `null` command succeeds with a warning: `command "X" is not available`.
+
 > **Note:** The `build:release` command is only provided by toolchains that have distinct release/optimized build modes (e.g., `cargo`, `dotnet`, `swift`, `make`, `zig`). Toolchains without a native release mode (e.g., `npm`, `gradle`, `python`) do not define this variant. For these toolchains, configure a custom `build:release` command in target configuration if needed.
 
 > **Note:** The `test:coverage` command is OPTIONAL. Most built-in toolchains do not provide a default implementation because coverage tools vary significantly by ecosystem and project setup. Configure a custom `test:coverage` command in target configuration if needed. See [commands.md](commands.md) for command semantics.

@@ -140,6 +140,7 @@ func createTestRegistry(t *testing.T) (*target.Registry, string) {
 }
 
 func TestNew_ValidRegistry_CreatesRunner(t *testing.T) {
+	t.Parallel()
 	registry, _ := createTestRegistry(t)
 
 	r := New(registry)
@@ -152,6 +153,7 @@ func TestNew_ValidRegistry_CreatesRunner(t *testing.T) {
 }
 
 func TestRun_UnknownTarget_ReturnsError(t *testing.T) {
+	t.Parallel()
 	registry, _ := createTestRegistry(t)
 	r := New(registry)
 
@@ -167,6 +169,7 @@ func TestRun_UnknownTarget_ReturnsError(t *testing.T) {
 }
 
 func TestRunAll_NoTargetsWithCommand_ReturnsNil(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 
 	// Create target directory
@@ -203,49 +206,8 @@ func TestRunAll_NoTargetsWithCommand_ReturnsNil(t *testing.T) {
 	}
 }
 
-func TestRunAll_NoTargetsWithCommand_ReturnsNilWithWarning(t *testing.T) {
-	// NOTE: This test verifies the behavior when no targets support a command.
-	// The warning is printed via output.Writer, which uses a package-level writer
-	// that captures os.Stderr at init time. Rather than manipulating global state
-	// (which can be flaky in parallel tests), we verify the return value.
-	// The warning output can be verified manually: `go test -v` shows the warning.
-
-	tmpDir := t.TempDir()
-
-	// Create target directory
-	targetDir := tmpDir + "/img"
-	if err := os.MkdirAll(targetDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	// Create config with auxiliary target that has no commands
-	cfg := &config.Config{
-		Project: config.ProjectConfig{Name: "test"},
-		Targets: map[string]config.TargetConfig{
-			"img": {
-				Type:      "auxiliary",
-				Title:     "Images",
-				Directory: "img",
-			},
-		},
-	}
-
-	registry, err := target.NewRegistry(cfg, tmpDir)
-	if err != nil {
-		t.Fatalf("failed to create registry: %v", err)
-	}
-
-	runner := New(registry)
-	ctx := context.Background()
-	err = runner.RunAll(ctx, "nonexistent_command", RunOptions{})
-
-	// Should return nil (not an error) since "no targets" is a warning, not a failure
-	if err != nil {
-		t.Errorf("RunAll() error = %v, want nil", err)
-	}
-}
-
 func TestRunTargets_EmptyTargetList_ReturnsNil(t *testing.T) {
+	t.Parallel()
 	registry, _ := createTestRegistry(t)
 	r := New(registry)
 
@@ -258,6 +220,7 @@ func TestRunTargets_EmptyTargetList_ReturnsNil(t *testing.T) {
 }
 
 func TestRunSequential_ExecutesAll(t *testing.T) {
+	t.Parallel()
 	// Create mock targets
 	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage)
 	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage)
@@ -288,6 +251,7 @@ func TestRunSequential_ExecutesAll(t *testing.T) {
 }
 
 func TestRunSequential_StopsOnError(t *testing.T) {
+	t.Parallel()
 	testErr := errors.New("test error")
 
 	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage)
@@ -320,6 +284,7 @@ func TestRunSequential_StopsOnError(t *testing.T) {
 }
 
 func TestRunSequential_ContinueOnError(t *testing.T) {
+	t.Parallel()
 	testErr := errors.New("test error")
 
 	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage)
@@ -352,6 +317,7 @@ func TestRunSequential_ContinueOnError(t *testing.T) {
 }
 
 func TestRunSequential_ContextCancellation(t *testing.T) {
+	t.Parallel()
 	// Use channel-based synchronization instead of time.Sleep to avoid flakiness
 	started := make(chan struct{})
 
@@ -528,6 +494,7 @@ func TestCombineErrors_Unwrappable(t *testing.T) {
 // =============================================================================
 
 func TestRunSequential_WithDockerOption_PassesToAllTargets(t *testing.T) {
+	t.Parallel()
 	var receivedDocker []bool
 
 	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
@@ -616,6 +583,7 @@ func TestRunParallel_WithDockerOption_PassesToAllTargets(t *testing.T) {
 }
 
 func TestRunSequential_WithEnvOption_PassesToAllTargets(t *testing.T) {
+	t.Parallel()
 	var receivedEnv []map[string]string
 
 	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
@@ -740,6 +708,7 @@ func TestRunParallel_AllFail_WithoutContinue_StopsOnFirstError(t *testing.T) {
 }
 
 func TestRunSequential_AllFail_CombinesAllErrors(t *testing.T) {
+	t.Parallel()
 	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
 		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
 			return errors.New("t1 failed")

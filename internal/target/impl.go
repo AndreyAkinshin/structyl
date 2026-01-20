@@ -136,11 +136,16 @@ func (t *targetImpl) Title() string     { return t.title }
 func (t *targetImpl) Type() TargetType  { return t.targetType }
 func (t *targetImpl) Directory() string { return t.directory }
 func (t *targetImpl) Cwd() string       { return t.cwd }
+
+// DependsOn returns a copy of the dependency list. The returned slice is safe
+// to modify without affecting the target's internal state.
 func (t *targetImpl) DependsOn() []string {
 	if t.dependsOn == nil {
 		return []string{}
 	}
-	return t.dependsOn
+	result := make([]string, len(t.dependsOn))
+	copy(result, t.dependsOn)
+	return result
 }
 func (t *targetImpl) Env() map[string]string  { return t.env }
 func (t *targetImpl) Vars() map[string]string { return t.vars }

@@ -327,6 +327,27 @@ func TestTarget_DependsOn_Empty(t *testing.T) {
 	}
 }
 
+func TestTarget_DependsOn_Immutable(t *testing.T) {
+	cfg := config.TargetConfig{
+		Type:      "auxiliary",
+		Title:     "App",
+		DependsOn: []string{"lib", "img"},
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("app", cfg, "/project", resolver)
+
+	// Get dependencies and modify the returned slice
+	deps := target.DependsOn()
+	deps[0] = "modified"
+
+	// Verify the original is unchanged
+	original := target.DependsOn()
+	if original[0] != "lib" {
+		t.Errorf("DependsOn() was mutated: got %q, want %q", original[0], "lib")
+	}
+}
+
 func TestTarget_Env(t *testing.T) {
 	cfg := config.TargetConfig{
 		Type:  "language",

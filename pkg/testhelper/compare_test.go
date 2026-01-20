@@ -8,6 +8,7 @@ package testhelper
 
 import (
 	"math"
+	"strings"
 	"testing"
 )
 
@@ -647,29 +648,66 @@ func TestCompareOutput_NilMismatch(t *testing.T) {
 	}
 }
 
-// TestCompare_InvalidToleranceModeFallback documents that invalid ToleranceMode
-// values fall through to the default (relative) behavior. ValidateOptions should
-// be called before Compare to catch invalid modes.
-func TestCompare_InvalidToleranceModeFallback(t *testing.T) {
-	// Invalid mode falls through to relative tolerance (default)
+// TestCompare_InvalidToleranceMode_Panics verifies that Compare panics with
+// invalid ToleranceMode values to fail-fast rather than silently using defaults.
+func TestCompare_InvalidToleranceMode_Panics(t *testing.T) {
 	opts := CompareOptions{
 		FloatTolerance: 0.01,
 		ToleranceMode:  "invalid", // Not a valid mode
 	}
 
-	// With relative tolerance 0.01, 1.0 and 1.005 should pass (0.5% difference)
-	if !CompareOutput(1.0, 1.005, opts) {
-		t.Error("invalid ToleranceMode should fall through to relative mode")
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Error("Compare should panic with invalid ToleranceMode")
+		}
+		panicMsg, ok := r.(string)
+		if !ok {
+			t.Errorf("panic value should be string, got %T", r)
+			return
+		}
+		if !strings.Contains(panicMsg, "testhelper.Compare") {
+			t.Errorf("panic message should mention testhelper.Compare, got: %s", panicMsg)
+		}
+		if !strings.Contains(panicMsg, "invalid ToleranceMode") {
+			t.Errorf("panic message should mention invalid ToleranceMode, got: %s", panicMsg)
+		}
+	}()
+
+	Compare(1.0, 1.005, opts)
+}
+
+// TestCompareOutput_InvalidToleranceMode_Panics verifies CompareOutput also panics.
+func TestCompareOutput_InvalidToleranceMode_Panics(t *testing.T) {
+	opts := CompareOptions{
+		ToleranceMode: "fuzzy", // Invalid
 	}
 
-	// 1.0 and 1.02 should fail (2% difference > 1%)
-	if CompareOutput(1.0, 1.02, opts) {
-		t.Error("invalid ToleranceMode should fall through to relative mode")
+	defer func() {
+		if r := recover(); r == nil {
+			t.Error("CompareOutput should panic with invalid ToleranceMode")
+		}
+	}()
+
+	CompareOutput(1.0, 1.0, opts)
+}
+
+// TestCompare_InvalidArrayOrder_Panics verifies that Compare panics with invalid ArrayOrder.
+func TestCompare_InvalidArrayOrder_Panics(t *testing.T) {
+	opts := CompareOptions{
+		ArrayOrder: "random", // Invalid
 	}
 
-	// ValidateOptions should catch the invalid mode
-	err := ValidateOptions(opts)
-	if err == nil {
-		t.Error("ValidateOptions should reject invalid ToleranceMode")
-	}
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Error("Compare should panic with invalid ArrayOrder")
+		}
+		panicMsg, ok := r.(string)
+		if ok && !strings.Contains(panicMsg, "invalid ArrayOrder") {
+			t.Errorf("panic message should mention invalid ArrayOrder, got: %s", panicMsg)
+		}
+	}()
+
+	Compare([]interface{}{1}, []interface{}{1}, opts)
 }

@@ -3,6 +3,7 @@ package testhelper
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -161,6 +162,9 @@ func TestListSuites_NoTestsDir(t *testing.T) {
 		t.Fatalf("ListSuites() error = %v", err)
 	}
 
+	if suites == nil {
+		t.Error("ListSuites() should return empty slice, not nil")
+	}
 	if len(suites) != 0 {
 		t.Errorf("expected empty slice, got %v", suites)
 	}
@@ -346,6 +350,44 @@ func TestLoadTestCase_FileNotFound_ReturnsError(t *testing.T) {
 	}
 }
 
+func TestLoadTestCase_MissingInput_ReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "missing_input.json")
+
+	// Test case with output but no input
+	content := `{"output": 42}`
+	if err := os.WriteFile(testFile, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadTestCase(testFile)
+	if err == nil {
+		t.Error("LoadTestCase() expected error for missing input field")
+	}
+	if err != nil && !strings.Contains(err.Error(), "missing required field \"input\"") {
+		t.Errorf("error should mention missing input field, got: %v", err)
+	}
+}
+
+func TestLoadTestCase_MissingOutput_ReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "missing_output.json")
+
+	// Test case with input but no output
+	content := `{"input": {"a": 1}}`
+	if err := os.WriteFile(testFile, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadTestCase(testFile)
+	if err == nil {
+		t.Error("LoadTestCase() expected error for missing output field")
+	}
+	if err != nil && !strings.Contains(err.Error(), "missing required field \"output\"") {
+		t.Errorf("error should mention missing output field, got: %v", err)
+	}
+}
+
 func TestLoadTestSuite_InvalidJSON_ReturnsError(t *testing.T) {
 	tmpDir := t.TempDir()
 	suiteDir := filepath.Join(tmpDir, "tests", "broken")
@@ -362,13 +404,19 @@ func TestLoadTestSuite_InvalidJSON_ReturnsError(t *testing.T) {
 	}
 }
 
-func TestLoadAllSuites_MissingTestsDir_ReturnsError(t *testing.T) {
+func TestLoadAllSuites_MissingTestsDir_ReturnsEmpty(t *testing.T) {
 	tmpDir := t.TempDir()
 	// Don't create the tests directory
 
-	_, err := LoadAllSuites(tmpDir)
-	if err == nil {
-		t.Error("LoadAllSuites() expected error when tests directory doesn't exist")
+	suites, err := LoadAllSuites(tmpDir)
+	if err != nil {
+		t.Errorf("LoadAllSuites() unexpected error: %v", err)
+	}
+	if suites == nil {
+		t.Error("LoadAllSuites() should return empty map, not nil")
+	}
+	if len(suites) != 0 {
+		t.Errorf("LoadAllSuites() should return empty map, got %d suites", len(suites))
 	}
 }
 

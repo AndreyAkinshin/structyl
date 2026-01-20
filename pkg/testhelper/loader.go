@@ -39,6 +39,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -60,19 +61,29 @@ type TestCase struct {
 	Name string `json:"-"`
 
 	// Suite is the test suite name (directory name).
-	// Note: LoadTestCase does NOT populate this field; use LoadTestSuite for
-	// test cases with suite information, or set Suite manually after loading.
+	// Zero value ("") indicates suite was not set. Use LoadTestSuite for
+	// automatic population, or LoadTestCaseWithSuite to set explicitly.
+	// Note: LoadTestCase does NOT populate this field.
 	Suite string `json:"-"`
 
 	// Input contains the input data for the test as a JSON object.
 	// Input MUST be a JSON object (not an array or scalar). The object may be
 	// empty ({}). A nil Input (missing field) causes a validation error.
-	// Note: Arrays and scalar values as top-level input are not supported.
+	//
+	// Why object-only? Test inputs typically represent named parameters or
+	// configuration. Objects provide named access to individual values and
+	// align with how most test frameworks expect structured input.
+	// Arrays and scalar values as top-level input are not supported.
 	Input map[string]interface{} `json:"input"`
 
 	// Output contains the expected output.
 	// Output must not be nil; a nil Output causes a validation error.
 	// Use an explicit value (e.g., empty string, empty object) for expected empty output.
+	//
+	// Why interface{}? Unlike Input, Output may be any JSON-serializable value:
+	// a scalar (number, string, boolean, null), an array, or an object.
+	// This flexibility accommodates functions that return simple values,
+	// collections, or complex structures.
 	Output interface{} `json:"output"`
 
 	// Description provides optional documentation.
@@ -112,6 +123,10 @@ func LoadTestSuite(projectRoot, suite string) ([]TestCase, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// Sort files for deterministic ordering across platforms.
+	// filepath.Glob returns files in filesystem-dependent order.
+	sort.Strings(files)
 
 	cases := make([]TestCase, 0, len(files))
 	for _, f := range files {
@@ -291,6 +306,8 @@ func ListSuites(projectRoot string) ([]string, error) {
 }
 
 // SuiteExists checks if a test suite exists.
+// Returns false for any error (including permission errors), not just "not found".
+// Use LoadTestSuite for detailed error information.
 func SuiteExists(projectRoot, suite string) bool {
 	suiteDir := filepath.Join(projectRoot, "tests", suite)
 	info, err := os.Stat(suiteDir)
@@ -298,6 +315,8 @@ func SuiteExists(projectRoot, suite string) bool {
 }
 
 // TestCaseExists checks if a specific test case exists.
+// Returns false for any error (including permission errors), not just "not found".
+// Use LoadTestCase for detailed error information.
 func TestCaseExists(projectRoot, suite, name string) bool {
 	path := filepath.Join(projectRoot, "tests", suite, name+".json")
 	_, err := os.Stat(path)

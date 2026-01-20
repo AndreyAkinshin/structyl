@@ -20,6 +20,10 @@ type CompareOptions struct {
 	// ToleranceModeAbsolute, or ToleranceModeULP.
 	// Empty string ("") is treated as ToleranceModeRelative.
 	//
+	// For "relative" mode: comparison passes if |expected - actual| / |expected| <= tolerance.
+	// Edge case: when expected == 0, the formula changes to |actual| <= tolerance,
+	// since division by zero is undefined.
+	//
 	// For "ulp" mode, FloatTolerance is truncated to int64 for ULP distance
 	// calculation. Practical limit: FloatTolerance values should be less than
 	// 2^63-1 (approximately 9.2e18). For tolerances exceeding this limit,
@@ -114,7 +118,7 @@ func ValidateOptions(opts CompareOptions) error {
 //
 // Special string values in expected trigger float comparisons:
 //   - "NaN" matches actual NaN (per NaNEqualsNaN option)
-//   - "Infinity" matches actual +Inf
+//   - "Infinity" or "+Infinity" matches actual +Inf
 //   - "-Infinity" matches actual -Inf
 func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
 	ok, _ := Compare(expected, actual, opts)
@@ -129,7 +133,7 @@ func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
 //
 // Special string values in expected trigger float comparisons:
 //   - "NaN" matches actual NaN (per NaNEqualsNaN option)
-//   - "Infinity" matches actual +Inf
+//   - "Infinity" or "+Infinity" matches actual +Inf
 //   - "-Infinity" matches actual -Inf
 func Compare(expected, actual interface{}, opts CompareOptions) (bool, string) {
 	if err := ValidateOptions(opts); err != nil {
@@ -149,7 +153,7 @@ func compareValues(expected, actual interface{}, opts CompareOptions, path strin
 
 	// Handle special float strings
 	if expStr, ok := expected.(string); ok {
-		if expStr == "NaN" || expStr == "Infinity" || expStr == "-Infinity" {
+		if expStr == "NaN" || expStr == "Infinity" || expStr == "+Infinity" || expStr == "-Infinity" {
 			return compareSpecialFloat(expStr, actual, opts, path)
 		}
 	}
@@ -276,7 +280,7 @@ func compareSpecialFloat(expected string, actual interface{}, opts CompareOption
 			return false, fmt.Sprintf("%s: NaN mismatch (NaNEqualsNaN is false)", pathStr(path))
 		}
 		return false, fmt.Sprintf("%s: expected NaN, got %v", pathStr(path), a)
-	case "Infinity":
+	case "Infinity", "+Infinity":
 		if math.IsInf(a, 1) {
 			return true, ""
 		}

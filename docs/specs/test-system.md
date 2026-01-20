@@ -71,13 +71,15 @@ structyl: error: test suite "{suite}": {reason}
   file: {path}
 ```
 
-### Input Types
+### Input Structure
 
-Inputs can be:
+Input MUST be a JSON object (map). The object may be empty (`{}`). Scalar values and arrays as the top-level input are not supported.
 
-- **Scalar values**: numbers, strings, booleans
-- **Arrays**: homogeneous lists
-- **Objects**: nested structures
+**Within the input object**, values can be:
+
+- **Scalar values**: numbers, strings, booleans, null
+- **Arrays**: `[1.0, 2.0, 3.0]`
+- **Nested objects**: `{"config": {"alpha": 0.05}}`
 
 ```json
 {
@@ -89,6 +91,8 @@ Inputs can be:
   "output": 2.5
 }
 ```
+
+**Why object-only?** Test inputs represent named parameters. Objects provide named access and align with how most test frameworks structure input.
 
 ### Output Types
 
@@ -112,9 +116,13 @@ Outputs can be:
 }
 ```
 
-### Binary Data References
+### Binary Data References (Internal Only)
 
-For binary data (images, files), use the `$file` syntax:
+::: danger Public API Limitation
+The `$file` syntax is only available in Structyl's internal test runner. The public Go package `pkg/testhelper` does NOT support `$file` references. Test cases using this syntax must either use the internal `internal/tests` package or embed data directly in JSON.
+:::
+
+For binary data in tests using the internal runner, use the `$file` syntax:
 
 ```json
 {

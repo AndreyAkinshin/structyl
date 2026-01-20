@@ -113,9 +113,11 @@ This specification defines Structyl v1.0. The following are explicitly **in scop
 
 The following are explicitly **out of scope** for v1.0:
 
-- Documentation generation (README, PDF, websites)
+- Full documentation generation (PDF, websites from source)
 - Plugin system for custom languages
 - Remote execution
+
+Note: Basic README templating via `documentation.readme_template` is supported. Full doc generation tooling is out of scope.
 
 ## Status
 

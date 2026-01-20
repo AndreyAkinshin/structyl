@@ -67,11 +67,13 @@ A test case defined in JSON format in the `tests/` directory. Reference tests ar
 
 ### Slug
 
-The target key in the `targets` configuration object. Used as the identifier in commands (e.g., `structyl build cs`). The corresponding directory MAY differ via the `directory` field. Examples: `cs`, `py`, `rs`, `img`.
+See **Target Name**.
 
 ### Target Name
 
-Synonym for **Slug**. The terms "target name" and "slug" are used interchangeably throughout the documentation.
+The target key in the `targets` configuration object. Used as the identifier in commands (e.g., `structyl build cs`). The corresponding directory MAY differ via the `directory` field. Examples: `cs`, `py`, `rs`, `img`.
+
+> **Historical note:** Some documentation may use the term "slug" as a synonym for target name.
 
 ### Suite
 

@@ -15,7 +15,7 @@ Target names (the keys in the `targets` object) MUST follow these rules:
 - **Pattern**: `^[a-z][a-z0-9-]*$` (lowercase letters, digits, hyphens only)
 - **Length**: 1-64 characters (enforced by JSON Schema for IDE validation; runtime validation checks pattern only)
 
-Invalid target names cause exit code 2 with message: `targets.{name}: target name MUST match pattern ^[a-z][a-z0-9-]*$ (lowercase letters, digits, hyphens)`
+Invalid target names cause exit code 2 with message: `targets.{name}: target name must match pattern ^[a-z][a-z0-9-]*$ (lowercase letters, digits, hyphens)`
 
 ## Target Types
 

@@ -172,6 +172,7 @@ These commands operate across all targets.
 
 | Command                  | Description                                                                                                 |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `init`                   | Initialize a new Structyl project in current directory                                                      |
 | `targets`                | List all configured targets (see [targets.md](targets.md#target-listing))                                   |
 | `release <version>`      | Set version, commit, and tag (see [version-management.md](version-management.md#automated-release-command)) |
 | `upgrade [version]`      | Manage pinned CLI version (see [version-management.md](version-management.md#cli-version-pinning))          |

@@ -180,6 +180,7 @@ These commands operate across all targets.
 | `docker-build [targets]` | Build Docker images (see [docker.md](docker.md#docker-commands))                                            |
 | `docker-clean`           | Remove Docker containers, images, and volumes                                                               |
 | `completion <shell>`     | Generate shell completion script (bash, zsh, fish)                                                          |
+| `test-summary`           | Parse and summarize `go test -json` output                                                                  |
 
 ### `init` Command
 
@@ -241,6 +242,39 @@ eval "$(structyl completion bash)"
 # Generate completion for an alias
 alias st="structyl"
 eval "$(structyl completion bash --alias=st)"
+```
+
+### `test-summary` Command
+
+```
+structyl test-summary [file]
+go test -json ./... | structyl test-summary
+```
+
+Parses `go test -json` output and prints a clear summary of test results, highlighting any failed tests with their failure reasons.
+
+**Input:**
+
+- From stdin (piped): `go test -json ./... | structyl test-summary`
+- From file: `structyl test-summary test-output.json`
+
+**Output:**
+
+- Summary of passed, failed, and skipped tests
+- Details of failed tests with failure reasons
+- Exit code 0 if all tests pass, 1 if any failures
+
+**Examples:**
+
+```bash
+# Parse from stdin
+go test -json ./... | structyl test-summary
+
+# Parse from file
+go test -json ./... > test.json && structyl test-summary test.json
+
+# Combined with tee for both output and summary
+go test -json ./... 2>&1 | tee test.json && structyl test-summary test.json
 ```
 
 ## Global Flags
@@ -463,6 +497,36 @@ Toolchains provide common variants. Override specific variants as needed:
   }
 }
 ```
+
+### Verbosity Variants
+
+When `-v, --verbose` or `-q, --quiet` flags are passed, Structyl automatically attempts to resolve a verbosity-specific variant of the command before falling back to the base command.
+
+**Resolution order:**
+
+1. With `--verbose`: Try `<command>:verbose`, then fall back to `<command>`
+2. With `--quiet`: Try `<command>:quiet`, then fall back to `<command>`
+3. Without flags: Use `<command>` directly
+
+**Example:**
+
+```json
+{
+  "commands": {
+    "test": "cargo test",
+    "test:verbose": "cargo test -- --nocapture",
+    "test:quiet": "cargo test --quiet"
+  }
+}
+```
+
+```bash
+structyl test rs           # runs "cargo test"
+structyl test rs -v        # runs "cargo test -- --nocapture" (test:verbose)
+structyl test rs -q        # runs "cargo test --quiet" (test:quiet)
+```
+
+If a verbosity variant is not defined, Structyl silently falls back to the base command. This allows selective enhancement of commands that benefit from different verbosity levels.
 
 ### Composite Commands with Variants
 

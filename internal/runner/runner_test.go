@@ -89,22 +89,22 @@ func TestCombineErrors_Single(t *testing.T) {
 
 func TestCombineErrors_Multiple(t *testing.T) {
 	t.Parallel()
-	errors := []error{
+	errs := []error{
 		os.ErrNotExist,
 		os.ErrPermission,
 	}
-	err := combineErrors(errors)
+	err := combineErrors(errs)
 	if err == nil {
 		t.Error("combineErrors([2]) = nil, want error")
 	}
 
-	// Verify message format
+	// Verify message contains both errors
 	msg := err.Error()
-	if !strings.Contains(msg, "2 errors") {
-		t.Errorf("error message = %q, want to contain '2 errors'", msg)
-	}
 	if !strings.Contains(msg, "not exist") {
 		t.Errorf("error message = %q, want to contain first error", msg)
+	}
+	if !strings.Contains(msg, "permission denied") {
+		t.Errorf("error message = %q, want to contain second error", msg)
 	}
 }
 
@@ -504,9 +504,6 @@ func TestCombineErrors_MessageFormat(t *testing.T) {
 	combined := combineErrors(errs)
 	msg := combined.Error()
 
-	if !strings.Contains(msg, "3 errors") {
-		t.Errorf("message should contain '3 errors', got %q", msg)
-	}
 	if !strings.Contains(msg, "error one") {
 		t.Errorf("message should contain 'error one', got %q", msg)
 	}
@@ -515,6 +512,22 @@ func TestCombineErrors_MessageFormat(t *testing.T) {
 	}
 	if !strings.Contains(msg, "error three") {
 		t.Errorf("message should contain 'error three', got %q", msg)
+	}
+}
+
+func TestCombineErrors_Unwrappable(t *testing.T) {
+	t.Parallel()
+	err1 := os.ErrNotExist
+	err2 := os.ErrPermission
+
+	combined := combineErrors([]error{err1, err2})
+
+	// errors.Join produces an error that can be unwrapped with errors.Is
+	if !errors.Is(combined, os.ErrNotExist) {
+		t.Error("combined error should match os.ErrNotExist via errors.Is")
+	}
+	if !errors.Is(combined, os.ErrPermission) {
+		t.Error("combined error should match os.ErrPermission via errors.Is")
 	}
 }
 
@@ -678,12 +691,7 @@ func TestRunParallel_AllFail_CombinesAllErrors(t *testing.T) {
 
 	errMsg := err.Error()
 
-	// Error message should mention "3 errors"
-	if !strings.Contains(errMsg, "3 errors") {
-		t.Errorf("error should mention '3 errors', got %q", errMsg)
-	}
-
-	// All target names should be mentioned
+	// All target names should be mentioned in the combined error
 	if !strings.Contains(errMsg, "t1") {
 		t.Errorf("error should mention 't1', got %q", errMsg)
 	}
@@ -763,8 +771,11 @@ func TestRunSequential_AllFail_CombinesAllErrors(t *testing.T) {
 
 	errMsg := err.Error()
 
-	// Should have combined errors
-	if !strings.Contains(errMsg, "2 errors") {
-		t.Errorf("error should mention '2 errors', got %q", errMsg)
+	// Should have both error messages in the combined error
+	if !strings.Contains(errMsg, "t1 failed") {
+		t.Errorf("error should mention 't1 failed', got %q", errMsg)
+	}
+	if !strings.Contains(errMsg, "t2 failed") {
+		t.Errorf("error should mention 't2 failed', got %q", errMsg)
 	}
 }

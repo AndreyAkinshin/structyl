@@ -3,13 +3,14 @@ package runner
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"runtime"
 	"strconv"
 	"sync"
 
-	"github.com/AndreyAkinshin/structyl/internal/errors"
+	structylerrors "github.com/AndreyAkinshin/structyl/internal/errors"
 	"github.com/AndreyAkinshin/structyl/internal/target"
 )
 
@@ -40,7 +41,7 @@ func New(registry *target.Registry) *Runner {
 func (r *Runner) Run(ctx context.Context, targetName, cmd string, opts RunOptions) error {
 	t, ok := r.registry.Get(targetName)
 	if !ok {
-		return errors.NotFound("target", targetName)
+		return structylerrors.NotFound("target", targetName)
 	}
 
 	execOpts := target.ExecOptions{
@@ -231,6 +232,7 @@ func getParallelWorkers() int {
 }
 
 // combineErrors combines multiple errors into one.
+// Returns an error that supports errors.Is and errors.As for each individual error.
 func combineErrors(errs []error) error {
 	if len(errs) == 0 {
 		return nil
@@ -238,10 +240,5 @@ func combineErrors(errs []error) error {
 	if len(errs) == 1 {
 		return errs[0]
 	}
-
-	msg := fmt.Sprintf("%d errors occurred:\n", len(errs))
-	for _, err := range errs {
-		msg += fmt.Sprintf("  - %v\n", err)
-	}
-	return errors.New(msg)
+	return errors.Join(errs...)
 }

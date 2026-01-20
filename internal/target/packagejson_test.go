@@ -317,3 +317,44 @@ func TestGetPackageJSON_CachesNil(t *testing.T) {
 		t.Error("getPackageJSON() after cache clear = nil, want non-nil")
 	}
 }
+
+func TestGetPackageJSON_ConcurrentAccess(t *testing.T) {
+	// Clear cache before test
+	clearPackageJSONCache()
+	defer clearPackageJSONCache()
+
+	tmpDir := t.TempDir()
+
+	// Create package.json
+	packageJSON := `{"name": "test", "scripts": {"lint": "eslint ."}}`
+	err := os.WriteFile(filepath.Join(tmpDir, "package.json"), []byte(packageJSON), 0644)
+	if err != nil {
+		t.Fatalf("failed to write package.json: %v", err)
+	}
+
+	// Spawn multiple goroutines to access the same cache key concurrently
+	const numGoroutines = 100
+	results := make(chan *PackageJSON, numGoroutines)
+
+	for range numGoroutines {
+		go func() {
+			results <- getPackageJSON(tmpDir)
+		}()
+	}
+
+	// Collect results and verify all are the same pointer (cached value)
+	var first *PackageJSON
+	for range numGoroutines {
+		result := <-results
+		if result == nil {
+			t.Error("getPackageJSON() returned nil in concurrent test")
+			continue
+		}
+		if first == nil {
+			first = result
+		} else if result != first {
+			// All goroutines should get the same cached pointer
+			t.Error("getPackageJSON() returned different pointers in concurrent test")
+		}
+	}
+}

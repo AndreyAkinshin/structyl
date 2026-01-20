@@ -1,6 +1,7 @@
 package topsort
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
 	"strings"
@@ -344,17 +345,20 @@ func TestSort_MultipleDisconnectedComponents(t *testing.T) {
 }
 
 func TestSort_LargeGraph(t *testing.T) {
-	// Build a linear chain of 100 nodes: n0 <- n1 <- n2 <- ... <- n99
+	// Build a linear chain of 100 nodes: n000 <- n001 <- n002 <- ... <- n099
 	const nodeCount = 100
 	g := make(Graph, nodeCount)
 
+	nodeName := func(i int) string {
+		return fmt.Sprintf("n%03d", i)
+	}
+
 	for i := 0; i < nodeCount; i++ {
-		name := "n" + string(rune('0'+i/100)) + string(rune('0'+(i/10)%10)) + string(rune('0'+i%10))
+		name := nodeName(i)
 		if i == 0 {
 			g[name] = nil
 		} else {
-			prevName := "n" + string(rune('0'+(i-1)/100)) + string(rune('0'+((i-1)/10)%10)) + string(rune('0'+(i-1)%10))
-			g[name] = []string{prevName}
+			g[name] = []string{nodeName(i - 1)}
 		}
 	}
 

@@ -5,6 +5,7 @@ import (
 )
 
 func TestGet_BuiltinToolchains(t *testing.T) {
+	t.Parallel()
 	tests := []string{
 		"cargo", "dotnet", "go", "npm", "pnpm", "yarn", "bun",
 		"python", "uv", "poetry", "gradle", "maven", "make", "cmake", "swift",
@@ -14,6 +15,7 @@ func TestGet_BuiltinToolchains(t *testing.T) {
 
 	for _, name := range tests {
 		t.Run(name, func(t *testing.T) {
+			t.Parallel()
 			tc, ok := Get(name)
 			if !ok {
 				t.Errorf("Get(%q) = not found, want found", name)
@@ -27,6 +29,7 @@ func TestGet_BuiltinToolchains(t *testing.T) {
 }
 
 func TestGet_UnknownToolchain(t *testing.T) {
+	t.Parallel()
 	_, ok := Get("nonexistent")
 	if ok {
 		t.Error("Get(nonexistent) = found, want not found")
@@ -34,6 +37,7 @@ func TestGet_UnknownToolchain(t *testing.T) {
 }
 
 func TestToolchain_GetCommand(t *testing.T) {
+	t.Parallel()
 	tc, _ := Get("cargo")
 
 	// Test string command
@@ -65,6 +69,7 @@ func TestToolchain_GetCommand(t *testing.T) {
 }
 
 func TestToolchain_HasCommand(t *testing.T) {
+	t.Parallel()
 	tc, _ := Get("cargo")
 
 	if !tc.HasCommand("build") {
@@ -79,6 +84,7 @@ func TestToolchain_HasCommand(t *testing.T) {
 }
 
 func TestIsBuiltin(t *testing.T) {
+	t.Parallel()
 	if !IsBuiltin("cargo") {
 		t.Error("IsBuiltin(cargo) = false, want true")
 	}
@@ -88,6 +94,7 @@ func TestIsBuiltin(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
+	t.Parallel()
 	names := List()
 	if len(names) == 0 {
 		t.Error("List() returned empty")
@@ -108,6 +115,7 @@ func TestList(t *testing.T) {
 }
 
 func TestBuiltinToolchains_HaveStandardCommands(t *testing.T) {
+	t.Parallel()
 	standardCommands := []string{"build", "test", "clean"}
 
 	// Use List() for deterministic iteration order

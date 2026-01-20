@@ -537,3 +537,62 @@ func TestToFloat_SupportedTypes(t *testing.T) {
 		})
 	}
 }
+
+func TestCompare_ZeroTolerance_RelativeMode(t *testing.T) {
+	// Zero tolerance in relative mode is an edge case that requires exact equality.
+	// This test verifies no division by zero or other issues occur.
+	cfg := ComparisonConfig{
+		FloatTolerance: 0,
+		ToleranceMode:  "relative",
+	}
+
+	tests := []struct {
+		name     string
+		expected float64
+		actual   float64
+		pass     bool
+	}{
+		{"exact equal", 1.0, 1.0, true},
+		{"tiny difference", 1.0, 1.0 + 1e-15, false},
+		{"zero vs zero", 0.0, 0.0, true},
+		{"zero vs tiny", 0.0, 1e-300, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ok, _ := Compare(tt.expected, tt.actual, cfg)
+			if ok != tt.pass {
+				t.Errorf("Compare(%v, %v) = %v, want %v", tt.expected, tt.actual, ok, tt.pass)
+			}
+		})
+	}
+}
+
+func TestCompare_ZeroTolerance_AbsoluteMode(t *testing.T) {
+	// Zero tolerance in absolute mode requires exact equality.
+	cfg := ComparisonConfig{
+		FloatTolerance: 0,
+		ToleranceMode:  "absolute",
+	}
+
+	tests := []struct {
+		name     string
+		expected float64
+		actual   float64
+		pass     bool
+	}{
+		{"exact equal", 1.0, 1.0, true},
+		{"tiny difference", 1.0, 1.0 + 1e-15, false},
+		{"zero vs zero", 0.0, 0.0, true},
+		{"zero vs tiny", 0.0, 1e-300, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ok, _ := Compare(tt.expected, tt.actual, cfg)
+			if ok != tt.pass {
+				t.Errorf("Compare(%v, %v) = %v, want %v", tt.expected, tt.actual, ok, tt.pass)
+			}
+		})
+	}
+}

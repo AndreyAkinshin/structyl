@@ -2,6 +2,7 @@ package errors
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 )
 
@@ -248,6 +249,43 @@ func TestGetExitCode(t *testing.T) {
 		{"StructylError validation", Validation("validation"), ExitConfigError},
 		{"StructylError environment", Environment("env"), ExitEnvironmentError},
 		{"generic error", errors.New("generic"), ExitRuntimeError},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := GetExitCode(tt.err); got != tt.expected {
+				t.Errorf("GetExitCode() = %d, want %d", got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestGetExitCode_WrappedErrors(t *testing.T) {
+	tests := []struct {
+		name     string
+		err      error
+		expected int
+	}{
+		{
+			"fmt.Errorf wrapping config error",
+			fmt.Errorf("failed to load: %w", Config("invalid config")),
+			ExitConfigError,
+		},
+		{
+			"fmt.Errorf wrapping environment error",
+			fmt.Errorf("setup failed: %w", Environment("docker not found")),
+			ExitEnvironmentError,
+		},
+		{
+			"double wrapped validation error",
+			fmt.Errorf("outer: %w", fmt.Errorf("inner: %w", Validation("bad version"))),
+			ExitConfigError,
+		},
+		{
+			"generic error wrapping generic error",
+			fmt.Errorf("outer: %w", errors.New("inner")),
+			ExitRuntimeError,
+		},
 	}
 
 	for _, tt := range tests {

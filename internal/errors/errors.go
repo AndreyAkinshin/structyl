@@ -2,6 +2,7 @@
 package errors
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -143,11 +144,14 @@ func NotFound(what, name string) *StructylError {
 }
 
 // GetExitCode returns the exit code for an error.
+// It uses errors.As to unwrap error chains, allowing it to find StructylError
+// even when wrapped by fmt.Errorf or other wrappers.
 func GetExitCode(err error) int {
 	if err == nil {
 		return ExitSuccess
 	}
-	if se, ok := err.(*StructylError); ok {
+	var se *StructylError
+	if errors.As(err, &se) {
 		return se.ExitCode()
 	}
 	return ExitRuntimeError

@@ -100,9 +100,19 @@ const (
 )
 
 type ExecOptions struct {
-    Docker  bool
-    Args    []string
+    Docker    bool
+    Args      []string
+    Env       map[string]string
+    Verbosity Verbosity
 }
+
+type Verbosity int
+
+const (
+    VerbosityDefault Verbosity = iota
+    VerbosityQuiet
+    VerbosityVerbose
+)
 ```
 
 ### TestSuite

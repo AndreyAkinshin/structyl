@@ -26,7 +26,7 @@ Structyl uses JSON for configuration. Rationale:
 - **IDE support** — JSON Schema enables autocomplete and validation
 - **No hidden complexity** — Unlike YAML's multiple specs and implicit typing
 
-For validation, use the [JSON Schema](/schema/config.schema.json).
+For validation, use the [JSON Schema](/schema/config.schema.json) (published URL: `https://structyl.akinshin.dev/schema/config.json`).
 
 ## Configuration Sections
 
@@ -144,14 +144,18 @@ Commands can be defined in several forms:
 
     "check": ["lint", "format-check"],
 
-    "test": {
-      "run": "pytest",
-      "cwd": "tests",
-      "env": { "PYTHONPATH": "." }
-    }
+    "bench": null
   }
 }
 ```
+
+Supported command definition types:
+
+| Type   | Description                                          |
+| ------ | ---------------------------------------------------- |
+| string | Shell command to execute                             |
+| array  | Sequence of command references (executed in order)   |
+| null   | Command is explicitly disabled for this target       |
 
 Use the colon (`:`) naming convention for command variants. See [commands.md](commands.md#command-variants) for details.
 

@@ -35,7 +35,7 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 
 <StandardCommands />
 
-> **Note:** The `test:coverage` command is part of the standard vocabulary but few toolchains provide a default implementation. Toolchains MAY define this command; it is OPTIONAL and not required for toolchain conformance.
+> **Note:** The `test:coverage` command is part of the standard vocabulary but **no built-in toolchain provides a default implementation**. Projects requiring coverage MUST define a custom `test:coverage` command in target configuration. This command is OPTIONAL and not required for toolchain conformance.
 >
 > **Semantics (when defined):**
 > - Coverage output location: implementation-defined (commonly `coverage/` or tool default)
@@ -181,7 +181,46 @@ These commands operate across all targets.
 | `docker-clean`           | Remove Docker containers, images, and volumes                                                               |
 | `completion <shell>`     | Generate shell completion script (bash, zsh, fish)                                                          |
 
-### Completion Command
+### `init` Command
+
+```
+structyl init [--mise]
+```
+
+Initializes a new Structyl project in the current directory. This command is idempotent—it only creates files that don't exist.
+
+**Behavior:**
+
+1. Creates `.structyl/` directory
+2. Creates `.structyl/config.json` with minimal configuration (project name from directory)
+3. Creates `.structyl/version` with current CLI version
+4. Creates `.structyl/setup.sh` and `.structyl/setup.ps1` bootstrap scripts
+5. Creates `.structyl/AGENTS.md` for LLM assistance
+6. Creates `.structyl/toolchains.json` with toolchain definitions
+7. Creates `VERSION` file with initial version `0.1.0`
+8. Creates `tests/` directory
+9. Updates `.gitignore` with Structyl entries
+
+**Auto-detection:** The command auto-detects existing language directories (`rs/`, `go/`, `cs/`, `py/`, `ts/`, `kt/`, `java/`) and configures appropriate targets with toolchains.
+
+**Existing projects:** On existing projects (where `.structyl/config.json` exists), the command offers to update `AGENTS.md` and `toolchains.json` with the latest templates.
+
+**Flags:**
+
+| Flag | Description |
+|------|-------------|
+| `--mise` | Generate/regenerate `mise.toml` configuration |
+| `-h, --help` | Show help |
+
+**Exit codes:**
+
+| Code | Condition |
+|------|-----------|
+| 0 | Success |
+| 1 | File system error |
+| 2 | Configuration error (e.g., invalid existing config) |
+
+### `completion` Command
 
 ```
 structyl completion <shell> [--alias=<name>]
@@ -464,19 +503,6 @@ Commands execute in the target directory by default. Override with `cwd`:
 }
 ```
 
-Or per-command:
-
-```json
-{
-  "commands": {
-    "build": {
-      "run": "cargo build",
-      "cwd": "rs/pragmastat"
-    }
-  }
-}
-```
-
 ### Environment Variables
 
 Target-level environment:
@@ -494,61 +520,9 @@ Target-level environment:
 }
 ```
 
-Per-command environment:
-
-```json
-{
-  "commands": {
-    "test": {
-      "run": "pytest",
-      "env": {
-        "PYTEST_TIMEOUT": "30"
-      }
-    }
-  }
-}
-```
-
-### Command Object Validation
-
-When a command is defined as an object, the following validation rules apply:
-
-| Condition                          | Requirement                                   |
-| ---------------------------------- | --------------------------------------------- |
-| `run` without `unix`/`windows`     | Valid—`run` is the cross-platform command     |
-| `unix` and `windows` without `run` | Valid—both MUST be specified together         |
-| `run` with `unix` or `windows`     | **Error**—mutually exclusive                  |
-| Neither `run` nor `unix`/`windows` | **Error** if object has no executable command |
-
-Validation error:
-
-```
-target "{name}": command "{cmd}": cannot specify both "run" and platform-specific commands ("unix"/"windows")
-```
-
-Exit code: `2`
-
-Valid combinations:
-
-```json
-{
-  "commands": {
-    "build": { "run": "make" },
-    "deploy": { "unix": "deploy.sh", "windows": "deploy.ps1" },
-    "test": { "run": "pytest", "cwd": "tests", "env": { "CI": "1" } }
-  }
-}
-```
-
-Invalid:
-
-```json
-{
-  "commands": {
-    "build": { "run": "make", "unix": "make", "windows": "nmake" }
-  }
-}
-```
+::: info
+Per-command environment and working directory overrides (object-form commands) are not currently supported. Use target-level `env` and `cwd` fields instead.
+:::
 
 ### Variables
 

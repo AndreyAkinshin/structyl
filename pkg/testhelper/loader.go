@@ -4,7 +4,18 @@
 // This package is designed to be used by individual language implementations
 // to load test cases and compare their outputs against expected values.
 //
-// Limitations:
+// # Filesystem Conventions
+//
+// All path parameters use the host operating system's path separator.
+// Functions use [filepath.Join] internally, so callers should:
+//   - Use [filepath.Join] to construct paths
+//   - Not assume forward slashes work on Windows
+//
+// Returned paths are always absolute and use the OS path separator.
+// Symlinks are followed during path resolution (e.g., in [FindProjectRoot]).
+//
+// # Limitations
+//
 //   - $file references are not supported. File reference resolution is only
 //     available in the internal test runner. Test cases using $file syntax
 //     should use the internal tests package or embed data directly in JSON.
@@ -78,10 +89,16 @@ type TestCase struct {
 
 	// Output contains the expected output.
 	// Output must not be nil; a nil Output causes a validation error.
-	// Use an explicit value (e.g., empty string, empty object) for expected empty output.
+	// Use an explicit value (e.g., empty string "", empty object {}, or empty
+	// array []) for expected empty output.
 	//
-	// Why interface{}? Unlike Input, Output may be any JSON-serializable value:
-	// a scalar (number, string, boolean, null), an array, or an object.
+	// Important: JSON null is NOT a valid output value. Both missing "output"
+	// field and "output": null result in nil after JSON unmarshaling, so both
+	// are rejected. If your test expects a null/nil result, represent it
+	// differently (e.g., as a special string marker or wrap in an object).
+	//
+	// Why interface{}? Unlike Input, Output may be any non-null JSON value:
+	// a scalar (number, string, boolean), an array, or an object.
 	// This flexibility accommodates functions that return simple values,
 	// collections, or complex structures.
 	Output interface{} `json:"output"`
@@ -164,6 +181,9 @@ func LoadTestCaseWithSuite(path, suite string) (*TestCase, error) {
 func loadTestCaseInternal(path, suite string) (*TestCase, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, &TestCaseNotFoundError{Path: path}
+		}
 		return nil, err
 	}
 
@@ -281,6 +301,24 @@ func (e *SuiteNotFoundError) Error() string {
 // Is implements error matching for errors.Is().
 func (e *SuiteNotFoundError) Is(target error) bool {
 	return target == ErrSuiteNotFound
+}
+
+// ErrTestCaseNotFound is returned when a test case file does not exist.
+// Use errors.Is(err, ErrTestCaseNotFound) to check for this condition.
+var ErrTestCaseNotFound = errors.New("test case not found")
+
+// TestCaseNotFoundError indicates a test case file was not found.
+type TestCaseNotFoundError struct {
+	Path string
+}
+
+func (e *TestCaseNotFoundError) Error() string {
+	return "test case not found: " + e.Path
+}
+
+// Is implements error matching for errors.Is().
+func (e *TestCaseNotFoundError) Is(target error) bool {
+	return target == ErrTestCaseNotFound
 }
 
 // ListSuites returns the names of all available test suites.

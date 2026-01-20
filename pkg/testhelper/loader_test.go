@@ -492,10 +492,42 @@ func TestLoadTestCase_InvalidJSON_ReturnsError(t *testing.T) {
 	}
 }
 
-func TestLoadTestCase_FileNotFound_ReturnsError(t *testing.T) {
+func TestLoadTestCase_FileNotFound_ReturnsTestCaseNotFoundError(t *testing.T) {
 	_, err := LoadTestCase("/nonexistent/path/test.json")
 	if err == nil {
-		t.Error("LoadTestCase() expected error for missing file")
+		t.Fatal("LoadTestCase() expected error for missing file")
+	}
+
+	// Check error type
+	var tcnfErr *TestCaseNotFoundError
+	if !errors.As(err, &tcnfErr) {
+		t.Errorf("error type = %T, want *TestCaseNotFoundError", err)
+	}
+
+	// Check errors.Is with sentinel
+	if !errors.Is(err, ErrTestCaseNotFound) {
+		t.Error("errors.Is(err, ErrTestCaseNotFound) should return true")
+	}
+
+	// Check path in error
+	if tcnfErr != nil && tcnfErr.Path != "/nonexistent/path/test.json" {
+		t.Errorf("TestCaseNotFoundError.Path = %q, want %q", tcnfErr.Path, "/nonexistent/path/test.json")
+	}
+}
+
+func TestTestCaseNotFoundError(t *testing.T) {
+	err := &TestCaseNotFoundError{Path: "/some/path/test.json"}
+
+	if err.Error() == "" {
+		t.Error("Error() should return message")
+	}
+
+	if !strings.Contains(err.Error(), "/some/path/test.json") {
+		t.Error("Error() should contain path")
+	}
+
+	if !errors.Is(err, ErrTestCaseNotFound) {
+		t.Error("errors.Is(TestCaseNotFoundError, ErrTestCaseNotFound) should return true")
 	}
 }
 
@@ -531,6 +563,28 @@ func TestLoadTestCase_MissingOutput_ReturnsError(t *testing.T) {
 	_, err := LoadTestCase(testFile)
 	if err == nil {
 		t.Error("LoadTestCase() expected error for missing output field")
+	}
+	if err != nil && !strings.Contains(err.Error(), "missing required field \"output\"") {
+		t.Errorf("error should mention missing output field, got: %v", err)
+	}
+}
+
+func TestLoadTestCase_NullOutput_ReturnsError(t *testing.T) {
+	// JSON null is NOT a valid output value. The spec requires an explicit
+	// value (empty string, empty object, etc.) for expected empty output.
+	// Both missing "output" field and "output": null result in tc.Output == nil
+	// after unmarshaling, so both are rejected as invalid.
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "null_output.json")
+
+	content := `{"input": {"x": 1}, "output": null}`
+	if err := os.WriteFile(testFile, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadTestCase(testFile)
+	if err == nil {
+		t.Error("LoadTestCase() expected error for null output")
 	}
 	if err != nil && !strings.Contains(err.Error(), "missing required field \"output\"") {
 		t.Errorf("error should mention missing output field, got: %v", err)

@@ -213,7 +213,7 @@ eval "$(structyl completion bash --alias=st)"
 | `--type=<type>` | Filter targets by type (`language` or `auxiliary`)         |
 | `-q, --quiet`   | Minimal output (errors only)                               |
 | `-v, --verbose` | Maximum detail                                             |
-| `--no-color`    | Disable colored output (also respects `NO_COLOR` env var). *Not yet implemented* |
+| ~~`--no-color`~~| *(Not yet implemented)* Disable colored output (also respects `NO_COLOR` env var) |
 | `-h, --help`    | Show help message                                          |
 | `--version`     | Show Structyl version                                      |
 
@@ -234,7 +234,7 @@ STRUCTYL_DOCKER=1 structyl --no-docker build  # Runs natively (--no-docker wins)
 STRUCTYL_DOCKER=0 structyl --docker build     # Runs in Docker (--docker wins)
 ```
 
-If both `--docker` and `--no-docker` are passed simultaneously, `--no-docker` takes precedence (Docker mode disabled).
+If both `--docker` and `--no-docker` are passed simultaneously, Structyl exits with an error: `--docker and --no-docker are mutually exclusive` (exit code 2).
 
 ### `--continue` Flag Limitation
 

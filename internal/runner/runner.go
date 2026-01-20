@@ -11,8 +11,12 @@ import (
 	"sync"
 
 	structylerrors "github.com/AndreyAkinshin/structyl/internal/errors"
+	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/target"
 )
+
+// out is the shared output writer for runner messages.
+var out = output.New()
 
 // maxParallelWorkers is the upper bound for parallel worker count.
 // This prevents resource exhaustion from misconfigured STRUCTYL_PARALLEL values.
@@ -69,7 +73,7 @@ func (r *Runner) RunAll(ctx context.Context, cmd string, opts RunOptions) error 
 	}
 
 	if len(filtered) == 0 {
-		fmt.Fprintf(os.Stderr, "warning: no targets support command %q\n", cmd)
+		out.WarningSimple("no targets support command %q", cmd)
 		return nil
 	}
 
@@ -104,7 +108,7 @@ func (r *Runner) RunTargets(ctx context.Context, targetNames []string, cmd strin
 	}
 
 	if len(filtered) == 0 {
-		fmt.Fprintf(os.Stderr, "warning: no targets support command %q\n", cmd)
+		out.WarningSimple("no targets support command %q", cmd)
 		return nil
 	}
 
@@ -134,7 +138,7 @@ func (r *Runner) runSequential(ctx context.Context, targets []target.Target, cmd
 		if err := t.Execute(ctx, cmd, execOpts); err != nil {
 			// Skip errors are logged but don't cause failure
 			if target.IsSkipError(err) {
-				fmt.Fprintln(os.Stderr, err.Error())
+				out.Info("%s", err.Error())
 				continue
 			}
 			errs = append(errs, fmt.Errorf("[%s] %s failed: %w", t.Name(), cmd, err))
@@ -195,7 +199,7 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 			if err != nil {
 				// Skip errors are logged but don't cause failure
 				if target.IsSkipError(err) {
-					fmt.Fprintln(os.Stderr, err.Error())
+					out.Info("%s", err.Error())
 					return
 				}
 				errs = append(errs, fmt.Errorf("[%s] %s failed: %w", t.Name(), cmd, err))
@@ -221,9 +225,9 @@ func getParallelWorkers() int {
 	if env := os.Getenv("STRUCTYL_PARALLEL"); env != "" {
 		n, err := strconv.Atoi(env)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "warning: invalid STRUCTYL_PARALLEL value %q (not a number), using default\n", env)
+			out.WarningSimple("invalid STRUCTYL_PARALLEL value %q (not a number), using default", env)
 		} else if n < 1 || n > maxParallelWorkers {
-			fmt.Fprintf(os.Stderr, "warning: STRUCTYL_PARALLEL=%d out of range [1-%d], using default\n", n, maxParallelWorkers)
+			out.WarningSimple("STRUCTYL_PARALLEL=%d out of range [1-%d], using default", n, maxParallelWorkers)
 		} else {
 			return n
 		}

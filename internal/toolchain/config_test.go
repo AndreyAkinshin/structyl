@@ -620,3 +620,191 @@ func TestGetDefaultToolchains_MiseConfigValid(t *testing.T) {
 		}
 	}
 }
+
+// =============================================================================
+// GetStandardCommands Tests
+// =============================================================================
+
+func TestGetStandardCommands_NilInput(t *testing.T) {
+	result := GetStandardCommands(nil)
+	if result != nil {
+		t.Errorf("GetStandardCommands(nil) = %v, want nil", result)
+	}
+}
+
+func TestGetStandardCommands_NilCommands(t *testing.T) {
+	config := &ToolchainsFile{
+		Commands: nil,
+	}
+	result := GetStandardCommands(config)
+	if result != nil {
+		t.Errorf("GetStandardCommands(nil Commands) = %v, want nil", result)
+	}
+}
+
+func TestGetStandardCommands_ReturnsAllCommands(t *testing.T) {
+	config := &ToolchainsFile{
+		Commands: map[string]CommandMeta{
+			"build": {Description: "Build the project"},
+			"test":  {Description: "Run tests"},
+			"clean": {Description: "Clean build artifacts"},
+		},
+	}
+
+	result := GetStandardCommands(config)
+	if len(result) != 3 {
+		t.Errorf("GetStandardCommands() returned %d commands, want 3", len(result))
+	}
+
+	// Check all expected commands are present (order is not guaranteed)
+	cmdSet := make(map[string]bool)
+	for _, cmd := range result {
+		cmdSet[cmd] = true
+	}
+
+	for _, expected := range []string{"build", "test", "clean"} {
+		if !cmdSet[expected] {
+			t.Errorf("GetStandardCommands() missing command %q", expected)
+		}
+	}
+}
+
+// =============================================================================
+// GetCommandDescription Tests
+// =============================================================================
+
+func TestGetCommandDescription_NilInput(t *testing.T) {
+	result := GetCommandDescription(nil, "build")
+	if result != "" {
+		t.Errorf("GetCommandDescription(nil, \"build\") = %q, want empty", result)
+	}
+}
+
+func TestGetCommandDescription_NilCommands(t *testing.T) {
+	config := &ToolchainsFile{
+		Commands: nil,
+	}
+	result := GetCommandDescription(config, "build")
+	if result != "" {
+		t.Errorf("GetCommandDescription(nil Commands, \"build\") = %q, want empty", result)
+	}
+}
+
+func TestGetCommandDescription_Found(t *testing.T) {
+	config := &ToolchainsFile{
+		Commands: map[string]CommandMeta{
+			"build": {Description: "Build the project"},
+		},
+	}
+
+	result := GetCommandDescription(config, "build")
+	if result != "Build the project" {
+		t.Errorf("GetCommandDescription() = %q, want %q", result, "Build the project")
+	}
+}
+
+func TestGetCommandDescription_NotFound(t *testing.T) {
+	config := &ToolchainsFile{
+		Commands: map[string]CommandMeta{
+			"build": {Description: "Build the project"},
+		},
+	}
+
+	result := GetCommandDescription(config, "nonexistent")
+	if result != "" {
+		t.Errorf("GetCommandDescription(\"nonexistent\") = %q, want empty", result)
+	}
+}
+
+// =============================================================================
+// GetAggregateCommands Tests
+// =============================================================================
+
+func TestGetAggregateCommands_NilInput(t *testing.T) {
+	result := GetAggregateCommands(nil)
+	if result != nil {
+		t.Errorf("GetAggregateCommands(nil) = %v, want nil", result)
+	}
+}
+
+func TestGetAggregateCommands_EmptySlice(t *testing.T) {
+	config := &ToolchainsFile{
+		AggregateCommands: []string{},
+	}
+	result := GetAggregateCommands(config)
+	if len(result) != 0 {
+		t.Errorf("GetAggregateCommands() = %v, want empty slice", result)
+	}
+}
+
+func TestGetAggregateCommands_ReturnsCommands(t *testing.T) {
+	config := &ToolchainsFile{
+		AggregateCommands: []string{"build", "test", "check"},
+	}
+
+	result := GetAggregateCommands(config)
+	if len(result) != 3 {
+		t.Errorf("GetAggregateCommands() returned %d commands, want 3", len(result))
+	}
+
+	expected := []string{"build", "test", "check"}
+	for i, cmd := range result {
+		if cmd != expected[i] {
+			t.Errorf("GetAggregateCommands()[%d] = %q, want %q", i, cmd, expected[i])
+		}
+	}
+}
+
+// =============================================================================
+// GetPipeline Tests
+// =============================================================================
+
+func TestGetPipeline_NilInput(t *testing.T) {
+	result := GetPipeline(nil, "ci")
+	if result != nil {
+		t.Errorf("GetPipeline(nil, \"ci\") = %v, want nil", result)
+	}
+}
+
+func TestGetPipeline_NilPipelines(t *testing.T) {
+	config := &ToolchainsFile{
+		Pipelines: nil,
+	}
+	result := GetPipeline(config, "ci")
+	if result != nil {
+		t.Errorf("GetPipeline(nil Pipelines, \"ci\") = %v, want nil", result)
+	}
+}
+
+func TestGetPipeline_Found(t *testing.T) {
+	config := &ToolchainsFile{
+		Pipelines: map[string][]string{
+			"ci": {"clean", "build", "test"},
+		},
+	}
+
+	result := GetPipeline(config, "ci")
+	if len(result) != 3 {
+		t.Errorf("GetPipeline(\"ci\") returned %d commands, want 3", len(result))
+	}
+
+	expected := []string{"clean", "build", "test"}
+	for i, cmd := range result {
+		if cmd != expected[i] {
+			t.Errorf("GetPipeline(\"ci\")[%d] = %q, want %q", i, cmd, expected[i])
+		}
+	}
+}
+
+func TestGetPipeline_NotFound(t *testing.T) {
+	config := &ToolchainsFile{
+		Pipelines: map[string][]string{
+			"ci": {"clean", "build", "test"},
+		},
+	}
+
+	result := GetPipeline(config, "nonexistent")
+	if result != nil {
+		t.Errorf("GetPipeline(\"nonexistent\") = %v, want nil", result)
+	}
+}

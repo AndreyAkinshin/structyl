@@ -21,12 +21,16 @@ func LoadWithWarnings(path string, data []byte) (*Config, []string, error) {
 }
 
 // detectUnknownFields compares raw JSON with known struct fields.
+// Note: Since this is called after successful Config parsing, a parse failure
+// here would indicate an unexpected internal inconsistency.
 func detectUnknownFields(data []byte) []string {
 	var warnings []string
 
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
-		return nil
+		// This should never happen since the data was already parsed successfully.
+		// Return a warning so the condition is visible rather than silently ignored.
+		return []string{"internal: failed to re-parse config for unknown field detection"}
 	}
 
 	knownTopLevel := getJSONFields(reflect.TypeOf(Config{}))
@@ -53,7 +57,8 @@ func checkTargetsUnknownFields(data json.RawMessage) []string {
 
 	var targets map[string]json.RawMessage
 	if err := json.Unmarshal(data, &targets); err != nil {
-		return nil
+		// Should not happen since Config.Targets parsed successfully.
+		return []string{"internal: failed to re-parse targets for unknown field detection"}
 	}
 
 	knownTargetFields := getJSONFields(reflect.TypeOf(TargetConfig{}))

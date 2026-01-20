@@ -89,6 +89,16 @@ func (s *Semver) String() string {
 }
 
 // Bump increments the specified part of the version.
+//
+// Supported parts:
+//   - "major": increments major, resets minor/patch/prerelease (1.2.3 → 2.0.0)
+//   - "minor": increments minor, resets patch/prerelease (1.2.3 → 1.3.0)
+//   - "patch": increments patch, clears prerelease (1.2.3 → 1.2.4)
+//   - "prerelease": if no prerelease exists, bumps patch and adds "alpha.1" (1.2.3 → 1.2.4-alpha.1);
+//     if prerelease exists, increments the numeric suffix (1.2.4-alpha.1 → 1.2.4-alpha.2)
+//   - "release": removes prerelease designation (1.2.4-alpha.1 → 1.2.4)
+//
+// Build metadata is always cleared on bump.
 func Bump(current, part string) (string, error) {
 	v, err := Parse(current)
 	if err != nil {

@@ -9,10 +9,14 @@ type Toolchain struct {
 }
 
 // GetCommand returns the command definition for a given command name.
-// Commands can be:
-// - string: a shell command
-// - []string: a list of other commands to run in sequence
-// - nil: command is not supported
+// The returned interface{} can be one of:
+//   - string: a shell command to execute directly
+//   - []string: a list of sub-command names to execute in sequence
+//   - []interface{}: same as []string (from JSON unmarshaling)
+//   - nil: command is explicitly disabled (target should return SkipError)
+//
+// Returns (nil, false) if the command is not defined in this toolchain.
+// Note: (nil, true) means the command is explicitly disabled.
 func (t *Toolchain) GetCommand(name string) (interface{}, bool) {
 	cmd, ok := t.Commands[name]
 	return cmd, ok

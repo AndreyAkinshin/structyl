@@ -168,9 +168,11 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 	}
 
 	// Process targets concurrently with worker pool limiting.
-	// Note: TopologicalOrder() ensures targets are in valid dependency order,
-	// but this loop launches all goroutines immediately. Actual parallelism
-	// is limited by the semaphore, not by dependency completion.
+	// KNOWN LIMITATION: TopologicalOrder() ensures targets are scheduled in valid
+	// dependency order, but this loop launches all goroutines immediately. The
+	// semaphore limits concurrency but not dependency completion order. This means
+	// targets with depends_on may execute before their dependencies complete.
+	// See AGENTS.md "Known Limitations" for workarounds and fix requirements.
 	for _, t := range targets {
 		wg.Add(1)
 		go func(t target.Target) {

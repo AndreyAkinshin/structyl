@@ -39,17 +39,30 @@ type Target interface {
 	DependsOn() []string // Dependency targets
 
 	// Configuration
-	GetCommand(name string) (interface{}, bool) // Get command definition
-	Env() map[string]string                     // Environment variables
-	Vars() map[string]string                    // Variables for interpolation
-	DemoPath() string                           // Path to demo file for documentation
+	//
+	// GetCommand returns the command definition for the given name.
+	// The returned interface{} can be:
+	//   - string: a shell command to execute
+	//   - []string or []interface{}: a list of sub-command names to execute in sequence
+	//   - nil: command is explicitly disabled (Execute returns SkipError)
+	// Returns (nil, false) if the command is not defined.
+	GetCommand(name string) (interface{}, bool)
+	Env() map[string]string  // Environment variables
+	Vars() map[string]string // Variables for interpolation
+	DemoPath() string        // Path to demo file for documentation
 
 	// Execution
 	//
 	// Execute runs the specified command. Returns nil on success.
-	// Returns a SkipError if the command was skipped (disabled, missing executable,
-	// or missing npm script). Callers should use IsSkipError() to distinguish
-	// skip errors from execution failures and handle them appropriately.
+	//
+	// Error types:
+	//   - *SkipError: command was skipped (disabled, missing executable, missing npm script).
+	//     Use IsSkipError() to detect. Runner layer decides whether to continue.
+	//   - context.Canceled/context.DeadlineExceeded: context was canceled or timed out.
+	//   - Other errors: command execution failed (non-zero exit, missing command definition).
+	//
+	// For composite commands ([]string), sub-commands execute sequentially.
+	// If any sub-command fails, execution stops and the error is returned.
 	Execute(ctx context.Context, cmd string, opts ExecOptions) error
 }
 

@@ -14,8 +14,10 @@ type Graph map[string][]string
 // Dependencies appear before dependents in the result.
 // Returns an error if a cycle is detected or a dependency is undefined.
 //
-// The nodes parameter specifies which nodes to sort. If nil, all nodes in the graph are sorted.
-// When nodes is provided, only those nodes and their transitive dependencies are included.
+// The nodes parameter specifies which nodes to sort:
+//   - nil: sort all nodes in the graph (sorted alphabetically before processing)
+//   - empty slice: return empty result (no nodes to sort)
+//   - non-empty slice: sort only those nodes and their transitive dependencies
 func Sort(g Graph, nodes []string) ([]string, error) {
 	if nodes == nil {
 		nodes = make([]string, 0, len(g))

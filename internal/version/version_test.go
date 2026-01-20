@@ -160,14 +160,34 @@ func TestCompare(t *testing.T) {
 		a, b string
 		want int
 	}{
+		// Basic version comparison
 		{"1.0.0", "1.0.0", 0},
 		{"1.0.0", "2.0.0", -1},
 		{"2.0.0", "1.0.0", 1},
 		{"1.1.0", "1.0.0", 1},
 		{"1.0.1", "1.0.0", 1},
+
+		// Prerelease vs release
 		{"1.0.0-alpha", "1.0.0", -1},
 		{"1.0.0", "1.0.0-alpha", 1},
+
+		// Alphanumeric prerelease identifiers (string comparison)
 		{"1.0.0-alpha", "1.0.0-beta", -1},
+		{"1.0.0-beta", "1.0.0-alpha", 1},
+
+		// Numeric prerelease identifiers (SemVer §11: numeric comparison)
+		{"1.0.0-alpha.2", "1.0.0-alpha.10", -1},
+		{"1.0.0-alpha.10", "1.0.0-alpha.2", 1},
+		{"1.0.0-rc.1", "1.0.0-rc.2", -1},
+		{"1.0.0-1", "1.0.0-2", -1},
+		{"1.0.0-10", "1.0.0-2", 1},
+
+		// Mixed identifiers (SemVer §11: numeric has lower precedence than alphanumeric)
+		{"1.0.0-1", "1.0.0-alpha", -1},
+		{"1.0.0-alpha", "1.0.0-1", 1},
+
+		// Equal prereleases
+		{"1.0.0-alpha.1", "1.0.0-alpha.1", 0},
 	}
 
 	for _, tt := range tests {
@@ -213,6 +233,40 @@ func TestRead(t *testing.T) {
 	_, err = Read(path)
 	if err == nil {
 		t.Error("Read() expected error for invalid version")
+	}
+}
+
+func TestRead_WhitespaceEdgeCases(t *testing.T) {
+	tests := []struct {
+		name    string
+		content string
+		want    string
+	}{
+		{"trailing_newline", "1.2.3\n", "1.2.3"},
+		{"no_trailing_newline", "1.2.3", "1.2.3"},
+		{"crlf", "1.2.3\r\n", "1.2.3"},
+		{"trailing_spaces", "1.2.3   \n", "1.2.3"},
+		{"multiple_newlines", "1.2.3\n\n", "1.2.3"},
+		{"leading_trailing_spaces", "  1.2.3  \n", "1.2.3"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := t.TempDir()
+			path := filepath.Join(dir, "VERSION")
+
+			if err := os.WriteFile(path, []byte(tt.content), 0644); err != nil {
+				t.Fatal(err)
+			}
+
+			got, err := Read(path)
+			if err != nil {
+				t.Fatalf("Read() error = %v", err)
+			}
+			if got != tt.want {
+				t.Errorf("Read() = %q, want %q", got, tt.want)
+			}
+		})
 	}
 }
 

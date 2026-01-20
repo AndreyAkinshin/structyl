@@ -178,7 +178,7 @@ func Compare(a, b string) (int, error) {
 		return compareInt(va.Patch, vb.Patch), nil
 	}
 
-	// Prerelease comparison: version without prerelease is greater
+	// Prerelease comparison: version without prerelease is greater (SemVer §9)
 	if va.Prerelease == "" && vb.Prerelease != "" {
 		return 1, nil
 	}
@@ -186,10 +186,78 @@ func Compare(a, b string) (int, error) {
 		return -1, nil
 	}
 	if va.Prerelease != vb.Prerelease {
-		return strings.Compare(va.Prerelease, vb.Prerelease), nil
+		return comparePrerelease(va.Prerelease, vb.Prerelease), nil
 	}
 
 	return 0, nil
+}
+
+// comparePrerelease compares prerelease strings per SemVer §11:
+// - Split by dots into identifiers
+// - Numeric identifiers compare as integers
+// - Alphanumeric identifiers compare as strings
+// - Numeric identifiers have lower precedence than alphanumeric
+// - Fewer identifiers has lower precedence if all preceding are equal
+func comparePrerelease(a, b string) int {
+	partsA := strings.Split(a, ".")
+	partsB := strings.Split(b, ".")
+
+	minLen := len(partsA)
+	if len(partsB) < minLen {
+		minLen = len(partsB)
+	}
+
+	for i := 0; i < minLen; i++ {
+		cmp := compareIdentifier(partsA[i], partsB[i])
+		if cmp != 0 {
+			return cmp
+		}
+	}
+
+	// Longer prerelease has higher precedence if all shared identifiers are equal
+	return compareInt(len(partsA), len(partsB))
+}
+
+// compareIdentifier compares two prerelease identifiers per SemVer §11.
+func compareIdentifier(a, b string) int {
+	aNum, aIsNum := parseNumeric(a)
+	bNum, bIsNum := parseNumeric(b)
+
+	// Both numeric: compare as integers
+	if aIsNum && bIsNum {
+		return compareInt(aNum, bNum)
+	}
+	// Numeric has lower precedence than alphanumeric
+	if aIsNum {
+		return -1
+	}
+	if bIsNum {
+		return 1
+	}
+	// Both alphanumeric: string comparison
+	return strings.Compare(a, b)
+}
+
+// parseNumeric attempts to parse a string as a non-negative integer.
+// Returns (value, true) if successful, (0, false) otherwise.
+func parseNumeric(s string) (int, bool) {
+	if s == "" {
+		return 0, false
+	}
+	// Reject leading zeros (except "0" itself) per SemVer spec
+	if len(s) > 1 && s[0] == '0' {
+		return 0, false
+	}
+	for _, c := range s {
+		if c < '0' || c > '9' {
+			return 0, false
+		}
+	}
+	n := 0
+	for _, c := range s {
+		n = n*10 + int(c-'0')
+	}
+	return n, true
 }
 
 func compareInt(a, b int) int {

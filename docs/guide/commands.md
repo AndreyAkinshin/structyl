@@ -223,7 +223,7 @@ Use variables in commands:
 
 Built-in variables:
 
-- `${target}` - Target slug
+- `${target}` - Target name
 - `${target_dir}` - Target directory
 - `${root}` - Project root
 - `${version}` - Project version
@@ -248,7 +248,7 @@ Running a null command succeeds with a warning.
 | --------------- | --------------------------------------------------------------------------- |
 | `--docker`      | Run in Docker container                                                     |
 | `--no-docker`   | Disable Docker mode                                                         |
-| `--continue`    | Continue on errors (note: has limitations with mise backend)                |
+| `--continue`    | Continue on errors; see [limitations](/specs/commands#continue-flag-limitation) |
 | `--type=<type>` | Filter by target type                                                       |
 | `-q, --quiet`   | Minimal output (errors only)                                                |
 | `-v, --verbose` | Maximum detail                                                              |

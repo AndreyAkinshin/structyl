@@ -25,7 +25,7 @@
 //	    for _, tc := range cases {
 //	        t.Run(tc.Name, func(t *testing.T) {
 //	            actual := runCalculation(tc.Input)
-//	            if !testhelper.CompareOutput(tc.Output, actual, testhelper.DefaultOptions()) {
+//	            if !testhelper.Equal(tc.Output, actual, testhelper.DefaultOptions()) {
 //	                t.Errorf("mismatch for %s", tc.Name)
 //	            }
 //	        })

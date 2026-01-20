@@ -402,3 +402,123 @@ func TestValidate_CIStepDependsOnValid_Succeeds(t *testing.T) {
 		t.Errorf("Validate() error = %v, want nil for valid CI step dependencies", err)
 	}
 }
+
+func TestValidate_ToleranceMode_Valid(t *testing.T) {
+	t.Parallel()
+	validModes := []string{"", "relative", "absolute", "ulp"}
+	for _, mode := range validModes {
+		t.Run(mode, func(t *testing.T) {
+			t.Parallel()
+			cfg := &Config{
+				Project: ProjectConfig{Name: "myproject"},
+				Tests: &TestsConfig{
+					Comparison: &ComparisonConfig{
+						ToleranceMode: mode,
+					},
+				},
+			}
+			_, err := Validate(cfg)
+			if err != nil {
+				t.Errorf("Validate() with tolerance_mode=%q error = %v, want nil", mode, err)
+			}
+		})
+	}
+}
+
+func TestValidate_ToleranceMode_Invalid(t *testing.T) {
+	t.Parallel()
+	invalidModes := []string{"relativ", "RELATIVE", "percent", "unknown"}
+	for _, mode := range invalidModes {
+		t.Run(mode, func(t *testing.T) {
+			t.Parallel()
+			cfg := &Config{
+				Project: ProjectConfig{Name: "myproject"},
+				Tests: &TestsConfig{
+					Comparison: &ComparisonConfig{
+						ToleranceMode: mode,
+					},
+				},
+			}
+			_, err := Validate(cfg)
+			if err == nil {
+				t.Errorf("Validate() with tolerance_mode=%q expected error, got nil", mode)
+				return
+			}
+			valErr, ok := err.(*ValidationError)
+			if !ok {
+				t.Errorf("expected ValidationError, got %T", err)
+				return
+			}
+			if valErr.Field != "tests.comparison.tolerance_mode" {
+				t.Errorf("ValidationError.Field = %q, want %q", valErr.Field, "tests.comparison.tolerance_mode")
+			}
+		})
+	}
+}
+
+func TestValidate_ArrayOrder_Valid(t *testing.T) {
+	t.Parallel()
+	validOrders := []string{"", "strict", "unordered"}
+	for _, order := range validOrders {
+		t.Run(order, func(t *testing.T) {
+			t.Parallel()
+			cfg := &Config{
+				Project: ProjectConfig{Name: "myproject"},
+				Tests: &TestsConfig{
+					Comparison: &ComparisonConfig{
+						ArrayOrder: order,
+					},
+				},
+			}
+			_, err := Validate(cfg)
+			if err != nil {
+				t.Errorf("Validate() with array_order=%q error = %v, want nil", order, err)
+			}
+		})
+	}
+}
+
+func TestValidate_ArrayOrder_Invalid(t *testing.T) {
+	t.Parallel()
+	invalidOrders := []string{"STRICT", "ordered", "random", "unknown"}
+	for _, order := range invalidOrders {
+		t.Run(order, func(t *testing.T) {
+			t.Parallel()
+			cfg := &Config{
+				Project: ProjectConfig{Name: "myproject"},
+				Tests: &TestsConfig{
+					Comparison: &ComparisonConfig{
+						ArrayOrder: order,
+					},
+				},
+			}
+			_, err := Validate(cfg)
+			if err == nil {
+				t.Errorf("Validate() with array_order=%q expected error, got nil", order)
+				return
+			}
+			valErr, ok := err.(*ValidationError)
+			if !ok {
+				t.Errorf("expected ValidationError, got %T", err)
+				return
+			}
+			if valErr.Field != "tests.comparison.array_order" {
+				t.Errorf("ValidationError.Field = %q, want %q", valErr.Field, "tests.comparison.array_order")
+			}
+		})
+	}
+}
+
+func TestValidate_Tests_NilComparison_Succeeds(t *testing.T) {
+	t.Parallel()
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Tests: &TestsConfig{
+			Directory: "tests",
+		},
+	}
+	_, err := Validate(cfg)
+	if err != nil {
+		t.Errorf("Validate() with nil comparison error = %v, want nil", err)
+	}
+}

@@ -45,6 +45,10 @@ func Validate(cfg *Config) (warnings []string, err error) {
 		return nil, err
 	}
 
+	if err := validateTests(cfg); err != nil {
+		return nil, err
+	}
+
 	return nil, nil
 }
 
@@ -211,5 +215,37 @@ func ValidateTargetName(name string) error {
 			Message: "must match pattern ^[a-z][a-z0-9-]*$",
 		}
 	}
+	return nil
+}
+
+// validateTests checks tests configuration for errors.
+func validateTests(cfg *Config) error {
+	if cfg.Tests == nil || cfg.Tests.Comparison == nil {
+		return nil
+	}
+	c := cfg.Tests.Comparison
+
+	// Validate tolerance_mode
+	switch c.ToleranceMode {
+	case "", "relative", "absolute", "ulp":
+		// Valid values
+	default:
+		return &ValidationError{
+			Field:   "tests.comparison.tolerance_mode",
+			Message: fmt.Sprintf("must be \"relative\", \"absolute\", or \"ulp\", got %q", c.ToleranceMode),
+		}
+	}
+
+	// Validate array_order
+	switch c.ArrayOrder {
+	case "", "strict", "unordered":
+		// Valid values
+	default:
+		return &ValidationError{
+			Field:   "tests.comparison.array_order",
+			Message: fmt.Sprintf("must be \"strict\" or \"unordered\", got %q", c.ArrayOrder),
+		}
+	}
+
 	return nil
 }

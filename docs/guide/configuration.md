@@ -150,7 +150,7 @@ Configure mise integration.
 
 | Field           | Default | Description                           |
 | --------------- | ------- | ------------------------------------- |
-| `auto_generate` | `false` | Regenerate mise.toml before each run |
+| `auto_generate` | `true`  | Regenerate mise.toml before each run |
 | `extra_tools`   | `{}`    | Additional mise tools to install      |
 
 See [Mise Integration](./mise) for details.

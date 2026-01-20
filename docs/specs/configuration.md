@@ -270,7 +270,7 @@ Mise build tool integration configuration.
 
 | Field          | Type              | Default | Description                          |
 | -------------- | ----------------- | ------- | ------------------------------------ |
-| `auto_generate`| boolean           | `false` | Regenerate `mise.toml` before target command execution |
+| `auto_generate`| boolean           | `true`  | Regenerate `mise.toml` before target command execution |
 | `extra_tools`  | map[string]string | `{}`    | Additional mise tools to install     |
 
 **Semantics:**

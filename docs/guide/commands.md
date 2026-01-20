@@ -261,7 +261,18 @@ Running a null command succeeds with a warning.
 | `-q, --quiet`   | Minimal output (errors only)                                       |
 | `-v, --verbose` | Maximum detail                                                     |
 
-To disable colored output, set the `NO_COLOR` environment variable (any non-empty value).
+## Environment Variables
+
+| Variable            | Description                                      | Default            |
+| ------------------- | ------------------------------------------------ | ------------------ |
+| `STRUCTYL_DOCKER`   | Enable Docker mode (`1`, `true`, or `yes`)       | (unset)            |
+| `STRUCTYL_PARALLEL` | Number of parallel workers for `--parallel` flag | `runtime.NumCPU()` |
+| `NO_COLOR`          | Disable colored output (any non-empty value)     | (unset)            |
+
+**`STRUCTYL_PARALLEL` behavior:**
+- Value `0` or negative: Uses `runtime.NumCPU()`
+- Value `> 256`: Capped to 256 (safety limit)
+- Invalid (non-numeric): Falls back to `runtime.NumCPU()`
 
 ## Exit Codes
 

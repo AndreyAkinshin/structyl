@@ -313,13 +313,23 @@ If both `--docker` and `--no-docker` are passed simultaneously, Structyl exits w
 
 ### `--continue` Flag Limitation
 
-The `--continue` flag has limited effect when using the mise backend for task execution. Currently:
+::: warning DEPRECATED
+The `--continue` flag is deprecated and **has no effect** when Structyl executes commands via mise (the default backend). The flag is parsed for backwards compatibility but does not change execution behavior.
+:::
+
+**Current behavior:**
 
 - Structyl parses and accepts the `--continue` flag
+- A warning is printed: `--continue flag has no effect with mise backend (mise stops on first failure)`
 - The flag is NOT propagated to mise task execution
-- Mise handles its own error propagation internally
+- Mise stops on first error (mise's default behavior)
 
-**Workaround:** For continue-on-error semantics, configure individual mise tasks with appropriate error handling, or use the `continue_on_error` option in CI pipeline step definitions (see [CI Integration](ci-integration.md)).
+**Why this limitation exists:** Mise tasks execute as shell commands, and mise's task runner stops immediately when a task fails. Structyl cannot override this behavior without running tasks outside of mise, which would lose mise's toolchain management benefits.
+
+**Alternatives:**
+
+1. Use `continue_on_error: true` in CI pipeline step definitions (see [CI Integration](ci-integration.md))
+2. Configure individual mise tasks with shell-level error handling (e.g., `|| true`)
 
 ## Null Commands
 

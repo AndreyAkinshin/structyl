@@ -226,6 +226,7 @@ func TestValidateOptions(t *testing.T) {
 		{ToleranceMode: "ulp", ArrayOrder: "strict"},
 		{ToleranceMode: "relative", ArrayOrder: "unordered"},
 		{ToleranceMode: "", ArrayOrder: ""}, // empty defaults
+		{FloatTolerance: 0},                 // zero tolerance is valid
 	}
 	for _, opts := range validCases {
 		if err := ValidateOptions(opts); err != nil {
@@ -243,6 +244,12 @@ func TestValidateOptions(t *testing.T) {
 	invalidOrder := CompareOptions{ArrayOrder: "random"}
 	if err := ValidateOptions(invalidOrder); err == nil {
 		t.Error("ValidateOptions with invalid ArrayOrder should return error")
+	}
+
+	// Negative FloatTolerance
+	negativeTolerance := CompareOptions{FloatTolerance: -0.01}
+	if err := ValidateOptions(negativeTolerance); err == nil {
+		t.Error("ValidateOptions with negative FloatTolerance should return error")
 	}
 }
 

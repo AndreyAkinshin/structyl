@@ -112,7 +112,7 @@ func ValidateOptions(opts CompareOptions) error {
 	return nil
 }
 
-// CompareOutput compares expected and actual outputs.
+// Equal compares expected and actual outputs for equality.
 // Returns true if they match according to the options.
 // Panics if opts contains invalid enum values (use ValidateOptions to check beforehand).
 //
@@ -120,9 +120,18 @@ func ValidateOptions(opts CompareOptions) error {
 //   - "NaN" matches actual NaN (per NaNEqualsNaN option)
 //   - "Infinity" or "+Infinity" matches actual +Inf
 //   - "-Infinity" matches actual -Inf
-func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
+func Equal(expected, actual interface{}, opts CompareOptions) bool {
 	ok, _ := Compare(expected, actual, opts)
 	return ok
+}
+
+// CompareOutput compares expected and actual outputs.
+// Returns true if they match according to the options.
+// Panics if opts contains invalid enum values (use ValidateOptions to check beforehand).
+//
+// Deprecated: Use Equal instead. CompareOutput will be removed in v1.0.
+func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
+	return Equal(expected, actual, opts)
 }
 
 // Compare compares expected and actual outputs with detailed diff.

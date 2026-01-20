@@ -154,6 +154,6 @@ structyl ci:release --docker
 
 ## Notes
 
-- The `ci` command is **deterministic**: running it multiple times on unchanged source produces identical artifacts. It is not strictly idempotent since build steps modify state (compile outputs, generated files)
+- The `ci` command is **reproducible**: running it multiple times on unchanged source produces semantically equivalent artifacts. Byte-level identity is not guaranteed—file timestamps, build IDs, and other non-functional metadata may differ. It is not strictly idempotent since build steps modify state (compile outputs, generated files)
 - Docker mode ensures reproducible builds across different host environments
 - Artifact paths follow ecosystem conventions for each language

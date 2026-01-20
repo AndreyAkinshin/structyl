@@ -107,7 +107,7 @@ A single test defined in a JSON file. Contains `input` (parameters) and `output`
 
 ### Version Source
 
-The file containing the canonical project version. Default: `VERSION` in the project root.
+The file containing the canonical project version. Default: `.structyl/PROJECT_VERSION`.
 
 ### Workspace
 

@@ -13,7 +13,7 @@ Structyl maintains a single version for the entire project. All language impleme
 The canonical version is stored in a single file:
 
 ```
-VERSION
+.structyl/PROJECT_VERSION
 ```
 
 Contents (plain text, no newline required):
@@ -66,7 +66,7 @@ structyl version set 2.0.0
 
 This:
 
-1. Updates the VERSION file
+1. Updates the `.structyl/PROJECT_VERSION` file
 2. Propagates to all configured files
 3. Regenerates documentation (if configured)
 
@@ -99,7 +99,7 @@ structyl version bump prerelease  # 2.0.0-alpha.1 → 2.0.0-alpha.2
 Error case:
 
 ```bash
-structyl version bump prerelease  # When VERSION contains "1.0.0"
+structyl version bump prerelease  # When .structyl/PROJECT_VERSION contains "1.0.0"
 # Error: cannot bump prerelease on release version "1.0.0"
 # Exit code: 2
 ```
@@ -153,7 +153,7 @@ With `replace_all: true`:
 ```json
 {
   "version": {
-    "source": "VERSION",
+    "source": ".structyl/PROJECT_VERSION",
     "files": [
       {
         "path": "cs/Directory.Build.props",
@@ -331,7 +331,7 @@ structyl release 2.0.0 [--push] [--dry-run] [--force]
 
 This command:
 
-1. Sets version in VERSION file
+1. Sets version in `.structyl/PROJECT_VERSION` file
 2. Propagates version to all files
 3. Regenerates documentation
 4. Creates git commit: `"Release v2.0.0"`
@@ -381,7 +381,7 @@ Exit code `1` if any mismatch found. This is a runtime check of project state (n
 ```json
 {
   "version": {
-    "source": "VERSION",
+    "source": ".structyl/PROJECT_VERSION",
     "files": [
       {
         "path": "path/to/file",
@@ -394,9 +394,9 @@ Exit code `1` if any mismatch found. This is a runtime check of project state (n
 }
 ```
 
-| Field                 | Default     | Description                                   |
-| --------------------- | ----------- | --------------------------------------------- |
-| `source`              | `"VERSION"` | Version file path                             |
+| Field                 | Default               | Description                                   |
+| --------------------- | --------------------- | --------------------------------------------- |
+| `source`              | `".structyl/PROJECT_VERSION"` | Version file path                             |
 | `files`               | `[]`        | Files to update                               |
 | `files[].path`        | Required    | File path                                     |
 | `files[].pattern`     | Required    | Regex to match                                |

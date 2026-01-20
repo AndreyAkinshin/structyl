@@ -63,8 +63,8 @@ func TestConfigDefaults(t *testing.T) {
 		t.Error("expected version config to be set with defaults")
 	}
 
-	if cfg.Version.Source != "VERSION" {
-		t.Errorf("expected default version source %q, got %q", "VERSION", cfg.Version.Source)
+	if cfg.Version.Source != ".structyl/PROJECT_VERSION" {
+		t.Errorf("expected default version source %q, got %q", ".structyl/PROJECT_VERSION", cfg.Version.Source)
 	}
 }
 

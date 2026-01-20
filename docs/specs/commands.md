@@ -198,7 +198,7 @@ Initializes a new Structyl project in the current directory. This command is ide
 4. Creates `.structyl/setup.sh` and `.structyl/setup.ps1` bootstrap scripts
 5. Creates `.structyl/AGENTS.md` for LLM assistance
 6. Creates `.structyl/toolchains.json` with toolchain definitions
-7. Creates `VERSION` file with initial version `0.1.0`
+7. Creates `.structyl/PROJECT_VERSION` file with initial version `0.1.0`
 8. Creates `tests/` directory
 9. Updates `.gitignore` with Structyl entries
 

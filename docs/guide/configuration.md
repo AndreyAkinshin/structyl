@@ -32,7 +32,7 @@ And a typical configuration with targets:
     "description": "A multi-language library"
   },
   "version": {
-    "source": "VERSION"
+    "source": ".structyl/PROJECT_VERSION"
   },
   "targets": {
     "rs": {
@@ -82,7 +82,7 @@ Configure where Structyl reads the project version.
 ```json
 {
   "version": {
-    "source": "VERSION"
+    "source": ".structyl/PROJECT_VERSION"
   }
 }
 ```
@@ -294,7 +294,7 @@ Enable IDE autocomplete by adding a schema reference:
     "license": "MIT"
   },
   "version": {
-    "source": "VERSION"
+    "source": ".structyl/PROJECT_VERSION"
   },
   "targets": {
     "rs": {

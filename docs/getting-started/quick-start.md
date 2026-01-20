@@ -25,7 +25,7 @@ Edit `.structyl/config.json` to define your language implementations:
     "description": "A multi-language library"
   },
   "version": {
-    "source": "VERSION"
+    "source": ".structyl/PROJECT_VERSION"
   },
   "targets": {
     "rs": {
@@ -44,10 +44,10 @@ Edit `.structyl/config.json` to define your language implementations:
 
 ## Create the Version File
 
-Create a VERSION file at the project root:
+Create a VERSION file in the .structyl directory:
 
 ```bash
-echo "0.1.0" > VERSION
+echo "0.1.0" > .structyl/PROJECT_VERSION
 ```
 
 ## Set Up Language Directories

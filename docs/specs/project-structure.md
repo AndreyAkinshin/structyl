@@ -16,11 +16,11 @@ Structyl locates the project root by walking up from the current working directo
 project-root/
 ├── .structyl/                 # Structyl configuration directory
 │   ├── config.json            # Project configuration (root marker)
+│   ├── PROJECT_VERSION        # Project version file
 │   ├── version                # Pinned CLI version
 │   ├── setup.sh               # Bootstrap script (Unix)
 │   ├── setup.ps1              # Bootstrap script (Windows)
 │   └── AGENTS.md              # LLM guidelines (auto-generated)
-├── VERSION                    # Project version file
 ├── tests/                     # Shared reference tests
 │   └── {test-suite}/          # Each test suite as directory
 │       └── {test-name}.json   # Individual test cases
@@ -75,11 +75,11 @@ A complete multi-language project:
 pragmastat/
 ├── .structyl/
 │   ├── config.json
+│   ├── PROJECT_VERSION
 │   ├── version
 │   ├── setup.sh
 │   ├── setup.ps1
 │   └── AGENTS.md
-├── VERSION
 ├── LICENSE.md
 ├── README.md
 │

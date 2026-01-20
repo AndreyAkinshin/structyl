@@ -10,11 +10,11 @@ A typical Structyl project looks like this:
 my-library/
 ├── .structyl/             # Structyl configuration directory
 │   ├── config.json        # Configuration file (project root marker)
+│   ├── PROJECT_VERSION    # Project version file
 │   ├── version            # Pinned CLI version
 │   ├── setup.sh           # Bootstrap script (Unix)
 │   ├── setup.ps1          # Bootstrap script (Windows)
 │   └── AGENTS.md          # LLM guidelines (auto-generated)
-├── VERSION                # Project version file
 ├── tests/                 # Reference tests (shared)
 │   ├── basic.json
 │   └── edge-cases.json
@@ -51,7 +51,7 @@ Bootstrap scripts that download and install the pinned version of structyl. New 
 .structyl/setup.ps1   # Windows
 ```
 
-### `VERSION`
+### `.structyl/PROJECT_VERSION`
 
 Optional file containing the project version. When present, Structyl can propagate this version to all language manifests.
 

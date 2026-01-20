@@ -189,13 +189,13 @@ func cmdInit(args []string) int {
 		}
 	}
 
-	// Create VERSION file - only if missing
-	versionPath := filepath.Join(cwd, "VERSION")
+	// Create PROJECT_VERSION file - only if missing
+	versionPath := filepath.Join(cwd, ".structyl", "PROJECT_VERSION")
 	if _, err := os.Stat(versionPath); os.IsNotExist(err) {
 		if err := os.WriteFile(versionPath, []byte("0.1.0\n"), 0644); err != nil {
-			w.WarningSimple("could not create VERSION file: %v", err)
+			w.WarningSimple("could not create PROJECT_VERSION file: %v", err)
 		} else {
-			created = append(created, "VERSION")
+			created = append(created, ".structyl/PROJECT_VERSION")
 		}
 	}
 
@@ -432,7 +432,7 @@ func printInitUsage() {
 
 	w.HelpSection("Description:")
 	w.Println("  Initializes a new structyl project in the current directory.")
-	w.Println("  Creates .structyl/config.json, VERSION file, and setup scripts.")
+	w.Println("  Creates .structyl/config.json, .structyl/PROJECT_VERSION, and setup scripts.")
 	w.Println("  Auto-detects existing language directories (rs, go, cs, py, etc.).")
 	w.Println("  On existing projects, offers to update AGENTS.md and toolchains.json.")
 

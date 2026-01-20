@@ -77,7 +77,7 @@ The full configuration structure:
   },
 
   "version": {
-    "source": "string (default: VERSION)",
+    "source": "string (default: .structyl/PROJECT_VERSION)",
     "files": [
       {
         "path": "string (required)",

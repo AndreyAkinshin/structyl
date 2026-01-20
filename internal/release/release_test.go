@@ -234,7 +234,7 @@ func TestSetVersion_DefaultPath(t *testing.T) {
 		t.Fatalf("setVersion() error = %v", err)
 	}
 
-	content, err := os.ReadFile(filepath.Join(dir, "VERSION"))
+	content, err := os.ReadFile(filepath.Join(dir, ".structyl", "PROJECT_VERSION"))
 	if err != nil {
 		t.Fatalf("ReadFile() error = %v", err)
 	}
@@ -266,8 +266,8 @@ func TestSetVersion_CustomPath(t *testing.T) {
 	}
 
 	// Ensure default VERSION was not created
-	if _, err := os.Stat(filepath.Join(dir, "VERSION")); !os.IsNotExist(err) {
-		t.Error("VERSION file should not exist when custom source is set")
+	if _, err := os.Stat(filepath.Join(dir, ".structyl", "PROJECT_VERSION")); !os.IsNotExist(err) {
+		t.Error(".structyl/VERSION file should not exist when custom source is set")
 	}
 }
 
@@ -275,8 +275,12 @@ func TestSetVersion_Overwrites(t *testing.T) {
 	dir := t.TempDir()
 	cfg := &config.Config{}
 
-	// Create existing VERSION file
-	versionPath := filepath.Join(dir, "VERSION")
+	// setVersion creates directory, so pre-create file to test overwrite
+	structylDir := filepath.Join(dir, ".structyl")
+	if err := os.MkdirAll(structylDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	versionPath := filepath.Join(structylDir, "PROJECT_VERSION")
 	if err := os.WriteFile(versionPath, []byte("1.0.0\n"), 0644); err != nil {
 		t.Fatal(err)
 	}
@@ -474,7 +478,7 @@ func TestRelease_DryRunMode_NoFileChanges(t *testing.T) {
 	})
 
 	// VERSION file should NOT be created in dry-run mode
-	if _, err := os.Stat(filepath.Join(dir, "VERSION")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(dir, ".structyl", "PROJECT_VERSION")); !os.IsNotExist(err) {
 		t.Error("VERSION file should not exist in dry-run mode")
 	}
 }
@@ -572,7 +576,7 @@ func TestRelease_CleanRepo_Success(t *testing.T) {
 	})
 
 	// Verify VERSION file was created
-	content, err := os.ReadFile(filepath.Join(dir, "VERSION"))
+	content, err := os.ReadFile(filepath.Join(dir, ".structyl", "PROJECT_VERSION"))
 	if err != nil {
 		t.Fatalf("VERSION file not created: %v", err)
 	}
@@ -616,7 +620,7 @@ func TestRelease_DirtyRepoWithForce_Success(t *testing.T) {
 	})
 
 	// Verify VERSION file was created
-	if _, err := os.Stat(filepath.Join(dir, "VERSION")); os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(dir, ".structyl", "PROJECT_VERSION")); os.IsNotExist(err) {
 		t.Error("VERSION file should exist")
 	}
 }
@@ -938,7 +942,7 @@ func TestRelease_WithPush_ExecutesPushOperations(t *testing.T) {
 	}
 
 	// Verify VERSION file was created
-	content, err := os.ReadFile(filepath.Join(repoDir, "VERSION"))
+	content, err := os.ReadFile(filepath.Join(repoDir, ".structyl", "PROJECT_VERSION"))
 	if err != nil {
 		t.Fatalf("failed to read VERSION: %v", err)
 	}

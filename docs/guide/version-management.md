@@ -4,7 +4,7 @@ Structyl maintains a single version for your entire project, automatically updat
 
 ## Version Source
 
-Create a `VERSION` file at your project root:
+Create a `VERSION` file in the `.structyl` directory:
 
 ```
 1.0.0
@@ -51,7 +51,7 @@ Configure which files receive version updates:
 ```json
 {
   "version": {
-    "source": "VERSION",
+    "source": ".structyl/PROJECT_VERSION",
     "files": [
       {
         "path": "rs/Cargo.toml",
@@ -222,7 +222,7 @@ Examples:
 ```json
 {
   "version": {
-    "source": "VERSION",
+    "source": ".structyl/PROJECT_VERSION",
     "files": [
       {
         "path": "path/to/file",
@@ -235,9 +235,9 @@ Examples:
 }
 ```
 
-| Field         | Default     | Description                  |
-| ------------- | ----------- | ---------------------------- |
-| `source`      | `"VERSION"` | Version file path            |
+| Field         | Default               | Description                  |
+| ------------- | --------------------- | ---------------------------- |
+| `source`      | `".structyl/PROJECT_VERSION"` | Version file path            |
 | `files`       | `[]`        | Files to update              |
 | `path`        | Required    | File path (relative to root) |
 | `pattern`     | Required    | Regex to match               |

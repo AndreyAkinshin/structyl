@@ -242,12 +242,18 @@ func (r *Releaser) checkGitClean(ctx context.Context) error {
 
 // setVersion writes the version to the VERSION file.
 func (r *Releaser) setVersion(verStr string) error {
-	versionFile := "VERSION"
+	versionFile := ".structyl/PROJECT_VERSION"
 	if r.config.Version != nil && r.config.Version.Source != "" {
 		versionFile = r.config.Version.Source
 	}
 
 	path := filepath.Join(r.projectRoot, versionFile)
+
+	// Ensure parent directory exists
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return err
+	}
+
 	return os.WriteFile(path, []byte(verStr+"\n"), 0644)
 }
 

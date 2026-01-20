@@ -46,7 +46,7 @@
         "source": {
           "type": "string",
           "description": "Path to version file relative to project root",
-          "default": "VERSION"
+          "default": ".structyl/PROJECT_VERSION"
         },
         "files": {
           "type": "array",

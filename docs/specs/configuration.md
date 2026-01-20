@@ -70,7 +70,7 @@ Version management configuration. See [version-management.md](version-management
 ```json
 {
   "version": {
-    "source": "VERSION",
+    "source": ".structyl/PROJECT_VERSION",
     "files": [
       {
         "path": "cs/Directory.Build.props",
@@ -397,7 +397,7 @@ The smallest valid configuration:
 
 With this minimal config, Structyl uses all defaults:
 
-- Version source: `VERSION`
+- Version source: `.structyl/PROJECT_VERSION`
 - Tests directory: `tests/`
 - Targets: auto-discovered from directories with recognized toolchain files
 
@@ -413,7 +413,7 @@ With this minimal config, Structyl uses all defaults:
     "license": "MIT"
   },
   "version": {
-    "source": "VERSION",
+    "source": ".structyl/PROJECT_VERSION",
     "files": [
       {
         "path": "cs/Directory.Build.props",

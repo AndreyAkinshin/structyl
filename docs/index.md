@@ -76,7 +76,7 @@ structyl ci
     "name": "my-library"
   },
   "version": {
-    "source": "VERSION"
+    "source": ".structyl/PROJECT_VERSION"
   },
   "targets": {
     "rs": {

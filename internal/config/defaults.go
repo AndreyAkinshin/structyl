@@ -1,7 +1,7 @@
 package config
 
 const (
-	DefaultVersionSource     = "VERSION"
+	DefaultVersionSource     = ".structyl/PROJECT_VERSION"
 	DefaultTestsDirectory    = "tests"
 	DefaultTestsPattern      = "**/*.json"
 	DefaultFloatTolerance    = 1e-9

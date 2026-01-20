@@ -748,7 +748,7 @@ func TestCmdInit_CreatesVersionFile(t *testing.T) {
 		}
 
 		// Verify VERSION file was created
-		versionPath := filepath.Join(root, "VERSION")
+		versionPath := filepath.Join(root, ".structyl", "PROJECT_VERSION")
 		content, err := os.ReadFile(versionPath)
 		if err != nil {
 			t.Errorf("VERSION file not created: %v", err)
@@ -796,8 +796,12 @@ func TestCmdInit_VersionFileExists_NotOverwritten(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Create existing VERSION file
-	versionPath := filepath.Join(root, "VERSION")
+	// Create existing VERSION file in .structyl directory
+	structylDir := filepath.Join(root, ".structyl")
+	if err := os.MkdirAll(structylDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	versionPath := filepath.Join(structylDir, "VERSION")
 	existingVersion := "1.0.0\n"
 	if err := os.WriteFile(versionPath, []byte(existingVersion), 0644); err != nil {
 		t.Fatal(err)

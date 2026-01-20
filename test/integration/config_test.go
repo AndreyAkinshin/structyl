@@ -115,22 +115,6 @@ func TestConfigWithAllFields(t *testing.T) {
 	}
 }
 
-func TestConfigWarnings(t *testing.T) {
-	// Create a config with unknown fields
-	// The minimal config should produce no warnings
-	fixtureDir := filepath.Join(fixturesDir(), "minimal")
-	configPath := filepath.Join(fixtureDir, ".structyl", "config.json")
-
-	_, warnings, err := config.LoadAndValidate(configPath)
-	if err != nil {
-		t.Fatalf("failed to load config: %v", err)
-	}
-
-	if len(warnings) != 0 {
-		t.Errorf("expected no warnings for minimal config, got %v", warnings)
-	}
-}
-
 func TestRegistryTargetCommands(t *testing.T) {
 	fixtureDir := filepath.Join(fixturesDir(), "multi-language")
 

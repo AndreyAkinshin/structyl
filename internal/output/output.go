@@ -515,6 +515,15 @@ func (w *Writer) Hint(format string, args ...interface{}) {
 	}
 }
 
+// UpdateNotification prints an update notification message.
+func (w *Writer) UpdateNotification(version string) {
+	if w.color {
+		w.Errorln("%sstructyl %s available. Run 'structyl upgrade' to update.%s", dim, version, reset)
+	} else {
+		w.Errorln("structyl %s available. Run 'structyl upgrade' to update.", version)
+	}
+}
+
 // SummaryAction prints an action item with status indicator, name, duration, and optional error.
 // Used for detailed summaries showing individual targets or phases.
 func (w *Writer) SummaryAction(name string, success bool, duration string, errMsg string) {

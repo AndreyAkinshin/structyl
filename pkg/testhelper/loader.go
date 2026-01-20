@@ -37,11 +37,25 @@ import (
 )
 
 // TestCase represents a single test case loaded from a JSON file.
+//
+// JSON Type Mapping:
+//   - JSON number → Go float64 (all numeric values, including integers)
+//   - JSON string → Go string
+//   - JSON boolean → Go bool
+//   - JSON array → Go []interface{}
+//   - JSON object → Go map[string]interface{}
+//   - JSON null → Go nil
+//
+// Note: JSON does not distinguish integers from floats. All numbers in Input
+// and Output are unmarshaled as float64. Callers should convert as needed
+// (e.g., int(tc.Input["count"].(float64))).
 type TestCase struct {
 	// Name is the test case name (derived from filename).
 	Name string `json:"-"`
 
 	// Suite is the test suite name (directory name).
+	// Note: LoadTestCase does NOT populate this field; use LoadTestSuite for
+	// test cases with suite information, or set Suite manually after loading.
 	Suite string `json:"-"`
 
 	// Input contains the input data for the test.
@@ -69,7 +83,7 @@ func LoadTestSuite(projectRoot, suite string) ([]TestCase, error) {
 		return nil, err
 	}
 
-	var cases []TestCase
+	cases := make([]TestCase, 0, len(files))
 	for _, f := range files {
 		tc, err := LoadTestCase(f)
 		if err != nil {

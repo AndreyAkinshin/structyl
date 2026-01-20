@@ -17,6 +17,9 @@ type CompareOptions struct {
 
 	// ToleranceMode specifies how tolerance is applied.
 	// Values: "relative", "absolute", "ulp"
+	// For "ulp" mode, FloatTolerance is truncated to int64 for ULP distance
+	// calculation. Behavior near int64 limits (extremely large ULP distances)
+	// is undefined.
 	ToleranceMode string
 
 	// NaNEqualsNaN treats NaN values as equal when true.
@@ -58,6 +61,11 @@ func ValidateOptions(opts CompareOptions) error {
 // CompareOutput compares expected and actual outputs.
 // Returns true if they match according to the options.
 // Panics if opts contains invalid enum values (use ValidateOptions to check beforehand).
+//
+// Special string values in expected trigger float comparisons:
+//   - "NaN" matches actual NaN (per NaNEqualsNaN option)
+//   - "Infinity" matches actual +Inf
+//   - "-Infinity" matches actual -Inf
 func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
 	ok, _ := Compare(expected, actual, opts)
 	return ok
@@ -68,6 +76,11 @@ func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
 // Panics if opts contains invalid enum values (use ValidateOptions to check beforehand).
 // This fail-fast behavior ensures invalid options are caught immediately rather than
 // silently producing incorrect comparison results.
+//
+// Special string values in expected trigger float comparisons:
+//   - "NaN" matches actual NaN (per NaNEqualsNaN option)
+//   - "Infinity" matches actual +Inf
+//   - "-Infinity" matches actual -Inf
 func Compare(expected, actual interface{}, opts CompareOptions) (bool, string) {
 	if err := ValidateOptions(opts); err != nil {
 		panic("testhelper.Compare: " + err.Error())
@@ -320,10 +333,28 @@ func pathStr(path string) string {
 }
 
 // FormatDiff formats a comparison diff for display.
+//
+// Deprecated: FormatDiff returns "values are equal" when values match, which is
+// semantically inconsistent. Use FormatComparisonResult for clearer semantics:
+// it returns an empty string on match and a descriptive diff on mismatch.
 func FormatDiff(expected, actual interface{}, opts CompareOptions) string {
 	_, diff := Compare(expected, actual, opts)
 	if diff == "" {
 		return "values are equal"
 	}
+	return diff
+}
+
+// FormatComparisonResult compares expected and actual values, returning a
+// human-readable description of any differences.
+//
+// Returns:
+//   - "" (empty string) if values match
+//   - A descriptive diff string if values differ
+//
+// This function has clearer semantics than FormatDiff: an empty result means
+// "no differences" rather than returning affirmative text on match.
+func FormatComparisonResult(expected, actual interface{}, opts CompareOptions) string {
+	_, diff := Compare(expected, actual, opts)
 	return diff
 }

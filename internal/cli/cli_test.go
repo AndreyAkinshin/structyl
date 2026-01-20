@@ -233,6 +233,7 @@ func TestParseGlobalFlags_UnknownFlagsPassThrough(t *testing.T) {
 }
 
 func TestRun_Help(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		args []string
@@ -253,6 +254,7 @@ func TestRun_Help(t *testing.T) {
 }
 
 func TestRun_Version(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name string
 		args []string
@@ -272,6 +274,7 @@ func TestRun_Version(t *testing.T) {
 }
 
 func TestRun_EmptyArgs(t *testing.T) {
+	t.Parallel()
 	exitCode := Run([]string{})
 	if exitCode != 0 {
 		t.Errorf("Run([]) = %d, want 0", exitCode)

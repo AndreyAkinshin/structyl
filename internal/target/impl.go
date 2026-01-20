@@ -97,25 +97,21 @@ type targetImpl struct {
 
 // NewTarget creates a new target from configuration.
 func NewTarget(name string, cfg config.TargetConfig, rootDir string, resolver *toolchain.Resolver) (Target, error) {
-	// Resolve commands from toolchain + overrides
 	commands, err := resolver.GetResolvedCommands(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve commands: %w", err)
 	}
 
-	// Determine directory (default to target name)
 	dir := cfg.Directory
 	if dir == "" {
 		dir = name
 	}
 
-	// Determine cwd (default to directory)
 	cwd := cfg.Cwd
 	if cwd == "" {
 		cwd = dir
 	}
 
-	// Parse target type
 	targetType := TargetType(cfg.Type)
 	if targetType != TypeLanguage && targetType != TypeAuxiliary {
 		return nil, fmt.Errorf("invalid target type: %q", cfg.Type)

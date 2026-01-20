@@ -400,7 +400,7 @@ def compare_output(expected, actual, tolerance=1e-9) -> bool:
 
 ## Test Generation
 
-Some projects generate reference test data. Structyl doesn't dictate how, but recommends:
+Structyl does not mandate a specific test generation process. The following approach is RECOMMENDED:
 
 1. Generate tests in a consistent language (e.g., the reference implementation)
 2. Store generated JSON in `tests/`

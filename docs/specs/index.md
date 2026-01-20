@@ -54,7 +54,7 @@ Configuration files MAY include a `$schema` field for IDE validation:
 
 ```json
 {
-  "$schema": "https://structyl.akinshin.dev/structyl.schema.json",
+  "$schema": "https://structyl.akinshin.dev/schema/config.json",
   "project": { ... }
 }
 ```
@@ -87,7 +87,7 @@ structyl build --docker
 | [glossary.md](glossary.md)                     | Term definitions and abbreviations                |
 | [project-structure.md](project-structure.md)   | Directory layout and root marker conventions      |
 | [configuration.md](configuration.md)           | `.structyl/config.json` configuration file format |
-| [structyl.schema.json](/structyl.schema.json)  | JSON Schema for configuration validation          |
+| [config.schema.json](/schema/config.schema.json) | JSON Schema for configuration validation          |
 | [commands.md](commands.md)                     | Command vocabulary and execution model            |
 | [toolchains.md](toolchains.md)                 | Built-in toolchain presets                        |
 | [targets.md](targets.md)                       | Language and auxiliary target definitions         |

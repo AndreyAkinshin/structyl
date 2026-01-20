@@ -217,10 +217,23 @@ Docker configuration. See [docker.md](docker.md) for details.
     "services": {
       "cs": { "base_image": "mcr.microsoft.com/dotnet/sdk:8.0" },
       "py": { "base_image": "python:3.12-slim" }
+    },
+    "targets": {
+      "cs": {
+        "platform": "linux/amd64",
+        "environment": { "CI": "true" }
+      }
     }
   }
 }
 ```
+
+| Field          | Type   | Default              | Description                      |
+| -------------- | ------ | -------------------- | -------------------------------- |
+| `compose_file` | string | `docker-compose.yml` | Path to compose file             |
+| `env_var`      | string | `STRUCTYL_DOCKER`    | Env var to enable Docker mode    |
+| `services`     | object | `{}`                 | Per-target service overrides     |
+| `targets`      | object | `{}`                 | Per-target Docker configuration  |
 
 ### `mise`
 

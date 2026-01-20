@@ -173,6 +173,7 @@ These commands operate across all targets.
 | `config validate`        | Validate configuration without running commands                                                             |
 | `docker-build [targets]` | Build Docker images (see [docker.md](docker.md#docker-commands))                                            |
 | `docker-clean`           | Remove Docker containers, images, and volumes                                                               |
+| `completion <shell>`     | Generate shell completion script (bash, zsh, fish, powershell)                                              |
 
 ## Global Flags
 

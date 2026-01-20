@@ -305,3 +305,80 @@ func TestResolveTaskDependencies_MultipleDependencies(t *testing.T) {
 		t.Errorf("last task = %q, want D", result[len(result)-1].Name)
 	}
 }
+
+// =============================================================================
+// taskExistsInJSON Tests
+// =============================================================================
+
+func TestTaskExistsInJSON_Found(t *testing.T) {
+	json := []byte(`[{"name":"build"},{"name":"test"},{"name":"clean"}]`)
+
+	if !taskExistsInJSON(json, "build") {
+		t.Error("taskExistsInJSON() = false for existing task 'build'")
+	}
+	if !taskExistsInJSON(json, "test") {
+		t.Error("taskExistsInJSON() = false for existing task 'test'")
+	}
+	if !taskExistsInJSON(json, "clean") {
+		t.Error("taskExistsInJSON() = false for existing task 'clean'")
+	}
+}
+
+func TestTaskExistsInJSON_NotFound(t *testing.T) {
+	json := []byte(`[{"name":"build"},{"name":"test"}]`)
+
+	if taskExistsInJSON(json, "nonexistent") {
+		t.Error("taskExistsInJSON() = true for nonexistent task")
+	}
+}
+
+func TestTaskExistsInJSON_EmptyArray(t *testing.T) {
+	json := []byte(`[]`)
+
+	if taskExistsInJSON(json, "build") {
+		t.Error("taskExistsInJSON() = true for empty array")
+	}
+}
+
+func TestTaskExistsInJSON_InvalidJSON(t *testing.T) {
+	json := []byte(`not valid json`)
+
+	if taskExistsInJSON(json, "build") {
+		t.Error("taskExistsInJSON() = true for invalid JSON")
+	}
+}
+
+func TestTaskExistsInJSON_NamespacedTask(t *testing.T) {
+	json := []byte(`[{"name":"build:go"},{"name":"build:rs"},{"name":"test:go"}]`)
+
+	if !taskExistsInJSON(json, "build:go") {
+		t.Error("taskExistsInJSON() = false for namespaced task 'build:go'")
+	}
+	if taskExistsInJSON(json, "build") {
+		t.Error("taskExistsInJSON() = true for partial match 'build'")
+	}
+}
+
+func TestTaskExistsInJSON_WithExtraFields(t *testing.T) {
+	// Mise JSON output includes extra fields; verify they don't break parsing
+	json := []byte(`[{"name":"build","source":"mise.toml","depends":["restore"],"description":"Build the project"}]`)
+
+	if !taskExistsInJSON(json, "build") {
+		t.Error("taskExistsInJSON() = false with extra fields")
+	}
+}
+
+func TestTaskExistsInJSON_SpacesInJSON(t *testing.T) {
+	// JSON with formatting/spaces
+	json := []byte(`[
+  { "name": "build" },
+  { "name": "test" }
+]`)
+
+	if !taskExistsInJSON(json, "build") {
+		t.Error("taskExistsInJSON() = false with formatted JSON")
+	}
+	if !taskExistsInJSON(json, "test") {
+		t.Error("taskExistsInJSON() = false with formatted JSON")
+	}
+}

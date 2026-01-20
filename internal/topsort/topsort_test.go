@@ -152,6 +152,32 @@ func TestSort_SelectedNodes(t *testing.T) {
 	}
 }
 
+func TestSort_NilVsEmptyNodes(t *testing.T) {
+	g := Graph{
+		"a": nil,
+		"b": {"a"},
+		"c": nil,
+	}
+
+	// nil nodes: sort all nodes in graph
+	resultNil, err := Sort(g, nil)
+	if err != nil {
+		t.Errorf("Sort(nil) error = %v, want nil", err)
+	}
+	if len(resultNil) != 3 {
+		t.Errorf("Sort(nil) returned %d nodes, want 3", len(resultNil))
+	}
+
+	// empty slice: return empty result
+	resultEmpty, err := Sort(g, []string{})
+	if err != nil {
+		t.Errorf("Sort([]) error = %v, want nil", err)
+	}
+	if len(resultEmpty) != 0 {
+		t.Errorf("Sort([]) = %v, want empty slice", resultEmpty)
+	}
+}
+
 func TestValidate_Valid(t *testing.T) {
 	g := Graph{
 		"a": nil,

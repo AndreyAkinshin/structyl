@@ -42,6 +42,94 @@ func readTestOutput(path string) (string, error) {
 	return string(content), nil
 }
 
+func TestSkipError_Error(t *testing.T) {
+	tests := []struct {
+		name     string
+		err      *SkipError
+		contains []string
+	}{
+		{
+			name: "disabled",
+			err: &SkipError{
+				Target:  "rs",
+				Command: "test",
+				Reason:  SkipReasonDisabled,
+			},
+			contains: []string{"rs", "test", "disabled"},
+		},
+		{
+			name: "command_not_found",
+			err: &SkipError{
+				Target:  "go",
+				Command: "lint",
+				Reason:  SkipReasonCommandNotFound,
+				Detail:  "golangci-lint",
+			},
+			contains: []string{"go", "lint", "golangci-lint", "not found"},
+		},
+		{
+			name: "script_not_found",
+			err: &SkipError{
+				Target:  "ts",
+				Command: "check",
+				Reason:  SkipReasonScriptNotFound,
+				Detail:  "lint",
+			},
+			contains: []string{"ts", "check", "lint", "package.json"},
+		},
+		{
+			name: "unknown_reason",
+			err: &SkipError{
+				Target:  "test",
+				Command: "cmd",
+				Reason:  SkipReason("custom"),
+			},
+			contains: []string{"test", "cmd", "custom"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			msg := tt.err.Error()
+			for _, substr := range tt.contains {
+				if !strings.Contains(msg, substr) {
+					t.Errorf("Error() = %q, want to contain %q", msg, substr)
+				}
+			}
+		})
+	}
+}
+
+func TestIsSkipError_WrappedError(t *testing.T) {
+	skipErr := &SkipError{
+		Target:  "rs",
+		Command: "test",
+		Reason:  SkipReasonDisabled,
+	}
+
+	// Direct SkipError
+	if !IsSkipError(skipErr) {
+		t.Error("IsSkipError(SkipError) = false, want true")
+	}
+
+	// Wrapped SkipError
+	wrapped := fmt.Errorf("wrapped: %w", skipErr)
+	if !IsSkipError(wrapped) {
+		t.Error("IsSkipError(wrapped SkipError) = false, want true")
+	}
+
+	// Non-SkipError
+	nonSkipErr := fmt.Errorf("regular error")
+	if IsSkipError(nonSkipErr) {
+		t.Error("IsSkipError(regular error) = true, want false")
+	}
+
+	// Nil
+	if IsSkipError(nil) {
+		t.Error("IsSkipError(nil) = true, want false")
+	}
+}
+
 func TestNewTarget(t *testing.T) {
 	cfg := config.TargetConfig{
 		Type:      "language",

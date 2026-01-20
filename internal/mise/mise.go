@@ -354,11 +354,11 @@ func writeTasks(b *strings.Builder, tasks map[string]MiseTask) {
 				} else if step.Task != "" {
 					fmt.Fprintf(b, "    { task = %q },\n", step.Task)
 				} else if len(step.Tasks) > 0 {
-					tasks := make([]string, len(step.Tasks))
+					taskRefs := make([]string, len(step.Tasks))
 					for i, t := range step.Tasks {
-						tasks[i] = fmt.Sprintf("%q", t)
+						taskRefs[i] = fmt.Sprintf("%q", t)
 					}
-					fmt.Fprintf(b, "    { tasks = [%s] },\n", strings.Join(tasks, ", "))
+					fmt.Fprintf(b, "    { tasks = [%s] },\n", strings.Join(taskRefs, ", "))
 				}
 			}
 			b.WriteString("]\n")

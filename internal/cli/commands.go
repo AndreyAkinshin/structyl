@@ -144,13 +144,13 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 	if err := EnsureMise(true); err != nil {
 		out.ErrorPrefix("%v", err)
 		PrintMiseInstallInstructions()
-		return 1
+		return errors.ExitEnvironmentError
 	}
 
 	// Ensure mise.toml is up-to-date
 	if err := ensureMiseConfig(proj, false); err != nil {
 		out.ErrorPrefix("%v", err)
-		return 1
+		return errors.ExitRuntimeError
 	}
 
 	// If --type is specified and no specific target given, filter targets by type
@@ -284,13 +284,14 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 	var cmdArgs []string
 	if len(args) > 0 {
 		registry, err := target.NewRegistry(proj.Config, proj.Root)
-		if err == nil {
-			if _, ok := registry.Get(args[0]); ok {
-				targetName = args[0]
-				cmdArgs = args[1:]
-			} else {
-				cmdArgs = args
-			}
+		if err != nil {
+			// Registry failed to load - treat all args as command args
+			cmdArgs = args
+		} else if _, ok := registry.Get(args[0]); ok {
+			targetName = args[0]
+			cmdArgs = args[1:]
+		} else {
+			cmdArgs = args
 		}
 	}
 
@@ -298,13 +299,13 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 	if err := EnsureMise(true); err != nil {
 		out.ErrorPrefix("%v", err)
 		PrintMiseInstallInstructions()
-		return 1
+		return errors.ExitEnvironmentError
 	}
 
 	// Ensure mise.toml is up-to-date
 	if err := ensureMiseConfig(proj, false); err != nil {
 		out.ErrorPrefix("%v", err)
-		return 1
+		return errors.ExitRuntimeError
 	}
 
 	return runViaMise(proj, cmd, targetName, cmdArgs, opts)
@@ -369,7 +370,7 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 	created, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, true)
 	if err != nil {
 		out.ErrorPrefix("mise sync: %v", err)
-		return 1
+		return errors.ExitRuntimeError
 	}
 
 	if created {

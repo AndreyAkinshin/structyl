@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/AndreyAkinshin/structyl/internal/errors"
 	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/project"
 	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: intentionally using deprecated package for backwards compatibility
@@ -53,7 +54,7 @@ func Run(args []string) int {
 	opts, remaining, err := parseGlobalFlags(args)
 	if err != nil {
 		out.ErrorPrefix("%v", err)
-		return 2
+		return errors.ExitConfigError
 	}
 
 	// Re-extract command after flag parsing

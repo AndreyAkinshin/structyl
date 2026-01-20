@@ -5,6 +5,8 @@ import (
 	"math"
 	"reflect"
 	"sort"
+
+	"github.com/AndreyAkinshin/structyl/internal/config"
 )
 
 // Compare compares expected and actual values using the given configuration.
@@ -85,14 +87,21 @@ func compareFloats(expected float64, actual interface{}, cfg ComparisonConfig, p
 
 	// Compare with tolerance
 	var withinTolerance bool
-	switch cfg.ToleranceMode {
-	case "absolute":
+	switch config.ToleranceMode(cfg.ToleranceMode) {
+	case config.ToleranceModeAbsolute:
 		withinTolerance = math.Abs(expected-actFloat) <= cfg.FloatTolerance
-	case "ulp":
+	case config.ToleranceModeULP:
 		// ULP comparison using IEEE 754 bit representation
 		withinTolerance = ulpDiff(expected, actFloat) <= int64(cfg.FloatTolerance)
+	case config.ToleranceModeRelative, "":
+		// Relative tolerance (default when empty)
+		if expected == 0 {
+			withinTolerance = math.Abs(actFloat) <= cfg.FloatTolerance
+		} else {
+			withinTolerance = math.Abs((expected-actFloat)/expected) <= cfg.FloatTolerance
+		}
 	default:
-		// Default to relative tolerance (handles "relative", "", and unknown modes)
+		// Unknown modes fall back to relative tolerance
 		if expected == 0 {
 			withinTolerance = math.Abs(actFloat) <= cfg.FloatTolerance
 		} else {

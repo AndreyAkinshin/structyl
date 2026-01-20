@@ -179,7 +179,7 @@ Each target supports these options:
 
 | Field               | Type   | Default        | Description                   |
 | ------------------- | ------ | -------------- | ----------------------------- |
-| `type`              | string | Auto-inferred  | `"language"` or `"auxiliary"`. Known slugs (cs, go, kt, py, rs, ts) default to `language` |
+| `type`              | string | Auto-inferred  | `"language"` or `"auxiliary"`. See [Known Language Slugs](/specs/targets#default-language-slugs) for auto-inference |
 | `title`             | string | Required       | Display name                  |
 | `toolchain`         | string | Auto-detect    | Toolchain preset              |
 | `toolchain_version` | string | From toolchain | Override mise tool version    |
@@ -212,17 +212,32 @@ Commands can be:
 
 - **Strings**: Shell commands
 - **Arrays**: Sequential command execution
-- **Objects**: Commands with custom cwd/env
+- **Null**: Explicitly disabled commands
 
 ```json
 {
   "commands": {
     "build": "cargo build",
     "check": ["lint", "format-check"],
-    "test": {
-      "run": "pytest",
+    "bench": null
+  }
+}
+```
+
+Set working directory and environment at the target level:
+
+```json
+{
+  "targets": {
+    "py": {
+      "toolchain": "uv",
       "cwd": "tests",
-      "env": { "PYTHONPATH": "." }
+      "env": {
+        "PYTHONPATH": "."
+      },
+      "commands": {
+        "test": "pytest"
+      }
     }
   }
 }

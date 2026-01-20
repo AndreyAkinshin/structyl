@@ -228,15 +228,13 @@ Commands are defined via the `commands` field or inherited from the toolchain. S
     // Array: sequential execution
     "check": ["lint", "format-check"],
 
-    // Object: with cwd/env
-    "test": {
-      "run": "pytest",
-      "cwd": "tests",
-      "env": { "PYTHONPATH": "." }
-    }
+    // Null: explicitly disabled
+    "bench": null
   }
 }
 ```
+
+Per-command working directory and environment overrides are not supported. Use target-level `cwd` and `env` fields instead.
 
 See [commands.md](commands.md#command-variants) for the variant naming convention.
 

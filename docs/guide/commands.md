@@ -188,24 +188,6 @@ Combine commands using arrays:
 
 Array elements execute sequentially.
 
-## Command Objects
-
-For commands needing custom working directory or environment:
-
-```json
-{
-  "commands": {
-    "test": {
-      "run": "pytest",
-      "cwd": "tests",
-      "env": {
-        "PYTHONPATH": "."
-      }
-    }
-  }
-}
-```
-
 ## Variables
 
 Use variables in commands:
@@ -250,9 +232,10 @@ Running a null command succeeds with a warning.
 | `--no-docker`   | Disable Docker mode                                                         |
 | `--continue`    | Continue on errors; see [limitations](/specs/commands#continue-flag-limitation) |
 | `--type=<type>` | Filter by target type                                                       |
-| `-q, --quiet`   | Minimal output (errors only)                                                |
-| `-v, --verbose` | Maximum detail                                                              |
-| ~~`--no-color`~~| *(Not yet implemented)* Disable colored output (use `NO_COLOR` env var instead)|
+| `-q, --quiet`   | Minimal output (errors only)                                       |
+| `-v, --verbose` | Maximum detail                                                     |
+
+To disable colored output, set the `NO_COLOR` environment variable (any non-empty value).
 
 ## Exit Codes
 

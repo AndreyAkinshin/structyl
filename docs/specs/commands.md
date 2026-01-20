@@ -283,7 +283,7 @@ go test -json ./... 2>&1 | tee test.json && structyl test-summary test.json
 | --------------- | ---------------------------------------------------------- |
 | `--docker`      | Run command in Docker container                            |
 | `--no-docker`   | Disable Docker mode (overrides `STRUCTYL_DOCKER` env var)  |
-| `--continue`    | Continue on error (don't fail-fast). *Limited effect with mise backend* — see [limitations](#continue-flag-limitation) |
+| `--continue`    | Continue on error (no effect with mise backend); see [limitation](#continue-flag-limitation) |
 | `--type=<type>` | Filter targets by type (`language` or `auxiliary`)         |
 | `-q, --quiet`   | Minimal output (errors only)                               |
 | `-v, --verbose` | Maximum detail                                             |

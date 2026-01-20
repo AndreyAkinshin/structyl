@@ -153,13 +153,18 @@ This command:
 4. Creates git commit
 5. Creates git tag
 
-### Push to Remote
+### Release Options
+
+| Flag        | Description                                    |
+| ----------- | ---------------------------------------------- |
+| `--push`    | Push commit and tags to remote                 |
+| `--dry-run` | Preview without making changes                 |
+| `--force`   | Allow release with uncommitted changes         |
 
 ```bash
-structyl release 2.0.0 --push
+structyl release 2.0.0 --push    # Release and push
+structyl release 2.0.0 --dry-run # Preview changes
 ```
-
-Adds pushing to `origin` remote after commit and tag.
 
 ### Manual Release
 

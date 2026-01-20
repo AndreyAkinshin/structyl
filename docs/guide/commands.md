@@ -25,6 +25,10 @@ Structyl provides a unified command interface that works across all programming 
 Individual `lint`, `format`, and `format-check` commands are not part of the standard command vocabulary. Instead, toolchains implement these as part of `check` (for verification) and `check:fix` (for auto-correction). See [Toolchains](./toolchains) for specific mappings.
 :::
 
+::: tip test:coverage
+The `test:coverage` command requires a custom definition—no built-in toolchain provides a default implementation.
+:::
+
 ## Running Commands
 
 ### On a Single Target
@@ -116,11 +120,33 @@ See [CI Integration](./ci-integration) for details.
 
 | Command                       | Description                                 |
 | ----------------------------- | ------------------------------------------- |
+| `structyl init`               | Initialize a new Structyl project           |
 | `structyl targets`            | List configured targets                     |
 | `structyl release <version>`  | Set version and release                     |
 | `structyl upgrade [version]`  | Manage pinned CLI version                   |
 | `structyl config validate`    | Validate configuration                      |
 | `structyl completion <shell>` | Generate shell completion (bash, zsh, fish) |
+| `structyl test-summary`       | Parse and summarize `go test -json` output  |
+
+## Generation Commands
+
+| Command               | Description                          |
+| --------------------- | ------------------------------------ |
+| `structyl dockerfile` | Generate Dockerfiles for targets     |
+| `structyl github`     | Generate GitHub Actions CI workflow  |
+
+## Docker Commands
+
+| Command                       | Description                              |
+| ----------------------------- | ---------------------------------------- |
+| `structyl docker-build [svc]` | Build Docker images for services         |
+| `structyl docker-clean`       | Remove Docker containers and images      |
+
+## Mise Commands
+
+| Command              | Description                           |
+| -------------------- | ------------------------------------- |
+| `structyl mise sync` | Regenerate mise.toml from config      |
 
 ## Defining Commands
 
@@ -230,7 +256,7 @@ Running a null command succeeds with a warning.
 | --------------- | --------------------------------------------------------------------------- |
 | `--docker`      | Run in Docker container                                                     |
 | `--no-docker`   | Disable Docker mode                                                         |
-| `--continue`    | Continue on errors; see [limitations](/specs/commands#continue-flag-limitation) |
+| `--continue`    | Continue on errors (no effect with mise backend); see [limitation](/specs/commands#continue-flag-limitation) |
 | `--type=<type>` | Filter by target type                                                       |
 | `-q, --quiet`   | Minimal output (errors only)                                       |
 | `-v, --verbose` | Maximum detail                                                     |

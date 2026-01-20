@@ -326,7 +326,7 @@ git push origin main --tags
 ### Automated Release Command
 
 ```bash
-structyl release 2.0.0 [--push]
+structyl release 2.0.0 [--push] [--dry-run] [--force]
 ```
 
 This command:
@@ -337,6 +337,14 @@ This command:
 4. Creates git commit: `"Release v2.0.0"`
 5. Creates git tag: `v2.0.0`
 6. (with `--push`) Pushes to `origin` remote
+
+**Flags:**
+
+| Flag       | Description                                              |
+| ---------- | -------------------------------------------------------- |
+| `--push`   | Push commit and tags to `origin` remote                  |
+| `--dry-run`| Print what would be done without making changes          |
+| `--force`  | Allow release with uncommitted changes (use with care)   |
 
 The `--push` flag always pushes to the `origin` remote. To push to a different remote, use manual git commands after `structyl release`.
 

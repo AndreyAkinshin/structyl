@@ -132,8 +132,7 @@ structyl ci rs           # → mise run ci:rs
 Manually regenerate `mise.toml`:
 
 ```bash
-structyl mise sync       # Regenerate mise.toml
-structyl mise sync --force  # Force regeneration
+structyl mise sync  # Regenerate mise.toml (always regenerates)
 ```
 
 ### Generation Commands

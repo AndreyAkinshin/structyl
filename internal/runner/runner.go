@@ -146,9 +146,10 @@ func (r *Runner) runSequential(ctx context.Context, targets []target.Target, cmd
 		}
 
 		if err := t.Execute(ctx, cmd, execOpts); err != nil {
-			// Skip errors are logged but don't cause failure
+			// Skip errors are logged as warnings but don't cause failure.
+			// Per docs/specs/commands.md, disabled commands produce warnings, not info.
 			if target.IsSkipError(err) {
-				out.Info("%s", err.Error())
+				out.Warning("%s", err.Error())
 				continue
 			}
 			errs = append(errs, fmt.Errorf("[%s] %s failed: %w", t.Name(), cmd, err))
@@ -215,9 +216,10 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 			defer mu.Unlock()
 
 			if err != nil {
-				// Skip errors are logged but don't cause failure
+				// Skip errors are logged as warnings but don't cause failure.
+				// Per docs/specs/commands.md, disabled commands produce warnings, not info.
 				if target.IsSkipError(err) {
-					out.Info("%s", err.Error())
+					out.Warning("%s", err.Error())
 					return
 				}
 				errs = append(errs, fmt.Errorf("[%s] %s failed: %w", t.Name(), cmd, err))

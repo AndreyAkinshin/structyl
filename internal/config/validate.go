@@ -5,6 +5,13 @@ import (
 	"regexp"
 )
 
+// Validation limits.
+const (
+	maxProjectNameLength = 128
+	maxTargetNameLength  = 64
+	maxTargetTitleLength = 64
+)
+
 // Validation patterns from the specification.
 var (
 	// Project name: must start with lowercase letter, may contain lowercase, digits, hyphens.
@@ -97,8 +104,8 @@ func ValidateProjectName(name string) error {
 	if name == "" {
 		return &ValidationError{Field: "project.name", Message: "is required"}
 	}
-	if len(name) > 128 {
-		return &ValidationError{Field: "project.name", Message: "must be 128 characters or less"}
+	if len(name) > maxProjectNameLength {
+		return &ValidationError{Field: "project.name", Message: fmt.Sprintf("must be %d characters or less", maxProjectNameLength)}
 	}
 	if !projectNamePattern.MatchString(name) {
 		return &ValidationError{

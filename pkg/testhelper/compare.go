@@ -93,6 +93,26 @@ func DefaultOptions() CompareOptions {
 
 // ValidateOptions validates that CompareOptions has valid enum values.
 // Returns nil if valid, or an error describing the invalid field.
+//
+// # Panic vs Error Design
+//
+// The comparison functions (Equal, Compare, FormatComparisonResult) panic on
+// invalid options rather than returning an error. This design follows the
+// principle that invalid options represent programmer errors, not runtime
+// conditions:
+//
+//   - Options are typically hardcoded constants or loaded from static config
+//   - Invalid options indicate a bug in the calling code, not bad input data
+//   - Panics fail fast and loudly during development/testing
+//   - Callers who need graceful handling can call ValidateOptions first
+//
+// For callers who want to validate options before calling comparison functions
+// (e.g., when options come from user input), call ValidateOptions explicitly:
+//
+//	if err := testhelper.ValidateOptions(opts); err != nil {
+//	    // handle error
+//	}
+//	// Safe to call Equal/Compare now
 func ValidateOptions(opts CompareOptions) error {
 	if opts.FloatTolerance < 0 {
 		return fmt.Errorf("invalid FloatTolerance: %v (must be >= 0)", opts.FloatTolerance)
@@ -102,6 +122,10 @@ func ValidateOptions(opts CompareOptions) error {
 		// valid (empty defaults to relative)
 	default:
 		return fmt.Errorf("invalid ToleranceMode: %q (must be \"relative\", \"absolute\", or \"ulp\")", opts.ToleranceMode)
+	}
+	// ULP mode: validate tolerance fits in int64 to prevent overflow
+	if opts.ToleranceMode == ToleranceModeULP && opts.FloatTolerance > float64(math.MaxInt64) {
+		return fmt.Errorf("invalid FloatTolerance for ULP mode: %v exceeds max int64 (%d)", opts.FloatTolerance, int64(math.MaxInt64))
 	}
 	switch opts.ArrayOrder {
 	case "", ArrayOrderStrict, ArrayOrderUnordered:

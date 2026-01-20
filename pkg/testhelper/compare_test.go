@@ -251,6 +251,18 @@ func TestValidateOptions(t *testing.T) {
 	if err := ValidateOptions(negativeTolerance); err == nil {
 		t.Error("ValidateOptions with negative FloatTolerance should return error")
 	}
+
+	// ULP mode with overflow tolerance
+	ulpOverflow := CompareOptions{ToleranceMode: "ulp", FloatTolerance: 1e19}
+	if err := ValidateOptions(ulpOverflow); err == nil {
+		t.Error("ValidateOptions with ULP tolerance exceeding MaxInt64 should return error")
+	}
+
+	// ULP mode with valid large tolerance (just under MaxInt64)
+	ulpValid := CompareOptions{ToleranceMode: "ulp", FloatTolerance: float64(math.MaxInt64 - 1)}
+	if err := ValidateOptions(ulpValid); err != nil {
+		t.Errorf("ValidateOptions with valid ULP tolerance should not return error: %v", err)
+	}
 }
 
 func TestFormatDiff(t *testing.T) {

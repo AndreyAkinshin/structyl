@@ -138,10 +138,8 @@ func (t *targetImpl) Cwd() string       { return t.cwd }
 
 // DependsOn returns a copy of the dependency list. The returned slice is safe
 // to modify without affecting the target's internal state.
+// Always returns a non-nil slice (empty slice for no dependencies).
 func (t *targetImpl) DependsOn() []string {
-	if t.dependsOn == nil {
-		return []string{}
-	}
 	result := make([]string, len(t.dependsOn))
 	copy(result, t.dependsOn)
 	return result
@@ -352,8 +350,8 @@ func filterMiseEnv(environ []string) []string {
 }
 
 func copyMap(m map[string]string) map[string]string {
-	if m == nil {
-		return make(map[string]string)
+	if len(m) == 0 {
+		return nil
 	}
 	result := make(map[string]string, len(m))
 	for k, v := range m {
@@ -395,47 +393,48 @@ func isCommandAvailable(cmdName string) bool {
 // shellBuiltins is the set of common shell builtins that don't exist as
 // external commands in PATH but are always available via sh -c.
 // Reference: IEEE Std 1003.1-2017 (POSIX.1-2017) and common shell implementations.
-var shellBuiltins = map[string]bool{
-	"exit":     true,
-	"test":     true,
-	"[":        true,
-	"echo":     true,
-	"cd":       true,
-	"pwd":      true,
-	"export":   true,
-	"unset":    true,
-	"set":      true,
-	"true":     true,
-	"false":    true,
-	"read":     true,
-	"eval":     true,
-	"exec":     true,
-	"source":   true,
-	".":        true,
-	"return":   true,
-	"break":    true,
-	"continue": true,
-	"shift":    true,
-	"trap":     true,
-	"wait":     true,
-	"kill":     true,
-	"type":     true,
-	"alias":    true,
-	"unalias":  true,
-	"command":  true,
-	"builtin":  true,
-	"local":    true,
-	"declare":  true,
-	"typeset":  true,
-	"readonly": true,
-	"getopts":  true,
-	"hash":     true,
-	"times":    true,
-	"umask":    true,
-	"ulimit":   true,
+var shellBuiltins = map[string]struct{}{
+	"exit":     {},
+	"test":     {},
+	"[":        {},
+	"echo":     {},
+	"cd":       {},
+	"pwd":      {},
+	"export":   {},
+	"unset":    {},
+	"set":      {},
+	"true":     {},
+	"false":    {},
+	"read":     {},
+	"eval":     {},
+	"exec":     {},
+	"source":   {},
+	".":        {},
+	"return":   {},
+	"break":    {},
+	"continue": {},
+	"shift":    {},
+	"trap":     {},
+	"wait":     {},
+	"kill":     {},
+	"type":     {},
+	"alias":    {},
+	"unalias":  {},
+	"command":  {},
+	"builtin":  {},
+	"local":    {},
+	"declare":  {},
+	"typeset":  {},
+	"readonly": {},
+	"getopts":  {},
+	"hash":     {},
+	"times":    {},
+	"umask":    {},
+	"ulimit":   {},
 }
 
 // isShellBuiltin returns true if the command is a shell builtin.
 func isShellBuiltin(cmdName string) bool {
-	return shellBuiltins[cmdName]
+	_, ok := shellBuiltins[cmdName]
+	return ok
 }

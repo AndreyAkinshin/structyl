@@ -187,6 +187,24 @@ Reference test system configuration. See [test-system.md](test-system.md) for de
 }
 ```
 
+### `documentation`
+
+Documentation generation settings.
+
+```json
+{
+  "documentation": {
+    "readme_template": "templates/README.template.md",
+    "placeholders": ["version", "features", "demo"]
+  }
+}
+```
+
+| Field             | Type     | Default | Description                  |
+| ----------------- | -------- | ------- | ---------------------------- |
+| `readme_template` | string   | None    | Path to README template file |
+| `placeholders`    | string[] | `[]`    | Supported placeholder names  |
+
 ### `docker`
 
 Docker configuration. See [docker.md](docker.md) for details.

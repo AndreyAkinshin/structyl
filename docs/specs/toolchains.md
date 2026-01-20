@@ -76,6 +76,23 @@ Explicit `toolchain` declaration is RECOMMENDED for clarity and to avoid detecti
 
 All toolchains implement this vocabulary:
 
+| Command        | Purpose                                        |
+| -------------- | ---------------------------------------------- |
+| `clean`        | Clean build artifacts                          |
+| `restore`      | Restore/install dependencies                   |
+| `build`        | Build targets                                  |
+| `build:release`| Build targets (release mode)                   |
+| `test`         | Run tests                                      |
+| `test:coverage`| Run tests with coverage                        |
+| `check`        | Run static analysis (lint, typecheck, format-check) |
+| `check:fix`    | Auto-fix static analysis issues                |
+| `bench`        | Run benchmarks                                 |
+| `demo`         | Run demos                                      |
+| `doc`          | Generate documentation                         |
+| `pack`         | Create package                                 |
+| `publish`      | Publish package to registry                    |
+| `publish:dry`  | Dry-run publish (validate without uploading)   |
+
 <StandardCommands variant="brief" />
 
 Commands not applicable to a toolchain are set to `null` (skipped).
@@ -88,6 +105,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** Rust
 
+| Command        | Implementation                              |
+| -------------- | ------------------------------------------- |
+| `clean`        | `cargo clean`                               |
+| `restore`      | —                                           |
+| `build`        | `cargo build`                               |
+| `build:release`| `cargo build --release`                     |
+| `test`         | `cargo test`                                |
+| `check`        | `cargo clippy -- -D warnings` + `cargo fmt --check` |
+| `check:fix`    | `cargo fmt`                                 |
+| `bench`        | `cargo bench`                               |
+| `demo`         | `cargo run --example demo`                  |
+| `doc`          | `cargo doc --no-deps`                       |
+| `pack`         | `cargo package`                             |
+| `publish`      | `cargo publish`                             |
+| `publish:dry`  | `cargo publish --dry-run`                   |
+
 <ToolchainCommands name="cargo" variant="spec" />
 
 ---
@@ -96,6 +129,22 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** .NET (C#, F#, VB)
 
+| Command        | Implementation                              |
+| -------------- | ------------------------------------------- |
+| `clean`        | `dotnet clean`                              |
+| `restore`      | `dotnet restore`                            |
+| `build`        | `dotnet build`                              |
+| `build:release`| `dotnet build -c Release`                   |
+| `test`         | `dotnet test`                               |
+| `check`        | `dotnet format --verify-no-changes`         |
+| `check:fix`    | `dotnet format`                             |
+| `bench`        | —                                           |
+| `demo`         | `dotnet run --project Demo`                 |
+| `doc`          | —                                           |
+| `pack`         | `dotnet pack`                               |
+| `publish`      | `dotnet nuget push`                         |
+| `publish:dry`  | —                                           |
+
 <ToolchainCommands name="dotnet" variant="spec" />
 
 ---
@@ -103,6 +152,21 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 ### `go`
 
 **Ecosystem:** Go
+
+| Command        | Implementation                              |
+| -------------- | ------------------------------------------- |
+| `clean`        | `go clean`                                  |
+| `restore`      | `go mod download`                           |
+| `build`        | `go build ./...`                            |
+| `test`         | `go test ./...`                             |
+| `check`        | `golangci-lint run` + `go vet ./...` + `test -z "$(gofmt -l .)"` |
+| `check:fix`    | `go fmt ./...`                              |
+| `bench`        | `go test -bench=. ./...`                    |
+| `demo`         | `go run ./cmd/demo`                         |
+| `doc`          | `go doc ./...`                              |
+| `pack`         | —                                           |
+| `publish`      | —                                           |
+| `publish:dry`  | —                                           |
 
 <ToolchainCommands name="go" variant="spec" />
 

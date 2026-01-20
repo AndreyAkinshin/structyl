@@ -37,7 +37,7 @@ features:
     details: Run builds in isolated containers with --docker flag. Auto-generates docker-compose configuration.
   - icon: ⚡
     title: Parallel Execution
-    details: Builds run in parallel respecting dependency order. Fail-fast or continue modes available.
+    details: Builds run in parallel with configurable worker count. Fail-fast or continue modes available.
 ---
 
 <div class="home-quick-install">

@@ -307,13 +307,24 @@ Execution order:
 1. `gen` and `rs` start immediately (no dependencies)
 2. When `gen` completes, `cs` and `py` become eligible and start in parallel
 
-| `STRUCTYL_PARALLEL` Value    | Behavior                                                          |
-| ---------------------------- | ----------------------------------------------------------------- |
-| Unset or empty               | Default to number of CPU cores                                    |
-| `1`                          | Serial execution (one target at a time)                           |
-| `2` to `256`                 | Parallel execution with N workers                                 |
-| `0`, negative, or >256       | Error: `invalid STRUCTYL_PARALLEL: must be 1-256` (exit code 2)   |
-| Non-integer (e.g., `"fast"`) | Error: `invalid STRUCTYL_PARALLEL: must be integer` (exit code 2) |
+::: warning Known Limitation
+The current implementation does **not** enforce dependency completion before starting dependent targets. Topological ordering ensures dependencies are *scheduled* first, but concurrent execution may cause dependent targets to start before their dependencies complete.
+
+**Workarounds:**
+
+1. Use sequential execution (`STRUCTYL_PARALLEL=1`)
+2. Ensure dependency relationships are idempotent
+3. Use external orchestration (mise, make) for strict dependency-aware parallelism
+
+This is a known limitation tracked for future improvement.
+:::
+
+| `STRUCTYL_PARALLEL` Value                  | Behavior                                 |
+| ------------------------------------------ | ---------------------------------------- |
+| Unset or empty                             | Default to number of CPU cores           |
+| `1`                                        | Serial execution (one target at a time)  |
+| `2` to `256`                               | Parallel execution with N workers        |
+| `0`, negative, >256, or non-integer        | Silently falls back to CPU core count    |
 
 **Output Handling:**
 

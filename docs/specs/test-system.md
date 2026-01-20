@@ -34,8 +34,12 @@ Every test file has `input` and `output`:
 
 - Missing `input` field: Load fails with `test case {suite}/{name}: missing required field "input"`
 - Missing `output` field: Load fails with `test case {suite}/{name}: missing required field "output"`
-- Unknown fields (e.g., `description`, `skip`, `tags`) are silently ignored
+- Any additional fields beyond `input` and `output` are silently ignored (forward-compatibility)
 - Empty `input` object (`{}`) is valid
+
+::: info Reserved Field Names
+The following field names are reserved for potential future use and SHOULD NOT be used for custom metadata: `description`, `skip`, `tags`, `timeout`, `setup`, `teardown`. These are currently ignored but may gain semantics in future versions.
+:::
 
 ### Loading Failure Behavior
 
@@ -238,13 +242,13 @@ Configure tolerance in `.structyl/config.json`:
 
 ### Tolerance Modes
 
-| Mode       | Formula                                       | Use Case        |
-| ---------- | --------------------------------------------- | --------------- |
-| `absolute` | `\|a - b\| < tolerance`                       | Small values    |
-| `relative` | `\|a - b\| / max(\|a\|, \|b\|) < tolerance`   | General purpose |
-| `ulp`      | ULP difference < tolerance                    | IEEE precision  |
+| Mode       | Formula                                                    | Use Case        |
+| ---------- | ---------------------------------------------------------- | --------------- |
+| `absolute` | `\|expected - actual\| <= tolerance`                       | Small values    |
+| `relative` | `\|expected - actual\| / \|expected\| <= tolerance`        | General purpose |
+| `ulp`      | ULP difference <= tolerance                                | IEEE precision  |
 
-**Note:** For `relative` mode, when both values are exactly 0.0, the comparison succeeds (they are equal). This avoids division by zero.
+**Note:** For `relative` mode, when `expected` is exactly 0.0, the formula changes to `|actual| <= tolerance` to avoid division by zero.
 
 ### Array Comparison
 

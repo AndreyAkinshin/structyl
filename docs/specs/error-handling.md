@@ -105,59 +105,57 @@ Failed targets:
 
 ### Format
 
-Error messages follow this format:
+Structyl produces two types of error messages:
+
+**CLI-level errors** (configuration, usage, environment):
 
 ```
-structyl: error: <message>
+structyl: <message>
 ```
 
-For target-specific errors:
+**Target-specific failures** (build, test failures):
 
 ```
-structyl: error [<target>]: <message>
+[<target>] <command> failed: <error>
 ```
 
 ### Format Grammar
 
 ```
-error_output := error_line [detail_block]
-error_line := "structyl: error" [" [" target "]"] ": " message LF
-detail_block := (INDENT detail_line LF)*
-detail_line := "- " field ": " value
-             | description
+cli_error := "structyl: " message LF
+target_error := "[" target "] " command " failed: " error LF
 
 target := [a-z][a-z0-9-]*
+command := [a-z]+
 message := <single line, no newline>
-INDENT := "  " (two spaces)
+error := <error description>
 LF := "\n"
 ```
 
 **Notes:**
 
 - Target names are always lowercase (matching target slug)
-- Messages are single-line; multi-line details go in the detail block
+- Messages are single-line
 - Each error line ends with LF (Unix newlines, even on Windows)
 
 ### Examples
 
-Single-line error:
+CLI-level error:
 
 ```
-structyl: error: configuration file not found
+structyl: configuration file not found
 ```
 
-Target-specific error:
+Target-specific failure:
 
 ```
-structyl: error [cs]: command "build" failed with exit code 1
+[cs] build failed: exit code 1
 ```
 
-Multi-line validation error:
+Warning message:
 
 ```
-structyl: error: invalid configuration
-  - project.name: required field missing
-  - targets.cs.type: must be "language" or "auxiliary"
+warning: unknown field "foo" in targets.cs
 ```
 
 ### Verbosity Levels
@@ -184,9 +182,7 @@ The original target exit code is logged for debugging but not propagated directl
 On startup, Structyl validates `.structyl/config.json`:
 
 ```
-structyl: error: invalid configuration
-  - project.name: required field missing
-  - targets.cs.type: must be "language" or "auxiliary"
+structyl: invalid configuration: project.name is required
 ```
 
 Exit code: `2`
@@ -213,7 +209,7 @@ Unknown toolchains are detected even if no command from that toolchain is ever i
 ```
 
 ```
-structyl: error: target "rs": unknown toolchain "carg"
+structyl: target "rs": unknown toolchain "carg"
 ```
 
 ### Flag Validation
@@ -231,8 +227,7 @@ Before running commands, Structyl checks dependencies:
 ### Missing Command
 
 ```
-structyl: error [cs]: command "build" not defined
-  Target has no toolchain and no explicit command definition.
+structyl: target "cs": command "build" not defined
 ```
 
 Exit code: `2` (Configuration Error)
@@ -240,9 +235,7 @@ Exit code: `2` (Configuration Error)
 ### Missing Docker
 
 ```
-structyl: error: Docker is not available
-  Docker is required for --docker mode.
-  Install from: https://docs.docker.com/get-docker/
+structyl: Docker is not available
 ```
 
 Exit code: `3`

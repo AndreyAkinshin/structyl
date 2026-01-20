@@ -16,6 +16,23 @@ Usage: structyl <command> <target> [args] [--docker]
 
 These commands form the standard vocabulary. Toolchains provide default implementations for each.
 
+| Command        | Purpose                                        |
+| -------------- | ---------------------------------------------- |
+| `clean`        | Clean build artifacts                          |
+| `restore`      | Restore/install dependencies                   |
+| `build`        | Build targets                                  |
+| `build:release`| Build targets (release mode)                   |
+| `test`         | Run tests                                      |
+| `test:coverage`| Run tests with coverage                        |
+| `check`        | Run static analysis (lint, typecheck, format-check) |
+| `check:fix`    | Auto-fix static analysis issues                |
+| `bench`        | Run benchmarks                                 |
+| `demo`         | Run demos                                      |
+| `doc`          | Generate documentation                         |
+| `pack`         | Create package                                 |
+| `publish`      | Publish package to registry                    |
+| `publish:dry`  | Dry-run publish (validate without uploading)   |
+
 <StandardCommands />
 
 ### Command Semantics
@@ -56,30 +73,27 @@ structyl check go  # → lint, vet
 
 See [toolchains.md](toolchains.md) for each toolchain's `check` composition.
 
-#### `lint`
+#### Individual Check Commands
 
-Runs linting tools only:
+These commands MAY be implemented by toolchains but are NOT part of the core command vocabulary. Prefer `check` and `check:fix` for standard workflows.
 
-```bash
-structyl lint rs   # cargo clippy -- -D warnings
-structyl lint py   # ruff check .
-```
+| Command        | Purpose                        | Typically Part Of |
+| -------------- | ------------------------------ | ----------------- |
+| `lint`         | Run linting only               | `check`           |
+| `format`       | Auto-format (mutates files)    | `check:fix`       |
+| `format-check` | Verify formatting (read-only)  | `check`           |
 
-#### `format`
-
-Auto-fixes formatting issues. This command **mutates files**.
-
-```bash
-structyl format go  # go fmt ./...
-```
-
-#### `format-check`
-
-Verifies formatting without modifying files:
+Examples:
 
 ```bash
-structyl format-check rs  # cargo fmt --check
+structyl lint rs         # cargo clippy -- -D warnings
+structyl format go       # go fmt ./...
+structyl format-check rs # cargo fmt --check
 ```
+
+::: info
+Toolchains provide these as part of `check` and `check:fix` compositions. Using `check` or `check:fix` is RECOMMENDED over invoking individual commands, as composition varies by toolchain.
+:::
 
 #### `build`
 

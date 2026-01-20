@@ -38,30 +38,32 @@ func getPackageJSON(dir string) *PackageJSON {
 	}
 	packageJSONCache.RUnlock()
 
-	// Load from disk
+	// Load from disk (outside lock)
+	result := loadPackageJSONFromDisk(absDir)
+
+	// Double-check: another goroutine may have populated the cache
+	packageJSONCache.Lock()
+	defer packageJSONCache.Unlock()
+	if existing, ok := packageJSONCache.data[absDir]; ok {
+		return existing
+	}
+	packageJSONCache.data[absDir] = result
+	return result
+}
+
+// loadPackageJSONFromDisk loads and parses package.json from the given directory.
+// Returns nil if the file doesn't exist or is malformed.
+func loadPackageJSONFromDisk(absDir string) *PackageJSON {
 	pkgPath := filepath.Join(absDir, "package.json")
 	data, err := os.ReadFile(pkgPath)
 	if err != nil {
-		// Cache nil for missing files to avoid repeated lookups
-		packageJSONCache.Lock()
-		packageJSONCache.data[absDir] = nil
-		packageJSONCache.Unlock()
 		return nil
 	}
 
 	var pkg PackageJSON
 	if err := json.Unmarshal(data, &pkg); err != nil {
-		// Cache nil for malformed files
-		packageJSONCache.Lock()
-		packageJSONCache.data[absDir] = nil
-		packageJSONCache.Unlock()
 		return nil
 	}
-
-	// Cache and return
-	packageJSONCache.Lock()
-	packageJSONCache.data[absDir] = &pkg
-	packageJSONCache.Unlock()
 	return &pkg
 }
 

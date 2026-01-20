@@ -94,8 +94,11 @@ type TestCase struct {
 	//
 	// Important: JSON null is NOT a valid output value. Both missing "output"
 	// field and "output": null result in nil after JSON unmarshaling, so both
-	// are rejected. If your test expects a null/nil result, represent it
-	// differently (e.g., as a special string marker or wrap in an object).
+	// are rejected. If your test expects a null/nil result, use one of these
+	// patterns:
+	//
+	//   {"output": {"value": null}}  // wrap in object with nullable field
+	//   {"output": "__NULL__"}       // use sentinel string + custom handling
 	//
 	// Why interface{}? Unlike Input, Output may be any non-null JSON value:
 	// a scalar (number, string, boolean), an array, or an object.
@@ -192,6 +195,11 @@ func loadTestCaseInternal(path, suite string) (*TestCase, error) {
 		return nil, err
 	}
 
+	// Detect $file references which are not supported in this package
+	if containsFileReference(tc.Input) || containsFileReference(tc.Output) {
+		return nil, fmt.Errorf("%s: %w", filepath.Base(path), ErrFileReferenceNotSupported)
+	}
+
 	// Validate required fields per spec
 	if tc.Input == nil {
 		return nil, fmt.Errorf("%s: missing required field \"input\"", filepath.Base(path))
@@ -207,6 +215,10 @@ func loadTestCaseInternal(path, suite string) (*TestCase, error) {
 
 // LoadAllSuites loads test cases from all suites in the tests directory.
 // Returns an empty map (not nil) if the tests directory doesn't exist.
+//
+// Note: Empty suites (directories with no .json test files) are excluded from
+// the returned map. Use [ListSuites] to enumerate all suite directories
+// regardless of whether they contain test cases.
 func LoadAllSuites(projectRoot string) (map[string][]TestCase, error) {
 	testsDir := filepath.Join(projectRoot, "tests")
 	entries, err := os.ReadDir(testsDir)
@@ -319,6 +331,32 @@ func (e *TestCaseNotFoundError) Error() string {
 // Is implements error matching for errors.Is().
 func (e *TestCaseNotFoundError) Is(target error) bool {
 	return target == ErrTestCaseNotFound
+}
+
+// ErrFileReferenceNotSupported is returned when a test case contains $file references.
+// File references are only supported in the internal test runner. Use embedded data instead.
+var ErrFileReferenceNotSupported = errors.New("$file references not supported in pkg/testhelper; use internal/tests or embed data directly")
+
+// containsFileReference recursively checks if a value contains a $file reference object.
+func containsFileReference(v interface{}) bool {
+	switch val := v.(type) {
+	case map[string]interface{}:
+		if _, ok := val["$file"]; ok {
+			return true
+		}
+		for _, child := range val {
+			if containsFileReference(child) {
+				return true
+			}
+		}
+	case []interface{}:
+		for _, elem := range val {
+			if containsFileReference(elem) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // ListSuites returns the names of all available test suites.

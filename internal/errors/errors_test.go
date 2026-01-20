@@ -202,6 +202,25 @@ func TestWrap(t *testing.T) {
 	}
 }
 
+func TestWrapf(t *testing.T) {
+	cause := errors.New("original error")
+	err := Wrapf(cause, "wrapped with %s and %d", "string", 42)
+
+	if err.Kind != KindRuntime {
+		t.Errorf("Kind = %v, want %v", err.Kind, KindRuntime)
+	}
+	expected := "wrapped with string and 42"
+	if err.Message != expected {
+		t.Errorf("Message = %q, want %q", err.Message, expected)
+	}
+	if err.Cause != cause {
+		t.Errorf("Cause = %v, want %v", err.Cause, cause)
+	}
+	if err.Unwrap() != cause {
+		t.Error("Unwrap() should return original cause")
+	}
+}
+
 func TestTargetError(t *testing.T) {
 	err := TargetError("rs", "build", "compilation failed")
 

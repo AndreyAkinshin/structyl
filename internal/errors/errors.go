@@ -125,6 +125,11 @@ func Wrap(err error, message string) *StructylError {
 	}
 }
 
+// Wrapf wraps an error with additional context using a format string.
+func Wrapf(err error, format string, args ...interface{}) *StructylError {
+	return Wrap(err, fmt.Sprintf(format, args...))
+}
+
 // TargetError creates an error for a specific target.
 func TargetError(target, command, message string) *StructylError {
 	return &StructylError{

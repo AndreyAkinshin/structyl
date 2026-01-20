@@ -119,6 +119,49 @@ func TestLoadTestSuite_EmptyDirectory_ReturnsEmptySlice(t *testing.T) {
 	}
 }
 
+func TestLoadTestSuite_NonexistentSuite_ReturnsSuiteNotFoundError(t *testing.T) {
+	tmpDir := t.TempDir()
+	// Create tests directory but not the suite
+	os.MkdirAll(filepath.Join(tmpDir, "tests"), 0755)
+
+	_, err := LoadTestSuite(tmpDir, "nonexistent")
+	if err == nil {
+		t.Fatal("LoadTestSuite() expected error for nonexistent suite")
+	}
+
+	// Check error type
+	var snfErr *SuiteNotFoundError
+	if !errors.As(err, &snfErr) {
+		t.Errorf("error type = %T, want *SuiteNotFoundError", err)
+	}
+
+	// Check errors.Is with sentinel
+	if !errors.Is(err, ErrSuiteNotFound) {
+		t.Error("errors.Is(err, ErrSuiteNotFound) should return true")
+	}
+
+	// Check suite name in error
+	if snfErr != nil && snfErr.Suite != "nonexistent" {
+		t.Errorf("SuiteNotFoundError.Suite = %q, want %q", snfErr.Suite, "nonexistent")
+	}
+}
+
+func TestSuiteNotFoundError(t *testing.T) {
+	err := &SuiteNotFoundError{Suite: "mysuite"}
+
+	if err.Error() == "" {
+		t.Error("Error() should return message")
+	}
+
+	if !strings.Contains(err.Error(), "mysuite") {
+		t.Error("Error() should contain suite name")
+	}
+
+	if !errors.Is(err, ErrSuiteNotFound) {
+		t.Error("errors.Is(SuiteNotFoundError, ErrSuiteNotFound) should return true")
+	}
+}
+
 func TestLoadAllSuites(t *testing.T) {
 	tmpDir := t.TempDir()
 

@@ -847,3 +847,134 @@ func TestConstantsWithCompare(t *testing.T) {
 		t.Error("expected unordered array comparison to pass")
 	}
 }
+
+// =============================================================================
+// ULP Edge Case Tests (documenting behavior for extreme tolerances)
+// =============================================================================
+
+func TestCompareOutput_UlpTolerance_Truncation(t *testing.T) {
+	// Test that FloatTolerance is truncated to integer for ULP mode
+	// (e.g., 1.9 allows 1 ULP, not 2)
+	a := 1.0
+	b := math.Nextafter(a, math.Inf(1)) // 1 ULP away
+	c := math.Nextafter(b, math.Inf(1)) // 2 ULPs away
+	_ = math.Nextafter(c, math.Inf(1))  // 3 ULPs away (unused)
+
+	// With tolerance 1.9, truncated to 1, should pass for 1 ULP
+	opts := CompareOptions{
+		FloatTolerance: 1.9,
+		ToleranceMode:  ToleranceModeULP,
+	}
+	if !CompareOutput(a, b, opts) {
+		t.Error("expected 1 ULP to pass with tolerance 1.9 (truncated to 1)")
+	}
+
+	// With tolerance 1.9, truncated to 1, should fail for 2 ULPs
+	if CompareOutput(a, c, opts) {
+		t.Error("expected 2 ULPs to fail with tolerance 1.9 (truncated to 1)")
+	}
+}
+
+func TestCompareOutput_UlpTolerance_ZeroTolerance(t *testing.T) {
+	// Test ULP mode with zero tolerance (exact match required)
+	a := 1.0
+	b := math.Nextafter(a, math.Inf(1)) // 1 ULP away
+
+	opts := CompareOptions{
+		FloatTolerance: 0,
+		ToleranceMode:  ToleranceModeULP,
+	}
+
+	// Same value should pass
+	if !CompareOutput(a, a, opts) {
+		t.Error("expected identical values to pass with ULP tolerance 0")
+	}
+
+	// 1 ULP away should fail
+	if CompareOutput(a, b, opts) {
+		t.Error("expected 1 ULP difference to fail with tolerance 0")
+	}
+}
+
+func TestCompareOutput_UlpTolerance_LargeTolerance(t *testing.T) {
+	// Test ULP mode with large tolerance value
+	// Note: Behavior for tolerances >= 2^63 is undefined per documentation
+	a := 1.0
+	b := 2.0 // Large ULP distance
+
+	// Large but reasonable tolerance
+	opts := CompareOptions{
+		FloatTolerance: 1e18, // Large but within int64 range
+		ToleranceMode:  ToleranceModeULP,
+	}
+
+	// Should pass because tolerance is huge
+	if !CompareOutput(a, b, opts) {
+		t.Error("expected large ULP tolerance to pass for 1.0 vs 2.0")
+	}
+}
+
+// =============================================================================
+// Empty String Default Behavior Tests
+// =============================================================================
+
+func TestCompareOutput_EmptyToleranceMode_DefaultsToRelative(t *testing.T) {
+	// Verify that empty ToleranceMode defaults to relative tolerance behavior
+	opts := CompareOptions{
+		FloatTolerance: 1e-9,
+		ToleranceMode:  "", // Empty should default to relative
+	}
+
+	// This should behave like relative tolerance
+	// |1.0 - 1.0000000005| / |1.0| = 5e-10 which is <= 1e-9
+	if !CompareOutput(1.0, 1.0000000005, opts) {
+		t.Error("empty ToleranceMode should default to relative and pass for small relative diff")
+	}
+
+	// This should fail for relative tolerance
+	// |1.0 - 1.1| / |1.0| = 0.1 which is > 1e-9
+	if CompareOutput(1.0, 1.1, opts) {
+		t.Error("empty ToleranceMode should default to relative and fail for large relative diff")
+	}
+
+	// Verify by comparing to explicit relative mode
+	optsExplicit := CompareOptions{
+		FloatTolerance: 1e-9,
+		ToleranceMode:  ToleranceModeRelative,
+	}
+
+	// Behavior should match explicit relative mode
+	if CompareOutput(1.0, 1.0000000005, opts) != CompareOutput(1.0, 1.0000000005, optsExplicit) {
+		t.Error("empty ToleranceMode should behave identically to explicit relative mode")
+	}
+}
+
+func TestCompareOutput_EmptyArrayOrder_DefaultsToStrict(t *testing.T) {
+	// Verify that empty ArrayOrder defaults to strict ordering
+	opts := CompareOptions{
+		ArrayOrder: "", // Empty should default to strict
+	}
+
+	expected := []interface{}{float64(1), float64(2), float64(3)}
+	actualOrdered := []interface{}{float64(1), float64(2), float64(3)}
+	actualReordered := []interface{}{float64(3), float64(2), float64(1)}
+
+	// Same order should pass
+	if !CompareOutput(expected, actualOrdered, opts) {
+		t.Error("empty ArrayOrder should default to strict and pass for same order")
+	}
+
+	// Different order should fail (strict mode)
+	if CompareOutput(expected, actualReordered, opts) {
+		t.Error("empty ArrayOrder should default to strict and fail for different order")
+	}
+
+	// Verify by comparing to explicit strict mode
+	optsExplicit := CompareOptions{
+		ArrayOrder: ArrayOrderStrict,
+	}
+
+	if CompareOutput(expected, actualReordered, opts) != CompareOutput(expected, actualReordered, optsExplicit) {
+		t.Error("empty ArrayOrder should behave identically to explicit strict mode")
+	}
+}

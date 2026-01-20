@@ -9,6 +9,10 @@ import (
 // CompareOptions configures output comparison behavior.
 type CompareOptions struct {
 	// FloatTolerance specifies the tolerance for float comparisons.
+	// For "relative" and "absolute" modes, this is the tolerance threshold.
+	// For "ulp" mode, this value is truncated to an integer representing the
+	// maximum allowed ULP (Units in Last Place) difference. For example,
+	// a tolerance of 1.9 allows 1 ULP difference, not 2.
 	FloatTolerance float64
 
 	// ToleranceMode specifies how tolerance is applied.
@@ -53,6 +57,7 @@ func ValidateOptions(opts CompareOptions) error {
 
 // CompareOutput compares expected and actual outputs.
 // Returns true if they match according to the options.
+// Panics if opts contains invalid enum values (use ValidateOptions to check beforehand).
 func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
 	ok, _ := Compare(expected, actual, opts)
 	return ok
@@ -60,7 +65,13 @@ func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
 
 // Compare compares expected and actual outputs with detailed diff.
 // Returns true if they match, and a diff string if they don't.
+// Panics if opts contains invalid enum values (use ValidateOptions to check beforehand).
+// This fail-fast behavior ensures invalid options are caught immediately rather than
+// silently producing incorrect comparison results.
 func Compare(expected, actual interface{}, opts CompareOptions) (bool, string) {
+	if err := ValidateOptions(opts); err != nil {
+		panic("testhelper.Compare: " + err.Error())
+	}
 	return compareValues(expected, actual, opts, "")
 }
 

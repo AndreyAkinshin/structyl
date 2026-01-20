@@ -196,3 +196,133 @@ func TestTarget_DirectoryFallback(t *testing.T) {
 		t.Errorf("Directory() = %q, want %q (fallback to name)", m.Directory(), "myname")
 	}
 }
+
+func TestTarget_WithType(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		typ      target.TargetType
+		expected target.TargetType
+	}{
+		{"language", target.TypeLanguage, target.TypeLanguage},
+		{"auxiliary", target.TypeAuxiliary, target.TypeAuxiliary},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := NewTarget("test").WithType(tt.typ)
+			if m.Type() != tt.expected {
+				t.Errorf("Type() = %v, want %v", m.Type(), tt.expected)
+			}
+		})
+	}
+}
+
+func TestTarget_WithCommand(t *testing.T) {
+	t.Parallel()
+	m := NewTarget("test").WithCommand("build", "go build")
+
+	cmd, ok := m.GetCommand("build")
+	if !ok {
+		t.Fatal("GetCommand(\"build\") = not found, want found")
+	}
+	if cmd != "go build" {
+		t.Errorf("GetCommand(\"build\") = %v, want %q", cmd, "go build")
+	}
+}
+
+func TestTarget_WithCommand_Multiple(t *testing.T) {
+	t.Parallel()
+	m := NewTarget("test").
+		WithCommand("build", "go build").
+		WithCommand("test", "go test")
+
+	buildCmd, ok := m.GetCommand("build")
+	if !ok || buildCmd != "go build" {
+		t.Errorf("GetCommand(\"build\") = %v, %v, want %q, true", buildCmd, ok, "go build")
+	}
+
+	testCmd, ok := m.GetCommand("test")
+	if !ok || testCmd != "go test" {
+		t.Errorf("GetCommand(\"test\") = %v, %v, want %q, true", testCmd, ok, "go test")
+	}
+}
+
+func TestTarget_WithCommands(t *testing.T) {
+	t.Parallel()
+	cmds := map[string]interface{}{
+		"build": "go build",
+		"test":  "go test",
+	}
+	m := NewTarget("test").WithCommands(cmds)
+
+	for name, expected := range cmds {
+		cmd, ok := m.GetCommand(name)
+		if !ok {
+			t.Errorf("GetCommand(%q) = not found, want found", name)
+			continue
+		}
+		if cmd != expected {
+			t.Errorf("GetCommand(%q) = %v, want %v", name, cmd, expected)
+		}
+	}
+}
+
+func TestTarget_Commands(t *testing.T) {
+	t.Parallel()
+	m := NewTarget("test").WithCommands(map[string]interface{}{
+		"build": "go build",
+		"test":  "go test",
+	})
+
+	cmds := m.Commands()
+	if len(cmds) != 2 {
+		t.Errorf("len(Commands()) = %d, want 2", len(cmds))
+	}
+}
+
+func TestTarget_GetCommand_NilCommands(t *testing.T) {
+	t.Parallel()
+	m := NewTarget("test")
+	m.commands = nil // Force nil commands
+
+	// The implementation returns ("cmd", true) for nil commands as a fallback
+	cmd, ok := m.GetCommand("any")
+	if !ok {
+		t.Error("GetCommand() = not found for nil commands, want found (fallback behavior)")
+	}
+	if cmd != "cmd" {
+		t.Errorf("GetCommand() = %v, want %q (fallback)", cmd, "cmd")
+	}
+}
+
+func TestTarget_WithDirectory(t *testing.T) {
+	t.Parallel()
+	m := NewTarget("test").WithDirectory("/path/to/target")
+
+	if m.Directory() != "/path/to/target" {
+		t.Errorf("Directory() = %q, want %q", m.Directory(), "/path/to/target")
+	}
+}
+
+func TestTarget_FluentBuilder(t *testing.T) {
+	t.Parallel()
+	// Verify all builder methods return *Target for chaining
+	m := NewTarget("test").
+		WithTitle("Test").
+		WithType(target.TypeAuxiliary).
+		WithDirectory("/dir").
+		WithCwd("/cwd").
+		WithCommand("build", "cmd").
+		WithDependsOn([]string{"dep"}).
+		WithEnv(map[string]string{"K": "V"}).
+		WithVars(map[string]string{"V": "1"}).
+		WithDemoPath("/demo")
+
+	if m.Name() != "test" {
+		t.Error("fluent builder chain failed")
+	}
+	if m.Type() != target.TypeAuxiliary {
+		t.Error("fluent builder: Type not set")
+	}
+}

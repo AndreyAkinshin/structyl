@@ -225,7 +225,7 @@ func TestValidateOptions(t *testing.T) {
 		{ToleranceMode: "absolute", ArrayOrder: "strict"},
 		{ToleranceMode: "ulp", ArrayOrder: "strict"},
 		{ToleranceMode: "relative", ArrayOrder: "unordered"},
-		{ToleranceMode: "", ArrayOrder: ""},  // empty defaults
+		{ToleranceMode: "", ArrayOrder: ""}, // empty defaults
 	}
 	for _, opts := range validCases {
 		if err := ValidateOptions(opts); err != nil {

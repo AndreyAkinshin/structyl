@@ -19,7 +19,6 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
 
-// out is the shared output writer for CLI commands.
 var out = output.New()
 
 // Help text alignment widths for consistent formatting.
@@ -414,6 +413,8 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 
 // cmdDockerBuild builds Docker images for services.
 func cmdDockerBuild(args []string, opts *GlobalOptions) int {
+	_ = opts // Reserved for future use (e.g., verbosity, parallel builds)
+
 	if wantsHelp(args) {
 		printDockerBuildUsage()
 		return 0
@@ -449,6 +450,8 @@ func cmdDockerBuild(args []string, opts *GlobalOptions) int {
 
 // cmdDockerClean removes Docker containers and images.
 func cmdDockerClean(args []string, opts *GlobalOptions) int {
+	_ = opts // Reserved for future use (e.g., verbosity, force removal)
+
 	if wantsHelp(args) {
 		printDockerCleanUsage()
 		return 0

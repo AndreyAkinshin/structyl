@@ -19,9 +19,13 @@ type CompareOptions struct {
 	// Use the ToleranceMode* constants: ToleranceModeRelative (default),
 	// ToleranceModeAbsolute, or ToleranceModeULP.
 	// Empty string ("") is treated as ToleranceModeRelative.
+	//
 	// For "ulp" mode, FloatTolerance is truncated to int64 for ULP distance
-	// calculation. Behavior near int64 limits (extremely large ULP distances)
-	// is undefined.
+	// calculation. Practical limit: FloatTolerance values should be less than
+	// 2^63-1 (approximately 9.2e18). For tolerances exceeding this limit,
+	// comparison results may be incorrect due to integer overflow. In practice,
+	// ULP tolerances above 1e15 are rarely meaningful since the total number of
+	// representable floats between 1.0 and 2.0 is approximately 4.5e15.
 	ToleranceMode string
 
 	// NaNEqualsNaN treats NaN values as equal when true.
@@ -59,6 +63,20 @@ const (
 	ArrayOrderUnordered = "unordered"
 )
 
+// String returns a human-readable representation of CompareOptions for debugging.
+func (o CompareOptions) String() string {
+	mode := o.ToleranceMode
+	if mode == "" {
+		mode = "relative"
+	}
+	order := o.ArrayOrder
+	if order == "" {
+		order = "strict"
+	}
+	return fmt.Sprintf("CompareOptions{ToleranceMode:%s, FloatTolerance:%g, NaNEqualsNaN:%v, ArrayOrder:%s}",
+		mode, o.FloatTolerance, o.NaNEqualsNaN, order)
+}
+
 // DefaultOptions returns the default comparison options.
 func DefaultOptions() CompareOptions {
 	return CompareOptions{
@@ -76,13 +94,13 @@ func ValidateOptions(opts CompareOptions) error {
 		return fmt.Errorf("invalid FloatTolerance: %v (must be >= 0)", opts.FloatTolerance)
 	}
 	switch opts.ToleranceMode {
-	case "", "relative", "absolute", "ulp":
+	case "", ToleranceModeRelative, ToleranceModeAbsolute, ToleranceModeULP:
 		// valid (empty defaults to relative)
 	default:
 		return fmt.Errorf("invalid ToleranceMode: %q (must be \"relative\", \"absolute\", or \"ulp\")", opts.ToleranceMode)
 	}
 	switch opts.ArrayOrder {
-	case "", "strict", "unordered":
+	case "", ArrayOrderStrict, ArrayOrderUnordered:
 		// valid (empty defaults to strict)
 	default:
 		return fmt.Errorf("invalid ArrayOrder: %q (must be \"strict\" or \"unordered\")", opts.ArrayOrder)

@@ -64,9 +64,10 @@ type TestCase struct {
 	// test cases with suite information, or set Suite manually after loading.
 	Suite string `json:"-"`
 
-	// Input contains the input data for the test.
-	// Input must be present but may be an empty object ({}).
-	// A nil Input (missing field) causes a validation error.
+	// Input contains the input data for the test as a JSON object.
+	// Input MUST be a JSON object (not an array or scalar). The object may be
+	// empty ({}). A nil Input (missing field) causes a validation error.
+	// Note: Arrays and scalar values as top-level input are not supported.
 	Input map[string]interface{} `json:"input"`
 
 	// Output contains the expected output.
@@ -84,11 +85,29 @@ type TestCase struct {
 	Tags []string `json:"tags,omitempty"`
 }
 
+// String returns a human-readable representation of TestCase for debugging.
+func (tc TestCase) String() string {
+	skip := ""
+	if tc.Skip {
+		skip = " [SKIP]"
+	}
+	if tc.Suite != "" {
+		return fmt.Sprintf("TestCase{%s/%s%s}", tc.Suite, tc.Name, skip)
+	}
+	return fmt.Sprintf("TestCase{%s%s}", tc.Name, skip)
+}
+
 // LoadTestSuite loads all test cases from a suite directory.
 // It looks for JSON files in <projectRoot>/tests/<suite>/*.json.
+// Returns SuiteNotFoundError if the suite directory does not exist.
 // Returns an empty slice (not nil) if the suite exists but contains no JSON files.
 func LoadTestSuite(projectRoot, suite string) ([]TestCase, error) {
-	pattern := filepath.Join(projectRoot, "tests", suite, "*.json")
+	suiteDir := filepath.Join(projectRoot, "tests", suite)
+	if _, err := os.Stat(suiteDir); os.IsNotExist(err) {
+		return nil, &SuiteNotFoundError{Suite: suite}
+	}
+
+	pattern := filepath.Join(suiteDir, "*.json")
 	files, err := filepath.Glob(pattern)
 	if err != nil {
 		return nil, err
@@ -229,6 +248,24 @@ func (e *ProjectNotFoundError) Error() string {
 // Is implements error matching for errors.Is().
 func (e *ProjectNotFoundError) Is(target error) bool {
 	return target == ErrProjectNotFound
+}
+
+// ErrSuiteNotFound is returned when a test suite directory does not exist.
+// Use errors.Is(err, ErrSuiteNotFound) to check for this condition.
+var ErrSuiteNotFound = errors.New("suite not found")
+
+// SuiteNotFoundError indicates a test suite directory does not exist.
+type SuiteNotFoundError struct {
+	Suite string
+}
+
+func (e *SuiteNotFoundError) Error() string {
+	return "test suite not found: " + e.Suite
+}
+
+// Is implements error matching for errors.Is().
+func (e *SuiteNotFoundError) Is(target error) bool {
+	return target == ErrSuiteNotFound
 }
 
 // ListSuites returns the names of all available test suites.

@@ -8,6 +8,7 @@ import (
 )
 
 func TestNewRegistry(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Project: config.ProjectConfig{Name: "test"},
 		Targets: map[string]config.TargetConfig{
@@ -34,7 +35,42 @@ func TestNewRegistry(t *testing.T) {
 	}
 }
 
+func TestRegistry_EmptyConfig(t *testing.T) {
+	t.Parallel()
+	cfg := &config.Config{
+		Project: config.ProjectConfig{Name: "test"},
+		Targets: map[string]config.TargetConfig{}, // empty
+	}
+
+	r, err := NewRegistry(cfg, "/project")
+	if err != nil {
+		t.Fatalf("NewRegistry() error = %v", err)
+	}
+
+	if len(r.All()) != 0 {
+		t.Errorf("All() = %d items, want empty", len(r.All()))
+	}
+	if len(r.Languages()) != 0 {
+		t.Errorf("Languages() = %d items, want empty", len(r.Languages()))
+	}
+	if len(r.Auxiliary()) != 0 {
+		t.Errorf("Auxiliary() = %d items, want empty", len(r.Auxiliary()))
+	}
+	if len(r.Names()) != 0 {
+		t.Errorf("Names() = %d items, want empty", len(r.Names()))
+	}
+
+	order, err := r.TopologicalOrder()
+	if err != nil {
+		t.Errorf("TopologicalOrder() error = %v", err)
+	}
+	if len(order) != 0 {
+		t.Errorf("TopologicalOrder() = %d items, want empty", len(order))
+	}
+}
+
 func TestRegistry_Get(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Project: config.ProjectConfig{Name: "test"},
 		Targets: map[string]config.TargetConfig{
@@ -59,6 +95,7 @@ func TestRegistry_Get(t *testing.T) {
 }
 
 func TestRegistry_ByType(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Project: config.ProjectConfig{Name: "test"},
 		Targets: map[string]config.TargetConfig{

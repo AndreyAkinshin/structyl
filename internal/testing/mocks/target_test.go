@@ -3,6 +3,7 @@ package mocks
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 
 	"github.com/AndreyAkinshin/structyl/internal/target"
@@ -324,5 +325,33 @@ func TestTarget_FluentBuilder(t *testing.T) {
 	}
 	if m.Type() != target.TypeAuxiliary {
 		t.Error("fluent builder: Type not set")
+	}
+}
+
+func TestTarget_ConcurrentExec(t *testing.T) {
+	t.Parallel()
+	m := NewTarget("test")
+	ctx := context.Background()
+	const goroutines = 100
+
+	var wg sync.WaitGroup
+	wg.Add(goroutines)
+	for i := 0; i < goroutines; i++ {
+		go func() {
+			defer wg.Done()
+			_ = m.Execute(ctx, "cmd", target.ExecOptions{})
+		}()
+	}
+	wg.Wait()
+
+	// Verify ExecCount is exactly goroutines (no lost increments)
+	if count := m.ExecCount(); count != goroutines {
+		t.Errorf("ExecCount() = %d, want %d", count, goroutines)
+	}
+
+	// Verify ExecOrder has exactly goroutines entries
+	order := m.ExecOrder()
+	if len(order) != goroutines {
+		t.Errorf("len(ExecOrder()) = %d, want %d", len(order), goroutines)
 	}
 }

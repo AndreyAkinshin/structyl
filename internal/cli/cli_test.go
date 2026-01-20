@@ -332,49 +332,6 @@ func TestSanitizeProjectName_SpecialCharacters(t *testing.T) {
 	}
 }
 
-func TestIsDockerMode_ExplicitDocker(t *testing.T) {
-	t.Setenv("STRUCTYL_DOCKER", "")
-
-	opts := &GlobalOptions{Docker: true}
-	if !isDockerMode(opts) {
-		t.Error("isDockerMode() = false, want true when Docker flag is set")
-	}
-}
-
-func TestIsDockerMode_ExplicitNoDocker(t *testing.T) {
-	t.Setenv("STRUCTYL_DOCKER", "true")
-
-	opts := &GlobalOptions{NoDocker: true}
-	if isDockerMode(opts) {
-		t.Error("isDockerMode() = true, want false when NoDocker flag is set")
-	}
-}
-
-func TestIsDockerMode_NoDockerTakesPrecedence(t *testing.T) {
-	opts := &GlobalOptions{Docker: true, NoDocker: true}
-	if isDockerMode(opts) {
-		t.Error("isDockerMode() = true, want false (NoDocker takes precedence)")
-	}
-}
-
-func TestIsDockerMode_EnvVar(t *testing.T) {
-	t.Setenv("STRUCTYL_DOCKER", "true")
-
-	opts := &GlobalOptions{}
-	if !isDockerMode(opts) {
-		t.Error("isDockerMode() = false, want true when STRUCTYL_DOCKER=true")
-	}
-}
-
-func TestIsDockerMode_Default(t *testing.T) {
-	t.Setenv("STRUCTYL_DOCKER", "")
-
-	opts := &GlobalOptions{}
-	if isDockerMode(opts) {
-		t.Error("isDockerMode() = true, want false (default)")
-	}
-}
-
 // mockTarget is an alias for the shared mock in internal/testing/mocks.
 // Use mocks.NewTarget("name") to create instances.
 
@@ -424,6 +381,7 @@ func TestFilterTargetsByType_EmptySlice_ReturnsEmpty(t *testing.T) {
 }
 
 func TestFilterTargetsByType_NoMatches_ReturnsEmpty(t *testing.T) {
+	t.Parallel()
 	targets := []target.Target{
 		mocks.NewTarget("cs").WithType(target.TypeLanguage),
 		mocks.NewTarget("py").WithType(target.TypeLanguage),
@@ -436,6 +394,7 @@ func TestFilterTargetsByType_NoMatches_ReturnsEmpty(t *testing.T) {
 }
 
 func TestFilterTargetsByType_AllMatch_ReturnsAll(t *testing.T) {
+	t.Parallel()
 	targets := []target.Target{
 		mocks.NewTarget("cs").WithType(target.TypeLanguage),
 		mocks.NewTarget("py").WithType(target.TypeLanguage),

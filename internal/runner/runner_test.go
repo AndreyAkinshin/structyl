@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
 	"github.com/AndreyAkinshin/structyl/internal/target"
@@ -345,6 +346,41 @@ func TestRunSequential_ContextCancellation(t *testing.T) {
 
 	if !errors.Is(err, context.Canceled) {
 		t.Errorf("runSequential() error = %v, want context.Canceled", err)
+	}
+}
+
+func TestRunSequential_ContextDeadline(t *testing.T) {
+	t.Parallel()
+	// Use channel-based synchronization to ensure deadline triggers during execution
+	started := make(chan struct{})
+
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			close(started) // Signal that execution has begun
+			<-ctx.Done()   // Block until context deadline expires
+			return ctx.Err()
+		})
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage)
+
+	targets := []target.Target{target1, target2}
+
+	registry, _ := createTestRegistry(t)
+	r := New(registry)
+
+	// Use a very short timeout that will expire while target1 is executing
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+
+	// Wait for execution to start, then let the deadline expire
+	go func() {
+		<-started
+		// The deadline will naturally expire after 10ms
+	}()
+
+	err := r.runSequential(ctx, targets, "build", RunOptions{})
+
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Errorf("runSequential() error = %v, want context.DeadlineExceeded", err)
 	}
 }
 

@@ -188,6 +188,11 @@ func TestCompare(t *testing.T) {
 
 		// Equal prereleases
 		{"1.0.0-alpha.1", "1.0.0-alpha.1", 0},
+
+		// Build metadata MUST be ignored per SemVer §10
+		{"1.0.0+build1", "1.0.0+build2", 0},
+		{"1.0.0+abc", "1.0.0", 0},
+		{"1.0.0-alpha+build", "1.0.0-alpha+other", 0},
 	}
 
 	for _, tt := range tests {

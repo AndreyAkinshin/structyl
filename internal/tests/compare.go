@@ -93,15 +93,8 @@ func compareFloats(expected float64, actual interface{}, cfg ComparisonConfig, p
 	case config.ToleranceModeULP:
 		// ULP comparison using IEEE 754 bit representation
 		withinTolerance = ulpDiff(expected, actFloat) <= int64(cfg.FloatTolerance)
-	case config.ToleranceModeRelative, "":
-		// Relative tolerance (default when empty)
-		if expected == 0 {
-			withinTolerance = math.Abs(actFloat) <= cfg.FloatTolerance
-		} else {
-			withinTolerance = math.Abs((expected-actFloat)/expected) <= cfg.FloatTolerance
-		}
 	default:
-		// Unknown modes fall back to relative tolerance
+		// Relative tolerance (default for empty, "relative", or unknown modes)
 		if expected == 0 {
 			withinTolerance = math.Abs(actFloat) <= cfg.FloatTolerance
 		} else {

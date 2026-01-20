@@ -160,6 +160,76 @@ func TestUpdateFile_FileNotFound_ReturnsError(t *testing.T) {
 	}
 }
 
+func TestUpdateFile_ErrorIncludesFilePath(t *testing.T) {
+	tests := []struct {
+		name        string
+		setup       func(t *testing.T) string
+		pattern     string
+		wantContain string
+	}{
+		{
+			name: "file_not_found",
+			setup: func(t *testing.T) string {
+				return "/nonexistent/path/test.txt"
+			},
+			pattern:     `pattern`,
+			wantContain: "/nonexistent/path/test.txt",
+		},
+		{
+			name: "invalid_pattern",
+			setup: func(t *testing.T) string {
+				tmpDir := t.TempDir()
+				path := filepath.Join(tmpDir, "test.txt")
+				if err := os.WriteFile(path, []byte("content"), 0644); err != nil {
+					t.Fatal(err)
+				}
+				return path
+			},
+			pattern:     `[invalid(regex`,
+			wantContain: "test.txt",
+		},
+		{
+			name: "pattern_not_found",
+			setup: func(t *testing.T) string {
+				tmpDir := t.TempDir()
+				path := filepath.Join(tmpDir, "version.go")
+				if err := os.WriteFile(path, []byte("no match here"), 0644); err != nil {
+					t.Fatal(err)
+				}
+				return path
+			},
+			pattern:     `version = "[\d.]+"`,
+			wantContain: "version.go",
+		},
+		{
+			name: "multiple_matches",
+			setup: func(t *testing.T) string {
+				tmpDir := t.TempDir()
+				path := filepath.Join(tmpDir, "config.json")
+				if err := os.WriteFile(path, []byte(`{"v": "1.0", "v2": "1.0"}`), 0644); err != nil {
+					t.Fatal(err)
+				}
+				return path
+			},
+			pattern:     `[\d]+\.[\d]+`,
+			wantContain: "config.json",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			path := tt.setup(t)
+			err := UpdateFile(path, tt.pattern, `{version}`, "2.0.0", false)
+			if err == nil {
+				t.Fatal("UpdateFile() expected error")
+			}
+			if !strings.Contains(err.Error(), tt.wantContain) {
+				t.Errorf("error = %q, want to contain %q", err.Error(), tt.wantContain)
+			}
+		})
+	}
+}
+
 func TestUpdateFile_MultipleMatches_ReplaceAllTrue_ReplacesAll(t *testing.T) {
 	tmpDir := t.TempDir()
 	filePath := filepath.Join(tmpDir, "test.txt")

@@ -25,22 +25,22 @@ func Propagate(version string, files []config.VersionFileConfig) error {
 func UpdateFile(path, pattern, replace, version string, replaceAll bool) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %w", path, err)
 	}
 
 	re, err := regexp.Compile(pattern)
 	if err != nil {
-		return fmt.Errorf("invalid pattern: %w", err)
+		return fmt.Errorf("%s: invalid pattern: %w", path, err)
 	}
 
 	matches := re.FindAllIndex(data, -1)
 	if len(matches) == 0 {
-		return fmt.Errorf("pattern not found in file")
+		return fmt.Errorf("%s: pattern not found", path)
 	}
 
 	// When replaceAll is false, require exactly one match
 	if !replaceAll && len(matches) > 1 {
-		return fmt.Errorf("pattern matched %d times (expected 1)", len(matches))
+		return fmt.Errorf("%s: pattern matched %d times (expected 1)", path, len(matches))
 	}
 
 	// Substitute {version} placeholder in replace string

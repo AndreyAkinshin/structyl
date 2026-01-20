@@ -1,6 +1,5 @@
 package config
 
-// Default configuration values.
 const (
 	DefaultVersionSource     = "VERSION"
 	DefaultTestsDirectory    = "tests"

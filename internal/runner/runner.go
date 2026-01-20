@@ -213,6 +213,8 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 }
 
 // getParallelWorkers returns the number of parallel workers to use.
+// Invalid STRUCTYL_PARALLEL values (non-numeric, <1, >256) are silently
+// ignored, falling back to runtime.NumCPU().
 func getParallelWorkers() int {
 	if env := os.Getenv("STRUCTYL_PARALLEL"); env != "" {
 		n, err := strconv.Atoi(env)
@@ -224,16 +226,16 @@ func getParallelWorkers() int {
 }
 
 // combineErrors combines multiple errors into one.
-func combineErrors(errors []error) error {
-	if len(errors) == 0 {
+func combineErrors(errs []error) error {
+	if len(errs) == 0 {
 		return nil
 	}
-	if len(errors) == 1 {
-		return errors[0]
+	if len(errs) == 1 {
+		return errs[0]
 	}
 
-	msg := fmt.Sprintf("%d errors occurred:\n", len(errors))
-	for _, err := range errors {
+	msg := fmt.Sprintf("%d errors occurred:\n", len(errs))
+	for _, err := range errs {
 		msg += fmt.Sprintf("  - %v\n", err)
 	}
 	return fmt.Errorf("%s", msg)

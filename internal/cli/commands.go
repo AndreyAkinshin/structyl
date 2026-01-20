@@ -91,6 +91,7 @@ func runViaMise(proj *project.Project, cmd string, targetName string, args []str
 	executor := mise.NewExecutor(proj.Root)
 	executor.SetVerbose(opts.Verbose)
 
+	// Error details are output by mise directly to stderr; we only need the exit code.
 	if err := executor.RunTask(ctx, task, args); err != nil {
 		return internalerrors.ExitRuntimeError
 	}

@@ -295,6 +295,7 @@ func getResolvedCommandsForTargetWithToolchains(targetCfg config.TargetConfig, c
 }
 
 // capitalize returns a string with the first letter capitalized.
+// ASCII-only; sufficient for command names used in this codebase.
 func capitalize(s string) string {
 	if s == "" {
 		return s

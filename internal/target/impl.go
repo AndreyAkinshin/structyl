@@ -17,7 +17,6 @@ import (
 )
 
 // varPattern matches ${var} for variable interpolation.
-// Compiled once at package init for performance.
 var varPattern = regexp.MustCompile(`\$\{([^}]+)\}`)
 
 // escapePlaceholder is a sentinel value used during variable interpolation
@@ -187,7 +186,9 @@ func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) 
 		}
 
 	case []interface{}:
-		// Handle []interface{} (JSON unmarshals arrays as []interface{})
+		// Handle []interface{} (JSON unmarshals arrays as []interface{}).
+		// Recursively execute each command in the list. Cycles are prevented
+		// by config validation at registry creation time; see registry.go.
 		for _, subCmd := range cmdVal {
 			subCmdStr, ok := subCmd.(string)
 			if !ok {

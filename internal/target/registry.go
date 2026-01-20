@@ -15,6 +15,10 @@ type Registry struct {
 }
 
 // NewRegistry creates a registry from configuration.
+// Returns error if:
+//   - toolchain resolution fails (unknown toolchain, circular extends)
+//   - target creation fails (invalid type, missing fields)
+//   - dependency validation fails (undefined deps, cycles)
 func NewRegistry(cfg *config.Config, rootDir string) (*Registry, error) {
 	resolver, err := toolchain.NewResolver(cfg)
 	if err != nil {

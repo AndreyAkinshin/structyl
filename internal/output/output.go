@@ -68,6 +68,8 @@ func (w *Writer) Debug(format string, args ...interface{}) {
 }
 
 // Print writes to stdout.
+// Write errors are intentionally ignored: CLI output failures (broken pipe,
+// closed terminal) are non-recoverable and should not affect the exit code.
 func (w *Writer) Print(format string, args ...interface{}) {
 	_, _ = fmt.Fprintf(w.out, format, args...)
 }

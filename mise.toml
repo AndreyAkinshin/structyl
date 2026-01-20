@@ -1,17 +1,65 @@
 [tools]
 go = "1.24"
+node = "22"
+pnpm = "10"
 golangci-lint = "latest"
 goreleaser = "latest"
 "go:golang.org/x/vuln/cmd/govulncheck" = "latest"
 "go:github.com/securego/gosec/v2/cmd/gosec" = "latest"
 
-[tasks.deps]
-description = "Download Go module dependencies"
+# ==========================================================================
+# Standard Tasks (see build-system.md for conventions)
+# ==========================================================================
+
+[tasks.restore]
+description = "Restore all dependencies"
 run = "go mod download"
+
+[tasks.build]
+description = "Build the structyl binary"
+run = "go build -v ./cmd/structyl"
 
 [tasks.test]
 description = "Run all tests"
 run = "go test -v -race ./..."
+
+[tasks.check]
+description = "Run all static analysis (lint, format, schema validation)"
+depends = ["check:lint", "check:schema"]
+
+[tasks."check:fix"]
+description = "Auto-fix formatting issues"
+run = "golangci-lint fmt"
+
+[tasks.clean]
+description = "Remove build artifacts"
+run = "rm -f structyl coverage.out coverage.html"
+
+[tasks.ci]
+description = "Run full CI pipeline"
+run = [
+    { task = "clean" },
+    { task = "restore" },
+    { task = "check" },
+    { task = "build" },
+    { task = "test" },
+]
+
+# ==========================================================================
+# Check Tasks
+# ==========================================================================
+
+[tasks."check:lint"]
+description = "Run golangci-lint (includes format verification)"
+run = "golangci-lint run"
+
+[tasks."check:schema"]
+description = "Validate JSON files against schemas"
+run = "go test -v -run TestSchema ./internal/schema/..."
+
+# ==========================================================================
+# Test Tasks
+# ==========================================================================
 
 [tasks."test:unit"]
 description = "Run unit tests"
@@ -29,6 +77,10 @@ run = "go test -v -race ./pkg/..."
 description = "Run tests with coverage"
 run = "go test -race -coverprofile=coverage.out -covermode=atomic ./..."
 
+# ==========================================================================
+# Coverage Tasks
+# ==========================================================================
+
 [tasks."cover:report"]
 description = "Generate HTML coverage report"
 run = "go tool cover -html=coverage.out -o coverage.html"
@@ -37,21 +89,9 @@ run = "go tool cover -html=coverage.out -o coverage.html"
 description = "Open coverage report in browser"
 run = "open coverage.html"
 
-[tasks.lint]
-description = "Run golangci-lint"
-run = "golangci-lint run"
-
-[tasks."check:schema"]
-description = "Validate JSON files against schemas"
-run = "go test -v -run TestSchema ./internal/schema/..."
-
-[tasks.build]
-description = "Build the structyl binary"
-run = "go build -v ./cmd/structyl"
-
-[tasks.ci]
-description = "Run full CI pipeline (deps, lint, check:schema, test, build)"
-depends = ["deps", "lint", "check:schema", "test", "build"]
+# ==========================================================================
+# Security Tasks
+# ==========================================================================
 
 [tasks.security]
 description = "Run all security checks"
@@ -71,3 +111,27 @@ description = "Run static security analysis"
 #   G304: File path from variable (CLI tool reads user-specified files by design)
 #   G306: WriteFile permissions 0644 (standard for config files)
 run = "gosec -quiet -exclude=G107,G115,G204,G301,G304,G306 ./..."
+
+# ==========================================================================
+# Documentation Tasks
+# ==========================================================================
+
+[tasks."docs:dev"]
+description = "Start documentation dev server"
+dir = "docs"
+run = "pnpm dev"
+
+[tasks."docs:build"]
+description = "Build documentation site"
+dir = "docs"
+run = "pnpm build"
+
+[tasks."docs:preview"]
+description = "Preview built documentation site"
+dir = "docs"
+run = "pnpm preview"
+
+[tasks."docs:restore"]
+description = "Install documentation dependencies"
+dir = "docs"
+run = "pnpm install"

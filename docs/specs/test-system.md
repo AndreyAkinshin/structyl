@@ -8,6 +8,16 @@ This document describes the reference test system in Structyl.
 
 Structyl provides a language-agnostic reference test system. Test data is stored in JSON format and shared across all language implementations, ensuring consistent behavior.
 
+## Non-Goals
+
+The reference test system does NOT provide:
+
+- **Perceptual/fuzzy binary comparison** — Binary outputs are compared byte-for-byte exactly; no image similarity or fuzzy matching
+- **Test mutation or fuzzing** — Test cases are static JSON files; mutation testing is out of scope
+- **Coverage measurement** — Coverage is delegated to language-specific tooling
+- **Test generation** — Structyl does not mandate or provide test generation tools
+- **Parallel test execution** — Parallelism is at the target level, not individual test case level
+
 ## Test Data Format
 
 ### Basic Structure
@@ -153,6 +163,10 @@ Subdirectory references are permitted:
 - Resolved path: `tests/image-processing/data/input.bin`
 
 Parent directory references (`../`) are NOT permitted and will cause a load error.
+
+::: warning Public API Limitation
+The `$file` syntax is only available in Structyl's internal test runner. The public Go package `pkg/testhelper` does NOT support `$file` references. Test cases using this syntax must use the internal `internal/tests` package or embed data directly in JSON.
+:::
 
 Binary files are stored alongside the JSON file:
 

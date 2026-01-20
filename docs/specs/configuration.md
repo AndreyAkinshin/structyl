@@ -26,7 +26,7 @@ Structyl uses JSON for configuration. Rationale:
 - **IDE support** — JSON Schema enables autocomplete and validation
 - **No hidden complexity** — Unlike YAML's multiple specs and implicit typing
 
-For validation, use the [JSON Schema](structyl.schema.json).
+For validation, use the [JSON Schema](/schema/config.schema.json).
 
 ## Configuration Sections
 
@@ -118,7 +118,7 @@ Build targets configuration. See [targets.md](targets.md) for details.
 
 | Field              | Type   | Default        | Description                                           |
 | ------------------ | ------ | -------------- | ----------------------------------------------------- |
-| `type`             | string | Auto-inferred  | `"language"` or `"auxiliary"`. Known slugs (cs, go, kt, py, rs, ts) default to `language` |
+| `type`             | string | Required       | `"language"` or `"auxiliary"`                         |
 | `title`            | string | Required       | Display name                                          |
 | `toolchain`        | string | Auto-detect    | Toolchain preset (see [toolchains.md](toolchains.md)) |
 | `toolchain_version`| string | From toolchain | Override mise tool version for this target            |

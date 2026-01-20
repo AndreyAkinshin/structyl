@@ -183,8 +183,12 @@ These commands operate across all targets.
 | `--no-docker`   | Disable Docker mode (overrides `STRUCTYL_DOCKER` env var) |
 | `--continue`    | Continue on error (don't fail-fast)                       |
 | `--type=<type>` | Filter targets by type (`language` or `auxiliary`)        |
+| `-q, --quiet`   | Minimal output (errors only)                              |
+| `-v, --verbose` | Maximum detail                                            |
 | `-h, --help`    | Show help message                                         |
 | `--version`     | Show Structyl version                                     |
+
+Note: `-q, --quiet` and `-v, --verbose` are mutually exclusive.
 
 ### Docker Mode Precedence
 

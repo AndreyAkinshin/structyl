@@ -202,7 +202,7 @@ rs/
 └── src/
 ```
 
-Auto-detection is best-effort. Explicit `toolchain` declaration is recommended.
+Auto-detection is best-effort. Explicit `toolchain` declaration is RECOMMENDED.
 
 ## Commands
 
@@ -327,7 +327,7 @@ This is a known limitation tracked for future improvement.
 | Unset or empty                             | Default to number of CPU cores           |
 | `1`                                        | Serial execution (one target at a time)  |
 | `2` to `256`                               | Parallel execution with N workers        |
-| `0`, negative, >256, or non-integer        | Silently falls back to CPU core count    |
+| `0`, negative, >256, or non-integer        | Falls back to CPU core count (with warning) |
 
 **Output Handling:**
 

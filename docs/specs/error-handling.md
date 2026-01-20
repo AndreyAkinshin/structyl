@@ -21,6 +21,17 @@ This document defines error handling semantics for Structyl.
 
 **Code 3 (Environment Error)** indicates an external system or resource is unavailable. The configuration may be valid, but the environment cannot support the requested operation.
 
+### Not Found Errors
+
+When a target, command, or resource is not found at runtime, Structyl returns exit code `1` (Failure), not exit code `2`. This distinction is intentional:
+
+- Exit code `2` is reserved for configuration file errors (syntax, schema violations)
+- "Not found" during command execution is a runtime failure (the command ran but the target/resource doesn't exist)
+
+Examples that return exit code `1`:
+- `structyl build nonexistent` — unknown target
+- `structyl xyz` — unknown command
+
 ### Exit Code Usage
 
 ```bash

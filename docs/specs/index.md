@@ -85,7 +85,6 @@ structyl build --docker
 | Document                                       | Description                                       |
 | ---------------------------------------------- | ------------------------------------------------- |
 | [glossary.md](glossary.md)                     | Term definitions and abbreviations                |
-| [project-structure.md](project-structure.md)   | Directory layout and root marker conventions      |
 | [configuration.md](configuration.md)           | `.structyl/config.json` configuration file format |
 | [config.schema.json](/schema/config.schema.json) | JSON Schema for configuration validation          |
 | [commands.md](commands.md)                     | Command vocabulary and execution model            |

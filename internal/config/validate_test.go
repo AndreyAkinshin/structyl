@@ -260,10 +260,10 @@ func TestValidationError_Error(t *testing.T) {
 	t.Parallel()
 	err := &ValidationError{
 		Field:   "project.name",
-		Message: "is required",
+		Message: "required",
 	}
 
-	expected := "project.name: is required"
+	expected := "project.name: required"
 	if err.Error() != expected {
 		t.Errorf("Error() = %q, want %q", err.Error(), expected)
 	}

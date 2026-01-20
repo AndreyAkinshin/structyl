@@ -114,7 +114,7 @@ func validateTargetConfig(name string, target TargetConfig) error {
 	if target.Type == "" {
 		return &ValidationError{
 			Field:   fmt.Sprintf("targets.%s.type", name),
-			Message: "is required",
+			Message: "required",
 		}
 	}
 
@@ -128,7 +128,7 @@ func validateTargetConfig(name string, target TargetConfig) error {
 	if target.Title == "" {
 		return &ValidationError{
 			Field:   fmt.Sprintf("targets.%s.title", name),
-			Message: "is required",
+			Message: "required",
 		}
 	}
 
@@ -190,7 +190,7 @@ func validateCommandDef(targetName, cmdName string, cmdDef interface{}) error {
 // or doesn't match the required pattern.
 func ValidateProjectName(name string) error {
 	if name == "" {
-		return &ValidationError{Field: "project.name", Message: "is required"}
+		return &ValidationError{Field: "project.name", Message: "required"}
 	}
 	if len(name) > maxProjectNameLength {
 		return &ValidationError{Field: "project.name", Message: fmt.Sprintf("must be %d characters or less", maxProjectNameLength)}
@@ -207,7 +207,7 @@ func ValidateProjectName(name string) error {
 // ValidateTargetName checks if a target name is valid.
 func ValidateTargetName(name string) error {
 	if name == "" {
-		return &ValidationError{Field: "target name", Message: "is required"}
+		return &ValidationError{Field: "target name", Message: "required"}
 	}
 	if !targetNamePattern.MatchString(name) {
 		return &ValidationError{

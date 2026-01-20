@@ -3,7 +3,6 @@ package cli
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 
@@ -73,14 +72,16 @@ func Run(args []string) int {
 
 	// Deprecated: "new" is now "init"
 	case "new":
-		fmt.Fprintln(os.Stderr, "warning: 'structyl new' is deprecated, use 'structyl init'")
+		out.WarningSimple("'structyl new' is deprecated, use 'structyl init'")
 		return cmdInit(cmdArgs)
 
 	// Release command
 	case "release":
 		return cmdRelease(cmdArgs, opts)
 
-	// CI commands
+	// CI commands require explicit routing because they wrap mise tasks with pre/post
+	// validation. Custom ci:* variants (e.g., ci:custom) defined in config go through
+	// cmdUnified which delegates to mise directly without the CI wrapper logic.
 	case "ci", "ci:release":
 		return cmdCI(cmd, cmdArgs, opts)
 
@@ -187,7 +188,9 @@ func parseGlobalFlags(args []string) (*GlobalOptions, []string, error) {
 		return nil, nil, fmt.Errorf("--quiet and --verbose are mutually exclusive")
 	}
 
-	// Validate mutual exclusivity of docker and no-docker
+	// Validate mutual exclusivity of docker and no-docker.
+	// Note: When both flags are absent, GetDockerMode() checks STRUCTYL_DOCKER env var.
+	// See docs/specs/commands.md for full precedence rules.
 	if opts.Docker && opts.NoDocker {
 		return nil, nil, fmt.Errorf("--docker and --no-docker are mutually exclusive")
 	}
@@ -341,14 +344,14 @@ func printGenericHelp(w *output.Writer) {
 
 func printGlobalFlags(w *output.Writer) {
 	w.HelpSection("Global Flags:")
-	w.HelpFlag("-q, --quiet", "Minimal output (errors only)", 14)
-	w.HelpFlag("-v, --verbose", "Maximum detail", 14)
-	w.HelpFlag("--docker", "Run in Docker container", 14)
-	w.HelpFlag("--no-docker", "Disable Docker mode", 14)
-	w.HelpFlag("--continue", "Continue on error (don't fail-fast)", 14)
-	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", 14)
-	w.HelpFlag("-h, --help", "Show this help", 14)
-	w.HelpFlag("--version", "Show version", 14)
+	w.HelpFlag("-q, --quiet", "Minimal output (errors only)", helpFlagWidthGlobal)
+	w.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
+	w.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
+	w.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
+	w.HelpFlag("--continue", "Continue on error (don't fail-fast)", helpFlagWidthGlobal)
+	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
+	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
+	w.HelpFlag("--version", "Show version", helpFlagWidthGlobal)
 
 	w.HelpSection("Environment:")
 	w.HelpEnvVar("STRUCTYL_DOCKER=1", "Auto-enable Docker mode", 18)

@@ -21,6 +21,12 @@ import (
 // out is the shared output writer for CLI commands.
 var out = output.New()
 
+// Help text alignment widths for consistent formatting.
+const (
+	helpFlagWidthShort  = 10 // Width for short flags like "-h, --help"
+	helpFlagWidthGlobal = 14 // Width for global flags like "--type=<type>"
+)
+
 // applyVerbosityToOutput configures the output writer based on verbosity settings.
 func applyVerbosityToOutput(opts *GlobalOptions) {
 	out.SetQuiet(opts.Quiet)
@@ -49,7 +55,8 @@ func ensureMiseConfig(proj *project.Project, force bool) error {
 		autoGen = proj.Config.Mise.AutoGenerate
 	}
 
-	needsRegeneration := force || autoGen || !mise.MiseTomlExists(proj.Root)
+	miseTomlMissing := !mise.MiseTomlExists(proj.Root)
+	needsRegeneration := force || autoGen || miseTomlMissing
 	if needsRegeneration {
 		_, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, true)
 		if err != nil {
@@ -285,7 +292,8 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 	if len(args) > 0 {
 		registry, err := target.NewRegistry(proj.Config, proj.Root)
 		if err != nil {
-			// Registry failed to load - treat all args as command args
+			// Registry failed to load - log warning and treat all args as command args
+			out.WarningSimple("could not load target registry: %v", err)
 			cmdArgs = args
 		} else if _, ok := registry.Get(args[0]); ok {
 			targetName = args[0]
@@ -530,16 +538,16 @@ func printUnifiedUsage(cmd string) {
 	w.Println("  Without a target, runs %s on all targets that have it defined.", cmd)
 
 	w.HelpSection("Arguments:")
-	w.HelpFlag("[target]", "Target name to run command on (optional)", 10)
+	w.HelpFlag("[target]", "Target name to run command on (optional)", helpFlagWidthShort)
 
 	w.HelpSection("Global Options:")
-	w.HelpFlag("-q, --quiet", "Minimal output (errors only)", 14)
-	w.HelpFlag("-v, --verbose", "Maximum detail", 14)
-	w.HelpFlag("--docker", "Run in Docker container", 14)
-	w.HelpFlag("--no-docker", "Disable Docker mode", 14)
-	w.HelpFlag("--continue", "Continue on error (don't fail-fast)", 14)
-	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", 14)
-	w.HelpFlag("-h, --help", "Show this help", 14)
+	w.HelpFlag("-q, --quiet", "Minimal output (errors only)", helpFlagWidthGlobal)
+	w.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
+	w.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
+	w.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
+	w.HelpFlag("--continue", "Continue on error (don't fail-fast)", helpFlagWidthGlobal)
+	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
+	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
 
 	w.HelpSection("Examples:")
 	titleCase := cases.Title(language.English)
@@ -602,16 +610,16 @@ func printCIUsage(cmd string) {
 	}
 
 	w.HelpSection("Arguments:")
-	w.HelpFlag("[target]", "Target name to run CI on (optional)", 10)
+	w.HelpFlag("[target]", "Target name to run CI on (optional)", helpFlagWidthShort)
 
 	w.HelpSection("Global Options:")
-	w.HelpFlag("-q, --quiet", "Minimal output (errors only)", 14)
-	w.HelpFlag("-v, --verbose", "Maximum detail", 14)
-	w.HelpFlag("--docker", "Run in Docker container", 14)
-	w.HelpFlag("--no-docker", "Disable Docker mode", 14)
-	w.HelpFlag("--continue", "Continue on error (don't fail-fast)", 14)
-	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", 14)
-	w.HelpFlag("-h, --help", "Show this help", 14)
+	w.HelpFlag("-q, --quiet", "Minimal output (errors only)", helpFlagWidthGlobal)
+	w.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
+	w.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
+	w.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
+	w.HelpFlag("--continue", "Continue on error (don't fail-fast)", helpFlagWidthGlobal)
+	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
+	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
 
 	w.HelpSection("Examples:")
 	w.HelpExample(fmt.Sprintf("structyl %s", cmd), "Run CI on all targets")

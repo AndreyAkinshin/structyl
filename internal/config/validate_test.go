@@ -6,6 +6,9 @@ import (
 	"testing"
 )
 
+// ptr returns a pointer to the given value.
+func ptr[T any](v T) *T { return &v }
+
 func TestValidateProjectName_Valid(t *testing.T) {
 	t.Parallel()
 	tests := []string{
@@ -868,7 +871,7 @@ func TestValidate_ULPTolerance_Integer_Valid(t *testing.T) {
 				Tests: &TestsConfig{
 					Comparison: &ComparisonConfig{
 						ToleranceMode:  "ulp",
-						FloatTolerance: val,
+						FloatTolerance: ptr(val),
 					},
 				},
 			}
@@ -891,7 +894,7 @@ func TestValidate_ULPTolerance_Fractional_Invalid(t *testing.T) {
 				Tests: &TestsConfig{
 					Comparison: &ComparisonConfig{
 						ToleranceMode:  "ulp",
-						FloatTolerance: val,
+						FloatTolerance: ptr(val),
 					},
 				},
 			}
@@ -924,7 +927,7 @@ func TestValidate_NonULPTolerance_Fractional_Valid(t *testing.T) {
 				Tests: &TestsConfig{
 					Comparison: &ComparisonConfig{
 						ToleranceMode:  mode,
-						FloatTolerance: 0.001, // Fractional value
+						FloatTolerance: ptr(0.001), // Fractional value
 					},
 				},
 			}

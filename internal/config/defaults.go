@@ -41,8 +41,9 @@ func applyTestsDefaults(cfg *Config) {
 	if cfg.Tests.Comparison == nil {
 		cfg.Tests.Comparison = &ComparisonConfig{}
 	}
-	if cfg.Tests.Comparison.FloatTolerance == 0 {
-		cfg.Tests.Comparison.FloatTolerance = DefaultFloatTolerance
+	if cfg.Tests.Comparison.FloatTolerance == nil {
+		defaultTolerance := DefaultFloatTolerance
+		cfg.Tests.Comparison.FloatTolerance = &defaultTolerance
 	}
 	if cfg.Tests.Comparison.ToleranceMode == "" {
 		cfg.Tests.Comparison.ToleranceMode = DefaultToleranceMode

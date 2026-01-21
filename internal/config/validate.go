@@ -300,7 +300,7 @@ func validateTests(cfg *Config) error {
 	}
 
 	// Validate float_tolerance is integer when tolerance_mode is "ulp"
-	if c.ToleranceMode == "ulp" && c.FloatTolerance != float64(int(c.FloatTolerance)) {
+	if c.FloatTolerance != nil && c.ToleranceMode == "ulp" && *c.FloatTolerance != float64(int(*c.FloatTolerance)) {
 		return &ValidationError{
 			Field:   "tests.comparison.float_tolerance",
 			Message: "must be an integer when tolerance_mode is \"ulp\"",

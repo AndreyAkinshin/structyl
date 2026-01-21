@@ -318,13 +318,9 @@ func ValidateOptions(opts CompareOptions) error {
 }
 
 // Equal compares expected and actual outputs for equality.
-// Returns true if they match according to the options.
+// Panics on invalid opts; use [ValidateOptions] or [EqualE] for error handling.
 //
-// # Panic Behavior
-//
-// Panics if opts contains invalid values. Use [ValidateOptions] to check opts
-// before calling if validation errors should not panic. Alternatively, use
-// [CompareE] and check only the bool result for an error-returning variant.
+// Returns true if values match according to opts.
 //
 // Special string values in expected trigger float comparisons:
 //   - "NaN" matches actual NaN (per NaNEqualsNaN option)
@@ -345,21 +341,15 @@ func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
 }
 
 // Compare compares expected and actual outputs with detailed diff.
-// Returns true if they match, and a diff string if they don't.
+// Panics on invalid opts; use [ValidateOptions] or [CompareE] for error handling.
 //
-// # Panic Behavior
+// Returns true if values match, and a diff string describing mismatches.
 //
-// Panics if opts contains invalid values. Specific panic conditions:
+// Panic conditions (use [ValidateOptions] to check beforehand):
 //   - ToleranceMode not in {"", "relative", "absolute", "ulp"}
 //   - ArrayOrder not in {"", "strict", "unordered"}
 //   - FloatTolerance < 0
 //   - ToleranceMode == "ulp" && FloatTolerance > math.MaxInt64
-//
-// Use [ValidateOptions] to check opts before calling if validation errors
-// should not panic. This fail-fast behavior ensures invalid options are
-// caught immediately rather than silently producing incorrect comparison results.
-//
-// Alternatively, use [CompareE] for an error-returning variant that does not panic.
 //
 // Special string values in expected trigger float comparisons:
 //   - "NaN" matches actual NaN (per NaNEqualsNaN option)
@@ -740,21 +730,15 @@ func FormatDiff(expected, actual interface{}, opts CompareOptions) string {
 
 // FormatComparisonResult compares expected and actual values, returning a
 // human-readable description of any differences.
+// Panics on invalid opts; use [ValidateOptions] or [FormatComparisonResultE] for error handling.
 //
-// # Panic Behavior
+// Returns "" (empty string) if values match, or a descriptive diff if they differ.
 //
-// Panics if opts contains invalid values. Specific panic conditions:
+// Panic conditions (use [ValidateOptions] to check beforehand):
 //   - ToleranceMode not in {"", "relative", "absolute", "ulp"}
 //   - ArrayOrder not in {"", "strict", "unordered"}
 //   - FloatTolerance < 0
 //   - ToleranceMode == "ulp" && FloatTolerance > math.MaxInt64
-//
-// Use [ValidateOptions] to check opts before calling if validation errors
-// should not panic.
-//
-// Returns:
-//   - "" (empty string) if values match
-//   - A descriptive diff string if values differ
 //
 // This function has clearer semantics than FormatDiff: an empty result means
 // "no differences" rather than returning affirmative text on match.

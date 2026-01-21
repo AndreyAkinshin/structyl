@@ -263,8 +263,12 @@ Creates a release by setting the version across all targets, committing the chan
 | ----------- | -------------------------------------------------- |
 | `--push`    | Push commit and tags to remote after release       |
 | `--dry-run` | Print what would be done without making changes    |
-| `--force`   | Allow release even with uncommitted changes        |
+| `--force`   | Allow release even with uncommitted changes (see note) |
 | `-h, --help`| Show help                                          |
+
+::: warning --force includes uncommitted changes
+When `--force` is used, all uncommitted changes in the working directory are staged and included in the release commit. This is because the release process runs `git add -A` before committing. Use with caution: ensure uncommitted changes are intentional.
+:::
 
 **Exit codes:**
 
@@ -342,6 +346,68 @@ go test -json ./... > test.json && structyl test-summary test.json
 go test -json ./... 2>&1 | tee test.json && structyl test-summary test.json
 ```
 
+### `dockerfile` Command
+
+```
+structyl dockerfile [--force]
+```
+
+Generates Dockerfiles for all targets with mise-supported toolchains. Each target gets its own Dockerfile in its directory, configured to use mise for tool management and task execution.
+
+**Options:**
+
+| Option       | Description                    |
+| ------------ | ------------------------------ |
+| `--force`    | Overwrite existing Dockerfiles |
+| `-h, --help` | Show help                      |
+
+**Behavior:**
+
+- Skips targets that already have a Dockerfile (unless `--force` is used)
+- Only generates for targets with mise-supported toolchains
+- Generated Dockerfiles include mise installation and task definitions
+
+**Exit codes:**
+
+| Code | Condition              |
+| ---- | ---------------------- |
+| 0    | Dockerfiles generated  |
+| 2    | Configuration error    |
+
+**Examples:**
+
+```bash
+structyl dockerfile          # Generate Dockerfiles for all targets
+structyl dockerfile --force  # Regenerate all Dockerfiles
+```
+
+### `mise sync` Command
+
+```
+structyl mise sync
+```
+
+Regenerates the `mise.toml` file from project configuration. This file defines tasks and tools for the mise task runner. The command always regenerates the file (implicit force mode).
+
+**Behavior:**
+
+- Reads `.structyl/config.json` and generates corresponding mise tasks
+- Includes tool version specifications from toolchain configurations
+- Overwrites existing `mise.toml` unconditionally
+
+**Exit codes:**
+
+| Code | Condition              |
+| ---- | ---------------------- |
+| 0    | Sync completed         |
+| 2    | Configuration error    |
+
+**Examples:**
+
+```bash
+structyl mise sync  # Regenerate mise.toml
+```
+
 ## Global Flags
 
 | Flag            | Description                                                |
@@ -360,15 +426,10 @@ Note: `-q, --quiet` and `-v, --verbose` are mutually exclusive.
 
 | Variable            | Description                                                       | Default              |
 | ------------------- | ----------------------------------------------------------------- | -------------------- |
-| `STRUCTYL_PARALLEL` | Number of parallel workers for concurrent execution (1-256)       | `runtime.NumCPU()`   |
 | `STRUCTYL_DOCKER`   | Enable Docker mode (`1`, `true`, or `yes`, case-insensitive)      | (disabled)           |
 | `NO_COLOR`          | Disable colored output (any non-empty value)                      | (colors enabled)     |
 
 For `NO_COLOR`, see [no-color.org](https://no-color.org/) for the standard.
-
-::: warning STRUCTYL_PARALLEL Limitation
-`STRUCTYL_PARALLEL` only affects Structyl's internal parallel execution mode. Since mise is the default task execution backend for CLI commands, this variable has **no effect** in typical workflows. Mise handles its own parallelism independently.
-:::
 
 ### Docker Mode Precedence
 

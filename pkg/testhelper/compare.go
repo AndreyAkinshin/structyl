@@ -148,6 +148,9 @@ const (
 // String returns a human-readable representation of CompareOptions for debugging.
 // Empty fields are normalized to their default values in the output
 // (e.g., empty ToleranceMode displays as "relative").
+//
+// The output format is not stable and may change between versions.
+// Do not parse or rely on this output in tests or production code.
 func (o CompareOptions) String() string {
 	mode := o.ToleranceMode
 	if mode == "" {
@@ -253,7 +256,12 @@ func ValidateOptions(opts CompareOptions) error {
 
 // Equal compares expected and actual outputs for equality.
 // Returns true if they match according to the options.
-// Panics if opts contains invalid enum values (use ValidateOptions to check beforehand).
+//
+// # Panic Behavior
+//
+// Panics if opts contains invalid values. Use [ValidateOptions] to check opts
+// before calling if validation errors should not panic. Alternatively, use
+// [CompareE] and check only the bool result for an error-returning variant.
 //
 // Special string values in expected trigger float comparisons:
 //   - "NaN" matches actual NaN (per NaNEqualsNaN option)

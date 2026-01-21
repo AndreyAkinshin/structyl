@@ -1047,6 +1047,32 @@ func TestCompareOutput_InvalidToleranceMode_Panics(t *testing.T) {
 	CompareOutput(1.0, 1.0, opts)
 }
 
+// TestEqual_InvalidOptions_Panics verifies that Equal panics with invalid options.
+// This is important because Equal's signature (returning only bool) doesn't hint
+// at panic behavior, but it delegates to Compare which panics on invalid options.
+func TestEqual_InvalidOptions_Panics(t *testing.T) {
+	tests := []struct {
+		name string
+		opts CompareOptions
+	}{
+		{"invalid ToleranceMode", CompareOptions{ToleranceMode: "fuzzy"}},
+		{"invalid ArrayOrder", CompareOptions{ArrayOrder: "scrambled"}},
+		{"negative tolerance", CompareOptions{FloatTolerance: -0.1}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			defer func() {
+				if r := recover(); r == nil {
+					t.Errorf("Equal should panic with %s", tt.name)
+				}
+			}()
+
+			Equal(1.0, 1.0, tt.opts)
+		})
+	}
+}
+
 // TestCompare_InvalidArrayOrder_Panics verifies that Compare panics with invalid ArrayOrder.
 func TestCompare_InvalidArrayOrder_Panics(t *testing.T) {
 	opts := CompareOptions{

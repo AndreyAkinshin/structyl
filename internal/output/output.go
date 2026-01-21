@@ -376,7 +376,8 @@ func (w *Writer) ErrorPrefix(format string, args ...interface{}) {
 	}
 }
 
-// WarningSimple prints a warning message without the "warning:" prefix.
+// WarningSimple prints a warning message with "warning:" prefix colored but message uncolored.
+// Use this for user-facing warnings where the message should stand out without full-line coloring.
 func (w *Writer) WarningSimple(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
 	if w.color {

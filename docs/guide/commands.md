@@ -122,6 +122,7 @@ See [CI Integration](./ci-integration) for details.
 | Command                       | Description                                 |
 | ----------------------------- | ------------------------------------------- |
 | `structyl init`               | Initialize a new Structyl project           |
+| `structyl new`                | **Deprecated:** Alias for `init`            |
 | `structyl targets`            | List configured targets                     |
 | `structyl release <version>`  | Set version and release                     |
 | `structyl upgrade [version]`  | Manage pinned CLI version                   |
@@ -270,6 +271,7 @@ Running a null command succeeds with a warning.
 | Variable            | Description                                      | Default            |
 | ------------------- | ------------------------------------------------ | ------------------ |
 | `STRUCTYL_DOCKER`   | Enable Docker mode (`1`, `true`, or `yes`)       | (unset)            |
+| `STRUCTYL_PARALLEL` | Parallel workers (internal runner only)          | CPU count          |
 | `NO_COLOR`          | Disable colored output (any non-empty value)     | (unset)            |
 
 ## Exit Codes

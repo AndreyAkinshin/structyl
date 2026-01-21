@@ -81,7 +81,7 @@ structyl: error: test suite "{suite}": {reason}
 
 ### Input Structure
 
-Input MUST be a JSON object (map). The object may be empty (`{}`). Scalar values and arrays as the top-level input are not supported.
+Input MUST be a JSON object (map). The object MAY be empty (`{}`). Scalar values and arrays as the top-level input are not supported.
 
 **Within the input object**, values can be:
 

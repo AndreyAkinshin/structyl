@@ -31,6 +31,7 @@
     }
   },
   "additionalProperties": true,
+  "$comment": "additionalProperties: true is intentional for forward compatibility. Unknown fields are silently ignored, allowing newer test cases to work with older tooling. Reserved field names (timeout, setup, teardown) are documented below but not enforced.",
   "$defs": {
     "reservedFields": {
       "description": "The following field names are reserved for future use and SHOULD NOT be used in test case files: timeout, setup, teardown"

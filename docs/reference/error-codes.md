@@ -1,5 +1,7 @@
 # Error Codes
 
+> **Canonical Reference:** This page provides a user-friendly summary of exit codes. For normative semantics and detailed specifications, see [Error Handling Specification](../specs/error-handling.md).
+
 Structyl uses standard exit codes to indicate the result of commands.
 
 ## Exit Codes

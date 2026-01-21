@@ -492,6 +492,10 @@ structyl mise sync  # Regenerate mise.toml
 
 Note: `-q, --quiet` and `-v, --verbose` are mutually exclusive.
 
+::: info Help and Version Flags
+The `-h, --help` and `--version` flags print information to stdout and exit with code 0. They do not require a valid project context and can be used from any directory.
+:::
+
 ### Target Type Values
 
 The `--type` flag accepts these values:

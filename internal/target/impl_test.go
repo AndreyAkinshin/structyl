@@ -1503,3 +1503,67 @@ func TestExecute_CompositeCommand_FirstSubCommandDisabled_StopsExecution(t *test
 		t.Error("second command ran but should have been skipped due to first command's SkipError")
 	}
 }
+
+func TestFilterMiseEnv(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		input    []string
+		expected []string
+	}{
+		{
+			name:     "empty_input",
+			input:    []string{},
+			expected: []string{},
+		},
+		{
+			name:     "no_mise_vars",
+			input:    []string{"PATH=/usr/bin", "HOME=/home/user", "GOPATH=/go"},
+			expected: []string{"PATH=/usr/bin", "HOME=/home/user", "GOPATH=/go"},
+		},
+		{
+			name:     "only_mise_vars",
+			input:    []string{"__MISE_WATCH=1", "__MISE_ORIG_PATH=/usr/bin", "MISE_SHELL=bash"},
+			expected: []string{},
+		},
+		{
+			name:     "mixed_vars",
+			input:    []string{"PATH=/usr/bin", "__MISE_WATCH=1", "HOME=/home/user", "MISE_SHELL=bash", "GOPATH=/go"},
+			expected: []string{"PATH=/usr/bin", "HOME=/home/user", "GOPATH=/go"},
+		},
+		{
+			name:     "mise_prefix_only",
+			input:    []string{"__MISE_WATCH=1", "__MISE_ORIG_PATH=/usr/bin", "__MISE_DIFF=..."},
+			expected: []string{},
+		},
+		{
+			name:     "mise_shell_only",
+			input:    []string{"MISE_SHELL=zsh", "MISE_SHELL=bash"},
+			expected: []string{},
+		},
+		{
+			name:     "similar_but_not_mise_vars",
+			input:    []string{"MISE_CONFIG=/config", "MISE=/mise", "_MISE_WATCH=1", "MISE_=empty"},
+			expected: []string{"MISE_CONFIG=/config", "MISE=/mise", "_MISE_WATCH=1", "MISE_=empty"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := filterMiseEnv(tt.input)
+			if len(result) != len(tt.expected) {
+				t.Errorf("filterMiseEnv() returned %d items, want %d", len(result), len(tt.expected))
+				t.Errorf("got: %v", result)
+				t.Errorf("want: %v", tt.expected)
+				return
+			}
+			for i, v := range result {
+				if v != tt.expected[i] {
+					t.Errorf("filterMiseEnv()[%d] = %q, want %q", i, v, tt.expected[i])
+				}
+			}
+		})
+	}
+}

@@ -16,16 +16,56 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/topsort"
 )
 
+// CommandRunner abstracts command execution for testing.
+type CommandRunner interface {
+	// Run executes a command and waits for completion.
+	Run(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error
+	// Output executes a command and returns its output.
+	Output(ctx context.Context, name string, args []string, dir string) ([]byte, error)
+}
+
+// execCommandRunner is the default implementation using os/exec.
+type execCommandRunner struct{}
+
+func (r *execCommandRunner) Run(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+	cmd := exec.CommandContext(ctx, name, args...)
+	cmd.Dir = dir
+	cmd.Env = env
+	cmd.Stdin = stdin
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
+	return cmd.Run()
+}
+
+func (r *execCommandRunner) Output(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+	cmd := exec.CommandContext(ctx, name, args...)
+	cmd.Dir = dir
+	return cmd.Output()
+}
+
+// defaultRunner is the production command runner.
+var defaultRunner CommandRunner = &execCommandRunner{}
+
 // Executor handles mise task execution.
 type Executor struct {
 	projectRoot string
 	verbose     bool
+	runner      CommandRunner
 }
 
 // NewExecutor creates a new mise executor.
 func NewExecutor(projectRoot string) *Executor {
 	return &Executor{
 		projectRoot: projectRoot,
+		runner:      defaultRunner,
+	}
+}
+
+// NewExecutorWithRunner creates an executor with a custom command runner (for testing).
+func NewExecutorWithRunner(projectRoot string, runner CommandRunner) *Executor {
+	return &Executor{
+		projectRoot: projectRoot,
+		runner:      runner,
 	}
 }
 
@@ -43,13 +83,14 @@ func buildRunArgs(task string, args []string) []string {
 	return cmdArgs
 }
 
-// newMiseCommand creates a configured exec.Cmd for running mise with the given arguments.
-// Sets working directory and environment; caller must configure stdin/stdout/stderr.
-func (e *Executor) newMiseCommand(ctx context.Context, args []string) *exec.Cmd {
-	cmd := exec.CommandContext(ctx, "mise", args...)
-	cmd.Dir = e.projectRoot
-	cmd.Env = os.Environ()
-	return cmd
+// runMise executes mise with the given arguments using the configured runner.
+func (e *Executor) runMise(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.Writer) error {
+	return e.runner.Run(ctx, "mise", args, e.projectRoot, os.Environ(), stdin, stdout, stderr)
+}
+
+// miseOutput executes mise and returns the output.
+func (e *Executor) miseOutput(ctx context.Context, args []string) ([]byte, error) {
+	return e.runner.Output(ctx, "mise", args, e.projectRoot)
 }
 
 // logCommand prints the command being executed if verbose mode is enabled.
@@ -64,42 +105,31 @@ func (e *Executor) logCommand(args []string) {
 // Mise outputs its own diagnostics to stderr.
 func (e *Executor) RunTask(ctx context.Context, task string, args []string) error {
 	cmdArgs := buildRunArgs(task, args)
-	cmd := e.newMiseCommand(ctx, cmdArgs)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-
 	e.logCommand(cmdArgs)
-	return cmd.Run()
+	return e.runMise(ctx, cmdArgs, os.Stdin, os.Stdout, os.Stderr)
 }
 
 // RunTaskWithCapture executes a mise task, streaming output while capturing it.
 // Returns the combined stdout+stderr output and any execution error.
 func (e *Executor) RunTaskWithCapture(ctx context.Context, task string, args []string) (string, error) {
 	cmdArgs := buildRunArgs(task, args)
-	cmd := e.newMiseCommand(ctx, cmdArgs)
-	cmd.Stdin = os.Stdin
 
 	// Create a buffer to capture output while also streaming to stdout/stderr
 	var capturedOutput bytes.Buffer
-	cmd.Stdout = io.MultiWriter(os.Stdout, &capturedOutput)
-	cmd.Stderr = io.MultiWriter(os.Stderr, &capturedOutput)
+	stdout := io.MultiWriter(os.Stdout, &capturedOutput)
+	stderr := io.MultiWriter(os.Stderr, &capturedOutput)
 
 	e.logCommand(cmdArgs)
-	err := cmd.Run()
+	err := e.runMise(ctx, cmdArgs, os.Stdin, stdout, stderr)
 	return capturedOutput.String(), err
 }
 
 // RunTaskOutput executes a mise task and returns the output.
 func (e *Executor) RunTaskOutput(ctx context.Context, task string, args []string) (string, error) {
 	cmdArgs := buildRunArgs(task, args)
-	cmd := e.newMiseCommand(ctx, cmdArgs)
 
 	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-
-	err := cmd.Run()
+	err := e.runMise(ctx, cmdArgs, nil, &stdout, &stderr)
 	if err != nil {
 		return "", fmt.Errorf("mise run failed: %w (stderr: %s)", err, stderr.String())
 	}
@@ -109,10 +139,7 @@ func (e *Executor) RunTaskOutput(ctx context.Context, task string, args []string
 
 // TaskExists checks if a mise task exists.
 func (e *Executor) TaskExists(task string) bool {
-	cmd := exec.Command("mise", "tasks", "--json")
-	cmd.Dir = e.projectRoot
-
-	output, err := cmd.Output()
+	output, err := e.miseOutput(context.Background(), []string{"tasks", "--json"})
 	if err != nil {
 		if e.verbose {
 			fmt.Fprintf(os.Stderr, "[debug] TaskExists: failed to list mise tasks: %v\n", err)
@@ -142,10 +169,7 @@ func taskExistsInJSON(jsonData []byte, task string) bool {
 
 // ListTasks returns a list of available mise tasks.
 func (e *Executor) ListTasks(ctx context.Context) ([]string, error) {
-	cmd := exec.CommandContext(ctx, "mise", "tasks")
-	cmd.Dir = e.projectRoot
-
-	output, err := cmd.Output()
+	output, err := e.miseOutput(ctx, []string{"tasks"})
 	if err != nil {
 		return nil, err
 	}
@@ -167,33 +191,17 @@ func (e *Executor) ListTasks(ctx context.Context) ([]string, error) {
 
 // Install runs mise install to ensure all tools are available.
 func (e *Executor) Install(ctx context.Context) error {
-	cmd := exec.CommandContext(ctx, "mise", "install")
-	cmd.Dir = e.projectRoot
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = os.Environ()
-
-	return cmd.Run()
+	return e.runMise(ctx, []string{"install"}, nil, os.Stdout, os.Stderr)
 }
 
 // Trust marks the current directory as trusted for mise.
 func (e *Executor) Trust(ctx context.Context) error {
-	cmd := exec.CommandContext(ctx, "mise", "trust")
-	cmd.Dir = e.projectRoot
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Env = os.Environ()
-
-	return cmd.Run()
+	return e.runMise(ctx, []string{"trust"}, nil, os.Stdout, os.Stderr)
 }
 
 // GetTasksMeta returns structured task metadata from mise.
 func (e *Executor) GetTasksMeta(ctx context.Context) ([]MiseTaskMeta, error) {
-	cmd := exec.CommandContext(ctx, "mise", "tasks", "--json")
-	cmd.Dir = e.projectRoot
-	cmd.Env = os.Environ()
-
-	output, err := cmd.Output()
+	output, err := e.miseOutput(ctx, []string{"tasks", "--json"})
 	if err != nil {
 		return nil, fmt.Errorf("failed to get mise tasks: %w", err)
 	}

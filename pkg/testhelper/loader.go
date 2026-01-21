@@ -178,9 +178,10 @@ func LoadTestSuite(projectRoot, suite string) ([]TestCase, error) {
 // Returns an error if the file cannot be read, contains invalid JSON,
 // or is missing required fields (input and output).
 //
-// Note: This function sets TestCase.Name from the filename but does NOT set
-// TestCase.Suite. Use LoadTestCaseWithSuite or LoadTestSuite to load test cases
-// with suite information, or set the Suite field manually after loading.
+// WARNING: This function does NOT set TestCase.Suite. The Suite field will be
+// empty ("") after loading. If your code requires suite information, use
+// [LoadTestCaseWithSuite] to explicitly set the suite, or [LoadTestSuite] to
+// load all cases from a suite directory (which sets Suite automatically).
 func LoadTestCase(path string) (*TestCase, error) {
 	return loadTestCaseInternal(path, "")
 }

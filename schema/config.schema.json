@@ -178,7 +178,7 @@
           "properties": {
             "float_tolerance": {
               "type": "number",
-              "description": "Tolerance for floating point comparisons. Use 0 for exact match requirement.",
+              "description": "Tolerance for floating point comparisons. Default: 1e-9. Use 0 for exact match requirement.",
               "minimum": 0,
               "default": 1e-9
             },

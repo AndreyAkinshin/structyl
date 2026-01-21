@@ -29,7 +29,9 @@ func (t *Toolchain) HasCommand(name string) bool {
 }
 
 // Get retrieves a toolchain by name from built-in toolchains.
+//
 // Deprecated: Use GetFromConfig for loaded toolchains configuration.
+// This function will be removed in v1.0.0.
 func Get(name string) (*Toolchain, bool) {
 	tc, ok := builtinToolchains[name]
 	return tc, ok

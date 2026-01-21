@@ -708,7 +708,17 @@ func FormatDiff(expected, actual interface{}, opts CompareOptions) string {
 
 // FormatComparisonResult compares expected and actual values, returning a
 // human-readable description of any differences.
-// Panics if opts contains invalid enum values (use ValidateOptions to check beforehand).
+//
+// # Panic Behavior
+//
+// Panics if opts contains invalid values. Specific panic conditions:
+//   - ToleranceMode not in {"", "relative", "absolute", "ulp"}
+//   - ArrayOrder not in {"", "strict", "unordered"}
+//   - FloatTolerance < 0
+//   - ToleranceMode == "ulp" && FloatTolerance > math.MaxInt64
+//
+// Use [ValidateOptions] to check opts before calling if validation errors
+// should not panic.
 //
 // Returns:
 //   - "" (empty string) if values match

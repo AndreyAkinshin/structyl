@@ -2,6 +2,28 @@
 
 <InstallTabs />
 
+::: details Manual Installation (if tabs don't render)
+**macOS (Homebrew):**
+```bash
+brew install structyl
+```
+
+**Linux/macOS (curl):**
+```bash
+curl -fsSL https://structyl.akinshin.dev/install.sh | sh
+```
+
+**Windows (PowerShell):**
+```powershell
+irm https://structyl.akinshin.dev/install.ps1 | iex
+```
+
+**Go Install:**
+```bash
+go install github.com/AndreyAkinshin/structyl/cmd/structyl@latest
+```
+:::
+
 ## Build from Source
 
 Clone and build the project:

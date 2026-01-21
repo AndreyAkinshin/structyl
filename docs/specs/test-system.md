@@ -52,6 +52,8 @@ Every test file has `input` and `output`:
 
 **Tag usage:** Tags have no built-in semantics in Structyl. Language implementations MAY use tags to filter test execution, group tests in output, or skip tests based on environment capabilities. Tag values are free-form strings; establish conventions per-project.
 
+**Tags validation:** Tags are intentionally permissive: empty strings, duplicates, and any characters are allowed. This design avoids constraining downstream tooling. Establish per-project conventions for tag naming.
+
 **Reserved field names:** The field names `timeout`, `setup`, and `teardown` are reserved for future specification versions. Users SHOULD NOT use these for custom metadata as they MAY gain normative semantics in future releases. These fields are currently ignored by all loaders.
 
 ### Loading Failure Behavior
@@ -300,7 +302,7 @@ Configure tolerance in `.structyl/config.json`:
 | Mode        | Behavior                                     |
 | ----------- | -------------------------------------------- |
 | `strict`    | Order matters, element-by-element comparison |
-| `unordered` | Order doesn't matter (set comparison)        |
+| `unordered` | Order doesn't matter (multiset comparison); array lengths MUST match, duplicates are counted |
 
 ### Special Floating Point Values
 

@@ -415,6 +415,77 @@ func TestNewRegistry_VersionFileValid_InterpolatesVersion(t *testing.T) {
 	}
 }
 
+func TestNewRegistry_VersionFileMalformed_ReturnsError(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		content string
+		wantErr string
+	}{
+		{
+			name:    "invalid_semver",
+			content: "not-a-version\n",
+			wantErr: "invalid semver",
+		},
+		{
+			name:    "empty_file",
+			content: "\n",
+			wantErr: "empty",
+		},
+		{
+			name:    "whitespace_only",
+			content: "   \n",
+			wantErr: "empty",
+		},
+		{
+			name:    "partial_semver",
+			content: "1.0\n",
+			wantErr: "invalid semver",
+		},
+		{
+			name:    "leading_v",
+			content: "v1.0.0\n",
+			wantErr: "invalid semver",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tmpDir := t.TempDir()
+
+			// Create version file with malformed content
+			versionDir := filepath.Join(tmpDir, ".structyl")
+			if err := os.MkdirAll(versionDir, 0755); err != nil {
+				t.Fatal(err)
+			}
+			versionFile := filepath.Join(versionDir, "VERSION")
+			if err := os.WriteFile(versionFile, []byte(tt.content), 0644); err != nil {
+				t.Fatal(err)
+			}
+
+			cfg := &config.Config{
+				Project: config.ProjectConfig{Name: "test"},
+				Version: &config.VersionConfig{
+					Source: ".structyl/VERSION",
+				},
+				Targets: map[string]config.TargetConfig{
+					"cs": {Type: "language", Title: "C#"},
+				},
+			}
+
+			_, err := NewRegistry(cfg, tmpDir)
+			if err == nil {
+				t.Fatalf("NewRegistry() expected error for %s, got nil", tt.name)
+			}
+			if !strings.Contains(err.Error(), tt.wantErr) {
+				t.Errorf("error = %q, want to contain %q", err.Error(), tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestRegistry_EmptyDependsOnArray(t *testing.T) {
 	t.Parallel()
 	// Verify that explicit empty depends_on: [] behaves identically to undefined depends_on

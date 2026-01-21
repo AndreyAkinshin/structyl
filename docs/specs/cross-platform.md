@@ -73,6 +73,19 @@ For commands that differ by platform, use shell conditionals or separate targets
 ::: warning Platform-Specific Command Syntax Not Implemented
 Object-form commands with platform keys (`unix`, `windows`) are reserved for future use. Structyl currently rejects object-form commands with the error: "object-form commands are not supported; use string or array syntax".
 
+**Reserved syntax example (not implemented):**
+
+```json
+{
+  "commands": {
+    "build": {
+      "unix": "make build",
+      "windows": "msbuild /t:Build"
+    }
+  }
+}
+```
+
 **Alternatives:**
 1. Use cross-platform tools (e.g., mise tasks work everywhere)
 2. Use shell conditionals within the command string (Unix only, as shown above)

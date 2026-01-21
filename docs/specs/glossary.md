@@ -103,7 +103,7 @@ The directory containing `.structyl/config.json`. Structyl locates this by walki
 
 ### Reference Test
 
-A test case defined in JSON format in the `tests/` directory. Reference tests are language-agnostic and shared across all language implementations.
+A test case defined in JSON format in the `tests/` directory. Reference tests are language-agnostic and shared across all language implementations. See [Test System Specification](test-system.md) for the test data format. The public Go API for loading and comparing test data is available in `pkg/testhelper`.
 
 ### Skip Error
 
@@ -113,10 +113,6 @@ An informational error indicating a command was skipped (not failed). Skip scena
 
 See [Target Name](#target-name).
 
-### Target Name
-
-The target key in the `targets` configuration object. Used as the identifier in commands (e.g., `structyl build cs`). The corresponding directory MAY differ via the `directory` field. Examples: `cs`, `py`, `rs`, `img`.
-
 ### Suite
 
 A collection of related test cases, organized as a subdirectory of `tests/`. Example: `tests/center/` is the "center" suite.
@@ -125,13 +121,21 @@ A collection of related test cases, organized as a subdirectory of `tests/`. Exa
 
 A buildable unit in a Structyl project. Targets are either language implementations or auxiliary tools. Each target has a directory, optional toolchain, and set of available commands.
 
+### Target Command
+
+A command executed on a single target. Syntax: `structyl <command> <target>`. Example: `structyl build cs`.
+
+### Target Name
+
+The target key in the `targets` configuration object. Used as the identifier in commands (e.g., `structyl build cs`). The corresponding directory MAY differ via the `directory` field. Examples: `cs`, `py`, `rs`, `img`.
+
+### Test Case
+
+A single test defined in a JSON file. Contains `input` (parameters) and `output` (expected result).
+
 ### Toolchain
 
 A preset that provides default command implementations for a specific build ecosystem. Examples: `cargo` (Rust), `dotnet` (C#), `npm` (Node.js). Toolchains map Structyl's standard commands to ecosystem-specific invocations.
-
-### Topological Order
-
-An ordering of targets such that for every dependency edge (A depends on B), B appears before A. Used to ensure dependencies build before dependents. See [targets.md](targets.md) for dependency resolution details.
 
 ### Toolchain Version
 
@@ -144,6 +148,10 @@ The version of the underlying tool managed by a toolchain. Used by mise to deter
 4. `"latest"` as final fallback
 
 See [toolchains.md](toolchains.md) for toolchain configuration details.
+
+### Topological Order
+
+An ordering of targets such that for every dependency edge (A depends on B), B appears before A. Used to ensure dependencies build before dependents. See [targets.md](targets.md) for dependency resolution details.
 
 ### Variant
 
@@ -158,14 +166,6 @@ The level of output detail. Structyl supports three verbosity levels:
 3. **Verbose** (`-v, --verbose`): Maximum detail, including debug information
 
 Quiet and verbose modes are mutually exclusive. See [commands.md](commands.md#global-flags) for flag usage.
-
-### Target Command
-
-A command executed on a single target. Syntax: `structyl <command> <target>`. Example: `structyl build cs`.
-
-### Test Case
-
-A single test defined in a JSON file. Contains `input` (parameters) and `output` (expected result).
 
 ### Version Source
 

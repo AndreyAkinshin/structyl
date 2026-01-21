@@ -22,9 +22,31 @@ A markdown syntax for displaying code blocks. Uses triple backticks followed by 
 
 An action that can be performed on a target. Standard commands include `clean`, `restore`, `check`, `check:fix`, `build`, `build:release`, `test`, `test:coverage`, `bench`, `demo`, `doc`, `pack`, `publish`, and `publish:dry`. Custom commands are also permitted. See [commands.md](commands.md) for the complete vocabulary.
 
+### Configuration Error
+
+Exit code 2. Indicates the Structyl configuration is invalid or contains semantic errors. The user MUST fix `.structyl/config.json` before proceeding.
+
+Common causes:
+
+- Malformed JSON
+- Missing required field
+- Circular dependency
+- Unknown toolchain reference
+
 ### Dependency (Target)
 
 A target that must be built before another target. Specified via the `depends_on` configuration field.
+
+### Environment Error
+
+Exit code 3. Indicates an external system or resource is unavailable. The configuration may be valid but the environment cannot support the requested operation.
+
+Common causes:
+
+- Docker not available
+- File permission denied
+- Network timeout
+- Missing toolchain binary
 
 ### Fail-fast
 

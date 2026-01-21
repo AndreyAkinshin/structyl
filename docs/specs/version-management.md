@@ -339,11 +339,11 @@ This command:
 
 **Flags:**
 
-| Flag       | Description                                              |
-| ---------- | -------------------------------------------------------- |
-| `--push`   | Push commit and tags to configured remote                |
-| `--dry-run`| Print what would be done without making changes          |
-| `--force`  | Allow release with uncommitted changes (use with care)   |
+| Flag        | Description                                            |
+| ----------- | ------------------------------------------------------ |
+| `--push`    | Push commit and tags to configured remote              |
+| `--dry-run` | Print what would be done without making changes        |
+| `--force`   | Allow release with uncommitted changes (use with care) |
 
 The `--push` flag pushes to the remote specified by `release.remote` in config (defaults to `origin`).
 
@@ -408,14 +408,14 @@ Exit code `1` if any mismatch found. This is a runtime check of project state (n
 }
 ```
 
-| Field                 | Default               | Description                                   |
-| --------------------- | --------------------- | --------------------------------------------- |
+| Field                 | Default                       | Description                                   |
+| --------------------- | ----------------------------- | --------------------------------------------- |
 | `source`              | `".structyl/PROJECT_VERSION"` | Version file path                             |
-| `files`               | `[]`        | Files to update                               |
-| `files[].path`        | Required    | File path                                     |
-| `files[].pattern`     | Required    | Regex to match                                |
-| `files[].replace`     | Required    | Replacement string                            |
-| `files[].replace_all` | `false`     | Replace all matches (vs. require exactly one) |
+| `files`               | `[]`                          | Files to update                               |
+| `files[].path`        | Required                      | File path                                     |
+| `files[].pattern`     | Required                      | Regex to match                                |
+| `files[].replace`     | Required                      | Replacement string                            |
+| `files[].replace_all` | `false`                       | Replace all matches (vs. require exactly one) |
 
 ## CLI Version Pinning
 

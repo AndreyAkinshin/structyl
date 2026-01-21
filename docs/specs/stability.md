@@ -19,11 +19,13 @@ Structyl follows [Semantic Versioning 2.0.0](https://semver.org/):
 Source compatibility means existing code using Structyl APIs continues to compile and work without modification.
 
 **Guarantees:**
+
 - Public Go API (`pkg/*`) signatures MUST NOT change within a major version
 - Configuration schema MUST NOT remove or rename required fields within a major version
 - CLI command syntax MUST NOT change within a major version
 
 **Allowed changes in minor versions:**
+
 - Adding new optional configuration fields
 - Adding new CLI flags with sensible defaults
 - Adding new functions to public Go packages
@@ -34,11 +36,13 @@ Source compatibility means existing code using Structyl APIs continues to compil
 Behavioral compatibility means existing behavior is preserved even if not explicitly documented.
 
 **Guarantees:**
+
 - Exit codes MUST NOT change meaning within a major version
 - Default behavior MUST NOT change within a major version
 - Error message formats defined in the [Error Message Grammar](error-handling.md#format-grammar) MUST NOT change within a major version
 
 **Allowed changes in minor/patch versions:**
+
 - Improved error messages (wording, not structure)
 - Performance improvements
 - Bug fixes that align behavior with documentation
@@ -60,15 +64,17 @@ Behavioral compatibility means existing behavior is preserved even if not explic
 ### Deprecation Markers
 
 **Go code:**
+
 ```go
 // Deprecated: Use [NewFunction] instead. Will be removed in v2.0.0.
 func OldFunction() {}
 ```
 
 **Configuration:**
+
 ```json
 {
-  "old_field": "...",  // Deprecated: use new_field instead
+  "old_field": "...", // Deprecated: use new_field instead
   "new_field": "..."
 }
 ```
@@ -77,13 +83,13 @@ Structyl logs warnings when deprecated features are used.
 
 ### Current Deprecations
 
-| Feature | Deprecated In | Removal Target | Replacement | Reason |
-|---------|---------------|----------------|-------------|--------|
-| `CompareOutput` function | v1.0.0 | v2.0.0 | `Equal` | Clearer function name |
-| `FormatDiff` function | v1.0.0 | v2.0.0 | `FormatComparisonResult` | Better semantics (empty string on match, diff on mismatch) |
-| `NewCompareOptions` function | v1.0.0 | v2.0.0 | `NewCompareOptionsOrdered` | Parameter order differs from struct field order |
-| `SpecialFloatPosInfinity` constant | v1.0.0 | v2.0.0 | `SpecialFloatInfinity` | Canonical form preferred (`"Infinity"` vs `"+Infinity"`) |
-| `new` command (alias) | v1.0.0 | v2.0.0 | `init` | Standardize on `init` for initialization |
+| Feature                            | Deprecated In | Removal Target | Replacement                | Reason                                                     |
+| ---------------------------------- | ------------- | -------------- | -------------------------- | ---------------------------------------------------------- |
+| `CompareOutput` function           | v1.0.0        | v2.0.0         | `Equal`                    | Clearer function name                                      |
+| `FormatDiff` function              | v1.0.0        | v2.0.0         | `FormatComparisonResult`   | Better semantics (empty string on match, diff on mismatch) |
+| `NewCompareOptions` function       | v1.0.0        | v2.0.0         | `NewCompareOptionsOrdered` | Parameter order differs from struct field order            |
+| `SpecialFloatPosInfinity` constant | v1.0.0        | v2.0.0         | `SpecialFloatInfinity`     | Canonical form preferred (`"Infinity"` vs `"+Infinity"`)   |
+| `new` command (alias)              | v1.0.0        | v2.0.0         | `init`                     | Standardize on `init` for initialization                   |
 
 ## Public API Surface
 
@@ -153,13 +159,13 @@ The `structyl targets --json` command outputs an array of target objects with th
 ]
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | Target identifier (e.g., `"rs"`, `"py"`, `"img"`) |
-| `type` | string | Yes | Target type: `"language"` or `"auxiliary"` |
-| `title` | string | Yes | Human-readable name (required in config schema) |
-| `commands` | string[] | Yes | Available commands for this target (always present, may be empty) |
-| `depends_on` | string[] | Yes | Dependency target names (always present, may be empty array) |
+| Field        | Type     | Required | Description                                                       |
+| ------------ | -------- | -------- | ----------------------------------------------------------------- |
+| `name`       | string   | Yes      | Target identifier (e.g., `"rs"`, `"py"`, `"img"`)                 |
+| `type`       | string   | Yes      | Target type: `"language"` or `"auxiliary"`                        |
+| `title`      | string   | Yes      | Human-readable name (required in config schema)                   |
+| `commands`   | string[] | Yes      | Available commands for this target (always present, may be empty) |
+| `depends_on` | string[] | Yes      | Dependency target names (always present, may be empty array)      |
 
 This structure is stable and covered by the [Source Compatibility](#source-compatibility) guarantees. New optional fields MAY be added in minor versions.
 

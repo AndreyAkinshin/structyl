@@ -35,9 +35,9 @@ structyl ci:release  # Release/optimized builds
 
 ### Flags
 
-| Flag       | Description                |
-| ---------- | -------------------------- |
-| `--docker` | Run all builds in Docker   |
+| Flag       | Description              |
+| ---------- | ------------------------ |
+| `--docker` | Run all builds in Docker |
 
 ## Local CI Validation
 
@@ -169,10 +169,10 @@ jobs:
 
 ## Environment Variables
 
-| Variable            | Description                                   |
-| ------------------- | --------------------------------------------- |
-| `STRUCTYL_DOCKER`   | Set to `1` to enable Docker mode              |
-| `CI`                | Standard CI variable (affects some behaviors) |
+| Variable          | Description                                   |
+| ----------------- | --------------------------------------------- |
+| `STRUCTYL_DOCKER` | Set to `1` to enable Docker mode              |
+| `CI`              | Standard CI variable (affects some behaviors) |
 
 ## Best Practices
 

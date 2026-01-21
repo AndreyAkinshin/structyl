@@ -35,13 +35,13 @@ Every test file has `input` and `output`:
 
 ### Test Case Schema
 
-| Field         | Required | Type         | Description                                        |
-| ------------- | -------- | ------------ | -------------------------------------------------- |
-| `input`       | Yes      | object       | Input parameters for the function under test       |
+| Field         | Required | Type           | Description                                                                                        |
+| ------------- | -------- | -------------- | -------------------------------------------------------------------------------------------------- |
+| `input`       | Yes      | object         | Input parameters for the function under test                                                       |
 | `output`      | Yes      | any (not null) | Expected output value; null is invalid (see [Loading Failure Behavior](#loading-failure-behavior)) |
-| `description` | No       | string       | Optional documentation for the test case           |
-| `skip`        | No       | boolean      | When `true`, marks the test as skipped             |
-| `tags`        | No       | string[]     | Optional categorization for filtering or grouping  |
+| `description` | No       | string         | Optional documentation for the test case                                                           |
+| `skip`        | No       | boolean        | When `true`, marks the test as skipped                                                             |
+| `tags`        | No       | string[]       | Optional categorization for filtering or grouping                                                  |
 
 **Validation Rules:**
 
@@ -229,10 +229,10 @@ Structyl does not provide perceptual or fuzzy binary comparison.
 
 The `tests.pattern` field supports a simplified subset of glob syntax:
 
-| Pattern    | Matches                                            |
-| ---------- | -------------------------------------------------- |
-| `*`        | Any sequence of non-separator characters           |
-| `**/*.json`| All `.json` files recursively (simplified)         |
+| Pattern     | Matches                                    |
+| ----------- | ------------------------------------------ |
+| `*`         | Any sequence of non-separator characters   |
+| `**/*.json` | All `.json` files recursively (simplified) |
 
 ::: info Simplified Pattern Matching
 The internal test loader uses a simplified pattern matching implementation, not a full glob library. The `**/*.json` pattern recursively finds all `.json` files but does not support full globstar semantics (e.g., intermediate directory matching like `foo/**/bar`). For most test organization patterns, this is sufficient.
@@ -282,11 +282,11 @@ Configure tolerance in `.structyl/config.json`:
 
 ### Tolerance Modes
 
-| Mode       | Formula                                            | Use Case        |
-| ---------- | -------------------------------------------------- | --------------- |
-| `absolute` | \|expected − actual\| ≤ tolerance                  | Small values    |
-| `relative` | \|expected − actual\| / \|expected\| ≤ tolerance   | General purpose |
-| `ulp`      | ULP difference ≤ tolerance                         | IEEE precision  |
+| Mode       | Formula                                          | Use Case        |
+| ---------- | ------------------------------------------------ | --------------- |
+| `absolute` | \|expected − actual\| ≤ tolerance                | Small values    |
+| `relative` | \|expected − actual\| / \|expected\| ≤ tolerance | General purpose |
+| `ulp`      | ULP difference ≤ tolerance                       | IEEE precision  |
 
 **Note:** For `relative` mode, when `expected` is exactly 0.0, the formula changes to `|actual| <= tolerance` to avoid division by zero.
 
@@ -302,9 +302,9 @@ Configure tolerance in `.structyl/config.json`:
 }
 ```
 
-| Mode        | Behavior                                     |
-| ----------- | -------------------------------------------- |
-| `strict`    | Order matters, element-by-element comparison |
+| Mode        | Behavior                                                                                     |
+| ----------- | -------------------------------------------------------------------------------------------- |
+| `strict`    | Order matters, element-by-element comparison                                                 |
 | `unordered` | Order doesn't matter (multiset comparison); array lengths MUST match, duplicates are counted |
 
 ### Special Floating Point Values
@@ -313,6 +313,7 @@ JSON cannot represent NaN or Infinity directly. Structyl uses special string val
 
 ::: warning Case Sensitivity
 Special float strings are matched **exactly**. Only these exact strings trigger special handling:
+
 - `"NaN"` — not `"nan"`, `"NAN"`, or `"Nan"`
 - `"Infinity"` or `"+Infinity"` — not `"infinity"` or `"INFINITY"`
 - `"-Infinity"` — not `"-infinity"`
@@ -322,11 +323,11 @@ Lowercase or other variants are treated as regular strings, not special float va
 
 **JSON representation:**
 
-| Value             | JSON String        |
-| ----------------- | ------------------ |
+| Value             | JSON String                   |
+| ----------------- | ----------------------------- |
 | Positive infinity | `"Infinity"` or `"+Infinity"` |
-| Negative infinity | `"-Infinity"`      |
-| Not a Number      | `"NaN"`            |
+| Negative infinity | `"-Infinity"`                 |
+| Not a Number      | `"NaN"`                       |
 
 **Example:**
 
@@ -371,7 +372,7 @@ The public Go `pkg/testhelper` package has the following limitations compared to
 1. **No `$file` references**: File reference resolution is only available in the internal runner. Test cases using `$file` syntax SHOULD either use the `internal/tests` package or embed data directly in JSON.
 
 2. **No recursive glob patterns**: `LoadTestSuite` uses `filepath.Glob("*.json")` which matches JSON files in the immediate suite directory only. The `tests.pattern` configuration setting (which supports `**` recursive patterns) is only used by Structyl's internal runner. To load nested test files with `pkg/testhelper`, iterate subdirectories manually.
-:::
+   :::
 
 **Alternative approaches for binary test data:**
 
@@ -401,12 +402,12 @@ All loader and comparison functions in `pkg/testhelper` are safe for concurrent 
 
 The comparison functions (`Equal`, `Compare`, `FormatComparisonResult`) panic on invalid `CompareOptions`:
 
-| Condition | Panic |
-| --------- | ----- |
-| `ToleranceMode` not in `{"", "relative", "absolute", "ulp"}` | Yes |
-| `ArrayOrder` not in `{"", "strict", "unordered"}` | Yes |
-| `FloatTolerance` < 0 | Yes |
-| `ToleranceMode == "ulp"` and `FloatTolerance > math.MaxInt64` | Yes |
+| Condition                                                     | Panic |
+| ------------------------------------------------------------- | ----- |
+| `ToleranceMode` not in `{"", "relative", "absolute", "ulp"}`  | Yes   |
+| `ArrayOrder` not in `{"", "strict", "unordered"}`             | Yes   |
+| `FloatTolerance` < 0                                          | Yes   |
+| `ToleranceMode == "ulp"` and `FloatTolerance > math.MaxInt64` | Yes   |
 
 This design treats invalid options as programmer errors (fail-fast) rather than runtime conditions. For user-provided options, use one of these approaches:
 

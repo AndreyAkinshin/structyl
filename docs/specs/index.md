@@ -71,23 +71,23 @@ For installation and first-project setup, see the [Getting Started Guide](../get
 
 ## Specification Index
 
-| Document                                       | Description                                       |
-| ---------------------------------------------- | ------------------------------------------------- |
-| [glossary.md](glossary.md)                     | Term definitions and abbreviations                |
-| [configuration.md](configuration.md)           | `.structyl/config.json` configuration file format |
-| [config.schema.json](https://structyl.akinshin.dev/schema/config.json) | JSON Schema for configuration validation |
-| [project-structure.md](project-structure.md)   | Directory layout conventions                      |
-| [commands.md](commands.md)                     | Command vocabulary and execution model            |
-| [toolchains.md](toolchains.md)                 | Built-in toolchain presets                        |
-| [targets.md](targets.md)                       | Language and auxiliary target definitions         |
-| [test-system.md](test-system.md)               | Reference test format and discovery               |
-| [version-management.md](version-management.md) | Version file and propagation patterns             |
-| [docker.md](docker.md)                         | Docker configuration and templates                |
-| [ci-integration.md](ci-integration.md)         | Local CI simulation                               |
-| [error-handling.md](error-handling.md)         | Exit codes and failure modes                      |
-| [cross-platform.md](cross-platform.md)         | Windows/Unix support                              |
-| [stability.md](stability.md)                   | Versioning, compatibility, and deprecation policy |
-| [go-architecture.md](go-architecture.md)       | Internal package structure and design rationale (informative) |
+| Document                                                               | Description                                                   |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------- |
+| [glossary.md](glossary.md)                                             | Term definitions and abbreviations                            |
+| [configuration.md](configuration.md)                                   | `.structyl/config.json` configuration file format             |
+| [config.schema.json](https://structyl.akinshin.dev/schema/config.json) | JSON Schema for configuration validation                      |
+| [project-structure.md](project-structure.md)                           | Directory layout conventions                                  |
+| [commands.md](commands.md)                                             | Command vocabulary and execution model                        |
+| [toolchains.md](toolchains.md)                                         | Built-in toolchain presets                                    |
+| [targets.md](targets.md)                                               | Language and auxiliary target definitions                     |
+| [test-system.md](test-system.md)                                       | Reference test format and discovery                           |
+| [version-management.md](version-management.md)                         | Version file and propagation patterns                         |
+| [docker.md](docker.md)                                                 | Docker configuration and templates                            |
+| [ci-integration.md](ci-integration.md)                                 | Local CI simulation                                           |
+| [error-handling.md](error-handling.md)                                 | Exit codes and failure modes                                  |
+| [cross-platform.md](cross-platform.md)                                 | Windows/Unix support                                          |
+| [stability.md](stability.md)                                           | Versioning, compatibility, and deprecation policy             |
+| [go-architecture.md](go-architecture.md)                               | Internal package structure and design rationale (informative) |
 
 ## Scope
 

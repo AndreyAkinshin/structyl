@@ -47,6 +47,7 @@ func LoadWithDefaults(path string) (*Config, error)
 ```
 
 Configuration validation happens in two phases:
+
 1. **JSON Schema validation**: Validates structure against `schema/config.schema.json`
 2. **Semantic validation**: Validates cross-field constraints (circular deps, etc.)
 

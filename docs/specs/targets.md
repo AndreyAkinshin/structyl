@@ -314,7 +314,7 @@ Execution order:
 
 ### Known Limitation: Parallel Execution and Dependencies
 
-When `STRUCTYL_PARALLEL > 1`, Structyl DOES NOT guarantee that targets in `depends_on` complete before the dependent target starts execution. Topological ordering ensures dependencies are *scheduled* first, but the semaphore-based worker pool MAY execute dependent targets before their dependencies finish.
+When `STRUCTYL_PARALLEL > 1`, Structyl DOES NOT guarantee that targets in `depends_on` complete before the dependent target starts execution. Topological ordering ensures dependencies are _scheduled_ first, but the semaphore-based worker pool MAY execute dependent targets before their dependencies finish.
 
 **Formal Statement:** Implementations requiring strict dependency ordering MUST use `STRUCTYL_PARALLEL=1` or external orchestration.
 
@@ -326,12 +326,12 @@ When `STRUCTYL_PARALLEL > 1`, Structyl DOES NOT guarantee that targets in `depen
 
 This is a known limitation tracked for future improvement.
 
-| `STRUCTYL_PARALLEL` Value                  | Behavior                                 |
-| ------------------------------------------ | ---------------------------------------- |
-| Unset or empty                             | Default to number of CPU cores           |
-| `1`                                        | Serial execution (one target at a time)  |
-| `2` to `256`                               | Parallel execution with N workers        |
-| `0`, negative, `>256`, or non-integer      | Falls back to CPU core count (with warning) |
+| `STRUCTYL_PARALLEL` Value             | Behavior                                    |
+| ------------------------------------- | ------------------------------------------- |
+| Unset or empty                        | Default to number of CPU cores              |
+| `1`                                   | Serial execution (one target at a time)     |
+| `2` to `256`                          | Parallel execution with N workers           |
+| `0`, negative, `>256`, or non-integer | Falls back to CPU core count (with warning) |
 
 **Output Handling:**
 

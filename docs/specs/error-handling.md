@@ -6,12 +6,12 @@ This document defines error handling semantics for Structyl.
 
 ## Exit Codes
 
-| Code | Name                | Description                                                             | Common Causes                          |
-| ---- | ------------------- | ----------------------------------------------------------------------- | -------------------------------------- |
-| `0`  | Success             | Command completed successfully                                          | Build passed, tests passed             |
-| `1`  | Failure             | Build, test, or command failure (expected runtime failure)              | Compilation error, test failure        |
-| `2`  | Configuration Error | Invalid configuration, schema violation, or semantic validation error   | Malformed JSON, missing field, cycle   |
-| `3`  | Environment Error   | External system unavailable, I/O failure, or missing runtime dependency | Docker unavailable, permission denied  |
+| Code | Name                | Description                                                             | Common Causes                         |
+| ---- | ------------------- | ----------------------------------------------------------------------- | ------------------------------------- |
+| `0`  | Success             | Command completed successfully                                          | Build passed, tests passed            |
+| `1`  | Failure             | Build, test, or command failure (expected runtime failure)              | Compilation error, test failure       |
+| `2`  | Configuration Error | Invalid configuration, schema violation, or semantic validation error   | Malformed JSON, missing field, cycle  |
+| `3`  | Environment Error   | External system unavailable, I/O failure, or missing runtime dependency | Docker unavailable, permission denied |
 
 ### Go Constants
 
@@ -27,6 +27,7 @@ For Go integrations, use the constants from `pkg/structyl`:
 External tools SHOULD use the `pkg/structyl` constants. Internal constants alias public constants, with `ExitRuntimeError` providing semantic clarity for the generic `ExitFailure`.
 
 **Naming convention rationale:**
+
 - `ExitFailure` (public) is generic, suitable for scripting: "did it fail?"
 - `ExitRuntimeError` (internal) is specific, suitable for debugging: "what category of failure?"
 
@@ -46,6 +47,7 @@ When a target, command, or resource is not found at runtime, Structyl returns ex
 - "Not found" during command execution is a runtime failure (the command ran but the target/resource doesn't exist)
 
 Examples that return exit code `1`:
+
 - `structyl build nonexistent` — unknown target
 - `structyl xyz` — unknown command
 
@@ -108,11 +110,11 @@ The `--continue` flag has been removed. Using it results in an error. For contin
 
 A [skip error](glossary.md#skip-error) indicates a command was skipped (not failed). Skip scenarios include:
 
-| Reason | Description | Example |
-|--------|-------------|---------|
-| `disabled` | Command explicitly set to `null` in configuration | `"pack": null` |
-| `command_not_found` | Executable not found in PATH | `cargo` not installed |
-| `script_not_found` | npm/pnpm/yarn/bun script missing from package.json | `npm run test` with no `test` script |
+| Reason              | Description                                        | Example                              |
+| ------------------- | -------------------------------------------------- | ------------------------------------ |
+| `disabled`          | Command explicitly set to `null` in configuration  | `"pack": null`                       |
+| `command_not_found` | Executable not found in PATH                       | `cargo` not installed                |
+| `script_not_found`  | npm/pnpm/yarn/bun script missing from package.json | `npm run test` with no `test` script |
 
 ### Skip Error Behavior
 
@@ -201,9 +203,9 @@ warning: unknown field "foo" in targets.cs
 
 The `test-summary` command parses `go test -json` output and returns:
 
-| Exit Code | Condition |
-| --------- | --------- |
-| 0         | All tests passed |
+| Exit Code | Condition                |
+| --------- | ------------------------ |
+| 0         | All tests passed         |
 | 1         | One or more tests failed |
 
 ### Target Command Normalization
@@ -262,9 +264,9 @@ Invalid flag values cause immediate errors:
 
 ### Version Command Errors
 
-| Condition                              | Error Message                                              | Exit Code |
-| -------------------------------------- | ---------------------------------------------------------- | --------- |
-| `bump prerelease` on release version   | `cannot bump prerelease on release version "{version}"`    | 2         |
+| Condition                            | Error Message                                           | Exit Code |
+| ------------------------------------ | ------------------------------------------------------- | --------- |
+| `bump prerelease` on release version | `cannot bump prerelease on release version "{version}"` | 2         |
 
 ## Dependency Checks
 
@@ -347,11 +349,13 @@ NO_COLOR=1 structyl build
 When `STRUCTYL_PARALLEL > 1`, dependency ordering is NOT guaranteed. If a target depends on another via `depends_on`, the dependent may start before its dependency completes.
 
 **Symptoms:**
+
 - Intermittent build failures that pass on retry
 - "File not found" errors for generated artifacts
 - Different results between `STRUCTYL_PARALLEL=1` and higher values
 
 **Solutions:**
+
 1. Set `STRUCTYL_PARALLEL=1` for targets with strict ordering requirements
 2. Ensure dependencies are declared correctly in `depends_on`
 3. Use explicit synchronization in build scripts if needed
@@ -361,10 +365,12 @@ When `STRUCTYL_PARALLEL > 1`, dependency ordering is NOT guaranteed. If a target
 When a toolchain command is not found, Structyl skips the target with a warning rather than failing.
 
 **Symptoms:**
+
 - `warning: [<target>] <command>: <tool> not found, skipping`
 - Target appears to succeed but no work is done
 
 **Solutions:**
+
 1. Install the missing tool (e.g., `cargo`, `go`, `npm`)
 2. Ensure the tool is in your PATH
 3. If using mise, run `mise install` to install configured tools
@@ -375,10 +381,12 @@ When a toolchain command is not found, Structyl skips the target with a warning 
 When `mise.auto_generate: true` is enabled, Structyl regenerates `mise.toml` on certain commands. If the generated file is invalid:
 
 **Symptoms:**
+
 - `mise` commands fail with parse errors
 - Error messages referencing `mise.toml` syntax
 
 **Solutions:**
+
 1. Delete `mise.toml` and let Structyl regenerate it: `rm mise.toml && structyl targets`
 2. Run `structyl mise sync --force` to force regeneration
 3. If custom tasks are needed, set `auto_generate: false` and maintain `mise.toml` manually

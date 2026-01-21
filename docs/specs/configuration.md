@@ -98,12 +98,12 @@ Version management configuration. See [version-management.md](version-management
 
 **Version file fields:**
 
-| Field        | Type    | Default | Description                                              |
-| ------------ | ------- | ------- | -------------------------------------------------------- |
-| `path`       | string  | Required| File path relative to project root                       |
-| `pattern`    | string  | Required| Regex pattern to match (RE2 syntax)                      |
-| `replace`    | string  | Required| Replacement string with `{version}` placeholder          |
-| `replace_all`| boolean | `false` | Replace all matches instead of requiring exactly one     |
+| Field         | Type    | Default  | Description                                          |
+| ------------- | ------- | -------- | ---------------------------------------------------- |
+| `path`        | string  | Required | File path relative to project root                   |
+| `pattern`     | string  | Required | Regex pattern to match (RE2 syntax)                  |
+| `replace`     | string  | Required | Replacement string with `{version}` placeholder      |
+| `replace_all` | boolean | `false`  | Replace all matches instead of requiring exactly one |
 
 By default, the pattern MUST match exactly once. Set `replace_all: true` for files with multiple version occurrences.
 
@@ -143,26 +143,26 @@ Build targets configuration. See [targets.md](targets.md) for details.
 
 #### Target Fields
 
-| Field              | Type   | Default        | Description                                           |
-| ------------------ | ------ | -------------- | ----------------------------------------------------- |
-| `type`             | string | Required       | `"language"` or `"auxiliary"`                         |
-| `title`            | string | Required       | Display name                                          |
-| `toolchain`        | string | Auto-detect    | Toolchain preset (see [toolchains.md](toolchains.md)) |
-| `toolchain_version`| string | From toolchain | Override mise tool version for this target            |
-| `directory`        | string | Target key     | Directory path relative to root                       |
-| `cwd`              | string | `directory`    | Working directory for commands                        |
-| `commands`         | object | From toolchain | Command definitions/overrides                         |
-| `vars`             | object | `{}`           | Variables for command interpolation                   |
-| `env`              | object | `{}`           | Environment variables                                 |
-| `depends_on`       | array  | `[]`           | Targets that must build first                         |
-| `demo_path`        | string | None           | Path to demo source (for doc generation)              |
+| Field               | Type   | Default        | Description                                           |
+| ------------------- | ------ | -------------- | ----------------------------------------------------- |
+| `type`              | string | Required       | `"language"` or `"auxiliary"`                         |
+| `title`             | string | Required       | Display name                                          |
+| `toolchain`         | string | Auto-detect    | Toolchain preset (see [toolchains.md](toolchains.md)) |
+| `toolchain_version` | string | From toolchain | Override mise tool version for this target            |
+| `directory`         | string | Target key     | Directory path relative to root                       |
+| `cwd`               | string | `directory`    | Working directory for commands                        |
+| `commands`          | object | From toolchain | Command definitions/overrides                         |
+| `vars`              | object | `{}`           | Variables for command interpolation                   |
+| `env`               | object | `{}`           | Environment variables                                 |
+| `depends_on`        | array  | `[]`           | Targets that must build first                         |
+| `demo_path`         | string | None           | Path to demo source (for doc generation)              |
 
 **Validation Errors:**
 
-| Missing Field | Exit Code | Error Message |
-|---------------|-----------|---------------|
-| `type` | 2 | `targets.{name}: type is required` |
-| `title` | 2 | `targets.{name}: title is required` |
+| Missing Field | Exit Code | Error Message                       |
+| ------------- | --------- | ----------------------------------- |
+| `type`        | 2         | `targets.{name}: type is required`  |
+| `title`       | 2         | `targets.{name}: title is required` |
 
 #### Command Definitions
 
@@ -183,11 +183,11 @@ Commands can be defined in several forms:
 
 Supported command definition types:
 
-| Type   | Description                                          |
-| ------ | ---------------------------------------------------- |
-| string | Shell command to execute                             |
-| array  | Sequence of command references (executed in order)   |
-| null   | Command is explicitly disabled for this target       |
+| Type   | Description                                        |
+| ------ | -------------------------------------------------- |
+| string | Shell command to execute                           |
+| array  | Sequence of command references (executed in order) |
+| null   | Command is explicitly disabled for this target     |
 
 Use the colon (`:`) naming convention for command variants. See [commands.md](commands.md#command-variants) for details.
 
@@ -276,21 +276,21 @@ Docker configuration. See [docker.md](docker.md) for details.
 
 **`docker.services` fields** (per-target image building configuration):
 
-| Field                         | Type     | Default | Description                    |
-| ----------------------------- | -------- | ------- | ------------------------------ |
-| `services[target].base_image` | string   | None    | Base Docker image              |
-| `services[target].dockerfile` | string   | None    | Custom Dockerfile path         |
+| Field                         | Type     | Default | Description                           |
+| ----------------------------- | -------- | ------- | ------------------------------------- |
+| `services[target].base_image` | string   | None    | Base Docker image                     |
+| `services[target].dockerfile` | string   | None    | Custom Dockerfile path                |
 | `services[target].platform`   | string   | None    | Target platform (e.g., `linux/amd64`) |
-| `services[target].volumes`    | string[] | `[]`    | Additional volume mounts       |
+| `services[target].volumes`    | string[] | `[]`    | Additional volume mounts              |
 
 **`docker.targets` fields** (per-target runtime configuration):
 
-| Field                          | Type   | Default | Description                            |
-| ------------------------------ | ------ | ------- | -------------------------------------- |
-| `targets[target].platform`     | string | None    | Target platform (e.g., `linux/amd64`)  |
-| `targets[target].cache_volume` | string | None    | Volume path for build cache            |
-| `targets[target].entrypoint`   | string | None    | Container entrypoint override          |
-| `targets[target].environment`  | object | `{}`    | Additional environment variables       |
+| Field                          | Type   | Default | Description                           |
+| ------------------------------ | ------ | ------- | ------------------------------------- |
+| `targets[target].platform`     | string | None    | Target platform (e.g., `linux/amd64`) |
+| `targets[target].cache_volume` | string | None    | Volume path for build cache           |
+| `targets[target].entrypoint`   | string | None    | Container entrypoint override         |
+| `targets[target].environment`  | object | `{}`    | Additional environment variables      |
 
 ### `mise`
 
@@ -307,10 +307,10 @@ Mise build tool integration configuration.
 }
 ```
 
-| Field          | Type              | Default | Description                          |
-| -------------- | ----------------- | ------- | ------------------------------------ |
-| `auto_generate`| boolean           | `true`  | Regenerate `mise.toml` before target command execution. When true, synchronizes tool versions with toolchain config. Set false and use `structyl mise sync` for manual control. |
-| `extra_tools`  | map[string]string | `{}`    | Additional mise tools to install     |
+| Field           | Type              | Default | Description                                                                                                                                                                     |
+| --------------- | ----------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `auto_generate` | boolean           | `true`  | Regenerate `mise.toml` before target command execution. When true, synchronizes tool versions with toolchain config. Set false and use `structyl mise sync` for manual control. |
+| `extra_tools`   | map[string]string | `{}`    | Additional mise tools to install                                                                                                                                                |
 
 **Semantics:**
 
@@ -350,13 +350,13 @@ Release workflow configuration.
 }
 ```
 
-| Field          | Type     | Default        | Description                           |
-| -------------- | -------- | -------------- | ------------------------------------- |
-| `tag_format`   | string   | `v{version}`   | Git tag format (`{version}` replaced) |
-| `extra_tags`   | string[] | `[]`           | Additional tags to create (e.g., `go/v{version}` for Go module versioning) |
-| `pre_commands` | string[] | `[]`           | Commands to run before release        |
-| `remote`       | string   | `origin`       | Git remote for `--push` flag          |
-| `branch`       | string   | `main`         | Branch to release from                |
+| Field          | Type     | Default      | Description                                                                |
+| -------------- | -------- | ------------ | -------------------------------------------------------------------------- |
+| `tag_format`   | string   | `v{version}` | Git tag format (`{version}` replaced)                                      |
+| `extra_tags`   | string[] | `[]`         | Additional tags to create (e.g., `go/v{version}` for Go module versioning) |
+| `pre_commands` | string[] | `[]`         | Commands to run before release                                             |
+| `remote`       | string   | `origin`     | Git remote for `--push` flag                                               |
+| `branch`       | string   | `main`       | Branch to release from                                                     |
 
 > **Note:** The `remote` field specifies the git remote used by `structyl release --push`. If omitted, defaults to `origin`.
 
@@ -384,15 +384,15 @@ Custom CI pipeline configuration. Overrides the default `ci` command steps.
 }
 ```
 
-| Field                      | Type     | Default   | Description                                          |
-| -------------------------- | -------- | --------- | ---------------------------------------------------- |
-| `steps`                    | array    | `[]`      | CI pipeline step definitions                         |
-| `steps[].name`             | string   | Required  | Step name for display and references                 |
-| `steps[].target`           | string   | Required  | Target name or `"all"`                               |
-| `steps[].command`          | string   | Required  | Structyl command name (e.g., `build`, `test`, `check`) |
-| `steps[].flags`            | string[] | `[]`      | Additional flags appended to the command invocation  |
-| `steps[].depends_on`       | string[] | `[]`      | Step names that must complete first                  |
-| `steps[].continue_on_error`| boolean  | `false`   | Continue pipeline if step fails                      |
+| Field                       | Type     | Default  | Description                                            |
+| --------------------------- | -------- | -------- | ------------------------------------------------------ |
+| `steps`                     | array    | `[]`     | CI pipeline step definitions                           |
+| `steps[].name`              | string   | Required | Step name for display and references                   |
+| `steps[].target`            | string   | Required | Target name or `"all"`                                 |
+| `steps[].command`           | string   | Required | Structyl command name (e.g., `build`, `test`, `check`) |
+| `steps[].flags`             | string[] | `[]`     | Additional flags appended to the command invocation    |
+| `steps[].depends_on`        | string[] | `[]`     | Step names that must complete first                    |
+| `steps[].continue_on_error` | boolean  | `false`  | Continue pipeline if step fails                        |
 
 **Example with flags:**
 
@@ -422,24 +422,20 @@ Artifact collection configuration for CI builds.
   "artifacts": {
     "output_dir": "artifacts",
     "targets": {
-      "cs": [
-        { "source": "bin/Release/*.nupkg", "destination": "nuget" }
-      ],
-      "py": [
-        { "source": "dist/*.whl", "destination": "wheels" }
-      ]
+      "cs": [{ "source": "bin/Release/*.nupkg", "destination": "nuget" }],
+      "py": [{ "source": "dist/*.whl", "destination": "wheels" }]
     }
   }
 }
 ```
 
-| Field                       | Type     | Default     | Description                            |
-| --------------------------- | -------- | ----------- | -------------------------------------- |
-| `output_dir`                | string   | `artifacts` | Base output directory for artifacts    |
-| `targets`                   | object   | `{}`        | Per-target artifact specifications     |
-| `targets[target][].source`  | string   | Required    | Glob pattern for source files          |
-| `targets[target][].destination` | string | `""`      | Subdirectory within output_dir         |
-| `targets[target][].rename`  | string   | None        | Rename pattern for collected files     |
+| Field                           | Type   | Default     | Description                         |
+| ------------------------------- | ------ | ----------- | ----------------------------------- |
+| `output_dir`                    | string | `artifacts` | Base output directory for artifacts |
+| `targets`                       | object | `{}`        | Per-target artifact specifications  |
+| `targets[target][].source`      | string | Required    | Glob pattern for source files       |
+| `targets[target][].destination` | string | `""`        | Subdirectory within output_dir      |
+| `targets[target][].rename`      | string | None        | Rename pattern for collected files  |
 
 ## Minimal Configuration
 

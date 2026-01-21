@@ -53,9 +53,9 @@ Structyl provides 14 standard commands that work across all toolchains:
 - `clean` - Remove build artifacts
 - `restore` - Install dependencies
 - `build` - Compile/package
-- `build:release` - Build with release optimizations *(toolchain support varies)*
+- `build:release` - Build with release optimizations _(toolchain support varies)_
 - `test` - Run tests
-- `test:coverage` - Run tests with coverage *(requires custom definition; see [commands spec](../specs/commands))*
+- `test:coverage` - Run tests with coverage _(requires custom definition; see [commands spec](../specs/commands))_
 - `check` - Run static analysis (lint, typecheck, format-check)
 - `check:fix` - Auto-fix static analysis issues
 - `bench` - Run benchmarks

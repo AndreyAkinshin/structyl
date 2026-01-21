@@ -83,14 +83,14 @@ The default CI steps can be overridden using the `ci` configuration section in `
 }
 ```
 
-| Field | Required | Type | Description |
-|-------|----------|------|-------------|
-| `name` | Yes | string | Step name for display and references |
-| `target` | Yes | string | Target name or `"all"` |
-| `command` | Yes | string | Command to execute |
-| `flags` | No | string[] | Additional command flags |
-| `depends_on` | No | string[] | Step names that must complete first |
-| `continue_on_error` | No | boolean | Continue pipeline if step fails (default: `false`) |
+| Field               | Required | Type     | Description                                        |
+| ------------------- | -------- | -------- | -------------------------------------------------- |
+| `name`              | Yes      | string   | Step name for display and references               |
+| `target`            | Yes      | string   | Target name or `"all"`                             |
+| `command`           | Yes      | string   | Command to execute                                 |
+| `flags`             | No       | string[] | Additional command flags                           |
+| `depends_on`        | No       | string[] | Step names that must complete first                |
+| `continue_on_error` | No       | boolean  | Continue pipeline if step fails (default: `false`) |
 
 ::: warning Parallel Execution Limitation
 When `STRUCTYL_PARALLEL > 1`, Structyl does not guarantee that targets in `depends_on` complete before the dependent target starts. See [targets.md#known-limitation-parallel-execution-and-dependencies](targets.md#known-limitation-parallel-execution-and-dependencies) for details and workarounds.

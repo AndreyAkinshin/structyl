@@ -87,10 +87,11 @@ Object-form commands with platform keys (`unix`, `windows`) are reserved for fut
 ```
 
 **Alternatives:**
+
 1. Use cross-platform tools (e.g., mise tasks work everywhere)
 2. Use shell conditionals within the command string (Unix only, as shown above)
 3. Define separate targets for different platforms
-:::
+   :::
 
 ## Path Handling
 
@@ -177,11 +178,11 @@ structyl test --docker
 
 ## Environment Variables
 
-| Variable            | Description                                                             |
-| ------------------- | ----------------------------------------------------------------------- |
-| `STRUCTYL_DOCKER`   | Force Docker mode on all platforms                                      |
-| `STRUCTYL_PARALLEL` | Control parallel execution                                              |
-| `SYSTEMROOT`        | Windows only: path to Windows directory (defaults to `C:\Windows`)      |
+| Variable            | Description                                                        |
+| ------------------- | ------------------------------------------------------------------ |
+| `STRUCTYL_DOCKER`   | Force Docker mode on all platforms                                 |
+| `STRUCTYL_PARALLEL` | Control parallel execution                                         |
+| `SYSTEMROOT`        | Windows only: path to Windows directory (defaults to `C:\Windows`) |
 
 ### Shell Selection
 

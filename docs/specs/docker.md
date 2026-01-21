@@ -15,10 +15,10 @@ Structyl supports running builds inside Docker containers, providing:
 
 ## Requirements
 
-| Component        | Minimum Version | Notes                                          |
-| ---------------- | --------------- | ---------------------------------------------- |
-| Docker Engine    | 20.10+          | Required for `--user` mapping on Unix systems  |
-| Docker Compose   | v2.0+           | Uses `docker compose` (v2) syntax              |
+| Component      | Minimum Version | Notes                                         |
+| -------------- | --------------- | --------------------------------------------- |
+| Docker Engine  | 20.10+          | Required for `--user` mapping on Unix systems |
+| Docker Compose | v2.0+           | Uses `docker compose` (v2) syntax             |
 
 Older versions MAY work but are not tested. Structyl uses `docker compose` (v2) commands, not the legacy `docker-compose` (v1) binary.
 
@@ -104,15 +104,15 @@ Each target needs a Dockerfile. Options:
 
 Structyl provides default Dockerfiles for common languages. Base image versions are determined by the toolchain's `mise` configuration. See [toolchains.md](toolchains.md) for current defaults.
 
-| Language   | Base Image Pattern               |
-| ---------- | -------------------------------- |
-| C#         | `mcr.microsoft.com/dotnet/sdk`   |
-| Go         | `golang`                         |
-| Kotlin     | `gradle`                         |
-| Python     | `python`                         |
-| R          | `rocker/verse`                   |
-| Rust       | `rust`                           |
-| TypeScript | `node`                           |
+| Language   | Base Image Pattern             |
+| ---------- | ------------------------------ |
+| C#         | `mcr.microsoft.com/dotnet/sdk` |
+| Go         | `golang`                       |
+| Kotlin     | `gradle`                       |
+| Python     | `python`                       |
+| R          | `rocker/verse`                 |
+| Rust       | `rust`                         |
+| TypeScript | `node`                         |
 
 Structyl generates Dockerfiles using `FROM <base-image>:<version>` where the version is derived from the toolchain configuration.
 
@@ -231,11 +231,11 @@ structyl docker-build cs py  # Build specific images
 
 **Exit codes:**
 
-| Code | Condition              |
-| ---- | ---------------------- |
-| 0    | Images built           |
-| 1    | Build failed           |
-| 3    | Docker unavailable     |
+| Code | Condition          |
+| ---- | ------------------ |
+| 0    | Images built       |
+| 1    | Build failed       |
+| 3    | Docker unavailable |
 
 ### Clean Docker Resources
 
@@ -245,11 +245,11 @@ structyl docker-clean        # Remove containers, images, volumes
 
 **Exit codes:**
 
-| Code | Condition              |
-| ---- | ---------------------- |
-| 0    | Clean completed        |
-| 1    | Clean failed           |
-| 3    | Docker unavailable     |
+| Code | Condition          |
+| ---- | ------------------ |
+| 0    | Clean completed    |
+| 1    | Clean failed       |
+| 3    | Docker unavailable |
 
 **Note:** Exit code 3 indicates Docker daemon is not running or Docker is not installed. See [error-handling.md](error-handling.md#exit-codes) for the complete exit code reference.
 
@@ -297,19 +297,19 @@ ENV GOPATH=/tmp/go
 
 The Docker configuration has two per-target sections with distinct purposes:
 
-| Section    | Purpose                | Use For                                                |
-| ---------- | ---------------------- | ------------------------------------------------------ |
-| `services` | Image **building**     | `base_image`, `dockerfile`, `platform`, build-time `volumes` |
-| `targets`  | Container **runtime**  | `platform`, `cache_volume`, `entrypoint`, `environment` |
+| Section    | Purpose               | Use For                                                      |
+| ---------- | --------------------- | ------------------------------------------------------------ |
+| `services` | Image **building**    | `base_image`, `dockerfile`, `platform`, build-time `volumes` |
+| `targets`  | Container **runtime** | `platform`, `cache_volume`, `entrypoint`, `environment`      |
 
 ### Platform Precedence
 
 Both `services.<target>.platform` and `targets.<target>.platform` configure the target platform, but at different stages:
 
-| Configuration                  | Effect                                                    |
-| ------------------------------ | --------------------------------------------------------- |
-| `services.<target>.platform`   | Platform for `docker build` (baked into the image)        |
-| `targets.<target>.platform`    | Platform for `docker compose run` (overrides at runtime)  |
+| Configuration                | Effect                                                   |
+| ---------------------------- | -------------------------------------------------------- |
+| `services.<target>.platform` | Platform for `docker build` (baked into the image)       |
+| `targets.<target>.platform`  | Platform for `docker compose run` (overrides at runtime) |
 
 **Precedence rules:**
 
@@ -347,30 +347,30 @@ Both `services.<target>.platform` and `targets.<target>.platform` configure the 
 
 ### Top-Level Fields
 
-| Field          | Description                   | Default               |
-| -------------- | ----------------------------- | --------------------- |
-| `compose_file` | Path to compose file          | `docker-compose.yml`  |
-| `env_var`      | Env var to enable Docker mode | `STRUCTYL_DOCKER`     |
-| `services`     | Service base image overrides  | `{}`                  |
-| `targets`      | Target-specific Docker config | `{}`                  |
+| Field          | Description                   | Default              |
+| -------------- | ----------------------------- | -------------------- |
+| `compose_file` | Path to compose file          | `docker-compose.yml` |
+| `env_var`      | Env var to enable Docker mode | `STRUCTYL_DOCKER`    |
+| `services`     | Service base image overrides  | `{}`                 |
+| `targets`      | Target-specific Docker config | `{}`                 |
 
 ### services.\<target\>
 
-| Field        | Description                    | Default           |
-| ------------ | ------------------------------ | ----------------- |
-| `base_image` | Base Docker image              | Language-specific |
-| `dockerfile` | Custom Dockerfile path         | None              |
-| `platform`   | Target platform for build      | Host platform     |
-| `volumes`    | Additional volume mounts       | `[]`              |
+| Field        | Description               | Default           |
+| ------------ | ------------------------- | ----------------- |
+| `base_image` | Base Docker image         | Language-specific |
+| `dockerfile` | Custom Dockerfile path    | None              |
+| `platform`   | Target platform for build | Host platform     |
+| `volumes`    | Additional volume mounts  | `[]`              |
 
 ### targets.\<target\>
 
-| Field         | Description                   | Default       |
-| ------------- | ----------------------------- | ------------- |
-| `platform`    | Target platform               | Host platform |
-| `cache_volume`| Volume for build cache        | None          |
-| `entrypoint`  | Container entrypoint override | None          |
-| `environment` | Additional environment vars   | `{}`          |
+| Field          | Description                   | Default       |
+| -------------- | ----------------------------- | ------------- |
+| `platform`     | Target platform               | Host platform |
+| `cache_volume` | Volume for build cache        | None          |
+| `entrypoint`   | Container entrypoint override | None          |
+| `environment`  | Additional environment vars   | `{}`          |
 
 ## Troubleshooting
 

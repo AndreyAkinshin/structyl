@@ -69,15 +69,16 @@ Project metadata used in documentation and package generation.
 }
 ```
 
-| Field         | Required | Description                               |
-| ------------- | -------- | ----------------------------------------- |
+| Field         | Required | Description                                                          |
+| ------------- | -------- | -------------------------------------------------------------------- |
 | `name`        | Yes      | Project name (pattern: `^[a-z][a-z0-9]*(-[a-z0-9]+)*$`, 1-128 chars) |
-| `description` | No       | Short description                         |
-| `homepage`    | No       | Project website URL                       |
-| `repository`  | No       | Source repository URL                     |
-| `license`     | No       | SPDX license identifier                   |
+| `description` | No       | Short description                                                    |
+| `homepage`    | No       | Project website URL                                                  |
+| `repository`  | No       | Source repository URL                                                |
+| `license`     | No       | SPDX license identifier                                              |
 
 **Project Name Rules:**
+
 - Must start with a lowercase letter (`a-z`)
 - May contain lowercase letters, digits, and hyphens
 - Hyphens must not be consecutive or trailing
@@ -156,10 +157,10 @@ Configure mise integration.
 }
 ```
 
-| Field           | Default | Description                           |
-| --------------- | ------- | ------------------------------------- |
+| Field           | Default | Description                                                                                                                                                                                                                                    |
+| --------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `auto_generate` | `true`  | Regenerate mise.toml before build/test/check commands. Does NOT trigger for query commands (targets, config, version) or generation commands (dockerfile, github). See [Configuration Spec](../specs/configuration.md#mise) for complete list. |
-| `extra_tools`   | `{}`    | Additional mise tools to install      |
+| `extra_tools`   | `{}`    | Additional mise tools to install                                                                                                                                                                                                               |
 
 See [Mise Integration](./mise) for details.
 
@@ -185,19 +186,19 @@ See [Docker](./docker) for container configuration.
 
 Each target supports these options:
 
-| Field               | Type   | Default        | Description                             |
-| ------------------- | ------ | -------------- | --------------------------------------- |
-| `type`              | string | Required       | `"language"` or `"auxiliary"`           |
-| `title`             | string | Required       | Display name                            |
-| `toolchain`         | string | Auto-detect    | Toolchain preset                        |
-| `toolchain_version` | string | From toolchain | Override mise tool version              |
-| `directory`         | string | Target key     | Directory path                          |
-| `cwd`               | string | `directory`    | Working directory                       |
-| `commands`          | object | From toolchain | Command overrides                       |
-| `vars`              | object | `{}`           | Custom variables                        |
-| `env`               | object | `{}`           | Environment variables                   |
-| `depends_on`        | array  | `[]`           | Dependency targets                      |
-| `demo_path`         | string | None           | Path to demo source (for doc generation)|
+| Field               | Type   | Default        | Description                              |
+| ------------------- | ------ | -------------- | ---------------------------------------- |
+| `type`              | string | Required       | `"language"` or `"auxiliary"`            |
+| `title`             | string | Required       | Display name                             |
+| `toolchain`         | string | Auto-detect    | Toolchain preset                         |
+| `toolchain_version` | string | From toolchain | Override mise tool version               |
+| `directory`         | string | Target key     | Directory path                           |
+| `cwd`               | string | `directory`    | Working directory                        |
+| `commands`          | object | From toolchain | Command overrides                        |
+| `vars`              | object | `{}`           | Custom variables                         |
+| `env`               | object | `{}`           | Environment variables                    |
+| `depends_on`        | array  | `[]`           | Dependency targets                       |
+| `demo_path`         | string | None           | Path to demo source (for doc generation) |
 
 ### Command Definitions
 

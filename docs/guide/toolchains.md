@@ -24,36 +24,36 @@ Specify a toolchain in your target configuration:
 
 If you don't specify a toolchain, Structyl detects it from marker files:
 
-| Marker File                        | Detected Toolchain |
-| ---------------------------------- | ------------------ |
-| `Cargo.toml`                       | cargo              |
-| `go.mod`                           | go                 |
-| `deno.jsonc`, `deno.json`          | deno               |
-| `pnpm-lock.yaml`                   | pnpm               |
-| `yarn.lock`                        | yarn               |
-| `bun.lockb`                        | bun                |
-| `package.json`                     | npm                |
-| `uv.lock`                          | uv                 |
-| `poetry.lock`                      | poetry             |
-| `pyproject.toml`, `setup.py`       | python             |
-| `build.gradle.kts`, `build.gradle` | gradle             |
-| `pom.xml`                          | maven              |
-| `build.sbt`                        | sbt                |
-| `Package.swift`                    | swift              |
-| `CMakeLists.txt`                   | cmake              |
-| `Makefile`                         | make               |
-| `*.sln`, `Directory.Build.props`, `global.json` | dotnet |
-| `*.csproj`, `*.fsproj`             | dotnet             |
-| `Gemfile`                          | bundler            |
-| `composer.json`                    | composer           |
-| `mix.exs`                          | mix                |
-| `stack.yaml`                       | stack              |
-| `*.cabal`                          | cabal              |
-| `dune-project`                     | dune               |
-| `project.clj`                      | lein               |
-| `build.zig`                        | zig                |
-| `rebar.config`                     | rebar3             |
-| `DESCRIPTION`                      | r                  |
+| Marker File                                     | Detected Toolchain |
+| ----------------------------------------------- | ------------------ |
+| `Cargo.toml`                                    | cargo              |
+| `go.mod`                                        | go                 |
+| `deno.jsonc`, `deno.json`                       | deno               |
+| `pnpm-lock.yaml`                                | pnpm               |
+| `yarn.lock`                                     | yarn               |
+| `bun.lockb`                                     | bun                |
+| `package.json`                                  | npm                |
+| `uv.lock`                                       | uv                 |
+| `poetry.lock`                                   | poetry             |
+| `pyproject.toml`, `setup.py`                    | python             |
+| `build.gradle.kts`, `build.gradle`              | gradle             |
+| `pom.xml`                                       | maven              |
+| `build.sbt`                                     | sbt                |
+| `Package.swift`                                 | swift              |
+| `CMakeLists.txt`                                | cmake              |
+| `Makefile`                                      | make               |
+| `*.sln`, `Directory.Build.props`, `global.json` | dotnet             |
+| `*.csproj`, `*.fsproj`                          | dotnet             |
+| `Gemfile`                                       | bundler            |
+| `composer.json`                                 | composer           |
+| `mix.exs`                                       | mix                |
+| `stack.yaml`                                    | stack              |
+| `*.cabal`                                       | cabal              |
+| `dune-project`                                  | dune               |
+| `project.clj`                                   | lein               |
+| `build.zig`                                     | zig                |
+| `rebar.config`                                  | rebar3             |
+| `DESCRIPTION`                                   | r                  |
 
 > **Detection order matters:** When multiple marker files exist in a directory, the first match in the table above wins. For example, a directory with both `pnpm-lock.yaml` and `package.json` detects as `pnpm`, not `npm`. Similarly, `uv.lock` takes precedence over `pyproject.toml`.
 

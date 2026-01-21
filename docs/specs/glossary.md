@@ -64,12 +64,12 @@ Common causes:
 
 A numeric value returned by Structyl to indicate command outcome. Structyl defines four exit codes:
 
-| Code | Name | Meaning |
-|------|------|---------|
-| 0 | Success | Command completed successfully |
-| 1 | Failure | Runtime failure (build, test, command failed) |
-| 2 | Configuration Error | Invalid configuration |
-| 3 | Environment Error | External dependency unavailable |
+| Code | Name                | Meaning                                       |
+| ---- | ------------------- | --------------------------------------------- |
+| 0    | Success             | Command completed successfully                |
+| 1    | Failure             | Runtime failure (build, test, command failed) |
+| 2    | Configuration Error | Invalid configuration                         |
+| 3    | Environment Error   | External dependency unavailable               |
 
 See [error-handling.md](error-handling.md#exit-codes) for detailed semantics.
 
@@ -134,11 +134,11 @@ An informational error indicating a command was skipped (not failed).
 
 **Skip Reason Identifiers (stable API):**
 
-| Identifier | Description |
-|------------|-------------|
-| `disabled` | Command explicitly set to `null` in configuration |
-| `command_not_found` | Executable not found in PATH |
-| `script_not_found` | npm/pnpm/yarn/bun script missing from package.json |
+| Identifier          | Description                                        |
+| ------------------- | -------------------------------------------------- |
+| `disabled`          | Command explicitly set to `null` in configuration  |
+| `command_not_found` | Executable not found in PATH                       |
+| `script_not_found`  | npm/pnpm/yarn/bun script missing from package.json |
 
 Skip errors are logged as warnings rather than causing command failure and are excluded from combined error results. See [error-handling.md](error-handling.md#skip-errors) for complete semantics including exit code behavior.
 
@@ -181,6 +181,7 @@ A preset that provides default command implementations for a specific build ecos
 The version of the underlying tool managed by a toolchain. Used by mise to determine which tool version to install.
 
 **Resolution order** (highest to lowest priority):
+
 1. Target's `toolchain_version` field (per-target override)
 2. Custom toolchain's `version` field
 3. Built-in toolchain default

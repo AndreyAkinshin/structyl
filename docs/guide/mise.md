@@ -75,11 +75,11 @@ Configure mise behavior in your config.json:
 }
 ```
 
-| Field           | Default | Description                           |
-| --------------- | ------- | ------------------------------------- |
-| `enabled`       | `true`  | Enable mise integration               |
+| Field           | Default | Description                          |
+| --------------- | ------- | ------------------------------------ |
+| `enabled`       | `true`  | Enable mise integration              |
 | `auto_generate` | `true`  | Regenerate mise.toml before each run |
-| `extra_tools`   | `{}`    | Additional mise tools to install      |
+| `extra_tools`   | `{}`    | Additional mise tools to install     |
 
 ### Toolchain Versions
 

@@ -157,11 +157,11 @@ This command:
 
 ### Release Options
 
-| Flag        | Description                                    |
-| ----------- | ---------------------------------------------- |
-| `--push`    | Push commit and tags to remote                 |
-| `--dry-run` | Preview without making changes                 |
-| `--force`   | Allow release with uncommitted changes         |
+| Flag        | Description                            |
+| ----------- | -------------------------------------- |
+| `--push`    | Push commit and tags to remote         |
+| `--dry-run` | Preview without making changes         |
+| `--force`   | Allow release with uncommitted changes |
 
 ```bash
 structyl release 2.0.0 --push    # Release and push
@@ -237,14 +237,14 @@ Examples:
 }
 ```
 
-| Field         | Default               | Description                  |
-| ------------- | --------------------- | ---------------------------- |
+| Field         | Default                       | Description                  |
+| ------------- | ----------------------------- | ---------------------------- |
 | `source`      | `".structyl/PROJECT_VERSION"` | Version file path            |
-| `files`       | `[]`        | Files to update              |
-| `path`        | Required    | File path (relative to root) |
-| `pattern`     | Required    | Regex to match               |
-| `replace`     | Required    | Replacement with `{version}` |
-| `replace_all` | `false`     | Replace all matches          |
+| `files`       | `[]`                          | Files to update              |
+| `path`        | Required                      | File path (relative to root) |
+| `pattern`     | Required                      | Regex to match               |
+| `replace`     | Required                      | Replacement with `{version}` |
+| `replace_all` | `false`                       | Replace all matches          |
 
 ## CLI Version Management
 

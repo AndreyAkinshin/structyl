@@ -142,18 +142,18 @@ When `--force` is used with `structyl release`, all uncommitted changes in the w
 
 ## Generation Commands
 
-| Command               | Description                          |
-| --------------------- | ------------------------------------ |
-| `structyl dockerfile` | Generate Dockerfiles for targets     |
-| `structyl github`     | Generate GitHub Actions CI workflow  |
-| `structyl mise sync`  | Regenerate mise.toml from config     |
+| Command               | Description                         |
+| --------------------- | ----------------------------------- |
+| `structyl dockerfile` | Generate Dockerfiles for targets    |
+| `structyl github`     | Generate GitHub Actions CI workflow |
+| `structyl mise sync`  | Regenerate mise.toml from config    |
 
 ## Docker Commands
 
-| Command                       | Description                              |
-| ----------------------------- | ---------------------------------------- |
-| `structyl docker-build [svc]` | Build Docker images for services         |
-| `structyl docker-clean`       | Remove Docker containers and images      |
+| Command                       | Description                         |
+| ----------------------------- | ----------------------------------- |
+| `structyl docker-build [svc]` | Build Docker images for services    |
+| `structyl docker-clean`       | Remove Docker containers and images |
 
 ## Defining Commands
 
@@ -259,15 +259,15 @@ Running a null command succeeds with a warning.
 
 ## Global Flags
 
-| Flag            | Description                                    |
-| --------------- | ---------------------------------------------- |
-| `--docker`      | Run in Docker container                        |
-| `--no-docker`   | Disable Docker mode                            |
-| `--type=<type>` | Filter by target type                          |
-| `-q, --quiet`   | Minimal output (errors only)                   |
-| `-v, --verbose` | Maximum detail                                 |
-| `-h, --help`    | Show help message                              |
-| `--version`     | Show Structyl version                          |
+| Flag            | Description                  |
+| --------------- | ---------------------------- |
+| `--docker`      | Run in Docker container      |
+| `--no-docker`   | Disable Docker mode          |
+| `--type=<type>` | Filter by target type        |
+| `-q, --quiet`   | Minimal output (errors only) |
+| `-v, --verbose` | Maximum detail               |
+| `-h, --help`    | Show help message            |
+| `--version`     | Show Structyl version        |
 
 ::: info Docker Mode Precedence
 `--no-docker` overrides `--docker` and `STRUCTYL_DOCKER`. See [Commands Specification](../specs/commands#docker-mode-precedence) for full precedence rules.
@@ -277,19 +277,19 @@ Running a null command succeeds with a warning.
 
 The following flags have been removed:
 
-| Flag         | Removed In | Alternative                                              |
-| ------------ | ---------- | -------------------------------------------------------- |
+| Flag         | Removed In | Alternative                                                   |
+| ------------ | ---------- | ------------------------------------------------------------- |
 | `--continue` | v1.0.0     | Use `continue_on_error: true` in CI pipeline step definitions |
 
 Using removed flags produces an error.
 
 ## Environment Variables
 
-| Variable            | Description                                      | Default            |
-| ------------------- | ------------------------------------------------ | ------------------ |
-| `STRUCTYL_DOCKER`   | Enable Docker mode (`1`, `true`, or `yes`)       | (unset)            |
-| `STRUCTYL_PARALLEL` | Parallel workers (internal runner only)          | CPU count          |
-| `NO_COLOR`          | Disable colored output (any non-empty value)     | (unset)            |
+| Variable            | Description                                  | Default   |
+| ------------------- | -------------------------------------------- | --------- |
+| `STRUCTYL_DOCKER`   | Enable Docker mode (`1`, `true`, or `yes`)   | (unset)   |
+| `STRUCTYL_PARALLEL` | Parallel workers (internal runner only)      | CPU count |
+| `NO_COLOR`          | Disable colored output (any non-empty value) | (unset)   |
 
 ## Exit Codes
 

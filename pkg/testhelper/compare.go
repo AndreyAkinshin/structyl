@@ -124,6 +124,41 @@ func DefaultOptions() CompareOptions {
 	}
 }
 
+// NewCompareOptions creates validated CompareOptions.
+// Returns an error if any parameter is invalid.
+// This constructor ensures options are valid at creation time, avoiding panics
+// when options are passed to Equal, Compare, or FormatComparisonResult.
+//
+// Parameters:
+//   - toleranceMode: Use ToleranceModeRelative, ToleranceModeAbsolute, or ToleranceModeULP
+//   - arrayOrder: Use ArrayOrderStrict or ArrayOrderUnordered
+//   - tolerance: Must be >= 0; for ULP mode, must fit in int64
+//   - nanEqualsNaN: Whether NaN values should be considered equal
+//
+// Example:
+//
+//	opts, err := testhelper.NewCompareOptions(
+//	    testhelper.ToleranceModeRelative,
+//	    testhelper.ArrayOrderStrict,
+//	    1e-9,
+//	    true,
+//	)
+//	if err != nil {
+//	    // handle invalid options
+//	}
+func NewCompareOptions(toleranceMode, arrayOrder string, tolerance float64, nanEqualsNaN bool) (CompareOptions, error) {
+	opts := CompareOptions{
+		ToleranceMode:  toleranceMode,
+		ArrayOrder:     arrayOrder,
+		FloatTolerance: tolerance,
+		NaNEqualsNaN:   nanEqualsNaN,
+	}
+	if err := ValidateOptions(opts); err != nil {
+		return CompareOptions{}, err
+	}
+	return opts, nil
+}
+
 // ValidateOptions validates that CompareOptions has valid enum values.
 // Returns nil if valid, or an error describing the invalid field.
 //
@@ -301,9 +336,9 @@ func floatsEqual(expected, actual float64, opts CompareOptions) bool {
 		return math.Abs(expected-actual) <= opts.FloatTolerance
 	case ToleranceModeULP:
 		return ulpDiff(expected, actual) <= int64(opts.FloatTolerance)
-	case ToleranceModeRelative, "":
-		fallthrough
 	default:
+		// Relative mode is the default. Handles both ToleranceModeRelative and
+		// empty string (""). ValidateOptions ensures no other values reach here.
 		if expected == 0 {
 			return math.Abs(actual) <= opts.FloatTolerance
 		}

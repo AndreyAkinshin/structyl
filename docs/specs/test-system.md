@@ -35,13 +35,13 @@ Every test file has `input` and `output`:
 
 ### Test Case Schema
 
-| Field         | Required | Type     | Description                                        |
-| ------------- | -------- | -------- | -------------------------------------------------- |
-| `input`       | Yes      | object   | Input parameters for the function under test       |
-| `output`      | Yes      | any      | Expected output value                              |
-| `description` | No       | string   | Optional documentation for the test case           |
-| `skip`        | No       | boolean  | When `true`, marks the test as skipped             |
-| `tags`        | No       | string[] | Optional categorization for filtering or grouping  |
+| Field         | Required | Type         | Description                                        |
+| ------------- | -------- | ------------ | -------------------------------------------------- |
+| `input`       | Yes      | object       | Input parameters for the function under test       |
+| `output`      | Yes      | any (not null) | Expected output value; null is invalid (see [Loading Failure Behavior](#loading-failure-behavior)) |
+| `description` | No       | string       | Optional documentation for the test case           |
+| `skip`        | No       | boolean      | When `true`, marks the test as skipped             |
+| `tags`        | No       | string[]     | Optional categorization for filtering or grouping  |
 
 **Validation Rules:**
 
@@ -64,6 +64,7 @@ Test loading is **all-or-nothing per suite**:
 | ------------------------------------------------------- | ---------------- | --------- |
 | JSON parse error                                        | Suite load fails | 2         |
 | Missing required field (`input` or `output`)            | Suite load fails | 2         |
+| `output` field is explicit `null`                       | Suite load fails | 2         |
 | Referenced `$file` not found                            | Suite load fails | 2         |
 | Referenced `$file` path escapes suite directory (`../`) | Suite load fails | 2         |
 
@@ -123,10 +124,12 @@ Outputs can be:
 }
 ```
 
-### Binary Data References (Internal Only)
+### Binary Data References
 
 ::: danger Public API Limitation
-The `$file` reference syntax described below is **only available in Structyl's internal test runner** (`internal/tests` package). The public Go package `pkg/testhelper` does NOT support this syntax. External implementations MUST either embed binary data directly in JSON or use Structyl's internal package.
+The `$file` reference syntax is **only available in Structyl's internal test runner** (`internal/tests` package). The public Go package `pkg/testhelper` does NOT support this syntax and rejects ANY `$file` reference with `ErrFileReferenceNotSupported`. External implementations MUST either embed binary data directly in JSON or use Structyl's internal package.
+
+**The validation rules in the table below apply only to the internal runner.** The public testhelper package rejects all `$file` references unconditionally.
 :::
 
 For projects using the internal runner, binary data can be referenced via the `$file` syntax:

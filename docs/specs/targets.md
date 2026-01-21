@@ -158,6 +158,10 @@ Structyl detects `Cargo.toml` in `rs/` and uses the `cargo` toolchain.
 
 The [Default Language Slugs](#default-language-slugs) table defines which slugs map to which types during auto-discovery.
 
+**Title Validation:**
+
+Invalid title values cause exit code 2 with message: `targets.{name}: title must be 1-64 non-empty characters`
+
 | Field        | Type   | Default        | Description                                |
 | ------------ | ------ | -------------- | ------------------------------------------ |
 | `directory`  | string | Target key     | Directory path relative to root            |

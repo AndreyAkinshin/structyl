@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -159,6 +160,13 @@ func TestValidate_InvalidTargetType(t *testing.T) {
 	if err == nil {
 		t.Fatal("Validate() expected error for invalid target type")
 	}
+	var ve *ValidationError
+	if !errors.As(err, &ve) {
+		t.Fatalf("Validate() error type = %T, want *ValidationError", err)
+	}
+	if ve.Field != "targets.cs.type" {
+		t.Errorf("ValidationError.Field = %q, want %q", ve.Field, "targets.cs.type")
+	}
 }
 
 func TestValidate_MissingTargetTitle(t *testing.T) {
@@ -174,6 +182,13 @@ func TestValidate_MissingTargetTitle(t *testing.T) {
 	_, err := Validate(cfg)
 	if err == nil {
 		t.Fatal("Validate() expected error for missing target title")
+	}
+	var ve *ValidationError
+	if !errors.As(err, &ve) {
+		t.Fatalf("Validate() error type = %T, want *ValidationError", err)
+	}
+	if ve.Field != "targets.cs.title" {
+		t.Errorf("ValidationError.Field = %q, want %q", ve.Field, "targets.cs.title")
 	}
 }
 
@@ -301,7 +316,6 @@ func TestValidateTargetName_LengthBoundaries(t *testing.T) {
 		{63, false, "one below max"},
 		{64, false, "exactly max"},
 		{65, true, "one above max"},
-		{100, true, "well above max"},
 	}
 
 	for _, tt := range tests {

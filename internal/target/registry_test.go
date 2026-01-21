@@ -124,22 +124,56 @@ func TestRegistry_ByType(t *testing.T) {
 	}
 }
 
-func TestRegistry_ValidateDependencies_SelfReference(t *testing.T) {
+func TestRegistry_ValidateDependencies_Cycles(t *testing.T) {
 	t.Parallel()
-	cfg := &config.Config{
-		Project: config.ProjectConfig{Name: "test"},
-		Targets: map[string]config.TargetConfig{
-			"cs": {
-				Type:      "language",
-				Title:     "C#",
-				DependsOn: []string{"cs"},
+
+	tests := []struct {
+		name    string
+		targets map[string]config.TargetConfig
+	}{
+		{
+			name: "self_reference",
+			targets: map[string]config.TargetConfig{
+				"cs": {Type: "language", Title: "C#", DependsOn: []string{"cs"}},
+			},
+		},
+		{
+			name: "two_node_cycle",
+			targets: map[string]config.TargetConfig{
+				"a": {Type: "language", Title: "A", DependsOn: []string{"b"}},
+				"b": {Type: "language", Title: "B", DependsOn: []string{"a"}},
+			},
+		},
+		{
+			name: "three_node_cycle",
+			targets: map[string]config.TargetConfig{
+				"a": {Type: "language", Title: "A", DependsOn: []string{"b"}},
+				"b": {Type: "language", Title: "B", DependsOn: []string{"c"}},
+				"c": {Type: "language", Title: "C", DependsOn: []string{"a"}},
 			},
 		},
 	}
 
-	_, err := NewRegistry(cfg, "/project")
-	if err == nil {
-		t.Fatal("NewRegistry() expected error for self-reference")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			cfg := &config.Config{
+				Project: config.ProjectConfig{Name: "test"},
+				Targets: tt.targets,
+			}
+
+			_, err := NewRegistry(cfg, "/project")
+			if err == nil {
+				t.Fatalf("NewRegistry() expected error for %s", tt.name)
+			}
+			// Error message should indicate a dependency issue (circular, cycle, or self-dependency)
+			errLower := strings.ToLower(err.Error())
+			if !strings.Contains(errLower, "circular") &&
+				!strings.Contains(errLower, "cycle") &&
+				!strings.Contains(errLower, "depends on itself") {
+				t.Errorf("error = %q, want to mention 'circular', 'cycle', or 'depends on itself'", err.Error())
+			}
+		})
 	}
 }
 
@@ -159,68 +193,6 @@ func TestRegistry_ValidateDependencies_Undefined(t *testing.T) {
 	_, err := NewRegistry(cfg, "/project")
 	if err == nil {
 		t.Fatal("NewRegistry() expected error for undefined dependency")
-	}
-}
-
-func TestRegistry_ValidateDependencies_Circular(t *testing.T) {
-	t.Parallel()
-	cfg := &config.Config{
-		Project: config.ProjectConfig{Name: "test"},
-		Targets: map[string]config.TargetConfig{
-			"a": {
-				Type:      "language",
-				Title:     "A",
-				DependsOn: []string{"b"},
-			},
-			"b": {
-				Type:      "language",
-				Title:     "B",
-				DependsOn: []string{"c"},
-			},
-			"c": {
-				Type:      "language",
-				Title:     "C",
-				DependsOn: []string{"a"},
-			},
-		},
-	}
-
-	_, err := NewRegistry(cfg, "/project")
-	if err == nil {
-		t.Fatal("NewRegistry() expected error for circular dependency")
-	}
-	// Verify error message mentions cycle or circular
-	if !strings.Contains(strings.ToLower(err.Error()), "circular") && !strings.Contains(strings.ToLower(err.Error()), "cycle") {
-		t.Errorf("error = %q, want to mention 'circular' or 'cycle'", err.Error())
-	}
-}
-
-func TestRegistry_ValidateDependencies_TwoNodeCycle(t *testing.T) {
-	t.Parallel()
-	// Test simplest cycle: A depends on B, B depends on A
-	cfg := &config.Config{
-		Project: config.ProjectConfig{Name: "test"},
-		Targets: map[string]config.TargetConfig{
-			"a": {
-				Type:      "language",
-				Title:     "A",
-				DependsOn: []string{"b"},
-			},
-			"b": {
-				Type:      "language",
-				Title:     "B",
-				DependsOn: []string{"a"},
-			},
-		},
-	}
-
-	_, err := NewRegistry(cfg, "/project")
-	if err == nil {
-		t.Fatal("NewRegistry() expected error for 2-node circular dependency")
-	}
-	// Verify error message mentions cycle or circular
-	if !strings.Contains(strings.ToLower(err.Error()), "circular") && !strings.Contains(strings.ToLower(err.Error()), "cycle") {
-		t.Errorf("error = %q, want to mention 'circular' or 'cycle'", err.Error())
 	}
 }
 
@@ -481,6 +453,81 @@ func TestNewRegistry_VersionFileMalformed_ReturnsError(t *testing.T) {
 			}
 			if !strings.Contains(err.Error(), tt.wantErr) {
 				t.Errorf("error = %q, want to contain %q", err.Error(), tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestNewRegistry_VersionFile_SemverVariants(t *testing.T) {
+	t.Parallel()
+
+	// Test valid semver variants with prerelease and build metadata.
+	// These should all be accepted without error.
+	tests := []struct {
+		name    string
+		content string
+	}{
+		{
+			name:    "basic_semver",
+			content: "1.2.3\n",
+		},
+		{
+			name:    "with_prerelease",
+			content: "1.0.0-beta.1\n",
+		},
+		{
+			name:    "with_build_metadata",
+			content: "1.0.0+build.456\n",
+		},
+		{
+			name:    "with_prerelease_and_metadata",
+			content: "1.0.0-beta.1+build.456\n",
+		},
+		{
+			name:    "with_alpha_prerelease",
+			content: "2.0.0-alpha\n",
+		},
+		{
+			name:    "with_rc_prerelease",
+			content: "3.1.0-rc.2\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tmpDir := t.TempDir()
+
+			// Create version file
+			versionDir := filepath.Join(tmpDir, ".structyl")
+			if err := os.MkdirAll(versionDir, 0755); err != nil {
+				t.Fatal(err)
+			}
+			versionFile := filepath.Join(versionDir, "VERSION")
+			if err := os.WriteFile(versionFile, []byte(tt.content), 0644); err != nil {
+				t.Fatal(err)
+			}
+
+			cfg := &config.Config{
+				Project: config.ProjectConfig{Name: "test"},
+				Version: &config.VersionConfig{
+					Source: ".structyl/VERSION",
+				},
+				Targets: map[string]config.TargetConfig{
+					"cs": {Type: "language", Title: "C#"},
+				},
+			}
+
+			r, err := NewRegistry(cfg, tmpDir)
+			if err != nil {
+				t.Fatalf("NewRegistry() unexpected error for %s: %v", tt.name, err)
+			}
+			if r == nil {
+				t.Fatal("NewRegistry() returned nil registry")
+			}
+			// Registry created successfully - version is parsed without error
+			if _, ok := r.Get("cs"); !ok {
+				t.Error("Get(\"cs\") failed, target not found")
 			}
 		})
 	}

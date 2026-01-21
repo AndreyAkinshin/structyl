@@ -296,6 +296,17 @@ func TestRunSequential_ExecutesAll(t *testing.T) {
 	if target3.ExecCount() != 1 {
 		t.Errorf("target3.ExecCount() = %d, want 1", target3.ExecCount())
 	}
+
+	// Verify command string was passed correctly
+	if target1.LastCommand() != "build" {
+		t.Errorf("target1.LastCommand() = %q, want %q", target1.LastCommand(), "build")
+	}
+	if target2.LastCommand() != "build" {
+		t.Errorf("target2.LastCommand() = %q, want %q", target2.LastCommand(), "build")
+	}
+	if target3.LastCommand() != "build" {
+		t.Errorf("target3.LastCommand() = %q, want %q", target3.LastCommand(), "build")
+	}
 }
 
 func TestRunSequential_StopsOnError(t *testing.T) {
@@ -430,6 +441,61 @@ func TestRunSequential_ContextDeadline(t *testing.T) {
 
 	if !errors.Is(err, context.DeadlineExceeded) {
 		t.Errorf("runSequential() error = %v, want context.DeadlineExceeded", err)
+	}
+}
+
+func TestRunParallel_ContextCancellation(t *testing.T) {
+	t.Setenv("STRUCTYL_PARALLEL", "2")
+
+	// Use channel-based synchronization to ensure cancellation happens during execution.
+	// target1 blocks until context is canceled; target2 should either:
+	// - Not start (if cancellation propagates before scheduling), or
+	// - Return context.Canceled (if already running)
+	started := make(chan struct{})
+	target1Done := make(chan struct{})
+
+	target1 := mocks.NewTarget("t1").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			close(started) // Signal that execution has begun
+			<-ctx.Done()   // Block until context is canceled
+			close(target1Done)
+			return ctx.Err()
+		})
+	target2 := mocks.NewTarget("t2").WithType(target.TypeLanguage).
+		WithExecFunc(func(ctx context.Context, cmd string, opts target.ExecOptions) error {
+			// Check context before doing work
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			default:
+				return nil
+			}
+		})
+
+	targets := []target.Target{target1, target2}
+
+	registry, _ := createTestRegistry(t)
+	r := New(registry)
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Cancel context after target1 starts executing
+	go func() {
+		<-started // Wait for target1 to start
+		cancel()
+	}()
+
+	err := r.runParallel(ctx, targets, "build", RunOptions{})
+
+	// Wait for target1 to complete to ensure clean goroutine shutdown
+	<-target1Done
+
+	// The error should indicate cancellation
+	if err == nil {
+		t.Fatal("runParallel() expected error when context is canceled")
+	}
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("runParallel() error = %v, want context.Canceled", err)
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/AndreyAkinshin/structyl/internal/config"
 	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: Testing Docker error handling requires runner package
 	"github.com/AndreyAkinshin/structyl/internal/target"
 	"github.com/AndreyAkinshin/structyl/internal/testing/mocks"
@@ -1912,4 +1913,61 @@ func TestCmdGitHub_FileExists_SkipsWithoutForce(t *testing.T) {
 			t.Errorf("cmdGitHub(--force) = %d, want 0", exitCode)
 		}
 	})
+}
+
+// =============================================================================
+// isMiseAutoGenerateEnabled Tests
+// =============================================================================
+
+func TestIsMiseAutoGenerateEnabled(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		cfg      *config.Config
+		expected bool
+	}{
+		{
+			name:     "nil Mise config",
+			cfg:      &config.Config{},
+			expected: true, // default is enabled
+		},
+		{
+			name: "Mise config with nil AutoGenerate",
+			cfg: &config.Config{
+				Mise: &config.MiseConfig{
+					AutoGenerate: nil,
+				},
+			},
+			expected: true, // default is enabled
+		},
+		{
+			name: "AutoGenerate explicitly true",
+			cfg: &config.Config{
+				Mise: &config.MiseConfig{
+					AutoGenerate: boolPtr(true),
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "AutoGenerate explicitly false",
+			cfg: &config.Config{
+				Mise: &config.MiseConfig{
+					AutoGenerate: boolPtr(false),
+				},
+			},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			got := isMiseAutoGenerateEnabled(tt.cfg)
+			if got != tt.expected {
+				t.Errorf("isMiseAutoGenerateEnabled() = %v, want %v", got, tt.expected)
+			}
+		})
+	}
 }

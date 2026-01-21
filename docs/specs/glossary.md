@@ -16,7 +16,7 @@ A target with `type: "auxiliary"`. Auxiliary targets are supporting tools that a
 
 ### Build Artifact
 
-A specific type of [Artifact](#artifact) produced by a build command. Includes compiled binaries, libraries, and intermediate build outputs. Distinguished from release artifacts (packaged distributions) and documentation artifacts (generated docs). In Structyl context, build artifacts are typically created by `build` or `build:release` commands and cleaned by `clean`.
+A specific type of [Artifact](#artifact) produced by a build command. Includes compiled binaries, libraries, and intermediate build outputs. Distinguished from release artifacts (packaged distributions) and documentation artifacts (generated docs). In Structyl context, build artifacts are typically created by `build` or `build:release` commands and cleaned by `clean`. Examples: `.o` files, `.class` files, compiled binaries, `target/` directories.
 
 ### Code Fence
 
@@ -114,7 +114,7 @@ A polyglot tool version manager and task runner. Structyl integrates with mise f
 
 ### mise.toml
 
-The configuration file for mise in a project. Structyl generates this file automatically from `.structyl/config.json` via `structyl mise sync`. Contains tool versions and task definitions. See [mise.jdx.dev](https://mise.jdx.dev/) for format details.
+The configuration file for mise in a project. Structyl generates this file automatically from `.structyl/config.json` via `structyl mise sync`. Contains tool versions and task definitions. See [configuration.md#mise](configuration.md#mise) for Structyl integration options and [mise.jdx.dev](https://mise.jdx.dev/) for format details.
 
 ### Pipeline
 

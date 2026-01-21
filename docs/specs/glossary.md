@@ -94,7 +94,7 @@ A command is idempotent if:
 
 - `clean` is idempotent: the directory is empty whether run once or ten times
 - `restore` is idempotent: dependencies are installed to the same state regardless of repetition
-- `build` is NOT idempotent: each run may modify file timestamps, and some compilers embed timestamps in binaries
+- `build` is conditionally idempotent: the file system structure remains equivalent, but some compilers embed build timestamps in output binaries, causing byte-level differences between runs. For Structyl's orchestration purposes, `build` is treated as idempotent since the semantic output is equivalent
 
 ### Language Target
 

@@ -49,9 +49,12 @@ import (
 // Direct struct construction is valid but NOT validated:
 //
 //	opts := CompareOptions{ToleranceMode: "invalid"}  // compiles but panics on use
+//	opts := CompareOptions{FloatTolerance: -1.0}      // compiles but panics on use
 //
-// Use [NewCompareOptions] for compile-time safety or [ValidateOptions] to check
-// before comparison.
+// Use [NewCompareOptionsOrdered] for validated construction, or call [ValidateOptions]
+// before comparison to check for invalid values. Direct struct construction with
+// invalid fields (negative tolerance, unknown mode strings) will panic when passed
+// to comparison functions.
 //
 // # String Fields
 //
@@ -652,6 +655,10 @@ func compareArray(expected []interface{}, actual interface{}, opts CompareOption
 // against unmatched actual elements. This is acceptable for typical test output sizes
 // (<1000 elements). For larger arrays, a set-based comparison with hashing would be
 // more efficient but requires hashable/comparable values.
+//
+// Performance note: For arrays with >1000 elements, comparison may be noticeably
+// slow. Consider breaking large test outputs into smaller, more targeted assertions
+// or using ArrayOrderStrict when order is deterministic.
 func compareUnorderedArray(expected, actual []interface{}, opts CompareOptions, path string) (bool, string) {
 	// Track which actual elements have been matched
 	matched := make([]bool, len(actual))

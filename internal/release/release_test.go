@@ -15,6 +15,7 @@ import (
 )
 
 // createTestGitRepo creates a git repo with initial commit for testing.
+// Disables GPG signing to work in environments with strict git configs.
 func createTestGitRepo(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
@@ -26,21 +27,21 @@ func createTestGitRepo(t *testing.T) string {
 		t.Fatalf("git init failed: %v", err)
 	}
 
-	// Configure git user (required for commits)
-	cmd = exec.Command("git", "config", "user.email", "test@test.com")
-	cmd.Dir = dir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("git config email failed: %v", err)
+	// Configure git user (required for commits) and disable signing
+	for _, args := range [][]string{
+		{"config", "user.email", "test@test.com"},
+		{"config", "user.name", "Test"},
+		{"config", "commit.gpgsign", "false"},
+	} {
+		cmd = exec.Command("git", args...)
+		cmd.Dir = dir
+		if err := cmd.Run(); err != nil {
+			t.Fatalf("git %v failed: %v", args, err)
+		}
 	}
 
-	cmd = exec.Command("git", "config", "user.name", "Test")
-	cmd.Dir = dir
-	if err := cmd.Run(); err != nil {
-		t.Fatalf("git config name failed: %v", err)
-	}
-
-	// Create initial commit
-	cmd = exec.Command("git", "commit", "--allow-empty", "-m", "initial")
+	// Create initial commit (--no-gpg-sign for extra safety in strict envs)
+	cmd = exec.Command("git", "commit", "--allow-empty", "--no-gpg-sign", "-m", "initial")
 	cmd.Dir = dir
 	if err := cmd.Run(); err != nil {
 		t.Fatalf("initial commit failed: %v", err)
@@ -711,6 +712,7 @@ func TestConfigDefaults_TableDriven(t *testing.T) {
 // =============================================================================
 
 // createTestGitRepoWithRemote creates a git repo with a local bare remote.
+// Disables GPG signing to work in environments with strict git configs.
 func createTestGitRepoWithRemote(t *testing.T) (repoDir, remoteDir string) {
 	t.Helper()
 
@@ -730,10 +732,11 @@ func createTestGitRepoWithRemote(t *testing.T) (repoDir, remoteDir string) {
 		t.Fatalf("git init failed: %v", err)
 	}
 
-	// Configure git user
+	// Configure git user and disable signing
 	for _, args := range [][]string{
 		{"config", "user.email", "test@test.com"},
 		{"config", "user.name", "Test"},
+		{"config", "commit.gpgsign", "false"},
 	} {
 		cmd = exec.Command("git", args...)
 		cmd.Dir = repoDir
@@ -749,8 +752,8 @@ func createTestGitRepoWithRemote(t *testing.T) (repoDir, remoteDir string) {
 		t.Fatalf("git remote add failed: %v", err)
 	}
 
-	// Create initial commit
-	cmd = exec.Command("git", "commit", "--allow-empty", "-m", "initial")
+	// Create initial commit (--no-gpg-sign for extra safety in strict envs)
+	cmd = exec.Command("git", "commit", "--allow-empty", "--no-gpg-sign", "-m", "initial")
 	cmd.Dir = repoDir
 	if err := cmd.Run(); err != nil {
 		t.Fatalf("initial commit failed: %v", err)
@@ -826,7 +829,7 @@ func TestGitBranchForce_MovesBranch(t *testing.T) {
 	}
 
 	// Create a new commit so HEAD differs from release branch
-	cmd = exec.Command("git", "commit", "--allow-empty", "-m", "second")
+	cmd = exec.Command("git", "commit", "--allow-empty", "--no-gpg-sign", "-m", "second")
 	cmd.Dir = dir
 	if err := cmd.Run(); err != nil {
 		t.Fatalf("second commit failed: %v", err)
@@ -866,7 +869,7 @@ func TestGitPush_LocalRemote_Success(t *testing.T) {
 	branch := strings.TrimSpace(string(branchOut))
 
 	// Create a new commit
-	cmd = exec.Command("git", "commit", "--allow-empty", "-m", "test commit")
+	cmd = exec.Command("git", "commit", "--allow-empty", "--no-gpg-sign", "-m", "test commit")
 	cmd.Dir = repoDir
 	if err := cmd.Run(); err != nil {
 		t.Fatalf("commit failed: %v", err)

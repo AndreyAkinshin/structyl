@@ -762,3 +762,36 @@ func FormatComparisonResult(expected, actual interface{}, opts CompareOptions) s
 	_, diff := Compare(expected, actual, opts)
 	return diff
 }
+
+// FormatComparisonResultE compares expected and actual values, returning a
+// human-readable description of any differences, or an error if opts is invalid.
+//
+// This is an error-returning variant of [FormatComparisonResult]. Use
+// FormatComparisonResultE when options come from user input or external
+// configuration where validation errors should be handled gracefully rather
+// than causing a panic.
+//
+// Returns:
+//   - result: empty string if values match, otherwise a description of the first difference
+//   - err: non-nil if opts is invalid
+//
+// When err is non-nil, result is empty.
+//
+// Example:
+//
+//	opts := testhelper.CompareOptions{ToleranceMode: userInput}
+//	diff, err := testhelper.FormatComparisonResultE(expected, actual, opts)
+//	if err != nil {
+//	    // Handle invalid options from user input
+//	    return fmt.Errorf("invalid comparison options: %w", err)
+//	}
+//	if diff != "" {
+//	    fmt.Printf("Values differ: %s\n", diff)
+//	}
+func FormatComparisonResultE(expected, actual interface{}, opts CompareOptions) (string, error) {
+	if err := ValidateOptions(opts); err != nil {
+		return "", err
+	}
+	_, diff := compareValues(expected, actual, opts, "")
+	return diff, nil
+}

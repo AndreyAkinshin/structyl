@@ -507,6 +507,89 @@ func TestFormatComparisonResult(t *testing.T) {
 	}
 }
 
+func TestFormatComparisonResultE_ValidOptions(t *testing.T) {
+	t.Parallel()
+	opts := DefaultOptions()
+
+	// Equal values - should return empty string and no error
+	result, err := FormatComparisonResultE("hello", "hello", opts)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if result != "" {
+		t.Errorf("expected empty string for equal values, got %q", result)
+	}
+
+	// Different values - should return diff description and no error
+	result, err = FormatComparisonResultE("hello", "world", opts)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if result == "" {
+		t.Error("expected diff message for different values, got empty string")
+	}
+	if !strings.Contains(result, "hello") || !strings.Contains(result, "world") {
+		t.Errorf("diff should contain expected and actual values, got %q", result)
+	}
+}
+
+func TestFormatComparisonResultE_InvalidOptions(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		opts CompareOptions
+	}{
+		{"invalid tolerance mode", CompareOptions{ToleranceMode: "invalid"}},
+		{"invalid array order", CompareOptions{ArrayOrder: "invalid"}},
+		{"negative tolerance", CompareOptions{FloatTolerance: -1}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result, err := FormatComparisonResultE("test", "test", tt.opts)
+			if err == nil {
+				t.Error("expected error for invalid options, got nil")
+			}
+			if result != "" {
+				t.Errorf("expected empty result on error, got %q", result)
+			}
+		})
+	}
+}
+
+func TestFormatComparisonResultE_MatchesFormatComparisonResult(t *testing.T) {
+	t.Parallel()
+	opts := DefaultOptions()
+
+	// Verify that FormatComparisonResultE returns the same result as FormatComparisonResult
+	testCases := []struct {
+		name     string
+		expected interface{}
+		actual   interface{}
+	}{
+		{"equal strings", "hello", "hello"},
+		{"different strings", "hello", "world"},
+		{"equal floats", 1.0, 1.0},
+		{"equal arrays", []interface{}{1.0, 2.0}, []interface{}{1.0, 2.0}},
+		{"different arrays", []interface{}{1.0}, []interface{}{2.0}},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			expected := FormatComparisonResult(tc.expected, tc.actual, opts)
+			actual, err := FormatComparisonResultE(tc.expected, tc.actual, opts)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if actual != expected {
+				t.Errorf("FormatComparisonResultE() = %q, FormatComparisonResult() = %q", actual, expected)
+			}
+		})
+	}
+}
+
 func TestPathStr(t *testing.T) {
 	tests := []struct {
 		path     string

@@ -362,6 +362,8 @@ func detectTargetDirectories(root string) map[string]config.TargetConfig {
 
 	entries, err := os.ReadDir(root)
 	if err != nil {
+		// Return empty map on read error (permission denied, etc.).
+		// Auto-detection is best-effort; users can configure targets manually.
 		return targets
 	}
 

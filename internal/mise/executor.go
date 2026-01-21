@@ -35,6 +35,8 @@ func (e *Executor) SetVerbose(v bool) {
 }
 
 // buildRunArgs constructs the command arguments for mise run.
+// Separated from RunTask to enable unit testing of argument construction
+// without requiring mise to be installed or executing actual commands.
 func buildRunArgs(task string, args []string) []string {
 	cmdArgs := []string{"run", task}
 	cmdArgs = append(cmdArgs, args...)

@@ -287,13 +287,12 @@ func TestTarget_GetCommand_NilCommands(t *testing.T) {
 	m := NewTarget("test")
 	m.commands = nil // Force nil commands
 
-	// The implementation returns ("cmd", true) for nil commands as a fallback
 	cmd, ok := m.GetCommand("any")
-	if !ok {
-		t.Error("GetCommand() = not found for nil commands, want found (fallback behavior)")
+	if ok {
+		t.Error("GetCommand() = found for nil commands, want not found")
 	}
-	if cmd != "cmd" {
-		t.Errorf("GetCommand() = %v, want %q (fallback)", cmd, "cmd")
+	if cmd != nil {
+		t.Errorf("GetCommand() = %v, want nil", cmd)
 	}
 }
 

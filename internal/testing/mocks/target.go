@@ -145,7 +145,7 @@ func (m *Target) DemoPath() string        { return m.demoPath }
 
 func (m *Target) GetCommand(name string) (interface{}, bool) {
 	if m.commands == nil {
-		return "cmd", true
+		return nil, false
 	}
 	cmd, ok := m.commands[name]
 	return cmd, ok

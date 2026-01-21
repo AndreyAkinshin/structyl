@@ -430,3 +430,38 @@ func TestCaseExists(projectRoot, suite, name string) bool {
 	_, err := os.Stat(path)
 	return err == nil
 }
+
+// SuiteExistsErr checks if a test suite exists, returning detailed error information.
+// Returns (true, nil) if the suite exists, (false, nil) if it doesn't exist,
+// or (false, error) for other errors like permission denied.
+// This variant is useful when callers need to distinguish "not found" from "access error".
+func SuiteExistsErr(projectRoot, suite string) (bool, error) {
+	suiteDir := filepath.Join(projectRoot, "tests", suite)
+	info, err := os.Stat(suiteDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	if !info.IsDir() {
+		return false, nil
+	}
+	return true, nil
+}
+
+// TestCaseExistsErr checks if a specific test case exists, returning detailed error information.
+// Returns (true, nil) if the test case exists, (false, nil) if it doesn't exist,
+// or (false, error) for other errors like permission denied.
+// This variant is useful when callers need to distinguish "not found" from "access error".
+func TestCaseExistsErr(projectRoot, suite, name string) (bool, error) {
+	path := filepath.Join(projectRoot, "tests", suite, name+".json")
+	_, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}

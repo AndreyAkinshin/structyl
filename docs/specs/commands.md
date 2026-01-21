@@ -582,6 +582,16 @@ The `STRUCTYL_PARALLEL` environment variable controls the number of parallel wor
 - `STRUCTYL_PARALLEL=<n> out of range [1-256], using default`
 :::
 
+::: danger STRUCTYL_PARALLEL Does NOT Respect Dependencies
+When `STRUCTYL_PARALLEL > 1`, targets are scheduled in topological order but **execution does NOT wait for dependencies to complete**. The `depends_on` field in target configuration is NOT respected in parallel mode—a target may begin executing before its dependencies finish.
+
+**Impact:** If target `A` depends on target `B`, running with `STRUCTYL_PARALLEL=2` may execute `A` and `B` concurrently, causing race conditions or build failures.
+
+**Recommendation:** For dependency-aware parallel execution, use mise as the backend (the default). Mise properly tracks task dependencies and manages parallelism. The internal runner's parallel mode should only be used when targets are truly independent.
+
+**Workaround:** Set `STRUCTYL_PARALLEL=1` to force serial execution that respects topological ordering.
+:::
+
 ### Docker Mode Precedence
 
 Docker mode is determined with the following precedence (highest to lowest):
@@ -957,6 +967,38 @@ structyl --docker build cs -- --verbose --debug
 ```
 
 This is useful when command arguments might be interpreted as Structyl flags.
+
+### Argument Forwarding in Composite Commands
+
+When a composite command (array of subcommands) is invoked with forwarded arguments, the arguments are appended only to the **final leaf command** in the execution chain. Intermediate commands receive no forwarded arguments.
+
+```json
+{
+  "commands": {
+    "ci": ["check", "build", "test"]
+  }
+}
+```
+
+```bash
+structyl ci rs --verbose
+# Executes:
+#   check → (no args)
+#   build → (no args)
+#   test --verbose
+```
+
+::: warning
+This behavior means forwarded arguments do NOT apply to all subcommands. If you need arguments to apply to specific commands in a sequence, define explicit commands with the arguments included:
+
+```json
+{
+  "commands": {
+    "ci-verbose": ["check", "build:verbose", "test:verbose"]
+  }
+}
+```
+:::
 
 ## Exit Codes
 

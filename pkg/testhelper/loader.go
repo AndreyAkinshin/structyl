@@ -245,22 +245,46 @@ func (tc TestCase) String() string {
 	return fmt.Sprintf("TestCase{%s%s}", tc.Name, skip)
 }
 
-// Clone returns a shallow copy of TestCase with deep copies of Input and Tags.
-// The returned TestCase is independent of the original for these fields:
+// Clone returns a partial deep copy of TestCase suitable for test isolation.
+//
+// # Copy Semantics Summary
+//
+//	| Field       | Copy Type        | Modify Clone → Original? |
+//	|-------------|------------------|--------------------------|
+//	| Name        | value copy       | No                       |
+//	| Suite       | value copy       | No                       |
+//	| Input       | shallow map copy | No (top-level keys)      |
+//	| Output      | NOT copied       | Yes (shared reference)   |
+//	| Tags        | slice copy       | No                       |
+//	| Skip        | value copy       | No                       |
+//	| Metadata    | NOT copied       | Yes (shared reference)   |
+//
+// # Deep-Copied Fields
+//
+// The following fields receive new allocations:
 //   - Input: a new map with the same top-level keys and values (shallow copy of values)
 //   - Tags: a new slice with the same elements
 //
-// IMPORTANT: Output is NOT deep-copied; both original and clone reference the same
-// underlying value. Modifying Output on the clone also modifies the original:
+// # NOT Deep-Copied Fields (Shared References)
+//
+// Output and Metadata are NOT deep-copied; both original and clone reference the
+// same underlying value. Modifying these fields on the clone also modifies the original:
 //
 //	original := TestCase{Output: map[string]interface{}{"key": "value"}}
 //	clone := original.Clone()
 //	clone.Output.(map[string]interface{})["key"] = "changed"
 //	// original.Output["key"] is now "changed" too!
 //
-// This is intentional: Output is typically consumed read-only in test assertions,
-// and deep-copying arbitrary interface{} values safely is complex. If you need to
-// modify Output independently, copy it manually before modification.
+// # Design Rationale
+//
+// Output is not deep-copied because:
+//  1. Output is typically consumed read-only in test assertions
+//  2. Deep-copying arbitrary interface{} values safely is complex (cycles, non-clonable types)
+//  3. Performance: deep-copying large expected outputs would be wasteful
+//
+// If you need to modify Output independently, copy it manually before modification.
+//
+// # Nil Handling
 //
 // Nil fields remain nil; empty slices/maps remain empty (not collapsed to nil).
 func (tc TestCase) Clone() TestCase {
@@ -700,11 +724,25 @@ var ErrEmptySuiteName = errors.New("suite name cannot be empty")
 // context (the suite name and rejection reason).
 var ErrInvalidSuiteName = errors.New("suite name contains invalid characters")
 
+// InvalidSuiteNameReason constants for [InvalidSuiteNameError.Reason].
+// These constants ensure type safety and enable compile-time checking
+// when handling invalid suite name errors.
+const (
+	// ReasonPathTraversal indicates the suite name contains ".." sequences.
+	ReasonPathTraversal = "path_traversal"
+
+	// ReasonPathSeparator indicates the suite name contains "/" or "\" characters.
+	ReasonPathSeparator = "path_separator"
+
+	// ReasonNullByte indicates the suite name contains null byte characters.
+	ReasonNullByte = "null_byte"
+)
+
 // InvalidSuiteNameError indicates a suite name contains invalid characters.
 // It carries the original name and the reason for rejection.
 type InvalidSuiteNameError struct {
 	Name   string // The invalid suite name
-	Reason string // Why it was rejected: "path_traversal", "path_separator", or "null_byte"
+	Reason string // Why it was rejected: ReasonPathTraversal, ReasonPathSeparator, or ReasonNullByte
 }
 
 func (e *InvalidSuiteNameError) Error() string {
@@ -732,15 +770,15 @@ func ValidateSuiteName(name string) error {
 	}
 	// Check for path traversal sequences
 	if strings.Contains(name, "..") {
-		return &InvalidSuiteNameError{Name: name, Reason: "path_traversal"}
+		return &InvalidSuiteNameError{Name: name, Reason: ReasonPathTraversal}
 	}
 	// Check for path separators (both Unix and Windows)
 	if strings.ContainsAny(name, "/\\") {
-		return &InvalidSuiteNameError{Name: name, Reason: "path_separator"}
+		return &InvalidSuiteNameError{Name: name, Reason: ReasonPathSeparator}
 	}
 	// Check for null bytes
 	if strings.ContainsRune(name, '\x00') {
-		return &InvalidSuiteNameError{Name: name, Reason: "null_byte"}
+		return &InvalidSuiteNameError{Name: name, Reason: ReasonNullByte}
 	}
 	return nil
 }

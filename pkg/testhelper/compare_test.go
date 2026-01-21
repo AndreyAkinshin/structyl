@@ -1217,6 +1217,94 @@ func TestEqual_UlpTolerance_LargeTolerance(t *testing.T) {
 	}
 }
 
+func TestEqual_UlpTolerance_NegativeValues(t *testing.T) {
+	// Test ULP mode with negative float values
+	a := -1.0
+	b := math.Nextafter(a, math.Inf(-1)) // 1 ULP away (more negative)
+	c := math.Nextafter(a, 0)            // 1 ULP away (towards zero)
+
+	opts := CompareOptions{
+		FloatTolerance: 1,
+		ToleranceMode:  ToleranceModeULP,
+	}
+
+	// Should pass for 1 ULP difference in either direction
+	if !Equal(a, b, opts) {
+		t.Error("expected negative ULP comparison (more negative) to pass")
+	}
+	if !Equal(a, c, opts) {
+		t.Error("expected negative ULP comparison (towards zero) to pass")
+	}
+
+	// Should fail for 2 ULPs
+	d := math.Nextafter(b, math.Inf(-1)) // 2 ULPs from a
+	if Equal(a, d, opts) {
+		t.Error("expected 2 ULP difference from negative value to fail with tolerance 1")
+	}
+}
+
+func TestEqual_UlpTolerance_Subnormals(t *testing.T) {
+	// Test ULP mode with subnormal (denormalized) numbers
+	// Subnormals are numbers smaller than the smallest normal float64
+	smallest := math.SmallestNonzeroFloat64
+	nextSmallest := math.Nextafter(smallest, 0) // Should be 0 for subnormals
+
+	// Verify we're dealing with subnormals
+	if nextSmallest != 0 {
+		// If nextSmallest is not 0, skip - this shouldn't happen but be safe
+		t.Skip("unexpected subnormal behavior")
+	}
+
+	opts := CompareOptions{
+		FloatTolerance: 1,
+		ToleranceMode:  ToleranceModeULP,
+	}
+
+	// SmallestNonzeroFloat64 and 0 are 1 ULP apart
+	if !Equal(smallest, 0.0, opts) {
+		t.Error("expected SmallestNonzeroFloat64 and 0 to be within 1 ULP")
+	}
+
+	// Test between two adjacent subnormals
+	twoSmallest := smallest * 2
+	threeSmallest := smallest * 3
+	if !Equal(twoSmallest, threeSmallest, opts) {
+		t.Error("expected adjacent subnormals to be within 1 ULP")
+	}
+}
+
+func TestEqual_UlpTolerance_MaxInt64Boundary(t *testing.T) {
+	// Test behavior near math.MaxInt64 tolerance boundary
+	// Note: FloatTolerance >= 2^63 has undefined behavior per documentation
+	// This test verifies behavior for tolerances just below that threshold
+
+	a := 1.0
+	b := 2.0
+
+	// Tolerance that's large but well within int64 range
+	opts := CompareOptions{
+		FloatTolerance: float64(math.MaxInt64 / 2), // Half of MaxInt64
+		ToleranceMode:  ToleranceModeULP,
+	}
+
+	// Should work correctly for large but valid tolerance
+	if !Equal(a, b, opts) {
+		t.Error("expected very large ULP tolerance to pass")
+	}
+
+	// Test with tolerance that would overflow if converted directly
+	// The implementation should handle this gracefully
+	optsLarge := CompareOptions{
+		FloatTolerance: float64(math.MaxInt64 - 1), // Just under MaxInt64
+		ToleranceMode:  ToleranceModeULP,
+	}
+
+	// This should still work - comparing very different values
+	if !Equal(0.0, 1.0, optsLarge) {
+		t.Error("expected MaxInt64-1 ULP tolerance to pass for 0 vs 1")
+	}
+}
+
 func TestCompareOutput_EmptyToleranceMode_DefaultsToRelative(t *testing.T) {
 	// Verify that empty ToleranceMode defaults to relative tolerance behavior
 	opts := CompareOptions{

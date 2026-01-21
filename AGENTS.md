@@ -113,6 +113,8 @@ structyl/
 │   └── output/                 # Output formatting
 │       └── output.go           # Writer, colors, terminal detection
 ├── pkg/
+│   ├── structyl/               # Public API (exit codes, constants)
+│   │   └── exitcodes.go        # ExitSuccess, ExitFailure, ExitConfigError, ExitEnvError
 │   └── testhelper/             # Reusable test utilities
 │       ├── loader.go           # Test data loading helpers
 │       └── compare.go          # ULP comparison, float comparison
@@ -264,6 +266,10 @@ const (
     ExitConfigError      = 2  // Invalid configuration
     ExitEnvironmentError = 3  // Environment error (Docker not available, etc.)
 )
+
+// Note: External tools should use pkg/structyl constants (ExitSuccess, ExitFailure,
+// ExitConfigError, ExitEnvError). The internal names differ for historical reasons
+// (e.g., ExitRuntimeError vs ExitFailure) but map to the same exit codes.
 
 type ErrorKind int
 const (

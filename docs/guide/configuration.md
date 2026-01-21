@@ -156,7 +156,7 @@ Configure mise integration.
 
 | Field           | Default | Description                           |
 | --------------- | ------- | ------------------------------------- |
-| `auto_generate` | `true`  | Regenerate mise.toml before target commands (see [Configuration Spec](../specs/configuration.md#mise) for which commands trigger regeneration) |
+| `auto_generate` | `true`  | Regenerate mise.toml before build/test/check commands. Does NOT trigger for query commands (targets, config, version) or generation commands (dockerfile, github). See [Configuration Spec](../specs/configuration.md#mise) for complete list. |
 | `extra_tools`   | `{}`    | Additional mise tools to install      |
 
 See [Mise Integration](./mise) for details.

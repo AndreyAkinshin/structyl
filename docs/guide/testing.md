@@ -112,6 +112,19 @@ Configure tolerance in `.structyl/config.json`:
 | `absolute` | Comparing small values near zero  |
 | `ulp`      | Need exact IEEE precision control |
 
+### Common Configurations
+
+```json
+// Financial calculations (exact decimal matching)
+{ "float_tolerance": 0, "tolerance_mode": "absolute" }
+
+// Scientific computing (relative precision)
+{ "float_tolerance": 1e-9, "tolerance_mode": "relative" }
+
+// IEEE 754 strict comparison (10 ULPs tolerance)
+{ "float_tolerance": 10, "tolerance_mode": "ulp" }
+```
+
 ### Special Values
 
 Handle special floating point values in JSON:

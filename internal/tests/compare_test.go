@@ -7,6 +7,7 @@ import (
 )
 
 func TestCompare_Primitives(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultComparisonConfig()
 
 	tests := []struct {
@@ -26,6 +27,7 @@ func TestCompare_Primitives(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			ok, _ := Compare(tt.expected, tt.actual, cfg)
 			if ok != tt.pass {
 				t.Errorf("Compare() = %v, want %v", ok, tt.pass)
@@ -35,6 +37,7 @@ func TestCompare_Primitives(t *testing.T) {
 }
 
 func TestCompare_Floats(t *testing.T) {
+	t.Parallel()
 	cfg := ComparisonConfig{
 		FloatTolerance: 1e-9,
 		ToleranceMode:  "relative",
@@ -55,6 +58,7 @@ func TestCompare_Floats(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			ok, _ := Compare(tt.expected, tt.actual, cfg)
 			if ok != tt.pass {
 				t.Errorf("Compare() = %v, want %v", ok, tt.pass)
@@ -64,6 +68,7 @@ func TestCompare_Floats(t *testing.T) {
 }
 
 func TestCompare_AbsoluteTolerance(t *testing.T) {
+	t.Parallel()
 	cfg := ComparisonConfig{
 		FloatTolerance: 0.01,
 		ToleranceMode:  "absolute",
@@ -81,6 +86,7 @@ func TestCompare_AbsoluteTolerance(t *testing.T) {
 }
 
 func TestCompare_SpecialFloats(t *testing.T) {
+	t.Parallel()
 	cfg := ComparisonConfig{
 		NaNEqualsNaN: true,
 	}
@@ -99,6 +105,7 @@ func TestCompare_SpecialFloats(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			ok, _ := Compare(tt.expected, tt.actual, cfg)
 			if ok != tt.pass {
 				t.Errorf("Compare() = %v, want %v", ok, tt.pass)
@@ -108,6 +115,7 @@ func TestCompare_SpecialFloats(t *testing.T) {
 }
 
 func TestCompare_NaNWithoutFlag(t *testing.T) {
+	t.Parallel()
 	cfg := ComparisonConfig{
 		NaNEqualsNaN: false,
 	}
@@ -119,6 +127,7 @@ func TestCompare_NaNWithoutFlag(t *testing.T) {
 }
 
 func TestCompare_NaNErrorMessageHint(t *testing.T) {
+	t.Parallel()
 	cfg := ComparisonConfig{
 		NaNEqualsNaN: false,
 	}
@@ -134,6 +143,7 @@ func TestCompare_NaNErrorMessageHint(t *testing.T) {
 }
 
 func TestCompare_Maps(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultComparisonConfig()
 
 	expected := map[string]interface{}{
@@ -167,6 +177,7 @@ func TestCompare_Maps(t *testing.T) {
 }
 
 func TestCompare_Arrays(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultComparisonConfig()
 
 	expected := []interface{}{float64(1), float64(2), float64(3)}
@@ -193,6 +204,7 @@ func TestCompare_Arrays(t *testing.T) {
 }
 
 func TestCompare_NestedStructures(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultComparisonConfig()
 
 	expected := map[string]interface{}{
@@ -223,6 +235,7 @@ func TestCompare_NestedStructures(t *testing.T) {
 }
 
 func TestCompare_ULPTolerance(t *testing.T) {
+	t.Parallel()
 	cfg := ComparisonConfig{
 		FloatTolerance: 1.0,
 		ToleranceMode:  "ulp",
@@ -243,6 +256,7 @@ func TestCompare_ULPTolerance(t *testing.T) {
 }
 
 func TestCompare_InfinityFromFloat64(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultComparisonConfig()
 
 	// Test +Inf with +Inf (float64 to float64)
@@ -265,6 +279,7 @@ func TestCompare_InfinityFromFloat64(t *testing.T) {
 }
 
 func TestCompare_NaNFloat64(t *testing.T) {
+	t.Parallel()
 	cfg := ComparisonConfig{
 		NaNEqualsNaN: true,
 	}
@@ -284,6 +299,7 @@ func TestCompare_NaNFloat64(t *testing.T) {
 }
 
 func TestCompare_IntToFloat(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultComparisonConfig()
 
 	// Int expected, float actual
@@ -300,6 +316,7 @@ func TestCompare_IntToFloat(t *testing.T) {
 }
 
 func TestCompare_TypeMismatch(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultComparisonConfig()
 
 	// Float expected, string actual
@@ -313,6 +330,7 @@ func TestCompare_TypeMismatch(t *testing.T) {
 }
 
 func TestCompare_ArrayLengthMismatch(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultComparisonConfig()
 
 	expected := []interface{}{float64(1), float64(2)}
@@ -328,6 +346,7 @@ func TestCompare_ArrayLengthMismatch(t *testing.T) {
 }
 
 func TestSortedKeys_Empty(t *testing.T) {
+	t.Parallel()
 	m := map[string]interface{}{}
 	keys := SortedKeys(m)
 	if len(keys) != 0 {
@@ -336,6 +355,7 @@ func TestSortedKeys_Empty(t *testing.T) {
 }
 
 func TestSortedKeys_Sorted(t *testing.T) {
+	t.Parallel()
 	m := map[string]interface{}{
 		"z": 1,
 		"a": 2,
@@ -351,6 +371,7 @@ func TestSortedKeys_Sorted(t *testing.T) {
 }
 
 func TestCompare_UnorderedArrayNoMatch(t *testing.T) {
+	t.Parallel()
 	cfg := ComparisonConfig{
 		ArrayOrder: "unordered",
 	}
@@ -368,6 +389,7 @@ func TestCompare_UnorderedArrayNoMatch(t *testing.T) {
 }
 
 func TestCompare_SpecialFloatTypeMismatch(t *testing.T) {
+	t.Parallel()
 	cfg := ComparisonConfig{
 		NaNEqualsNaN: true,
 	}
@@ -383,6 +405,7 @@ func TestCompare_SpecialFloatTypeMismatch(t *testing.T) {
 }
 
 func TestCompare_UnknownSpecialFloat(t *testing.T) {
+	t.Parallel()
 	cfg := DefaultComparisonConfig()
 
 	// isSpecialFloat should return false for non-special strings
@@ -394,6 +417,7 @@ func TestCompare_UnknownSpecialFloat(t *testing.T) {
 }
 
 func TestIsSpecialFloat(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		input string
 		want  bool
@@ -409,6 +433,7 @@ func TestIsSpecialFloat(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
+			t.Parallel()
 			got := isSpecialFloat(tt.input)
 			if got != tt.want {
 				t.Errorf("isSpecialFloat(%q) = %v, want %v", tt.input, got, tt.want)
@@ -418,6 +443,7 @@ func TestIsSpecialFloat(t *testing.T) {
 }
 
 func TestPathStr(t *testing.T) {
+	t.Parallel()
 	if pathStr("") != "root" {
 		t.Errorf("pathStr(\"\") = %q, want \"root\"", pathStr(""))
 	}
@@ -430,6 +456,7 @@ func TestPathStr(t *testing.T) {
 // since that package now owns the canonical implementation.
 
 func TestCompare_ULPTolerance_ExactBoundary(t *testing.T) {
+	t.Parallel()
 	// Test exact ULP boundary: 1 ULP tolerance should pass for 1 ULP diff, fail for 2 ULP diff
 	cfg := ComparisonConfig{
 		ToleranceMode:  "ulp",
@@ -453,6 +480,7 @@ func TestCompare_ULPTolerance_ExactBoundary(t *testing.T) {
 }
 
 func TestToFloat_UnsupportedTypes(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name  string
 		input interface{}
@@ -466,6 +494,7 @@ func TestToFloat_UnsupportedTypes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, ok := toFloat(tt.input)
 			if ok {
 				t.Errorf("toFloat(%v) = (%v, true), want (_, false)", tt.input, result)
@@ -478,6 +507,7 @@ func TestToFloat_UnsupportedTypes(t *testing.T) {
 }
 
 func TestToFloat_SupportedTypes(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		input    interface{}
@@ -493,6 +523,7 @@ func TestToFloat_SupportedTypes(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result, ok := toFloat(tt.input)
 			if !ok {
 				t.Errorf("toFloat(%v) = (_, false), want (_, true)", tt.input)
@@ -505,6 +536,7 @@ func TestToFloat_SupportedTypes(t *testing.T) {
 }
 
 func TestCompare_ZeroTolerance_RelativeMode(t *testing.T) {
+	t.Parallel()
 	// Zero tolerance in relative mode is an edge case that requires exact equality.
 	// This test verifies no division by zero or other issues occur.
 	cfg := ComparisonConfig{
@@ -526,6 +558,7 @@ func TestCompare_ZeroTolerance_RelativeMode(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			ok, _ := Compare(tt.expected, tt.actual, cfg)
 			if ok != tt.pass {
 				t.Errorf("Compare(%v, %v) = %v, want %v", tt.expected, tt.actual, ok, tt.pass)
@@ -535,6 +568,7 @@ func TestCompare_ZeroTolerance_RelativeMode(t *testing.T) {
 }
 
 func TestCompare_ZeroTolerance_AbsoluteMode(t *testing.T) {
+	t.Parallel()
 	// Zero tolerance in absolute mode requires exact equality.
 	cfg := ComparisonConfig{
 		FloatTolerance: 0,
@@ -555,6 +589,7 @@ func TestCompare_ZeroTolerance_AbsoluteMode(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			ok, _ := Compare(tt.expected, tt.actual, cfg)
 			if ok != tt.pass {
 				t.Errorf("Compare(%v, %v) = %v, want %v", tt.expected, tt.actual, ok, tt.pass)

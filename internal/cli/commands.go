@@ -200,6 +200,10 @@ func cmdTargets(args []string, opts *GlobalOptions) int {
 	targets := registry.All()
 	if opts.TargetType != "" {
 		targets = filterTargetsByType(targets, target.TargetType(opts.TargetType))
+		if len(targets) == 0 {
+			out.WarningSimple("no targets of type %q found", opts.TargetType)
+			return 0
+		}
 	}
 
 	for _, t := range targets {

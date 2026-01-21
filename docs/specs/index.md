@@ -84,7 +84,8 @@ For installation and first-project setup, see the [Getting Started Guide](../get
 | [ci-integration.md](ci-integration.md)         | Local CI simulation                               |
 | [error-handling.md](error-handling.md)         | Exit codes and failure modes                      |
 | [cross-platform.md](cross-platform.md)         | Windows/Unix support                              |
-| [go-architecture.md](go-architecture.md)       | Internal Go implementation                        |
+| [stability.md](stability.md)                   | Versioning, compatibility, and deprecation policy |
+| [go-architecture.md](go-architecture.md)       | Internal package structure and design rationale (informative) |
 
 ## Scope
 

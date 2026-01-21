@@ -727,7 +727,7 @@ For detailed behavior specifications, see `docs/specs/`:
 
 Current code quality:
 
-- **Test coverage**: Comprehensive coverage across all packages (run `mise run test:cover` for current metrics)
+- **Test coverage**: Run `mise run test:cover` for current metrics
 - **go vet**: Clean (Go 1.24 required)
 - **Dependencies**: 3 external dependencies (yaml.v3, golang.org/x/text, jsonschema/v6)
 - **No panics**: Zero panic() or log.Fatal() in production code

@@ -149,6 +149,11 @@ type TestCase struct {
 	// duplicates, and any characters are permitted. Establish conventions
 	// per-project. This permissive design is intentional to avoid constraining
 	// downstream tooling.
+	//
+	// Recommended conventions (not enforced):
+	//   - Use lowercase, hyphen-separated names (e.g., "slow", "integration", "skip-ci")
+	//   - Avoid whitespace-only or empty string tags
+	//   - Prefix environment-specific tags (e.g., "env-linux", "env-docker")
 	Tags []string `json:"tags,omitempty"`
 }
 

@@ -408,7 +408,11 @@ func TestNewRegistry_VersionFileValid_InterpolatesVersion(t *testing.T) {
 	if r == nil {
 		t.Fatal("NewRegistry() returned nil registry")
 	}
-	// Registry created successfully with version available for interpolation
+	// Registry created successfully - version is available internally for interpolation
+	// Verify target was created with version context
+	if _, ok := r.Get("cs"); !ok {
+		t.Error("Get(\"cs\") failed, target not found")
+	}
 }
 
 func TestRegistry_EmptyDependsOnArray(t *testing.T) {

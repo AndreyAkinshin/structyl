@@ -77,6 +77,22 @@ run = "go test -v -race ./pkg/..."
 description = "Run tests with coverage"
 run = "go test -race -coverprofile=coverage.out -covermode=atomic ./..."
 
+[tasks."test:bench"]
+description = "Run benchmark tests"
+run = "go test -bench=. -benchmem ./..."
+
+[tasks."test:fuzz"]
+description = "Run fuzz tests (30s each)"
+run = """
+go test -fuzz=FuzzGoParser -fuzztime=30s ./internal/testparser/
+go test -fuzz=FuzzCargoParser -fuzztime=30s ./internal/testparser/
+go test -fuzz=FuzzDotnetParser -fuzztime=30s ./internal/testparser/
+go test -fuzz=FuzzPytestParser -fuzztime=30s ./internal/testparser/
+go test -fuzz=FuzzBunParser -fuzztime=30s ./internal/testparser/
+go test -fuzz=FuzzDenoParser -fuzztime=30s ./internal/testparser/
+go test -fuzz=FuzzJSONParser -fuzztime=30s ./internal/testparser/
+"""
+
 # ==========================================================================
 # Coverage Tasks
 # ==========================================================================

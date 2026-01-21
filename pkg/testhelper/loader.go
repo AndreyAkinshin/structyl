@@ -129,6 +129,7 @@ type TestCase struct {
 }
 
 // String returns a human-readable representation of TestCase for debugging.
+// The format is for debugging only and may change without notice.
 func (tc TestCase) String() string {
 	skip := ""
 	if tc.Skip {

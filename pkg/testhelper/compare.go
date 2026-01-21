@@ -99,6 +99,8 @@ const (
 )
 
 // String returns a human-readable representation of CompareOptions for debugging.
+// Empty fields are normalized to their default values in the output
+// (e.g., empty ToleranceMode displays as "relative").
 func (o CompareOptions) String() string {
 	mode := o.ToleranceMode
 	if mode == "" {
@@ -184,7 +186,7 @@ func Equal(expected, actual interface{}, opts CompareOptions) bool {
 // Returns true if they match according to the options.
 // Panics if opts contains invalid enum values (use ValidateOptions to check beforehand).
 //
-// Deprecated: since v0.1.0. Use Equal instead. CompareOutput will be removed in v1.0.
+// Deprecated: Use [Equal] instead. Will be removed in v1.0.
 func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
 	return Equal(expected, actual, opts)
 }
@@ -467,10 +469,12 @@ func pathStr(path string) string {
 	return strings.TrimPrefix(path, ".")
 }
 
-// Deprecated: FormatDiff is deprecated since v0.1.0 and will be removed in v1.0.
-// Use FormatComparisonResult instead. FormatDiff returns "values are equal"
-// when values match, which is semantically inconsistent. FormatComparisonResult
-// has clearer semantics: empty string on match, descriptive diff on mismatch.
+// FormatDiff compares expected and actual values, returning a description.
+//
+// Deprecated: Use [FormatComparisonResult] instead. Will be removed in v1.0.
+// FormatDiff returns "values are equal" when values match, which is
+// semantically inconsistent. FormatComparisonResult has clearer semantics:
+// empty string on match, descriptive diff on mismatch.
 func FormatDiff(expected, actual interface{}, opts CompareOptions) string {
 	_, diff := Compare(expected, actual, opts)
 	if diff == "" {

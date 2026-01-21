@@ -63,24 +63,9 @@ Configuration files MAY include a `$schema` field for IDE validation:
 
 Structyl ignores this field (per Extensibility Rule 3).
 
-## Quick Start
+## Getting Started
 
-```bash
-# Initialize a new project
-structyl init
-
-# Build all targets
-structyl build
-
-# Run tests for all language implementations
-structyl test
-
-# Build specific language
-structyl build cs
-
-# Run with Docker
-structyl build --docker
-```
+For installation and first-project setup, see the [Getting Started Guide](../getting-started/).
 
 ## Specification Index
 

@@ -14,6 +14,7 @@ import (
 )
 
 func TestProjectNotFoundError(t *testing.T) {
+	t.Parallel()
 	// Try to load from non-existent directory
 	_, err := project.LoadProjectFrom("/nonexistent/path")
 	if err == nil {
@@ -22,6 +23,7 @@ func TestProjectNotFoundError(t *testing.T) {
 }
 
 func TestConfigInvalidJSONError(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	structylDir := filepath.Join(tmpDir, ".structyl")
 	if err := mkdir(structylDir); err != nil {
@@ -42,6 +44,7 @@ func TestConfigInvalidJSONError(t *testing.T) {
 }
 
 func TestTargetNotFoundError(t *testing.T) {
+	t.Parallel()
 	fixtureDir := filepath.Join(fixturesDir(), "minimal")
 
 	proj, err := project.LoadProjectFrom(fixtureDir)
@@ -61,6 +64,7 @@ func TestTargetNotFoundError(t *testing.T) {
 }
 
 func TestMalformedJSONFixtureError(t *testing.T) {
+	t.Parallel()
 	fixtureDir := filepath.Join(fixturesDir(), "invalid", "malformed-json")
 
 	_, err := project.LoadProjectFrom(fixtureDir)
@@ -85,6 +89,7 @@ func TestMalformedJSONFixtureError(t *testing.T) {
 }
 
 func TestDockerUnavailableError(t *testing.T) {
+	t.Parallel()
 	// This tests the error type, not actual Docker availability
 	err := &runner.DockerUnavailableError{}
 

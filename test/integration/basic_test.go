@@ -28,6 +28,7 @@ func fixturesDir() string {
 }
 
 func TestMinimalProject(t *testing.T) {
+	t.Parallel()
 	fixtureDir := filepath.Join(fixturesDir(), "minimal")
 
 	proj, err := project.LoadProjectFrom(fixtureDir)
@@ -45,6 +46,7 @@ func TestMinimalProject(t *testing.T) {
 }
 
 func TestMultiLanguageProject(t *testing.T) {
+	t.Parallel()
 	fixtureDir := filepath.Join(fixturesDir(), "multi-language")
 
 	proj, err := project.LoadProjectFrom(fixtureDir)
@@ -85,6 +87,7 @@ func TestMultiLanguageProject(t *testing.T) {
 }
 
 func TestRegistryCreation(t *testing.T) {
+	t.Parallel()
 	fixtureDir := filepath.Join(fixturesDir(), "multi-language")
 
 	proj, err := project.LoadProjectFrom(fixtureDir)
@@ -120,6 +123,7 @@ func TestRegistryCreation(t *testing.T) {
 }
 
 func TestTopologicalOrder(t *testing.T) {
+	t.Parallel()
 	fixtureDir := filepath.Join(fixturesDir(), "multi-language")
 
 	proj, err := project.LoadProjectFrom(fixtureDir)
@@ -163,6 +167,7 @@ func TestTopologicalOrder(t *testing.T) {
 }
 
 func TestLanguageTargetFiltering(t *testing.T) {
+	t.Parallel()
 	fixtureDir := filepath.Join(fixturesDir(), "multi-language")
 
 	proj, err := project.LoadProjectFrom(fixtureDir)
@@ -187,6 +192,7 @@ func TestLanguageTargetFiltering(t *testing.T) {
 }
 
 func TestDockerProjectConfig(t *testing.T) {
+	t.Parallel()
 	fixtureDir := filepath.Join(fixturesDir(), "with-docker")
 
 	proj, err := project.LoadProjectFrom(fixtureDir)
@@ -208,6 +214,7 @@ func TestDockerProjectConfig(t *testing.T) {
 }
 
 func TestConfigLoadAndValidate(t *testing.T) {
+	t.Parallel()
 	fixtureDir := filepath.Join(fixturesDir(), "minimal")
 	configPath := filepath.Join(fixtureDir, ".structyl", "config.json")
 

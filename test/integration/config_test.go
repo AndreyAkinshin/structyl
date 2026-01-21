@@ -11,6 +11,7 @@ import (
 )
 
 func TestConfigValidateMissingName(t *testing.T) {
+	t.Parallel()
 	fixtureDir := filepath.Join(fixturesDir(), "invalid", "missing-name")
 	configPath := filepath.Join(fixtureDir, ".structyl", "config.json")
 
@@ -21,6 +22,7 @@ func TestConfigValidateMissingName(t *testing.T) {
 }
 
 func TestConfigValidateCircularDeps(t *testing.T) {
+	t.Parallel()
 	fixtureDir := filepath.Join(fixturesDir(), "invalid", "circular-deps")
 
 	proj, err := project.LoadProjectFrom(fixtureDir)
@@ -41,6 +43,7 @@ func TestConfigValidateCircularDeps(t *testing.T) {
 }
 
 func TestConfigValidateInvalidToolchain(t *testing.T) {
+	t.Parallel()
 	fixtureDir := filepath.Join(fixturesDir(), "invalid", "invalid-toolchain")
 
 	proj, err := project.LoadProjectFrom(fixtureDir)
@@ -60,6 +63,7 @@ func TestConfigValidateInvalidToolchain(t *testing.T) {
 }
 
 func TestConfigTargetTypes(t *testing.T) {
+	t.Parallel()
 	fixtureDir := filepath.Join(fixturesDir(), "multi-language")
 	configPath := filepath.Join(fixtureDir, ".structyl", "config.json")
 
@@ -77,6 +81,7 @@ func TestConfigTargetTypes(t *testing.T) {
 }
 
 func TestConfigWithAllFields(t *testing.T) {
+	t.Parallel()
 	fixtureDir := filepath.Join(fixturesDir(), "with-docker")
 	configPath := filepath.Join(fixtureDir, ".structyl", "config.json")
 
@@ -107,6 +112,7 @@ func TestConfigWithAllFields(t *testing.T) {
 }
 
 func TestRegistryTargetCommands(t *testing.T) {
+	t.Parallel()
 	fixtureDir := filepath.Join(fixturesDir(), "multi-language")
 
 	proj, err := project.LoadProjectFrom(fixtureDir)

@@ -16,7 +16,9 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
 
-// varPattern matches ${var} for variable interpolation.
+// varPattern matches variable references in the format ${varname}.
+// Captures the variable name in group 1.
+// Examples: ${target}, ${version}, ${GOFLAGS}
 var varPattern = regexp.MustCompile(`\$\{([^}]+)\}`)
 
 // escapePlaceholder is a sentinel value used during variable interpolation
@@ -319,7 +321,9 @@ func (t *targetImpl) executeShell(ctx context.Context, cmdStr string, opts ExecO
 	// Create cross-platform shell command
 	var shellCmd *exec.Cmd
 	if runtime.GOOS == "windows" {
-		// Use full path to PowerShell to bypass mise shims that may intercept commands
+		// Windows: Use full path to PowerShell to bypass mise shims.
+		// This prevents command interception that can cause infinite loops
+		// when mise shims call structyl which calls mise shims again.
 		systemRoot := os.Getenv("SYSTEMROOT")
 		if systemRoot == "" {
 			systemRoot = `C:\Windows`

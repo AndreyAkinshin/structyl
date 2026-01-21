@@ -364,10 +364,11 @@ The public Go `pkg/testhelper` package has the following limitations compared to
 
 The following functions in `pkg/testhelper` are deprecated and will be removed in v2.0.0:
 
-| Deprecated       | Replacement              | Reason                                                  |
-| ---------------- | ------------------------ | ------------------------------------------------------- |
-| `CompareOutput`  | `Equal`                  | Clearer function name                                   |
-| `FormatDiff`     | `FormatComparisonResult` | Better semantics (empty string on match, diff on mismatch) |
+| Deprecated                | Replacement              | Reason                                                     |
+| ------------------------- | ------------------------ | ---------------------------------------------------------- |
+| `CompareOutput`           | `Equal`                  | Clearer function name                                      |
+| `FormatDiff`              | `FormatComparisonResult` | Better semantics (empty string on match, diff on mismatch) |
+| `SpecialFloatPosInfinity` | `SpecialFloatInfinity`   | Canonical form preferred (`"Infinity"` vs `"+Infinity"`)   |
 
 ### Thread Safety
 

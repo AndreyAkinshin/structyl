@@ -12,7 +12,7 @@ cd my-library
 structyl init
 ```
 
-::: tip
+::: warning
 If you're following older tutorials, replace `structyl new` with `structyl init`. The `new` command is deprecated.
 :::
 

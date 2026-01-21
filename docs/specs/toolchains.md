@@ -87,7 +87,7 @@ All toolchains implement this vocabulary:
 | `build:release`| Build targets (release mode)†                       |
 | `test`         | Run tests                                           |
 | `test:coverage`| Run tests with coverage‡                            |
-| `check`        | Run static analysis (lint, typecheck, format-check) |
+| `check`        | Run static analysis (lint, typecheck, format-check)* |
 | `check:fix`    | Auto-fix static analysis issues                     |
 | `bench`        | Run benchmarks                                      |
 | `demo`         | Run demos                                           |
@@ -102,6 +102,8 @@ All toolchains implement this vocabulary:
 † `build:release` is only provided by toolchains with distinct release/optimized build modes (e.g., `cargo`, `dotnet`, `swift`, `make`, `zig`). Toolchains that use configuration-time flags rather than build-time flags for release mode (e.g., `cmake` which uses `-DCMAKE_BUILD_TYPE=Release` at configure time) do not define this variant.
 
 ‡ `test:coverage` is OPTIONAL. **No built-in toolchain provides a default implementation** because coverage tools vary significantly by ecosystem. Configure a custom `test:coverage` command in target configuration if needed. See [commands.md](commands.md) for semantics.
+
+\* `check` composition varies by toolchain. Some include all three components (lint, typecheck, format-check), others include subsets based on ecosystem conventions and available tools. See individual toolchain sections for exact composition.
 
 Commands not applicable to a toolchain are set to `null` (skipped).
 

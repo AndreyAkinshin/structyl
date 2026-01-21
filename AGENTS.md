@@ -656,9 +656,11 @@ func cmdSomething() int {
 
 **External dependencies (3):**
 
-- `gopkg.in/yaml.v3` v3.0.1 - YAML parsing
-- `golang.org/x/text` v0.33.0 - Text processing utilities
-- `github.com/santhosh-tekuri/jsonschema/v6` v6.0.2 - JSON Schema validation
+- `gopkg.in/yaml.v3` - YAML parsing
+- `golang.org/x/text` - Text processing utilities
+- `github.com/santhosh-tekuri/jsonschema/v6` - JSON Schema validation
+
+See `go.mod` for current versions.
 
 **Standard library modules used:**
 

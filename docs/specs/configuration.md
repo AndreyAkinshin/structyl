@@ -270,7 +270,7 @@ Mise build tool integration configuration.
 
 | Field          | Type              | Default | Description                          |
 | -------------- | ----------------- | ------- | ------------------------------------ |
-| `auto_generate`| boolean           | `true`  | Regenerate `mise.toml` before target command execution |
+| `auto_generate`| boolean           | `true`  | Regenerate `mise.toml` before target command execution. When true, synchronizes tool versions with toolchain config. Set false and use `structyl mise sync` for manual control. |
 | `extra_tools`  | map[string]string | `{}`    | Additional mise tools to install     |
 
 **Semantics:**

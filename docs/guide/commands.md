@@ -108,6 +108,7 @@ Commands that operate on multiple targets:
 | `structyl build`   | Build all targets (respects dependencies) |
 | `structyl test`    | Test all language targets                 |
 | `structyl clean`   | Clean all targets                         |
+| `structyl restore` | Restore dependencies for all targets      |
 | `structyl ci`      | Run full CI pipeline                      |
 | `structyl version` | Version management (get, set, bump)       |
 

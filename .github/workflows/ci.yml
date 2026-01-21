@@ -65,7 +65,6 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -80,7 +79,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           files: coverage.out
-          fail_ci_if_error: false
+          fail_ci_if_error: true
 
   security:
     name: Security

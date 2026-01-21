@@ -884,6 +884,53 @@ func TestLoadTestCase_FileReference_ReturnsError(t *testing.T) {
 	}
 }
 
+func TestLoadTestCase_FileReferenceNested(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		content string
+	}{
+		{
+			name:    "file_ref_in_array",
+			content: `{"input": {"items": [{"$file": "data.bin"}]}, "output": 1}`,
+		},
+		{
+			name:    "file_ref_deeply_nested",
+			content: `{"input": {"level1": {"level2": {"level3": {"$file": "deep.bin"}}}}, "output": 1}`,
+		},
+		{
+			name:    "file_ref_in_output_array",
+			content: `{"input": {}, "output": [{"$file": "result.bin"}]}`,
+		},
+		{
+			name:    "file_ref_in_output_nested",
+			content: `{"input": {}, "output": {"data": {"nested": {"$file": "out.bin"}}}}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			tmpDir := t.TempDir()
+			testFile := filepath.Join(tmpDir, tt.name+".json")
+
+			if err := os.WriteFile(testFile, []byte(tt.content), 0644); err != nil {
+				t.Fatal(err)
+			}
+
+			_, err := LoadTestCase(testFile)
+			if err == nil {
+				t.Fatal("LoadTestCase() expected error for nested $file reference")
+			}
+
+			if !errors.Is(err, ErrFileReferenceNotSupported) {
+				t.Errorf("error should be ErrFileReferenceNotSupported, got: %v", err)
+			}
+		})
+	}
+}
+
 func TestValidateSuiteName(t *testing.T) {
 	tests := []struct {
 		name    string

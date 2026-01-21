@@ -246,7 +246,7 @@ func loadTestCaseInternal(path, suite string) (*TestCase, error) {
 
 	var tc TestCase
 	if err := json.Unmarshal(data, &tc); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: invalid JSON: %w", filepath.Base(path), err)
 	}
 
 	// Detect $file references which are not supported in this package
@@ -263,6 +263,9 @@ func loadTestCaseInternal(path, suite string) (*TestCase, error) {
 	}
 
 	tc.Name = strings.TrimSuffix(filepath.Base(path), ".json")
+	if tc.Name == "" {
+		return nil, fmt.Errorf("%s: invalid filename (name cannot be empty)", filepath.Base(path))
+	}
 	tc.Suite = suite
 	return &tc, nil
 }

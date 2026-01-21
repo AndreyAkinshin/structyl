@@ -17,7 +17,10 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/output"
 	"github.com/AndreyAkinshin/structyl/internal/project"
 	"github.com/AndreyAkinshin/structyl/internal/release"
-	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: Docker runner functionality still needed
+	// nolint:staticcheck // SA1019: runner package is deprecated but still required for Docker
+	// functionality (DockerRunner, DockerUnavailableError, CheckDockerAvailable). These types
+	// are used by docker-build/docker-clean commands and will be removed with the runner package.
+	"github.com/AndreyAkinshin/structyl/internal/runner"
 	"github.com/AndreyAkinshin/structyl/internal/schema"
 	"github.com/AndreyAkinshin/structyl/internal/target"
 	"github.com/AndreyAkinshin/structyl/internal/toolchain"

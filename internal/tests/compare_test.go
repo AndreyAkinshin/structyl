@@ -388,6 +388,129 @@ func TestCompare_UnorderedArrayNoMatch(t *testing.T) {
 	}
 }
 
+func TestCompare_UnorderedArray_NestedObjects(t *testing.T) {
+	t.Parallel()
+	cfg := ComparisonConfig{
+		ArrayOrder: "unordered",
+	}
+
+	// Test unordered comparison with nested maps - success case
+	expected := []interface{}{
+		map[string]interface{}{"id": float64(1), "name": "alice"},
+		map[string]interface{}{"id": float64(2), "name": "bob"},
+		map[string]interface{}{"id": float64(3), "name": "charlie"},
+	}
+	actual := []interface{}{
+		map[string]interface{}{"id": float64(3), "name": "charlie"},
+		map[string]interface{}{"id": float64(1), "name": "alice"},
+		map[string]interface{}{"id": float64(2), "name": "bob"},
+	}
+
+	ok, diff := Compare(expected, actual, cfg)
+	if !ok {
+		t.Errorf("expected unordered nested objects to match, got diff: %s", diff)
+	}
+}
+
+func TestCompare_UnorderedArray_NestedArrays(t *testing.T) {
+	t.Parallel()
+	cfg := ComparisonConfig{
+		ArrayOrder: "unordered",
+	}
+
+	// Test unordered comparison with nested arrays - success case
+	expected := []interface{}{
+		[]interface{}{float64(1), float64(2)},
+		[]interface{}{float64(3), float64(4)},
+		[]interface{}{float64(5), float64(6)},
+	}
+	actual := []interface{}{
+		[]interface{}{float64(5), float64(6)},
+		[]interface{}{float64(1), float64(2)},
+		[]interface{}{float64(3), float64(4)},
+	}
+
+	ok, diff := Compare(expected, actual, cfg)
+	if !ok {
+		t.Errorf("expected unordered nested arrays to match, got diff: %s", diff)
+	}
+}
+
+func TestCompare_UnorderedArray_DeeplyNested(t *testing.T) {
+	t.Parallel()
+	cfg := ComparisonConfig{
+		ArrayOrder: "unordered",
+	}
+
+	// Test deeply nested structure - success case
+	expected := []interface{}{
+		map[string]interface{}{
+			"user": map[string]interface{}{
+				"profile": map[string]interface{}{
+					"name": "alice",
+					"tags": []interface{}{"admin", "user"},
+				},
+			},
+		},
+		map[string]interface{}{
+			"user": map[string]interface{}{
+				"profile": map[string]interface{}{
+					"name": "bob",
+					"tags": []interface{}{"user"},
+				},
+			},
+		},
+	}
+	actual := []interface{}{
+		map[string]interface{}{
+			"user": map[string]interface{}{
+				"profile": map[string]interface{}{
+					"name": "bob",
+					"tags": []interface{}{"user"},
+				},
+			},
+		},
+		map[string]interface{}{
+			"user": map[string]interface{}{
+				"profile": map[string]interface{}{
+					"name": "alice",
+					"tags": []interface{}{"admin", "user"},
+				},
+			},
+		},
+	}
+
+	ok, diff := Compare(expected, actual, cfg)
+	if !ok {
+		t.Errorf("expected deeply nested unordered arrays to match, got diff: %s", diff)
+	}
+}
+
+func TestCompare_UnorderedArray_NestedMismatch(t *testing.T) {
+	t.Parallel()
+	cfg := ComparisonConfig{
+		ArrayOrder: "unordered",
+	}
+
+	// Test unordered comparison with nested maps - failure case
+	expected := []interface{}{
+		map[string]interface{}{"id": float64(1), "name": "alice"},
+		map[string]interface{}{"id": float64(2), "name": "bob"},
+	}
+	actual := []interface{}{
+		map[string]interface{}{"id": float64(1), "name": "alice"},
+		map[string]interface{}{"id": float64(2), "name": "charlie"}, // Different name
+	}
+
+	ok, diff := Compare(expected, actual, cfg)
+	if ok {
+		t.Error("expected unordered nested objects mismatch to fail")
+	}
+	if diff == "" {
+		t.Error("expected diff message for nested mismatch")
+	}
+}
+
 func TestCompare_SpecialFloatTypeMismatch(t *testing.T) {
 	t.Parallel()
 	cfg := ComparisonConfig{

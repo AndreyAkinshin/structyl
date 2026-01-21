@@ -63,6 +63,97 @@ func TestLoadTestCaseWithSuite(t *testing.T) {
 	}
 }
 
+func TestLoadTestCaseByName(t *testing.T) {
+	t.Parallel()
+
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
+		tmpDir := t.TempDir()
+		suiteDir := filepath.Join(tmpDir, "tests", "math")
+		os.MkdirAll(suiteDir, 0755)
+		os.WriteFile(filepath.Join(suiteDir, "add.json"), []byte(`{"input": {"a": 1}, "output": 2}`), 0644)
+
+		tc, err := LoadTestCaseByName(tmpDir, "math", "add")
+		if err != nil {
+			t.Fatalf("LoadTestCaseByName() error = %v", err)
+		}
+
+		if tc.Name != "add" {
+			t.Errorf("Name = %q, want %q", tc.Name, "add")
+		}
+		if tc.Suite != "math" {
+			t.Errorf("Suite = %q, want %q", tc.Suite, "math")
+		}
+	})
+
+	t.Run("invalid_suite_name", func(t *testing.T) {
+		t.Parallel()
+		tmpDir := t.TempDir()
+
+		_, err := LoadTestCaseByName(tmpDir, "../escape", "test")
+		if err == nil {
+			t.Fatal("expected error for invalid suite name")
+		}
+		if !errors.Is(err, ErrInvalidSuiteName) {
+			t.Errorf("error should be ErrInvalidSuiteName, got %v", err)
+		}
+	})
+
+	t.Run("invalid_test_case_name", func(t *testing.T) {
+		t.Parallel()
+		tmpDir := t.TempDir()
+
+		_, err := LoadTestCaseByName(tmpDir, "math", "../escape")
+		if err == nil {
+			t.Fatal("expected error for invalid test case name")
+		}
+		if !errors.Is(err, ErrInvalidTestCaseName) {
+			t.Errorf("error should be ErrInvalidTestCaseName, got %v", err)
+		}
+	})
+
+	t.Run("not_found", func(t *testing.T) {
+		t.Parallel()
+		tmpDir := t.TempDir()
+		suiteDir := filepath.Join(tmpDir, "tests", "math")
+		os.MkdirAll(suiteDir, 0755)
+
+		_, err := LoadTestCaseByName(tmpDir, "math", "nonexistent")
+		if err == nil {
+			t.Fatal("expected error for nonexistent test case")
+		}
+		if !errors.Is(err, ErrTestCaseNotFound) {
+			t.Errorf("error should be ErrTestCaseNotFound, got %v", err)
+		}
+	})
+
+	t.Run("empty_suite_name", func(t *testing.T) {
+		t.Parallel()
+		tmpDir := t.TempDir()
+
+		_, err := LoadTestCaseByName(tmpDir, "", "test")
+		if err == nil {
+			t.Fatal("expected error for empty suite name")
+		}
+		if !errors.Is(err, ErrEmptySuiteName) {
+			t.Errorf("error should be ErrEmptySuiteName, got %v", err)
+		}
+	})
+
+	t.Run("empty_test_case_name", func(t *testing.T) {
+		t.Parallel()
+		tmpDir := t.TempDir()
+
+		_, err := LoadTestCaseByName(tmpDir, "math", "")
+		if err == nil {
+			t.Fatal("expected error for empty test case name")
+		}
+		if !errors.Is(err, ErrEmptyTestCaseName) {
+			t.Errorf("error should be ErrEmptyTestCaseName, got %v", err)
+		}
+	})
+}
+
 func TestLoadTestSuite(t *testing.T) {
 	// Create temp directory structure
 	tmpDir := t.TempDir()
@@ -190,6 +281,62 @@ func TestSuiteNotFoundError(t *testing.T) {
 		}
 		if !strings.Contains(msg, "searched in") {
 			t.Error("Error() should indicate search location")
+		}
+	})
+
+	t.Run("is_not_other_sentinel", func(t *testing.T) {
+		t.Parallel()
+		err := &SuiteNotFoundError{Suite: "mysuite"}
+
+		// Should not match unrelated sentinels
+		if errors.Is(err, ErrProjectNotFound) {
+			t.Error("errors.Is should return false for ErrProjectNotFound")
+		}
+		if errors.Is(err, ErrTestCaseNotFound) {
+			t.Error("errors.Is should return false for ErrTestCaseNotFound")
+		}
+	})
+}
+
+func TestInvalidSuiteNameError_Is(t *testing.T) {
+	t.Parallel()
+
+	t.Run("matches_sentinel", func(t *testing.T) {
+		t.Parallel()
+		err := &InvalidSuiteNameError{Name: "../foo", Reason: ReasonPathTraversal}
+
+		if !errors.Is(err, ErrInvalidSuiteName) {
+			t.Error("errors.Is(InvalidSuiteNameError, ErrInvalidSuiteName) should return true")
+		}
+	})
+
+	t.Run("not_other_sentinel", func(t *testing.T) {
+		t.Parallel()
+		err := &InvalidSuiteNameError{Name: "foo/bar", Reason: ReasonPathSeparator}
+
+		if errors.Is(err, ErrInvalidTestCaseName) {
+			t.Error("errors.Is should return false for ErrInvalidTestCaseName")
+		}
+		if errors.Is(err, ErrSuiteNotFound) {
+			t.Error("errors.Is should return false for ErrSuiteNotFound")
+		}
+	})
+
+	t.Run("through_wrapping", func(t *testing.T) {
+		t.Parallel()
+		original := &InvalidSuiteNameError{Name: "../suite", Reason: ReasonPathTraversal}
+		wrapped := fmt.Errorf("outer context: %w", original)
+
+		if !errors.Is(wrapped, ErrInvalidSuiteName) {
+			t.Error("errors.Is should find ErrInvalidSuiteName through wrapped error")
+		}
+
+		var target *InvalidSuiteNameError
+		if !errors.As(wrapped, &target) {
+			t.Error("errors.As should extract InvalidSuiteNameError through wrapped error")
+		}
+		if target.Name != "../suite" {
+			t.Errorf("Name: got %q, want %q", target.Name, "../suite")
 		}
 	})
 }
@@ -1972,4 +2119,170 @@ func TestTestCaseExistsErr_InvalidTestName_ReturnsError(t *testing.T) {
 			}
 		})
 	}
+}
+
+// =============================================================================
+// Fuzz Tests for Name Validation
+// =============================================================================
+
+// FuzzValidateSuiteName tests suite name validation with arbitrary input.
+// Run: go test -fuzz=FuzzValidateSuiteName -fuzztime=30s ./pkg/testhelper
+func FuzzValidateSuiteName(f *testing.F) {
+	// Seed corpus with representative inputs
+	seeds := []string{
+		// Valid names
+		"suite",
+		"suite-name",
+		"suite_name",
+		"suite123",
+		"a",
+		"a-b-c",
+		// Invalid: empty
+		"",
+		// Invalid: path traversal
+		"..",
+		"../etc",
+		"foo/../bar",
+		"foo/..bar",
+		// Invalid: path separators
+		"foo/bar",
+		"foo\\bar",
+		"/",
+		"\\",
+		// Invalid: null bytes
+		"foo\x00bar",
+		"\x00",
+		// Edge cases
+		"...",
+		"....",
+		"a..",
+		"..a",
+		".a.",
+	}
+
+	for _, seed := range seeds {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, name string) {
+		err := ValidateSuiteName(name)
+
+		// Invariant 1: Empty names must return ErrEmptySuiteName
+		if name == "" {
+			if !errors.Is(err, ErrEmptySuiteName) {
+				t.Errorf("ValidateSuiteName(%q) = %v, want ErrEmptySuiteName", name, err)
+			}
+			return
+		}
+
+		// Invariant 2: Names with null bytes must be rejected
+		if strings.ContainsRune(name, '\x00') {
+			if err == nil {
+				t.Errorf("ValidateSuiteName(%q) = nil, want error for null byte", name)
+			}
+			return
+		}
+
+		// Invariant 3: Names with path separators must be rejected
+		if strings.ContainsRune(name, '/') || strings.ContainsRune(name, '\\') {
+			if err == nil {
+				t.Errorf("ValidateSuiteName(%q) = nil, want error for path separator", name)
+			}
+			return
+		}
+
+		// Invariant 4: Names with ".." must be rejected (path traversal)
+		if strings.Contains(name, "..") {
+			if err == nil {
+				t.Errorf("ValidateSuiteName(%q) = nil, want error for path traversal", name)
+			}
+			return
+		}
+
+		// If none of the above, name should be valid
+		if err != nil {
+			t.Errorf("ValidateSuiteName(%q) = %v, want nil (no invalid patterns found)", name, err)
+		}
+	})
+}
+
+// FuzzValidateTestCaseName tests test case name validation with arbitrary input.
+// Run: go test -fuzz=FuzzValidateTestCaseName -fuzztime=30s ./pkg/testhelper
+func FuzzValidateTestCaseName(f *testing.F) {
+	// Seed corpus with representative inputs
+	seeds := []string{
+		// Valid names
+		"test",
+		"test-case",
+		"test_case",
+		"test123",
+		"a",
+		"a-b-c",
+		// Invalid: empty
+		"",
+		// Invalid: path traversal
+		"..",
+		"../etc",
+		"foo/../bar",
+		"foo/..bar",
+		// Invalid: path separators
+		"foo/bar",
+		"foo\\bar",
+		"/",
+		"\\",
+		// Invalid: null bytes
+		"foo\x00bar",
+		"\x00",
+		// Edge cases
+		"...",
+		"....",
+		"a..",
+		"..a",
+		".a.",
+	}
+
+	for _, seed := range seeds {
+		f.Add(seed)
+	}
+
+	f.Fuzz(func(t *testing.T, name string) {
+		err := ValidateTestCaseName(name)
+
+		// Invariant 1: Empty names must return ErrEmptyTestCaseName
+		if name == "" {
+			if !errors.Is(err, ErrEmptyTestCaseName) {
+				t.Errorf("ValidateTestCaseName(%q) = %v, want ErrEmptyTestCaseName", name, err)
+			}
+			return
+		}
+
+		// Invariant 2: Names with null bytes must be rejected
+		if strings.ContainsRune(name, '\x00') {
+			if err == nil {
+				t.Errorf("ValidateTestCaseName(%q) = nil, want error for null byte", name)
+			}
+			return
+		}
+
+		// Invariant 3: Names with path separators must be rejected
+		if strings.ContainsRune(name, '/') || strings.ContainsRune(name, '\\') {
+			if err == nil {
+				t.Errorf("ValidateTestCaseName(%q) = nil, want error for path separator", name)
+			}
+			return
+		}
+
+		// Invariant 4: Names with ".." must be rejected (path traversal)
+		if strings.Contains(name, "..") {
+			if err == nil {
+				t.Errorf("ValidateTestCaseName(%q) = nil, want error for path traversal", name)
+			}
+			return
+		}
+
+		// If none of the above, name should be valid
+		if err != nil {
+			t.Errorf("ValidateTestCaseName(%q) = %v, want nil (no invalid patterns found)", name, err)
+		}
+	})
 }

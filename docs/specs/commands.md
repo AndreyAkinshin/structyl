@@ -392,6 +392,13 @@ alias st="structyl"
 eval "$(structyl completion bash --alias=st)"
 ```
 
+**Exit codes:**
+
+| Code | Condition                                    |
+| ---- | -------------------------------------------- |
+| 0    | Completion script output to stdout           |
+| 2    | Unknown shell or missing shell argument      |
+
 ### `test-summary` Command
 
 ```
@@ -419,9 +426,11 @@ This command only supports Go's JSON test output format (`go test -json`). Other
 
 | Code | Condition                                                   |
 | ---- | ----------------------------------------------------------- |
-| 0    | All tests passed (or empty input with no test events)       |
+| 0    | All tests passed                                            |
 | 1    | One or more tests failed                                    |
 | 2    | Invalid input (file not found, malformed JSON, parse error) |
+
+**Note:** Empty input (EOF with no JSON lines) returns exit code 0, treated as "zero tests, zero failures."
 
 **Examples:**
 
@@ -544,7 +553,7 @@ structyl test --type=auxiliary
 | `--continue` | v1.0.0     | None; fail-fast is now mandatory |
 
 ::: warning
-Using removed flags results in an error. For continue-on-error workflows in CI, use `continue_on_error: true` in pipeline step definitions.
+Using `--continue` produces: `--continue flag has been removed; multi-target operations now stop on first failure`. For continue-on-error workflows in CI, use `continue_on_error: true` in pipeline step definitions.
 :::
 
 ### Environment Variables
@@ -567,6 +576,10 @@ The `STRUCTYL_PARALLEL` environment variable controls the number of parallel wor
 - Value `0`, negative, `>256`, or non-integer: Falls back to CPU core count with warning
 
 **Worker Limit Rationale:** The 256-worker maximum prevents scheduler thrashing from excessive concurrent workers on typical systems. Beyond this limit, coordination overhead typically outweighs parallelism benefits for I/O-bound subprocess execution.
+
+**Warning messages:** When an invalid value is detected, Structyl logs one of:
+- `invalid STRUCTYL_PARALLEL value "<value>" (not a number), using default`
+- `STRUCTYL_PARALLEL=<n> out of range [1-256], using default`
 :::
 
 ### Docker Mode Precedence

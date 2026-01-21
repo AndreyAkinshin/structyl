@@ -14,6 +14,13 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/version"
 )
 
+// Default values for release configuration.
+const (
+	defaultRemote    = "origin"
+	defaultBranch    = "main"
+	defaultTagFormat = "v{version}"
+)
+
 // stepCounter provides auto-incrementing step numbers for release output.
 // Using a counter avoids manual stepNum++ which is error-prone when steps are reordered.
 type stepCounter struct {
@@ -330,7 +337,7 @@ func (r *Releaser) getRemote() string {
 	if r.config.Release != nil && r.config.Release.Remote != "" {
 		return r.config.Release.Remote
 	}
-	return "origin"
+	return defaultRemote
 }
 
 // getBranch returns the branch name from config or default.
@@ -338,12 +345,12 @@ func (r *Releaser) getBranch() string {
 	if r.config.Release != nil && r.config.Release.Branch != "" {
 		return r.config.Release.Branch
 	}
-	return "main"
+	return defaultBranch
 }
 
 // getTags returns the list of tags to create for the version.
 func (r *Releaser) getTags(verStr string) []string {
-	tagFormat := "v{version}"
+	tagFormat := defaultTagFormat
 	if r.config.Release != nil && r.config.Release.TagFormat != "" {
 		tagFormat = r.config.Release.TagFormat
 	}

@@ -12,6 +12,10 @@ cd my-library
 structyl init
 ```
 
+::: tip
+If you're following older tutorials, replace `structyl new` with `structyl init`. The `new` command is deprecated.
+:::
+
 This creates:
 
 - `.structyl/config.json` — project configuration

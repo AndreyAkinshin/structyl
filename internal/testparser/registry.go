@@ -7,35 +7,31 @@ type Registry struct {
 	parsers map[string]Parser
 }
 
+// builtinParsers defines all built-in parsers and their toolchain aliases.
+// Each parser is instantiated once and shared across all its aliases.
+var builtinParsers = []struct {
+	parser  Parser
+	aliases []string
+}{
+	{&GoParser{}, []string{"go"}},
+	{&CargoParser{}, []string{"cargo", "rs", "rust"}},
+	{&PytestParser{}, []string{"python", "py", "uv", "poetry", "pytest"}},
+	{&DotnetParser{}, []string{"dotnet", "cs", "csharp"}},
+	{&BunParser{}, []string{"bun"}},
+	{&DenoParser{}, []string{"deno"}},
+}
+
 // NewRegistry creates a new parser registry with all built-in parsers.
 func NewRegistry() *Registry {
 	r := &Registry{
 		parsers: make(map[string]Parser),
 	}
 
-	// Register all built-in parsers
-	goParser := &GoParser{}
-	cargoParser := &CargoParser{}
-	pytestParser := &PytestParser{}
-	dotnetParser := &DotnetParser{}
-	bunParser := &BunParser{}
-	denoParser := &DenoParser{}
-
-	// Map toolchain identifiers to parsers
-	r.parsers["go"] = goParser
-	r.parsers["cargo"] = cargoParser
-	r.parsers["rs"] = cargoParser
-	r.parsers["rust"] = cargoParser
-	r.parsers["python"] = pytestParser
-	r.parsers["py"] = pytestParser
-	r.parsers["uv"] = pytestParser
-	r.parsers["poetry"] = pytestParser
-	r.parsers["pytest"] = pytestParser
-	r.parsers["dotnet"] = dotnetParser
-	r.parsers["cs"] = dotnetParser
-	r.parsers["csharp"] = dotnetParser
-	r.parsers["bun"] = bunParser
-	r.parsers["deno"] = denoParser
+	for _, entry := range builtinParsers {
+		for _, alias := range entry.aliases {
+			r.parsers[alias] = entry.parser
+		}
+	}
 
 	return r
 }

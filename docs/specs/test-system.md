@@ -407,7 +407,10 @@ type TestCase struct {
 
 func LoadTestSuite(projectRoot, suite string) ([]TestCase, error) {
     pattern := filepath.Join(projectRoot, "tests", suite, "*.json")
-    files, _ := filepath.Glob(pattern)
+    files, err := filepath.Glob(pattern)
+    if err != nil {
+        return nil, err
+    }
 
     var cases []TestCase
     for _, f := range files {

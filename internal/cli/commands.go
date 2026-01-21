@@ -332,12 +332,14 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 		return exitCode
 	}
 
-	// Determine target name from args
+	// Determine target name from args.
+	// CI command tolerates registry load failures (as a warning) because it can still
+	// run mise tasks directly. This differs from standard commands (cmdUnified) which
+	// require the registry to resolve target-specific commands.
 	var targetName string
 	var cmdArgs []string
 	registry, err := target.NewRegistry(proj.Config, proj.Root)
 	if err != nil {
-		// Registry failed to load - log warning and treat all args as command args
 		out.WarningSimple("could not load target registry: %v", err)
 		cmdArgs = args
 	} else {

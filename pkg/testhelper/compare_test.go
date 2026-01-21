@@ -13,6 +13,7 @@ import (
 )
 
 func TestEqual_Primitives(t *testing.T) {
+	t.Parallel()
 	opts := DefaultOptions()
 
 	tests := []struct {
@@ -32,6 +33,7 @@ func TestEqual_Primitives(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if Equal(tt.expected, tt.actual, opts) != tt.pass {
 				t.Errorf("Equal() = %v, want %v", !tt.pass, tt.pass)
 			}
@@ -40,6 +42,7 @@ func TestEqual_Primitives(t *testing.T) {
 }
 
 func TestEqual_Floats(t *testing.T) {
+	t.Parallel()
 	opts := CompareOptions{
 		FloatTolerance: 1e-9,
 		ToleranceMode:  "relative",
@@ -60,6 +63,7 @@ func TestEqual_Floats(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if Equal(tt.expected, tt.actual, opts) != tt.pass {
 				t.Errorf("Equal() = %v, want %v", !tt.pass, tt.pass)
 			}
@@ -618,6 +622,7 @@ func TestEqual_UlpTolerance(t *testing.T) {
 }
 
 func TestEqual_TypeMismatch(t *testing.T) {
+	t.Parallel()
 	opts := DefaultOptions()
 
 	tests := []struct {
@@ -644,6 +649,7 @@ func TestEqual_TypeMismatch(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			ok, diff := Compare(tt.expected, tt.actual, opts)
 			if ok {
 				t.Errorf("expected type mismatch to fail")
@@ -821,6 +827,141 @@ func TestEqual_UnorderedArrayNoMatch(t *testing.T) {
 	}
 	if diff == "" {
 		t.Error("expected diff message")
+	}
+}
+
+func TestEqual_UnorderedArray_Duplicates(t *testing.T) {
+	t.Parallel()
+	opts := CompareOptions{
+		ArrayOrder: ArrayOrderUnordered,
+	}
+
+	tests := []struct {
+		name     string
+		expected []interface{}
+		actual   []interface{}
+		pass     bool
+	}{
+		{
+			name:     "same duplicates same order",
+			expected: []interface{}{float64(1), float64(1), float64(2)},
+			actual:   []interface{}{float64(1), float64(1), float64(2)},
+			pass:     true,
+		},
+		{
+			name:     "same duplicates different order",
+			expected: []interface{}{float64(1), float64(1), float64(2)},
+			actual:   []interface{}{float64(2), float64(1), float64(1)},
+			pass:     true,
+		},
+		{
+			name:     "different duplicate counts",
+			expected: []interface{}{float64(1), float64(1), float64(2)},
+			actual:   []interface{}{float64(1), float64(2), float64(2)},
+			pass:     false,
+		},
+		{
+			name:     "all duplicates matching",
+			expected: []interface{}{float64(5), float64(5), float64(5)},
+			actual:   []interface{}{float64(5), float64(5), float64(5)},
+			pass:     true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if Equal(tt.expected, tt.actual, opts) != tt.pass {
+				t.Errorf("Equal() = %v, want %v", !tt.pass, tt.pass)
+			}
+		})
+	}
+}
+
+func TestEqual_UnorderedArray_Empty(t *testing.T) {
+	t.Parallel()
+	opts := CompareOptions{
+		ArrayOrder: ArrayOrderUnordered,
+	}
+
+	// Both empty should match
+	if !Equal([]interface{}{}, []interface{}{}, opts) {
+		t.Error("expected empty arrays to match")
+	}
+
+	// Empty vs non-empty should not match
+	if Equal([]interface{}{}, []interface{}{float64(1)}, opts) {
+		t.Error("expected empty vs non-empty to not match")
+	}
+}
+
+func TestEqual_UnorderedArray_NestedObjects(t *testing.T) {
+	t.Parallel()
+	opts := CompareOptions{
+		ArrayOrder: ArrayOrderUnordered,
+	}
+
+	tests := []struct {
+		name     string
+		expected []interface{}
+		actual   []interface{}
+		pass     bool
+	}{
+		{
+			name: "nested objects same order",
+			expected: []interface{}{
+				map[string]interface{}{"a": float64(1)},
+				map[string]interface{}{"b": float64(2)},
+			},
+			actual: []interface{}{
+				map[string]interface{}{"a": float64(1)},
+				map[string]interface{}{"b": float64(2)},
+			},
+			pass: true,
+		},
+		{
+			name: "nested objects different order",
+			expected: []interface{}{
+				map[string]interface{}{"a": float64(1)},
+				map[string]interface{}{"b": float64(2)},
+			},
+			actual: []interface{}{
+				map[string]interface{}{"b": float64(2)},
+				map[string]interface{}{"a": float64(1)},
+			},
+			pass: true,
+		},
+		{
+			name: "nested objects with mismatch",
+			expected: []interface{}{
+				map[string]interface{}{"a": float64(1)},
+				map[string]interface{}{"b": float64(2)},
+			},
+			actual: []interface{}{
+				map[string]interface{}{"a": float64(1)},
+				map[string]interface{}{"b": float64(3)}, // different value
+			},
+			pass: false,
+		},
+		{
+			name: "nested arrays in objects",
+			expected: []interface{}{
+				map[string]interface{}{"values": []interface{}{float64(1), float64(2)}},
+			},
+			actual: []interface{}{
+				map[string]interface{}{"values": []interface{}{float64(1), float64(2)}},
+			},
+			pass: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if Equal(tt.expected, tt.actual, opts) != tt.pass {
+				t.Errorf("Equal() = %v, want %v", !tt.pass, tt.pass)
+			}
+		})
 	}
 }
 

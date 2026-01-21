@@ -643,13 +643,15 @@ func cmdSomething() int {
 | Variable            | Purpose                                              | Default            |
 | ------------------- | ---------------------------------------------------- | ------------------ |
 | `STRUCTYL_DOCKER`   | Enable Docker mode                                   | `false`            |
-| `STRUCTYL_PARALLEL` | Parallel workers (internal runner only; no effect with mise) | `runtime.NumCPU()` |
+| `STRUCTYL_PARALLEL` | Parallel workers for internal runner. See [commands.md](docs/specs/commands.md#environment-variables) for full semantics. | `runtime.NumCPU()` |
 | `NO_COLOR`          | Disable colored output                               | (unset)            |
 
 **`STRUCTYL_PARALLEL` behavior (internal runner only—mise backend ignores this):**
 - Value `1`: Serial execution (one target at a time)
 - Value `2-256`: Parallel execution with N workers
 - Value `0`, negative, `>256`, or non-numeric: Falls back to `runtime.NumCPU()` with warning
+
+See [docs/specs/commands.md](docs/specs/commands.md#environment-variables) for the authoritative specification.
 
 ## Dependencies
 

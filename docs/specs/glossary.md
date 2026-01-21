@@ -146,6 +146,12 @@ Skip errors are logged as warnings rather than causing command failure and are e
 
 A short identifier for a target (e.g., `rs`, `py`, `cs`). Synonymous with [Target Name](#target-name).
 
+### Standard Command
+
+One of Structyl's predefined command names that toolchains SHOULD implement. The standard command vocabulary is: `clean`, `restore`, `build`, `build:release`, `test`, `test:coverage`, `check`, `check:fix`, `bench`, `demo`, `doc`, `pack`, `publish`, `publish:dry`.
+
+See [commands.md](commands.md#standard-commands) for semantics of each command.
+
 ### Suite
 
 A collection of related test cases, organized as a subdirectory of `tests/`. Example: `tests/center/` is the "center" suite.

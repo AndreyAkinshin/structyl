@@ -80,3 +80,59 @@ func TestCargoParserName(t *testing.T) {
 		t.Errorf("Name: got %s, want cargo", parser.Name())
 	}
 }
+
+func TestCargoParserFailedTestDetails(t *testing.T) {
+	t.Parallel()
+	parser := &CargoParser{}
+
+	// Cargo parser extracts counts from summary line but does not extract
+	// individual test failure details. This test verifies the current behavior:
+	// FailedTests is always empty even when tests fail.
+	tests := []struct {
+		name           string
+		output         string
+		expectedFailed int
+	}{
+		{
+			name: "single failure",
+			output: `running 2 tests
+test test_foo ... ok
+test test_bar ... FAILED
+
+failures:
+
+---- test_bar stdout ----
+thread 'test_bar' panicked at 'assertion failed: expected 42, got 0'
+
+failures:
+    test_bar
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s`,
+			expectedFailed: 1,
+		},
+		{
+			name: "multiple failures",
+			output: `running 3 tests
+test test_foo ... FAILED
+test test_bar ... FAILED
+test test_baz ... ok
+
+test result: FAILED. 1 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s`,
+			expectedFailed: 2,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := parser.Parse(tt.output)
+			if result.Failed != tt.expectedFailed {
+				t.Errorf("Failed count: got %d, want %d", result.Failed, tt.expectedFailed)
+			}
+			// Cargo parser does not extract failure details; verify FailedTests is empty.
+			if len(result.FailedTests) != 0 {
+				t.Errorf("FailedTests: got %d entries, want 0 (cargo parser does not extract details)", len(result.FailedTests))
+			}
+		})
+	}
+}

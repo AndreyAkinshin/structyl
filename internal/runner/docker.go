@@ -4,6 +4,7 @@ package runner
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,12 +14,46 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/config"
 )
 
+// DockerCommandRunner abstracts Docker command execution for testing.
+type DockerCommandRunner interface {
+	// Run executes a Docker command and waits for completion.
+	Run(ctx context.Context, args []string, dir string, stdin io.Reader, stdout, stderr io.Writer) error
+	// CheckAvailable returns nil if Docker is available, or an error if not.
+	CheckAvailable() error
+}
+
+// execDockerRunner is the default implementation using os/exec.
+type execDockerRunner struct{}
+
+func (r *execDockerRunner) Run(ctx context.Context, args []string, dir string, stdin io.Reader, stdout, stderr io.Writer) error {
+	cmd := exec.CommandContext(ctx, "docker", args...)
+	cmd.Dir = dir
+	cmd.Stdin = stdin
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
+	return cmd.Run()
+}
+
+func (r *execDockerRunner) CheckAvailable() error {
+	cmd := exec.Command("docker", "info")
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+	if err := cmd.Run(); err != nil {
+		return &DockerUnavailableError{}
+	}
+	return nil
+}
+
+// defaultDockerRunner is the production command runner.
+var defaultDockerRunner DockerCommandRunner = &execDockerRunner{}
+
 // DockerRunner handles command execution in Docker containers.
 type DockerRunner struct {
 	composeFile   string
 	projectRoot   string
 	config        *config.DockerConfig
 	projectConfig *config.Config // Full project config for per-target Dockerfiles
+	runner        DockerCommandRunner
 }
 
 // NewDockerRunner creates a new DockerRunner.
@@ -28,6 +63,7 @@ func NewDockerRunner(projectRoot string, cfg *config.DockerConfig) *DockerRunner
 		composeFile: composeFileName(cfg),
 		projectRoot: projectRoot,
 		config:      cfg,
+		runner:      defaultDockerRunner,
 	}
 }
 
@@ -43,25 +79,30 @@ func NewDockerRunnerWithConfig(projectRoot string, cfg *config.Config) *DockerRu
 		projectRoot:   projectRoot,
 		config:        dockerCfg,
 		projectConfig: cfg,
+		runner:        defaultDockerRunner,
+	}
+}
+
+// NewDockerRunnerWithCommandRunner creates a DockerRunner with a custom command runner (for testing).
+func NewDockerRunnerWithCommandRunner(projectRoot string, cfg *config.DockerConfig, runner DockerCommandRunner) *DockerRunner {
+	return &DockerRunner{
+		composeFile: composeFileName(cfg),
+		projectRoot: projectRoot,
+		config:      cfg,
+		runner:      runner,
 	}
 }
 
 // IsDockerAvailable checks if Docker is available on the system.
 // Returns true if docker is available, false otherwise.
 func IsDockerAvailable() bool {
-	cmd := exec.Command("docker", "info")
-	cmd.Stdout = nil
-	cmd.Stderr = nil
-	return cmd.Run() == nil
+	return defaultDockerRunner.CheckAvailable() == nil
 }
 
 // CheckDockerAvailable returns an error if Docker is not available.
 // The error will have exit code 3.
 func CheckDockerAvailable() error {
-	if !IsDockerAvailable() {
-		return &DockerUnavailableError{}
-	}
-	return nil
+	return defaultDockerRunner.CheckAvailable()
 }
 
 // DockerUnavailableError indicates Docker is not available.
@@ -79,19 +120,12 @@ func (e *DockerUnavailableError) ExitCode() int {
 // Run executes a command in a Docker container.
 func (r *DockerRunner) Run(ctx context.Context, service, cmd string) error {
 	// Check Docker availability
-	if err := CheckDockerAvailable(); err != nil {
+	if err := r.runner.CheckAvailable(); err != nil {
 		return err
 	}
 
 	args := r.buildRunArgs(service, cmd)
-
-	dockerCmd := exec.CommandContext(ctx, "docker", args...)
-	dockerCmd.Dir = r.projectRoot
-	dockerCmd.Stdout = os.Stdout
-	dockerCmd.Stderr = os.Stderr
-	dockerCmd.Stdin = os.Stdin
-
-	return dockerCmd.Run()
+	return r.runner.Run(ctx, args, r.projectRoot, os.Stdin, os.Stdout, os.Stderr)
 }
 
 // shellCommandArgs returns shell wrapper arguments for executing a command.
@@ -123,7 +157,7 @@ func (r *DockerRunner) buildRunArgs(service, cmd string) []string {
 // If per-target Dockerfiles exist (from mise dockerfile), they will be used.
 // Otherwise falls back to docker-compose.
 func (r *DockerRunner) Build(ctx context.Context, services ...string) error {
-	if err := CheckDockerAvailable(); err != nil {
+	if err := r.runner.CheckAvailable(); err != nil {
 		return err
 	}
 
@@ -138,12 +172,7 @@ func (r *DockerRunner) Build(ctx context.Context, services ...string) error {
 	args := []string{"compose", "-f", r.composeFile, "build"}
 	args = append(args, services...)
 
-	dockerCmd := exec.CommandContext(ctx, "docker", args...)
-	dockerCmd.Dir = r.projectRoot
-	dockerCmd.Stdout = os.Stdout
-	dockerCmd.Stderr = os.Stderr
-
-	return dockerCmd.Run()
+	return r.runner.Run(ctx, args, r.projectRoot, nil, os.Stdout, os.Stderr)
 }
 
 // tryBuildWithDockerfiles attempts to build targets using per-target Dockerfiles.
@@ -190,12 +219,7 @@ func (r *DockerRunner) buildTarget(ctx context.Context, name string, targetCfg c
 	// docker build -t <image> -f <dockerfile> .
 	args := []string{"build", "-t", imageName, "-f", dockerfilePath, "."}
 
-	dockerCmd := exec.CommandContext(ctx, "docker", args...)
-	dockerCmd.Dir = r.projectRoot
-	dockerCmd.Stdout = os.Stdout
-	dockerCmd.Stderr = os.Stderr
-
-	return dockerCmd.Run()
+	return r.runner.Run(ctx, args, r.projectRoot, nil, os.Stdout, os.Stderr)
 }
 
 // getDockerfilePath returns the path to the Dockerfile for a target.
@@ -209,7 +233,7 @@ func (r *DockerRunner) getDockerfilePath(name string, targetCfg config.TargetCon
 
 // Clean removes Docker containers and images.
 func (r *DockerRunner) Clean(ctx context.Context) error {
-	if err := CheckDockerAvailable(); err != nil {
+	if err := r.runner.CheckAvailable(); err != nil {
 		return err
 	}
 
@@ -217,17 +241,12 @@ func (r *DockerRunner) Clean(ctx context.Context) error {
 	// --rmi local: remove only images built locally (not pulled from registry)
 	downArgs := []string{"compose", "-f", r.composeFile, "down", "--rmi", "local", "-v", "--remove-orphans"}
 
-	dockerCmd := exec.CommandContext(ctx, "docker", downArgs...)
-	dockerCmd.Dir = r.projectRoot
-	dockerCmd.Stdout = os.Stdout
-	dockerCmd.Stderr = os.Stderr
-
-	return dockerCmd.Run()
+	return r.runner.Run(ctx, downArgs, r.projectRoot, nil, os.Stdout, os.Stderr)
 }
 
 // Exec executes a command in a running container.
 func (r *DockerRunner) Exec(ctx context.Context, service, cmd string) error {
-	if err := CheckDockerAvailable(); err != nil {
+	if err := r.runner.CheckAvailable(); err != nil {
 		return err
 	}
 
@@ -241,13 +260,7 @@ func (r *DockerRunner) Exec(ctx context.Context, service, cmd string) error {
 	args = append(args, service)
 	args = append(args, shellCommandArgs(cmd)...)
 
-	dockerCmd := exec.CommandContext(ctx, "docker", args...)
-	dockerCmd.Dir = r.projectRoot
-	dockerCmd.Stdout = os.Stdout
-	dockerCmd.Stderr = os.Stderr
-	dockerCmd.Stdin = os.Stdin
-
-	return dockerCmd.Run()
+	return r.runner.Run(ctx, args, r.projectRoot, os.Stdin, os.Stdout, os.Stderr)
 }
 
 // GetDockerMode determines if Docker mode should be used based on flags and environment.

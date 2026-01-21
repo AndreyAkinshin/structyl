@@ -240,23 +240,35 @@ func (r *DockerRunner) Run(ctx context.Context, service string, cmd string) erro
 ```go
 // internal/errors/errors.go
 
-type ConfigError struct {
-    Path    string
+// Exit codes as defined in the specification.
+const (
+    ExitSuccess          = 0 // Success
+    ExitRuntimeError     = 1 // Runtime error (command failed, etc.)
+    ExitConfigError      = 2 // Configuration error (invalid config, etc.)
+    ExitEnvironmentError = 3 // Environment error (Docker not available, etc.)
+)
+
+type ErrorKind int
+
+const (
+    KindRuntime ErrorKind = iota
+    KindConfig
+    KindNotFound
+    KindValidation
+    KindEnvironment
+)
+
+// StructylError is the unified error type for all Structyl errors.
+type StructylError struct {
+    Kind    ErrorKind
     Message string
-}
-
-type TargetError struct {
-    Target  string
-    Command string
-    ExitCode int
-    Output  string
-}
-
-type DependencyError struct {
-    Dependency string
-    Message    string
+    Target  string // Target name if applicable
+    Command string // Command name if applicable
+    Cause   error  // Underlying error
 }
 ```
+
+> **Note:** Use `errors.GetExitCode(err)` to determine the appropriate exit code for any error. This function unwraps error chains to find `StructylError` instances.
 
 ## Testing Strategy
 
@@ -306,9 +318,10 @@ Minimal external dependencies:
 | `path/filepath` | Path handling                |
 | `text/template` | Template processing          |
 
-**External dependencies:**
+**External dependencies (3):**
 
-| Package                | Purpose                    |
-| ---------------------- | -------------------------- |
-| `gopkg.in/yaml.v3`     | YAML parsing               |
-| `golang.org/x/text`    | Text processing            |
+| Package                                     | Purpose                  |
+| ------------------------------------------- | ------------------------ |
+| `gopkg.in/yaml.v3`                          | YAML parsing             |
+| `golang.org/x/text`                         | Text processing          |
+| `github.com/santhosh-tekuri/jsonschema/v6`  | JSON Schema validation   |

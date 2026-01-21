@@ -13,6 +13,19 @@ This document defines error handling semantics for Structyl.
 | `2`  | Configuration Error | Invalid configuration, schema violation, or semantic validation error   | Malformed JSON, missing field, cycle   |
 | `3`  | Environment Error   | External system unavailable, I/O failure, or missing runtime dependency | Docker unavailable, permission denied  |
 
+### Go Constants
+
+For Go integrations, use the constants from `pkg/structyl`:
+
+| Exit Code | Public API (`pkg/structyl`) | Internal (`internal/errors`) |
+| --------- | --------------------------- | ---------------------------- |
+| 0         | `ExitSuccess`               | `ExitSuccess`                |
+| 1         | `ExitFailure`               | `ExitRuntimeError`           |
+| 2         | `ExitConfigError`           | `ExitConfigError`            |
+| 3         | `ExitEnvError`              | `ExitEnvironmentError`       |
+
+External tools SHOULD use the `pkg/structyl` constants. The internal constants have different names for historical reasons but map to the same exit codes.
+
 ### Exit Code Categories
 
 **Code 1 (Failure)** indicates the user's project has an issue that Structyl correctly detected. The configuration is valid; the build/test simply failed.

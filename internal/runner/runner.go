@@ -220,6 +220,11 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 
 			err := t.Execute(ctx, cmd, execOpts)
 
+			// Mutex scope: The lock protects the shared errs slice. The cancel()
+			// call inside the lock ensures atomic "append error + trigger cancel"
+			// semantics, preventing a race where multiple goroutines could append
+			// errors after cancellation was triggered. While cancel() itself is
+			// thread-safe, keeping it under the lock provides clearer invariants.
 			mu.Lock()
 			defer mu.Unlock()
 

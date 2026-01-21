@@ -5,6 +5,14 @@ import (
 	"strconv"
 )
 
+// Static regexes for pytest output parsing.
+// Compiled once at package init for performance.
+var (
+	pytestPassedRegex  = regexp.MustCompile(`(\d+) passed`)
+	pytestFailedRegex  = regexp.MustCompile(`(\d+) failed`)
+	pytestSkippedRegex = regexp.MustCompile(`(\d+) skipped`)
+)
+
 // PytestParser parses Python pytest output.
 type PytestParser struct{}
 
@@ -23,26 +31,20 @@ func (p *PytestParser) Name() string {
 func (p *PytestParser) Parse(output string) TestCounts {
 	counts := TestCounts{}
 
-	// Match the summary line - more flexible pattern
-	// Look for patterns like "N passed", "N failed", "N skipped"
-	passedRegex := regexp.MustCompile(`(\d+) passed`)
-	failedRegex := regexp.MustCompile(`(\d+) failed`)
-	skippedRegex := regexp.MustCompile(`(\d+) skipped`)
-
 	// Find passed count
-	if match := passedRegex.FindStringSubmatch(output); len(match) >= 2 {
+	if match := pytestPassedRegex.FindStringSubmatch(output); len(match) >= 2 {
 		counts.Passed, _ = strconv.Atoi(match[1])
 		counts.Parsed = true
 	}
 
 	// Find failed count
-	if match := failedRegex.FindStringSubmatch(output); len(match) >= 2 {
+	if match := pytestFailedRegex.FindStringSubmatch(output); len(match) >= 2 {
 		counts.Failed, _ = strconv.Atoi(match[1])
 		counts.Parsed = true
 	}
 
 	// Find skipped count
-	if match := skippedRegex.FindStringSubmatch(output); len(match) >= 2 {
+	if match := pytestSkippedRegex.FindStringSubmatch(output); len(match) >= 2 {
 		counts.Skipped, _ = strconv.Atoi(match[1])
 		counts.Parsed = true
 	}

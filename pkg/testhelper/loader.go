@@ -31,6 +31,16 @@
 //     available in the internal test runner. Test cases using $file syntax
 //     should use the internal tests package or embed data directly in JSON.
 //
+// # Existence Checks
+//
+// Two patterns are available for checking if suites or test cases exist:
+//
+//   - [SuiteExists], [TestCaseExists] return bool (false on any error)
+//   - [SuiteExistsErr], [TestCaseExistsErr] distinguish "not found" from "access error"
+//
+// Use the *Err variants when you need to differentiate between a missing
+// resource and a permission or I/O error.
+//
 // # Panic Behavior
 //
 // Comparison functions ([Equal], [Compare], [FormatComparisonResult]) panic if

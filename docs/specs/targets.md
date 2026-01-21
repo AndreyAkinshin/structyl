@@ -325,7 +325,7 @@ This is a known limitation tracked for future improvement.
 | Unset or empty                             | Default to number of CPU cores           |
 | `1`                                        | Serial execution (one target at a time)  |
 | `2` to `256`                               | Parallel execution with N workers        |
-| `0`, negative, >256, or non-integer        | Falls back to CPU core count (with warning) |
+| `0`, negative, `>256`, or non-integer      | Falls back to CPU core count (with warning) |
 
 **Output Handling:**
 

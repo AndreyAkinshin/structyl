@@ -12,6 +12,10 @@ A file or directory produced by a build process. Examples: compiled binaries, pa
 
 A target with `type: "auxiliary"`. Auxiliary targets are supporting tools that are not language implementations (e.g., image generation, PDF documentation, websites). Included in `structyl build` but not in `structyl test` or `structyl demo`.
 
+### Build Artifact
+
+A specific type of [Artifact](#artifact) produced by a build command. Includes compiled binaries, libraries, and intermediate build outputs. Distinguished from release artifacts (packaged distributions) and documentation artifacts (generated docs). In Structyl context, build artifacts are typically created by `build` or `build:release` commands and cleaned by `clean`.
+
 ### Code Fence
 
 A markdown syntax for displaying code blocks. Uses triple backticks followed by a language identifier. Example: ` ```python `. Used in README templates to specify syntax highlighting for demo code.
@@ -19,6 +23,10 @@ A markdown syntax for displaying code blocks. Uses triple backticks followed by 
 ### Command
 
 An action that can be performed on a target. Standard commands include `clean`, `restore`, `build`, `build:release`, `test`, `test:coverage`, `check`, `check:fix`, `bench`, `demo`, `doc`, `pack`, `publish`, and `publish:dry`. Custom commands are also permitted. See [commands.md](commands.md) for the complete vocabulary.
+
+### Configuration
+
+The project settings defined in `.structyl/config.json`. Configuration includes project metadata, target definitions, toolchain settings, version management rules, and optional sections for tests, documentation, Docker, CI, and artifacts. See [configuration.md](configuration.md) for the complete schema.
 
 ### Configuration Error
 

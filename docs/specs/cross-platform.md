@@ -20,7 +20,7 @@ Structyl executes commands defined in `.structyl/config.json` using the platform
 
 | Platform            | Shell      | Invocation                        |
 | ------------------- | ---------- | --------------------------------- |
-| Unix (macOS, Linux) | Bash       | `bash -c "<command>"`             |
+| Unix (macOS, Linux) | sh         | `sh -c "<command>"`               |
 | Windows             | PowerShell | `powershell -Command "<command>"` |
 
 ### Shell Selection Logic
@@ -29,7 +29,7 @@ Structyl executes commands defined in `.structyl/config.json` using the platform
 if (Windows) {
     execute via PowerShell
 } else {
-    execute via bash
+    execute via sh
 }
 ```
 

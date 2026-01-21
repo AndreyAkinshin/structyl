@@ -350,12 +350,27 @@ The `--push` flag pushes to the remote specified by `release.remote` in config (
 
 ### Go Module Tag
 
-Go modules require a special tag format. Configure additional tags:
+Go modules in subdirectories require tags prefixed with the module path. The `extra_tags` field in release configuration creates these additional tags automatically.
+
+**Configuration:**
+
+```json
+{
+  "release": {
+    "tag_format": "v{version}",
+    "extra_tags": ["go/v{version}"]
+  }
+}
+```
+
+**Usage:**
 
 ```bash
 structyl release 2.0.0 --push
-# Creates: v2.0.0, go/v2.0.0
+# Creates tags: v2.0.0, go/v2.0.0
 ```
+
+**Why this is needed:** When a Go module is located at `go/` in a multi-language repository, the Go toolchain expects tags like `go/v2.0.0` to resolve the module version correctly. The primary tag `v2.0.0` is for general release tracking, while `go/v2.0.0` satisfies Go's module versioning requirements.
 
 ## Validation
 

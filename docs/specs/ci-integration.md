@@ -61,6 +61,10 @@ clean → restore → check → build:release → test
 
 Targets are processed in dependency order, respecting `depends_on` declarations.
 
+### Custom Pipelines
+
+The default CI steps can be overridden using the `ci` configuration section in `.structyl/config.json`. See [configuration.md#ci](configuration.md#ci) for custom pipeline definitions including step dependencies and `continue_on_error` behavior.
+
 ::: warning Parallel Execution Limitation
 When `STRUCTYL_PARALLEL > 1`, Structyl does not guarantee that targets in `depends_on` complete before the dependent target starts. See [targets.md#known-limitation-parallel-execution-and-dependencies](targets.md#known-limitation-parallel-execution-and-dependencies) for details and workarounds.
 :::

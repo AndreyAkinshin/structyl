@@ -373,6 +373,12 @@ The public Go `pkg/testhelper` package has the following limitations compared to
 2. **No recursive glob patterns**: `LoadTestSuite` uses `filepath.Glob("*.json")` which matches JSON files in the immediate suite directory only. The `tests.pattern` configuration setting (which supports `**` recursive patterns) is only used by Structyl's internal runner. To load nested test files with `pkg/testhelper`, iterate subdirectories manually.
 :::
 
+**Alternative approaches for binary test data:**
+
+1. **Base64 encoding**: Embed binary data as base64-encoded strings in JSON and decode in your test setup
+2. **Separate loading**: Implement project-specific file loading alongside `pkg/testhelper` that reads binary files directly from the suite directory
+3. **Pre-compute comparisons**: For binary output verification, compute checksums (SHA256) in JSON expected output and compare hashes instead of raw bytes
+
 ### Deprecated Functions
 
 The following functions in `pkg/testhelper` are deprecated and will be removed in v2.0.0:

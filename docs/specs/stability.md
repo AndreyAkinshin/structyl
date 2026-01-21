@@ -36,7 +36,7 @@ Behavioral compatibility means existing behavior is preserved even if not explic
 **Guarantees:**
 - Exit codes MUST NOT change meaning within a major version
 - Default behavior MUST NOT change within a major version
-- Error message formats MUST NOT change within a major version (parseable portions)
+- Error message formats defined in the [Error Message Grammar](error-handling.md#format-grammar) MUST NOT change within a major version
 
 **Allowed changes in minor/patch versions:**
 - Improved error messages (wording, not structure)
@@ -81,6 +81,7 @@ Structyl logs warnings when deprecated features are used.
 |---------|---------------|----------------|-------------|--------|
 | `CompareOutput` function | v1.0.0 | v2.0.0 | `Equal` | Clearer function name |
 | `FormatDiff` function | v1.0.0 | v2.0.0 | `FormatComparisonResult` | Better semantics (empty string on match, diff on mismatch) |
+| `NewCompareOptions` function | v1.0.0 | v2.0.0 | `NewCompareOptionsOrdered` | Parameter order differs from struct field order |
 | `SpecialFloatPosInfinity` constant | v1.0.0 | v2.0.0 | `SpecialFloatInfinity` | Canonical form preferred (`"Infinity"` vs `"+Infinity"`) |
 | `new` command (alias) | v1.0.0 | v2.0.0 | `init` | Standardize on `init` for initialization |
 

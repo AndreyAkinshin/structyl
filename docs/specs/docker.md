@@ -52,11 +52,12 @@ STRUCTYL_DOCKER=1 structyl build
 | `--docker` flag present                                   | **Enabled**                      |
 | `--no-docker` flag present                                | **Disabled** (overrides env var) |
 | `STRUCTYL_DOCKER` = `1`, `true`, `yes` (case-insensitive) | Enabled                          |
-| `STRUCTYL_DOCKER` = `0`, `false`, `no`                    | Disabled                         |
+| `STRUCTYL_DOCKER` = any other non-empty value             | Disabled                         |
 | `STRUCTYL_DOCKER` unset or empty                          | Disabled                         |
-| `STRUCTYL_DOCKER` = other value                           | Warning emitted; disabled        |
 
 Command-line flags take precedence over environment variables. The `--no-docker` flag explicitly disables Docker mode even if `STRUCTYL_DOCKER` is set.
+
+> **Note:** The `STRUCTYL_DOCKER` environment variable uses an allow-list approach: only `1`, `true`, and `yes` (case-insensitive) enable Docker mode. All other non-empty values (including `0`, `false`, `no`) silently disable Docker mode.
 
 ## Docker Compose Configuration
 
@@ -298,10 +299,25 @@ The Docker configuration has two per-target sections with distinct purposes:
 
 | Section    | Purpose                | Use For                                                |
 | ---------- | ---------------------- | ------------------------------------------------------ |
-| `services` | Image **building**     | `base_image`, `dockerfile`, build-time `volumes`       |
+| `services` | Image **building**     | `base_image`, `dockerfile`, `platform`, build-time `volumes` |
 | `targets`  | Container **runtime**  | `platform`, `cache_volume`, `entrypoint`, `environment` |
 
-Note: `platform` in `services` affects the built image architecture; `platform` in `targets` affects which architecture Docker uses to run the container.
+### Platform Precedence
+
+Both `services.<target>.platform` and `targets.<target>.platform` configure the target platform, but at different stages:
+
+| Configuration                  | Effect                                                    |
+| ------------------------------ | --------------------------------------------------------- |
+| `services.<target>.platform`   | Platform for `docker build` (baked into the image)        |
+| `targets.<target>.platform`    | Platform for `docker compose run` (overrides at runtime)  |
+
+**Precedence rules:**
+
+1. If only `services.platform` is set: The image is built for that platform and runs on that platform.
+2. If only `targets.platform` is set: The image is built for the host platform, but containers are run on the specified platform (emulated if necessary).
+3. If both are set: The image is built with `services.platform`, but runtime uses `targets.platform`. **This configuration is typically a mistake** — if platforms differ, Docker will pull/emulate the wrong architecture.
+
+**Recommendation:** Set `platform` in `services` for build-time platform selection. Only use `targets.platform` when you need runtime-only platform override (rare).
 
 ## Configuration Reference
 

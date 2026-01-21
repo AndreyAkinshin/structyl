@@ -157,6 +157,13 @@ Build targets configuration. See [targets.md](targets.md) for details.
 | `depends_on`       | array  | `[]`           | Targets that must build first                         |
 | `demo_path`        | string | None           | Path to demo source (for doc generation)              |
 
+**Validation Errors:**
+
+| Missing Field | Exit Code | Error Message |
+|---------------|-----------|---------------|
+| `type` | 2 | `targets.{name}: type is required` |
+| `title` | 2 | `targets.{name}: title is required` |
+
 #### Command Definitions
 
 Commands can be defined in several forms:

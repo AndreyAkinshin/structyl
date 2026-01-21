@@ -25,7 +25,10 @@ var out = output.New()
 // risking scheduler thrashing or excessive memory usage from blocked goroutines.
 const maxParallelWorkers = 256
 
-// Runner orchestrates command execution across targets.
+// Runner orchestrates command execution across multiple targets.
+// It handles dependency ordering for sequential runs and parallel
+// execution via a worker pool. The Runner uses a target.Registry
+// to resolve targets and their commands.
 type Runner struct {
 	registry *target.Registry
 }
@@ -164,6 +167,17 @@ func (r *Runner) runSequential(ctx context.Context, targets []target.Target, cmd
 	return nil
 }
 
+// warnIfHasDependencies emits a warning if any target has dependencies.
+// Parallel mode doesn't respect depends_on ordering, so users should be aware.
+func warnIfHasDependencies(targets []target.Target) {
+	for _, t := range targets {
+		if len(t.DependsOn()) > 0 {
+			out.WarningSimple("parallel mode does not respect depends_on ordering; targets may execute before dependencies complete")
+			return
+		}
+	}
+}
+
 // runParallel executes targets concurrently using a bounded worker pool.
 //
 // NOTE: This function does NOT respect depends_on ordering. All targets are
@@ -172,15 +186,8 @@ func (r *Runner) runSequential(ctx context.Context, targets []target.Target, cmd
 //
 // Worker count is controlled by STRUCTYL_PARALLEL (default: runtime.NumCPU()).
 func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd string, opts RunOptions) error {
+	warnIfHasDependencies(targets)
 	workers := getParallelWorkers()
-
-	// Warn if any targets have dependencies - parallel mode doesn't respect them
-	for _, t := range targets {
-		if len(t.DependsOn()) > 0 {
-			out.WarningSimple("parallel mode does not respect depends_on ordering; targets may execute before dependencies complete")
-			break
-		}
-	}
 
 	// Create cancellable context for fail-fast
 	ctx, cancel := context.WithCancel(ctx)

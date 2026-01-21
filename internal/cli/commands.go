@@ -11,6 +11,7 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
+	"github.com/AndreyAkinshin/structyl/internal/config"
 	internalerrors "github.com/AndreyAkinshin/structyl/internal/errors"
 	"github.com/AndreyAkinshin/structyl/internal/mise"
 	"github.com/AndreyAkinshin/structyl/internal/output"
@@ -86,6 +87,18 @@ const (
 	MiseForceRegenerate
 )
 
+// isMiseAutoGenerateEnabled returns true if auto_generate is enabled.
+// Auto-generation is enabled by default (true) when:
+// - mise config is nil (not specified)
+// - mise.auto_generate is nil (not specified)
+// - mise.auto_generate is explicitly true
+func isMiseAutoGenerateEnabled(cfg *config.Config) bool {
+	if cfg.Mise == nil || cfg.Mise.AutoGenerate == nil {
+		return true
+	}
+	return *cfg.Mise.AutoGenerate
+}
+
 // ensureMiseConfig ensures mise.toml is up-to-date.
 // Regenerates when: forced, auto_generate enabled (default true), or file missing.
 func ensureMiseConfig(proj *project.Project, mode MiseRegenerateMode) error {
@@ -99,11 +112,7 @@ func ensureMiseConfig(proj *project.Project, mode MiseRegenerateMode) error {
 		return writeMiseConfig(proj)
 	}
 
-	// Auto-generation enabled (default true when not explicitly disabled)
-	autoGen := proj.Config.Mise == nil ||
-		proj.Config.Mise.AutoGenerate == nil ||
-		*proj.Config.Mise.AutoGenerate
-	if autoGen {
+	if isMiseAutoGenerateEnabled(proj.Config) {
 		return writeMiseConfig(proj)
 	}
 

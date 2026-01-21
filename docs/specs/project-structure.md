@@ -6,7 +6,7 @@ This document defines the standard directory layout for Structyl projects.
 
 ## Root Marker
 
-The presence of `.structyl/config.json` marks the project root directory.
+A valid Structyl project MUST contain `.structyl/config.json` at the project root.
 
 Structyl locates the project root by walking up from the current working directory until finding `.structyl/config.json`. No alternative markers are supported—this simplifies discovery and ensures consistency.
 
@@ -234,7 +234,7 @@ These directory names have special meaning:
 | `templates` | Documentation templates                                                |
 | `artifacts` | Build output (created by CI)                                           |
 
-Avoid using these as target names unless intended.
+Reserved names SHOULD NOT be used as target names to avoid confusion.
 
 ### `.structyl/` Directory Contents
 

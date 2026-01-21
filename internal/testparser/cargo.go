@@ -35,6 +35,8 @@ func (p *CargoParser) Parse(output string) TestCounts {
 	// Aggregate all test result lines (there may be multiple test binaries)
 	for _, match := range matches {
 		if len(match) >= 4 {
+			// Errors ignored: regex (\d+) guarantees match groups contain only digits,
+			// so strconv.Atoi cannot fail.
 			passed, _ := strconv.Atoi(match[1])
 			failed, _ := strconv.Atoi(match[2])
 			ignored, _ := strconv.Atoi(match[3])

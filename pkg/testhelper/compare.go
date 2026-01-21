@@ -12,19 +12,25 @@ import (
 
 // CompareOptions configures output comparison behavior.
 //
-// # Zero Value
+// # Zero Value vs DefaultOptions
 //
-// The zero value of CompareOptions is valid and usable:
+// The zero value of CompareOptions is valid and usable, but differs from
+// [DefaultOptions]:
 //
-//	var opts CompareOptions  // valid: FloatTolerance=0, ToleranceMode="", ArrayOrder=""
+//	| Field          | Zero Value       | DefaultOptions()  |
+//	|----------------|------------------|-------------------|
+//	| FloatTolerance | 0 (exact match)  | 1e-9              |
+//	| ToleranceMode  | "" (→ relative)  | "relative"        |
+//	| NaNEqualsNaN   | false            | true              |
+//	| ArrayOrder     | "" (→ strict)    | "strict"          |
+//
+// The zero value requires exact float equality, which is rarely appropriate
+// for computed results. For typical use cases, prefer [DefaultOptions] or
+// [NewCompareOptions].
 //
 // Empty strings for ToleranceMode and ArrayOrder are treated as defaults:
 //   - ToleranceMode "" → ToleranceModeRelative
 //   - ArrayOrder "" → ArrayOrderStrict
-//
-// The zero value uses strict equality (tolerance=0) which may not be suitable
-// for floating-point comparisons. For typical use cases, prefer [DefaultOptions]
-// or [NewCompareOptions].
 //
 // # Construction
 //
@@ -269,9 +275,18 @@ func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
 
 // Compare compares expected and actual outputs with detailed diff.
 // Returns true if they match, and a diff string if they don't.
-// Panics if opts contains invalid enum values (use ValidateOptions to check beforehand).
-// This fail-fast behavior ensures invalid options are caught immediately rather than
-// silently producing incorrect comparison results.
+//
+// # Panic Behavior
+//
+// Panics if opts contains invalid values. Specific panic conditions:
+//   - ToleranceMode not in {"", "relative", "absolute", "ulp"}
+//   - ArrayOrder not in {"", "strict", "unordered"}
+//   - FloatTolerance < 0
+//   - ToleranceMode == "ulp" && FloatTolerance > math.MaxInt64
+//
+// Use [ValidateOptions] to check opts before calling if validation errors
+// should not panic. This fail-fast behavior ensures invalid options are
+// caught immediately rather than silently producing incorrect comparison results.
 //
 // Special string values in expected trigger float comparisons:
 //   - "NaN" matches actual NaN (per NaNEqualsNaN option)

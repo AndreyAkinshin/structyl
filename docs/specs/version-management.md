@@ -42,12 +42,15 @@ Examples:
 
 ### Error Conditions
 
-| Condition                      | Exit Code | Error Message                                              |
-| ------------------------------ | --------- | ---------------------------------------------------------- |
-| Version source file missing    | 2         | `structyl: version source file not found: {os_error}`      |
-| Version source file empty      | 2         | `structyl: version source file is empty: {path}`           |
-| Version source file unreadable | 3         | `structyl: cannot read version source file: {os_error}`    |
-| Invalid version format         | 2         | `structyl: invalid version in {path}: {validation_error}`  |
+| Condition                               | Exit Code | Error Message                                              |
+| --------------------------------------- | --------- | ---------------------------------------------------------- |
+| Version source file missing             | 2         | `structyl: version source file not found: {os_error}`      |
+| Version source file empty               | 2         | `structyl: version source file is empty: {path}`           |
+| Version source file whitespace-only     | 2         | `structyl: version source file is empty: {path}`           |
+| Version source file unreadable          | 3         | `structyl: cannot read version source file: {os_error}`    |
+| Invalid version format                  | 2         | `structyl: invalid version in {path}: {validation_error}`  |
+
+**Note:** Files containing only whitespace (spaces, tabs, newlines) are treated as empty after stripping, producing the same error as a truly empty file.
 
 ## Version Commands
 

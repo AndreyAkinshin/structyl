@@ -191,7 +191,7 @@ The version of the underlying tool managed by a toolchain. Used by mise to deter
 3. Built-in toolchain default
 4. `"latest"` as final fallback
 
-See [toolchains.md](toolchains.md) for toolchain configuration details.
+See [Toolchain Version Resolution](toolchains.md#toolchain-version-resolution) for the normative specification.
 
 ### Topological Order
 

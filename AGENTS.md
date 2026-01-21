@@ -204,7 +204,8 @@ type Runner struct {
 
 type RunOptions struct {
     Docker    bool              // Run in Docker container
-    Continue  bool              // Internal testing only; always false in production (CLI --continue removed)
+    Continue  bool              // Internal testing only; always false in production.
+                              // CLI --continue removed in v1.0.0. See docs/specs/commands.md#removed-flags
     Parallel  bool              // Parallel execution (internal runner; mise handles its own parallelism)
     Args      []string          // Pass-through arguments
     Env       map[string]string // Additional environment variables

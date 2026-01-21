@@ -5,6 +5,10 @@ import (
 	"strconv"
 )
 
+// Static regex for Cargo test output parsing.
+// Compiled once at package init for performance.
+var cargoResultRegex = regexp.MustCompile(`test result: \w+\.\s*(\d+) passed;\s*(\d+) failed;\s*(\d+) ignored`)
+
 // CargoParser parses Rust/Cargo test output.
 type CargoParser struct{}
 
@@ -23,9 +27,7 @@ func (p *CargoParser) Parse(output string) TestCounts {
 
 	// Match the test result summary line
 	// Format: test result: (ok|FAILED). N passed; N failed; N ignored; ...
-	regex := regexp.MustCompile(`test result: \w+\.\s*(\d+) passed;\s*(\d+) failed;\s*(\d+) ignored`)
-
-	matches := regex.FindAllStringSubmatch(output, -1)
+	matches := cargoResultRegex.FindAllStringSubmatch(output, -1)
 	if len(matches) == 0 {
 		return counts
 	}

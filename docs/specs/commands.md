@@ -304,6 +304,8 @@ This file complements the root `AGENTS.md` with project-specific context.
 | 1 | File system error |
 | 2 | Configuration error (e.g., invalid existing config) |
 
+> **Note:** The `new` command is a deprecated alias for `init`. It will be removed in v2.0.0. Use `init` instead.
+
 ### `release` Command
 
 ```

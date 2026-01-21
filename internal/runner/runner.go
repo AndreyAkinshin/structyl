@@ -32,8 +32,12 @@ type Runner struct {
 
 // RunOptions configures execution behavior.
 type RunOptions struct {
-	Docker   bool // Run in Docker container
-	Continue bool // Continue on error (don't fail-fast)
+	Docker bool // Run in Docker container
+	// Continue controls whether execution continues after a target fails.
+	// NOTE: The CLI --continue flag was removed; mise backend always stops on
+	// first failure. This field is retained for internal use only (e.g., direct
+	// Runner API calls in tests). CLI commands do not expose this option.
+	Continue bool
 	// Parallel enables concurrent target execution with a worker pool.
 	// KNOWN LIMITATION: Parallel mode does NOT respect depends_on ordering.
 	// Targets may execute before their dependencies complete. For dependency-

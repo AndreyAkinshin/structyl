@@ -781,7 +781,15 @@ func validatePathComponent(name string) error {
 // Returns (true, nil) if the suite exists, (false, nil) if it doesn't exist,
 // or (false, error) for other errors like permission denied.
 // This variant is useful when callers need to distinguish "not found" from "access error".
+//
+// This function validates the suite name and returns (false, nil) for invalid names
+// (containing path separators or traversal sequences like ".."). This matches the
+// behavior of [SuiteExists] and prevents path injection when the suite name comes
+// from untrusted input.
 func SuiteExistsErr(projectRoot, suite string) (bool, error) {
+	if err := ValidateSuiteName(suite); err != nil {
+		return false, nil
+	}
 	suiteDir := filepath.Join(projectRoot, "tests", suite)
 	info, err := os.Stat(suiteDir)
 	if err != nil {
@@ -800,7 +808,18 @@ func SuiteExistsErr(projectRoot, suite string) (bool, error) {
 // Returns (true, nil) if the test case exists, (false, nil) if it doesn't exist,
 // or (false, error) for other errors like permission denied.
 // This variant is useful when callers need to distinguish "not found" from "access error".
+//
+// This function validates both suite and name parameters and returns (false, nil) for
+// invalid names (containing path separators or traversal sequences like ".."). This matches
+// the behavior of [TestCaseExists] and prevents path injection when names come from
+// untrusted input.
 func TestCaseExistsErr(projectRoot, suite, name string) (bool, error) {
+	if err := ValidateSuiteName(suite); err != nil {
+		return false, nil
+	}
+	if err := validatePathComponent(name); err != nil {
+		return false, nil
+	}
 	path := filepath.Join(projectRoot, "tests", suite, name+".json")
 	_, err := os.Stat(path)
 	if err != nil {

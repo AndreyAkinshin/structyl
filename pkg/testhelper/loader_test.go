@@ -715,6 +715,46 @@ func TestLoadTestCase_NullOutput_ReturnsError(t *testing.T) {
 	}
 }
 
+func TestLoadTestCase_ArrayInput_ReturnsError(t *testing.T) {
+	// Input MUST be a JSON object, not an array. Arrays silently unmarshal
+	// to nil when target is map[string]interface{}, so validation must check
+	// the raw JSON to provide a clear error message.
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "array_input.json")
+
+	content := `{"input": [1, 2, 3], "output": 6}`
+	if err := os.WriteFile(testFile, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadTestCase(testFile)
+	if err == nil {
+		t.Error("LoadTestCase() expected error for array input")
+	}
+	if err != nil && !strings.Contains(err.Error(), "must be an object, not an array") {
+		t.Errorf("error should mention input must be an object, got: %v", err)
+	}
+}
+
+func TestLoadTestCase_ScalarInput_ReturnsError(t *testing.T) {
+	// Input MUST be a JSON object, not a scalar value.
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "scalar_input.json")
+
+	content := `{"input": 42, "output": 42}`
+	if err := os.WriteFile(testFile, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadTestCase(testFile)
+	if err == nil {
+		t.Error("LoadTestCase() expected error for scalar input")
+	}
+	if err != nil && !strings.Contains(err.Error(), "must be an object, not a scalar") {
+		t.Errorf("error should mention input must be an object, got: %v", err)
+	}
+}
+
 func TestLoadTestSuite_InvalidJSON_ReturnsError(t *testing.T) {
 	tmpDir := t.TempDir()
 	suiteDir := filepath.Join(tmpDir, "tests", "broken")

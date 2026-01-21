@@ -79,13 +79,7 @@ func (r *Runner) RunAll(ctx context.Context, cmd string, opts RunOptions) error 
 		return err
 	}
 
-	// Filter to targets that have this command
-	var filtered []target.Target
-	for _, t := range targets {
-		if _, ok := t.GetCommand(cmd); ok {
-			filtered = append(filtered, t)
-		}
-	}
+	filtered := filterByCommand(targets, cmd)
 
 	if len(filtered) == 0 {
 		out.WarningSimple("no targets support command %q", cmd)
@@ -113,14 +107,14 @@ func (r *Runner) RunTargets(ctx context.Context, targetNames []string, cmd strin
 		targetSet[name] = true
 	}
 
-	var filtered []target.Target
+	var requestedTargets []target.Target
 	for _, t := range allTargets {
 		if targetSet[t.Name()] {
-			if _, ok := t.GetCommand(cmd); ok {
-				filtered = append(filtered, t)
-			}
+			requestedTargets = append(requestedTargets, t)
 		}
 	}
+
+	filtered := filterByCommand(requestedTargets, cmd)
 
 	if len(filtered) == 0 {
 		out.WarningSimple("no targets support command %q", cmd)
@@ -278,4 +272,16 @@ func combineErrors(errs []error) error {
 		return errs[0]
 	}
 	return errors.Join(errs...)
+}
+
+// filterByCommand returns targets that have the specified command defined.
+// Preserves the input slice order.
+func filterByCommand(targets []target.Target, cmd string) []target.Target {
+	var filtered []target.Target
+	for _, t := range targets {
+		if _, ok := t.GetCommand(cmd); ok {
+			filtered = append(filtered, t)
+		}
+	}
+	return filtered
 }

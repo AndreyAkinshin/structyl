@@ -136,13 +136,7 @@ func (r *Runner) runPhase(ctx context.Context, phase string, targets []target.Ta
 		Parallel: parallel,
 	}
 
-	// Filter to targets that have this command
-	var filtered []target.Target
-	for _, t := range targets {
-		if _, ok := t.GetCommand(phase); ok {
-			filtered = append(filtered, t)
-		}
-	}
+	filtered := filterByCommand(targets, phase)
 
 	if len(filtered) == 0 {
 		result.EndTime = time.Now()

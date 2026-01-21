@@ -139,7 +139,6 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 		return internalerrors.ExitConfigError
 	}
 
-	// First argument is always the command
 	cmd := args[0]
 	remaining := args[1:]
 

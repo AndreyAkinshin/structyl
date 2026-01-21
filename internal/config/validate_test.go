@@ -218,6 +218,45 @@ func TestValidateTargetName_AllowsTrailingHyphen(t *testing.T) {
 	}
 }
 
+func TestValidateTargetName_LengthBoundaries(t *testing.T) {
+	t.Parallel()
+
+	// Generate names of specific lengths (all 'a' characters)
+	makeName := func(length int) string {
+		name := make([]byte, length)
+		for i := range name {
+			name[i] = 'a'
+		}
+		return string(name)
+	}
+
+	tests := []struct {
+		length  int
+		wantErr bool
+		desc    string
+	}{
+		{63, false, "one below max"},
+		{64, false, "exactly max"},
+		{65, true, "one above max"},
+		{100, true, "well above max"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
+			name := makeName(tt.length)
+			err := ValidateTargetName(name)
+			if tt.wantErr && err == nil {
+				t.Errorf("ValidateTargetName(%d chars) = nil, want error", tt.length)
+			}
+			if !tt.wantErr && err != nil {
+				t.Errorf("ValidateTargetName(%d chars) = %v, want nil", tt.length, err)
+			}
+		})
+	}
+}
+
 func TestValidate_EmptyTargetType(t *testing.T) {
 	t.Parallel()
 	cfg := &Config{

@@ -94,11 +94,8 @@ func ensureMiseConfig(proj *project.Project, mode MiseRegenerateMode) error {
 		autoGen = *proj.Config.Mise.AutoGenerate
 	}
 
-	miseTomlExists := mise.MiseTomlExists(proj.Root)
-	forceRegenerate := mode == MiseForceRegenerate
-	fileNeedsCreation := !miseTomlExists
 	// Regenerate if: explicitly forced, auto-generation enabled, or file is missing
-	shouldRegenerate := forceRegenerate || autoGen || fileNeedsCreation
+	shouldRegenerate := mode == MiseForceRegenerate || autoGen || !mise.MiseTomlExists(proj.Root)
 	if shouldRegenerate {
 		_, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, true)
 		if err != nil {

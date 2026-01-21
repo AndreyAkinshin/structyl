@@ -18,6 +18,10 @@ type TestCounts struct {
 }
 
 // Add adds another TestCounts to this one, aggregating the counts.
+// The Parsed flag uses "sticky true" semantics: if any added TestCounts
+// has Parsed=true, the aggregate will have Parsed=true. This means
+// Parsed indicates "at least one result was successfully parsed",
+// not "all results were parsed".
 func (tc *TestCounts) Add(other *TestCounts) {
 	if other == nil {
 		return

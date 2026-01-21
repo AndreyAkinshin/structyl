@@ -34,6 +34,9 @@ var varPattern = regexp.MustCompile(`\$\{([^}]+)\}`)
 const escapePlaceholder = "\x00ESCAPED\x00"
 
 // SkipReason indicates why command execution was skipped.
+// When adding new SkipReason constants, you MUST also update the
+// SkipError.Error() method's switch statement to handle the new reason.
+// The default case produces a generic message for unknown reasons.
 type SkipReason string
 
 const (

@@ -471,6 +471,27 @@ func LoadTestCaseWithSuite(path, suite string) (*TestCase, error) {
 	return loadTestCaseInternal(path, suite)
 }
 
+// LoadTestCaseByName loads a single test case by suite and name from a project root.
+// This is a convenience function that constructs the correct path and sets the Suite field.
+//
+// The test case is loaded from: {projectRoot}/tests/{suite}/{name}.json
+//
+// Returns:
+//   - [ErrEmptySuiteName] or [ErrInvalidSuiteName] if suite validation fails
+//   - [ErrEmptyTestCaseName] or [ErrInvalidTestCaseName] if name validation fails
+//   - [ErrTestCaseNotFound] if the test case file does not exist
+//   - Other errors for invalid JSON or missing required fields
+func LoadTestCaseByName(projectRoot, suite, name string) (*TestCase, error) {
+	if err := ValidateSuiteName(suite); err != nil {
+		return nil, err
+	}
+	if err := ValidateTestCaseName(name); err != nil {
+		return nil, err
+	}
+	path := filepath.Join(projectRoot, "tests", suite, name+".json")
+	return loadTestCaseInternal(path, suite)
+}
+
 // outputPresenceChecker is used to distinguish between missing and null output fields.
 // Go's json.Unmarshal sets interface{} to nil for both cases, so we check if the
 // "output" key exists in the raw JSON object.

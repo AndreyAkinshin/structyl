@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://structyl.akinshin.dev/schema/testcase.json",
+  "title": "Structyl Test Case",
+  "description": "Schema for test case files in structyl projects (tests/<suite>/*.json)",
+  "type": "object",
+  "required": ["input", "output"],
+  "properties": {
+    "input": {
+      "type": "object",
+      "description": "Input parameters for the test. Must be a JSON object (not array or scalar). Empty object {} is valid.",
+      "additionalProperties": true
+    },
+    "output": {
+      "description": "Expected output value. Can be any JSON type except null. Use explicit values (empty string, empty object, empty array) for expected empty output.",
+      "not": { "type": "null" }
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional human-readable description of what the test verifies"
+    },
+    "skip": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true, the test is skipped during execution"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Optional tags for filtering or grouping tests. Recommended: lowercase, hyphen-separated (e.g., 'slow', 'integration', 'skip-ci')"
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "reservedFields": {
+      "description": "The following field names are reserved for future use and SHOULD NOT be used in test case files: timeout, setup, teardown"
+    },
+    "fileReferences": {
+      "description": "Note: $file references (e.g., {\"$file\": \"path\"}) are only supported in the internal test runner. The public testhelper package rejects $file references with ErrFileReferenceNotSupported. Embed data directly in JSON for public API usage."
+    }
+  }
+}

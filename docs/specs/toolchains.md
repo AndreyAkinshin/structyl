@@ -141,6 +141,8 @@ All toolchains implement this vocabulary:
 
 Commands not applicable to a toolchain are set to `null` (skipped).
 
+> **Note:** For `check:fix` compositions (auto-fix behavior), see individual toolchain sections. Most toolchains run lint with `--fix` flags as part of `check:fix`, but specific flags and behaviors vary by ecosystem.
+
 ---
 
 ## Built-in Toolchains

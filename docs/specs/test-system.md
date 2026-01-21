@@ -520,7 +520,7 @@ def compare_output(expected, actual, tolerance=1e-9) -> bool:
 | `comparison.nan_equals_nan`  | `true`        | NaN equality behavior       |
 
 ::: info pkg/testhelper Limitation
-The `pattern` configuration only applies to Structyl's internal runner. The public `pkg/testhelper.LoadTestSuite` function always uses `*.json` (non-recursive, immediate directory only). To load nested test files with `pkg/testhelper`, iterate subdirectories manually.
+See [pkg/testhelper Limitations](#pkg-testhelper-limitations) for pattern support differences between `pkg/testhelper` (immediate directory only) and the internal runner (recursive `**` patterns).
 :::
 
 ## Test Generation

@@ -99,7 +99,8 @@
           "type": {
             "type": "string",
             "enum": ["language", "auxiliary"],
-            "description": "Target type: 'language' for programming language implementations, 'auxiliary' for supporting tools"
+            "description": "Target type: 'language' for programming language implementations, 'auxiliary' for supporting tools",
+            "$comment": "See docs/specs/targets.md#target-types for full semantics"
           },
           "title": {
             "type": "string",

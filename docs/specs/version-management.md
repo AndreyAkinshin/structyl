@@ -42,11 +42,11 @@ Examples:
 
 ### Error Conditions
 
-| Condition                   | Exit Code | Error Message                                     |
-| --------------------------- | --------- | ------------------------------------------------- |
-| Version source file missing | 2         | `version source file not found: {os_error}`       |
-| Version source file empty   | 2         | `version source file is empty: {path}`            |
-| Invalid version format      | 2         | `invalid version in {path}: {validation_error}`   |
+| Condition                   | Exit Code | Error Message                                             |
+| --------------------------- | --------- | --------------------------------------------------------- |
+| Version source file missing | 2         | `structyl: version source file not found: {os_error}`     |
+| Version source file empty   | 2         | `structyl: version source file is empty: {path}`          |
+| Invalid version format      | 2         | `structyl: invalid version in {path}: {validation_error}` |
 
 ## Version Commands
 

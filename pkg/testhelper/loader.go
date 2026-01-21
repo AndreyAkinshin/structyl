@@ -257,7 +257,7 @@ func (tc TestCase) String() string {
 //	| Output      | NOT copied       | Yes (shared reference)   |
 //	| Tags        | slice copy       | No                       |
 //	| Skip        | value copy       | No                       |
-//	| Metadata    | NOT copied       | Yes (shared reference)   |
+//	| Description | value copy       | No                       |
 //
 // # Deep-Copied Fields
 //
@@ -267,8 +267,8 @@ func (tc TestCase) String() string {
 //
 // # NOT Deep-Copied Fields (Shared References)
 //
-// Output and Metadata are NOT deep-copied; both original and clone reference the
-// same underlying value. Modifying these fields on the clone also modifies the original:
+// Output is NOT deep-copied; both original and clone reference the same underlying
+// value. Modifying this field on the clone also modifies the original:
 //
 //	original := TestCase{Output: map[string]interface{}{"key": "value"}}
 //	clone := original.Clone()

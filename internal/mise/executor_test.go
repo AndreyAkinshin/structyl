@@ -1,6 +1,9 @@
 package mise
 
 import (
+	"context"
+	"errors"
+	"io"
 	"reflect"
 	"strings"
 	"testing"
@@ -380,5 +383,255 @@ func TestTaskExistsInJSON_SpacesInJSON(t *testing.T) {
 	}
 	if !taskExistsInJSON(json, "test") {
 		t.Error("taskExistsInJSON() = false with formatted JSON")
+	}
+}
+
+// =============================================================================
+// Mock CommandRunner Tests
+// =============================================================================
+
+// mockCommandRunner is a test double for CommandRunner.
+type mockCommandRunner struct {
+	// runFunc is called when Run is invoked.
+	runFunc func(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error
+	// outputFunc is called when Output is invoked.
+	outputFunc func(ctx context.Context, name string, args []string, dir string) ([]byte, error)
+	// calls records all method invocations for verification.
+	calls []mockCall
+}
+
+type mockCall struct {
+	method string
+	name   string
+	args   []string
+	dir    string
+}
+
+func (m *mockCommandRunner) Run(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+	m.calls = append(m.calls, mockCall{method: "Run", name: name, args: args, dir: dir})
+	if m.runFunc != nil {
+		return m.runFunc(ctx, name, args, dir, env, stdin, stdout, stderr)
+	}
+	return nil
+}
+
+func (m *mockCommandRunner) Output(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+	m.calls = append(m.calls, mockCall{method: "Output", name: name, args: args, dir: dir})
+	if m.outputFunc != nil {
+		return m.outputFunc(ctx, name, args, dir)
+	}
+	return nil, nil
+}
+
+func TestExecutor_RunTask_WithMock(t *testing.T) {
+	mock := &mockCommandRunner{
+		runFunc: func(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+			return nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	err := e.RunTask(context.Background(), "build", []string{"--release"})
+
+	if err != nil {
+		t.Fatalf("RunTask() error = %v", err)
+	}
+	if len(mock.calls) != 1 {
+		t.Fatalf("expected 1 call, got %d", len(mock.calls))
+	}
+	call := mock.calls[0]
+	if call.method != "Run" {
+		t.Errorf("method = %q, want Run", call.method)
+	}
+	if call.name != "mise" {
+		t.Errorf("name = %q, want mise", call.name)
+	}
+	expectedArgs := []string{"run", "build", "--release"}
+	if !reflect.DeepEqual(call.args, expectedArgs) {
+		t.Errorf("args = %v, want %v", call.args, expectedArgs)
+	}
+	if call.dir != "/project" {
+		t.Errorf("dir = %q, want /project", call.dir)
+	}
+}
+
+func TestExecutor_RunTask_Error(t *testing.T) {
+	expectedErr := errors.New("command failed")
+	mock := &mockCommandRunner{
+		runFunc: func(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+			return expectedErr
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	err := e.RunTask(context.Background(), "build", nil)
+
+	if err != expectedErr {
+		t.Errorf("RunTask() error = %v, want %v", err, expectedErr)
+	}
+}
+
+func TestExecutor_TaskExists_WithMock(t *testing.T) {
+	tests := []struct {
+		name     string
+		json     string
+		task     string
+		expected bool
+	}{
+		{
+			name:     "task exists",
+			json:     `[{"name":"build"},{"name":"test"}]`,
+			task:     "build",
+			expected: true,
+		},
+		{
+			name:     "task not found",
+			json:     `[{"name":"build"},{"name":"test"}]`,
+			task:     "clean",
+			expected: false,
+		},
+		{
+			name:     "empty list",
+			json:     `[]`,
+			task:     "build",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mock := &mockCommandRunner{
+				outputFunc: func(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+					return []byte(tt.json), nil
+				},
+			}
+
+			e := NewExecutorWithRunner("/project", mock)
+			got := e.TaskExists(tt.task)
+
+			if got != tt.expected {
+				t.Errorf("TaskExists(%q) = %v, want %v", tt.task, got, tt.expected)
+			}
+		})
+	}
+}
+
+func TestExecutor_TaskExists_OutputError(t *testing.T) {
+	mock := &mockCommandRunner{
+		outputFunc: func(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+			return nil, errors.New("mise not found")
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	got := e.TaskExists("build")
+
+	if got != false {
+		t.Error("TaskExists() = true when Output returns error, want false")
+	}
+}
+
+func TestExecutor_GetTasksMeta_WithMock(t *testing.T) {
+	jsonOutput := `[{"name":"build","depends":["restore"]},{"name":"restore","depends":[]}]`
+	mock := &mockCommandRunner{
+		outputFunc: func(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+			return []byte(jsonOutput), nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	tasks, err := e.GetTasksMeta(context.Background())
+
+	if err != nil {
+		t.Fatalf("GetTasksMeta() error = %v", err)
+	}
+	if len(tasks) != 2 {
+		t.Fatalf("len(tasks) = %d, want 2", len(tasks))
+	}
+	if tasks[0].Name != "build" {
+		t.Errorf("tasks[0].Name = %q, want build", tasks[0].Name)
+	}
+	if len(tasks[0].Depends) != 1 || tasks[0].Depends[0] != "restore" {
+		t.Errorf("tasks[0].Depends = %v, want [restore]", tasks[0].Depends)
+	}
+}
+
+func TestExecutor_GetTasksMeta_Error(t *testing.T) {
+	mock := &mockCommandRunner{
+		outputFunc: func(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+			return nil, errors.New("mise not found")
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	_, err := e.GetTasksMeta(context.Background())
+
+	if err == nil {
+		t.Error("GetTasksMeta() expected error")
+	}
+	if !strings.Contains(err.Error(), "failed to get mise tasks") {
+		t.Errorf("error = %q, want to contain 'failed to get mise tasks'", err.Error())
+	}
+}
+
+func TestExecutor_GetTasksMeta_InvalidJSON(t *testing.T) {
+	mock := &mockCommandRunner{
+		outputFunc: func(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+			return []byte("not json"), nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	_, err := e.GetTasksMeta(context.Background())
+
+	if err == nil {
+		t.Error("GetTasksMeta() expected error for invalid JSON")
+	}
+	if !strings.Contains(err.Error(), "failed to parse mise tasks") {
+		t.Errorf("error = %q, want to contain 'failed to parse mise tasks'", err.Error())
+	}
+}
+
+func TestExecutor_Install_WithMock(t *testing.T) {
+	mock := &mockCommandRunner{}
+
+	e := NewExecutorWithRunner("/project", mock)
+	err := e.Install(context.Background())
+
+	if err != nil {
+		t.Fatalf("Install() error = %v", err)
+	}
+	if len(mock.calls) != 1 {
+		t.Fatalf("expected 1 call, got %d", len(mock.calls))
+	}
+	call := mock.calls[0]
+	if call.method != "Run" {
+		t.Errorf("method = %q, want Run", call.method)
+	}
+	expectedArgs := []string{"install"}
+	if !reflect.DeepEqual(call.args, expectedArgs) {
+		t.Errorf("args = %v, want %v", call.args, expectedArgs)
+	}
+}
+
+func TestExecutor_Trust_WithMock(t *testing.T) {
+	mock := &mockCommandRunner{}
+
+	e := NewExecutorWithRunner("/project", mock)
+	err := e.Trust(context.Background())
+
+	if err != nil {
+		t.Fatalf("Trust() error = %v", err)
+	}
+	if len(mock.calls) != 1 {
+		t.Fatalf("expected 1 call, got %d", len(mock.calls))
+	}
+	call := mock.calls[0]
+	if call.method != "Run" {
+		t.Errorf("method = %q, want Run", call.method)
+	}
+	expectedArgs := []string{"trust"}
+	if !reflect.DeepEqual(call.args, expectedArgs) {
+		t.Errorf("args = %v, want %v", call.args, expectedArgs)
 	}
 }

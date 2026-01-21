@@ -183,7 +183,7 @@ These commands operate across all targets.
 | Command                  | Description                                                                                                 |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------- |
 | `init`                   | Initialize a new Structyl project in current directory                                                      |
-| `new`                    | **Deprecated:** Alias for `init`. Will be removed in a future version.                                      |
+| `new`                    | **Deprecated (v1.0.0):** Alias for `init`. Removed in v2.0.0. Emits warning when used.                      |
 | `targets`                | List all configured targets (see [targets.md](targets.md#target-listing))                                   |
 | `release <version>`      | Set version, commit, and tag (see [version-management.md](version-management.md#automated-release-command)) |
 | `upgrade [version]`      | Manage pinned CLI version (see [version-management.md](version-management.md#cli-version-pinning))          |
@@ -195,6 +195,22 @@ These commands operate across all targets.
 | `mise sync`              | Regenerate `mise.toml` from configuration                                                                   |
 | `completion <shell>`     | Generate shell completion script (bash, zsh, fish)                                                          |
 | `test-summary`           | Parse and summarize `go test -json` output (see [below](#test-summary-command))                             |
+
+### `config` Command
+
+```
+structyl config <subcommand>
+```
+
+The `config` command provides configuration utilities. A subcommand is required.
+
+**Available subcommands:**
+
+| Subcommand | Description |
+| ---------- | ----------- |
+| `validate` | Validate project configuration |
+
+Running `structyl config` without a subcommand prints an error and exits with code 2.
 
 ### `config validate` Command
 
@@ -219,6 +235,25 @@ Validates `.structyl/config.json` without executing any build commands.
 | 0    | Configuration is valid                                       |
 | 2    | Configuration error (invalid JSON, schema violation, semantic error) |
 | 3    | Environment error (cannot read file)                         |
+
+### `targets` Command
+
+```
+structyl targets [--json] [--type=<type>]
+```
+
+Lists all configured targets with their types, toolchains, and dependencies.
+
+**Options:**
+
+| Flag           | Description                                           |
+| -------------- | ----------------------------------------------------- |
+| `--json`       | Output machine-readable JSON format (stable API)      |
+| `--type=<type>`| Filter targets by type (`language` or `auxiliary`)    |
+
+**Default output:** Human-readable format. This format is unstable and SHOULD NOT be parsed programmatically.
+
+**JSON output:** Stable structure per [stability.md](stability.md#targetjson-structure). Use this for automation and tooling integration.
 
 ### `init` Command
 

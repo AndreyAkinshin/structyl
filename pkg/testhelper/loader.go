@@ -62,6 +62,7 @@
 package testhelper
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -275,6 +276,43 @@ func (c *outputPresenceChecker) hasOutputField(data []byte) bool {
 	return exists
 }
 
+// validateInputFieldType checks that the "input" field, if present, is a JSON object.
+// JSON arrays silently unmarshal to nil when the target is map[string]interface{},
+// so we must inspect the raw JSON to catch this case and provide a clear error message.
+func validateInputFieldType(data []byte) error {
+	var raw map[string]json.RawMessage
+	if err := json.Unmarshal(data, &raw); err != nil {
+		// Let the main unmarshal handle JSON syntax errors
+		return nil
+	}
+
+	inputRaw, exists := raw["input"]
+	if !exists {
+		// Missing field will be caught by the nil check after unmarshal
+		return nil
+	}
+
+	// Check the first non-whitespace character to determine JSON type
+	trimmed := bytes.TrimSpace(inputRaw)
+	if len(trimmed) == 0 {
+		return nil
+	}
+
+	switch trimmed[0] {
+	case '{':
+		// Object - this is the expected type
+		return nil
+	case '[':
+		return errors.New("\"input\" must be an object, not an array")
+	case 'n':
+		// null - will be caught as missing field
+		return nil
+	default:
+		// Scalar value (string, number, boolean)
+		return errors.New("\"input\" must be an object, not a scalar value")
+	}
+}
+
 // loadTestCaseInternal is the shared implementation for LoadTestCase and LoadTestCaseWithSuite.
 func loadTestCaseInternal(path, suite string) (*TestCase, error) {
 	data, err := os.ReadFile(path)
@@ -283,6 +321,13 @@ func loadTestCaseInternal(path, suite string) (*TestCase, error) {
 			return nil, &TestCaseNotFoundError{Path: path}
 		}
 		return nil, err
+	}
+
+	// Pre-validate input field type before unmarshaling into TestCase.
+	// JSON arrays silently unmarshal to nil when the target is map[string]interface{},
+	// so we must check the raw JSON to distinguish missing from wrong type.
+	if err := validateInputFieldType(data); err != nil {
+		return nil, fmt.Errorf("%s: %w", filepath.Base(path), err)
 	}
 
 	var tc TestCase

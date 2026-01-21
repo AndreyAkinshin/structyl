@@ -760,6 +760,47 @@ func (e *InvalidSuiteNameError) Is(target error) bool {
 	return target == ErrInvalidSuiteName
 }
 
+// ErrEmptyTestCaseName is returned when an empty test case name is provided.
+// Test case names must be non-empty strings corresponding to JSON file names.
+//
+// Note: Unlike [ErrProjectNotFound] or [ErrSuiteNotFound], this sentinel has no
+// companion struct type. An empty test case name provides no useful context beyond
+// the error message itself—there's no path or attempted name to include.
+var ErrEmptyTestCaseName = errors.New("test case name cannot be empty")
+
+// ErrInvalidTestCaseName is returned when a test case name contains invalid characters.
+// Invalid characters include path separators (/, \), path traversal sequences (..),
+// and null bytes. These restrictions prevent path injection attacks and ensure
+// test case names map safely to filesystem filenames.
+//
+// Use [errors.Is] to check for this error type:
+//
+//	if errors.Is(err, testhelper.ErrInvalidTestCaseName) {
+//	    // handle invalid test case name
+//	}
+//
+// The actual returned error may be an [InvalidTestCaseNameError] with additional
+// context (the test case name and rejection reason).
+var ErrInvalidTestCaseName = errors.New("test case name contains invalid characters")
+
+// InvalidTestCaseNameError indicates a test case name contains invalid characters.
+// It carries the original name and the reason for rejection.
+// This mirrors [InvalidSuiteNameError] for API symmetry.
+type InvalidTestCaseNameError struct {
+	Name   string // The invalid test case name
+	Reason string // Why it was rejected: ReasonPathTraversal, ReasonPathSeparator, or ReasonNullByte
+}
+
+func (e *InvalidTestCaseNameError) Error() string {
+	return fmt.Sprintf("invalid test case name %q: %s", e.Name, e.Reason)
+}
+
+// Is implements error matching for [errors.Is].
+// Returns true when target is [ErrInvalidTestCaseName].
+func (e *InvalidTestCaseNameError) Is(target error) bool {
+	return target == ErrInvalidTestCaseName
+}
+
 // ValidateSuiteName checks if a suite name is valid.
 // Returns ErrEmptySuiteName if the name is empty.
 // Returns ErrInvalidSuiteName if the name contains path traversal sequences (..),
@@ -875,23 +916,29 @@ func TestCaseExists(projectRoot, suite, name string) bool {
 // This is used internally for test case name validation.
 func validatePathComponent(name string) error {
 	if name == "" {
-		return errors.New("name cannot be empty")
+		return ErrEmptyTestCaseName
 	}
 	if strings.Contains(name, "..") {
-		return errors.New("name contains path traversal")
+		return &InvalidTestCaseNameError{Name: name, Reason: ReasonPathTraversal}
 	}
 	if strings.ContainsAny(name, "/\\") {
-		return errors.New("name contains path separator")
+		return &InvalidTestCaseNameError{Name: name, Reason: ReasonPathSeparator}
 	}
 	if strings.ContainsRune(name, '\x00') {
-		return errors.New("name contains null byte")
+		return &InvalidTestCaseNameError{Name: name, Reason: ReasonNullByte}
 	}
 	return nil
 }
 
 // ValidateTestCaseName checks if a test case name is valid.
-// Returns an error if the name is empty, contains path traversal sequences (..),
+// Returns [ErrEmptyTestCaseName] if the name is empty.
+// Returns [ErrInvalidTestCaseName] if the name contains path traversal sequences (..),
 // path separators (/ or \), or null bytes.
+//
+// Valid test case names consist of any characters except the above restrictions.
+// This includes Unicode characters, leading dots, hyphens, and underscores.
+// Test case names should follow file naming conventions for your target
+// filesystem to ensure portability.
 //
 // This function provides symmetry with [ValidateSuiteName] for callers who
 // construct test paths programmatically.

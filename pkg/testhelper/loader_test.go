@@ -1299,6 +1299,125 @@ func TestValidateTestCaseName(t *testing.T) {
 	}
 }
 
+func TestValidateTestCaseName_ErrorContext(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		input      string
+		wantReason string
+	}{
+		{"path_traversal", "../foo", ReasonPathTraversal},
+		{"path_separator_forward", "foo/bar", ReasonPathSeparator},
+		{"path_separator_back", "foo\\bar", ReasonPathSeparator},
+		{"null_byte", "foo\x00bar", ReasonNullByte},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := ValidateTestCaseName(tt.input)
+			if err == nil {
+				t.Fatalf("ValidateTestCaseName(%q) = nil, want error", tt.input)
+			}
+
+			// Check it's matchable via errors.Is
+			if !errors.Is(err, ErrInvalidTestCaseName) {
+				t.Errorf("errors.Is(%v, ErrInvalidTestCaseName) = false, want true", err)
+			}
+
+			// Check it's an InvalidTestCaseNameError with correct context
+			var invErr *InvalidTestCaseNameError
+			if !errors.As(err, &invErr) {
+				t.Fatalf("error is not *InvalidTestCaseNameError: %T", err)
+			}
+
+			if invErr.Name != tt.input {
+				t.Errorf("InvalidTestCaseNameError.Name = %q, want %q", invErr.Name, tt.input)
+			}
+			if invErr.Reason != tt.wantReason {
+				t.Errorf("InvalidTestCaseNameError.Reason = %q, want %q", invErr.Reason, tt.wantReason)
+			}
+
+			// Verify error message contains the reason
+			errMsg := err.Error()
+			if !strings.Contains(errMsg, tt.wantReason) {
+				t.Errorf("error message %q should contain reason %q", errMsg, tt.wantReason)
+			}
+		})
+	}
+}
+
+func TestValidateTestCaseName_EmptyName_ReturnsErrEmptyTestCaseName(t *testing.T) {
+	t.Parallel()
+
+	err := ValidateTestCaseName("")
+	if err == nil {
+		t.Fatal("ValidateTestCaseName(\"\") = nil, want error")
+	}
+
+	if !errors.Is(err, ErrEmptyTestCaseName) {
+		t.Errorf("errors.Is(%v, ErrEmptyTestCaseName) = false, want true", err)
+	}
+}
+
+func TestInvalidTestCaseNameError(t *testing.T) {
+	t.Parallel()
+
+	t.Run("error_message", func(t *testing.T) {
+		t.Parallel()
+		err := &InvalidTestCaseNameError{Name: "../foo", Reason: ReasonPathTraversal}
+
+		msg := err.Error()
+		if !strings.Contains(msg, "../foo") {
+			t.Error("Error() should contain test case name")
+		}
+		if !strings.Contains(msg, ReasonPathTraversal) {
+			t.Error("Error() should contain reason")
+		}
+	})
+
+	t.Run("is_sentinel", func(t *testing.T) {
+		t.Parallel()
+		err := &InvalidTestCaseNameError{Name: "foo/bar", Reason: ReasonPathSeparator}
+
+		if !errors.Is(err, ErrInvalidTestCaseName) {
+			t.Error("errors.Is(InvalidTestCaseNameError, ErrInvalidTestCaseName) should return true")
+		}
+	})
+
+	t.Run("not_other_error", func(t *testing.T) {
+		t.Parallel()
+		err := &InvalidTestCaseNameError{Name: "test", Reason: ReasonNullByte}
+
+		if errors.Is(err, ErrInvalidSuiteName) {
+			t.Error("errors.Is should return false for ErrInvalidSuiteName")
+		}
+	})
+}
+
+func TestInvalidTestCaseNameError_ThroughWrapping(t *testing.T) {
+	t.Parallel()
+
+	original := &InvalidTestCaseNameError{Name: "../test", Reason: ReasonPathTraversal}
+	wrapped := fmt.Errorf("outer context: %w", original)
+
+	if !errors.Is(wrapped, ErrInvalidTestCaseName) {
+		t.Error("errors.Is should find ErrInvalidTestCaseName through wrapped error")
+	}
+
+	var target *InvalidTestCaseNameError
+	if !errors.As(wrapped, &target) {
+		t.Error("errors.As should extract InvalidTestCaseNameError through wrapped error")
+	}
+	if target.Name != "../test" {
+		t.Errorf("Name: got %q, want %q", target.Name, "../test")
+	}
+	if target.Reason != ReasonPathTraversal {
+		t.Errorf("Reason: got %q, want %q", target.Reason, ReasonPathTraversal)
+	}
+}
+
 func TestLoadTestCaseWithSuite_EmptySuite_ReturnsError(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test1.json")

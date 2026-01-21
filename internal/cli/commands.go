@@ -201,7 +201,7 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 	if err := EnsureMise(true); err != nil {
 		out.ErrorPrefix("%v", err)
 		PrintMiseInstallInstructions()
-		return internalerrors.ExitEnvironmentError
+		return internalerrors.ExitEnvError
 	}
 
 	// Ensure mise.toml is up-to-date
@@ -285,7 +285,7 @@ func cmdTargets(args []string, opts *GlobalOptions) int {
 type TargetJSON struct {
 	Name      string   `json:"name"`
 	Type      string   `json:"type"`
-	Title     string   `json:"title,omitempty"`
+	Title     string   `json:"title"` // Always present (required in config schema)
 	Commands  []string `json:"commands"`
 	DependsOn []string `json:"depends_on,omitempty"`
 }
@@ -417,7 +417,7 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 	if err := EnsureMise(true); err != nil {
 		out.ErrorPrefix("%v", err)
 		PrintMiseInstallInstructions()
-		return internalerrors.ExitEnvironmentError
+		return internalerrors.ExitEnvError
 	}
 
 	// Ensure mise.toml is up-to-date

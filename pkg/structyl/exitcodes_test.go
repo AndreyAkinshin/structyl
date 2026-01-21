@@ -45,7 +45,7 @@ func TestExitCodeConsistency(t *testing.T) {
 		{"Success", structyl.ExitSuccess, errors.ExitSuccess},
 		{"Failure/RuntimeError", structyl.ExitFailure, errors.ExitRuntimeError},
 		{"ConfigError", structyl.ExitConfigError, errors.ExitConfigError},
-		{"EnvError/EnvironmentError", structyl.ExitEnvError, errors.ExitEnvironmentError},
+		{"EnvError/EnvironmentError", structyl.ExitEnvError, errors.ExitEnvError},
 	}
 
 	for _, tt := range tests {

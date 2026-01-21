@@ -30,10 +30,10 @@ import (
 // Exit codes as defined in the specification.
 // These constants alias the public pkg/structyl constants to ensure consistency.
 const (
-	ExitSuccess          = structyl.ExitSuccess     // 0 - Success
-	ExitRuntimeError     = structyl.ExitFailure     // 1 - Runtime error (command failed, etc.)
-	ExitConfigError      = structyl.ExitConfigError // 2 - Configuration error (invalid config, etc.)
-	ExitEnvironmentError = structyl.ExitEnvError    // 3 - Environment error (Docker not available, missing dependency, etc.)
+	ExitSuccess      = structyl.ExitSuccess     // 0 - Success
+	ExitRuntimeError = structyl.ExitFailure     // 1 - Runtime error (command failed, etc.)
+	ExitConfigError  = structyl.ExitConfigError // 2 - Configuration error (invalid config, etc.)
+	ExitEnvError     = structyl.ExitEnvError    // 3 - Environment error (Docker not available, missing dependency, etc.)
 )
 
 // ErrorKind represents the type of error.
@@ -78,7 +78,7 @@ func (e *StructylError) ExitCode() int {
 	case KindConfig, KindValidation:
 		return ExitConfigError
 	case KindEnvironment:
-		return ExitEnvironmentError
+		return ExitEnvError
 	default:
 		// Unknown error kinds default to runtime error
 		return ExitRuntimeError

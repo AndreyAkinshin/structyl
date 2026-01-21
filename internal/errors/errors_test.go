@@ -75,7 +75,7 @@ func TestStructylError_ExitCode(t *testing.T) {
 		{"config", KindConfig, ExitConfigError},
 		{"validation", KindValidation, ExitConfigError},
 		{"not found", KindNotFound, ExitRuntimeError},
-		{"environment", KindEnvironment, ExitEnvironmentError},
+		{"environment", KindEnvironment, ExitEnvError},
 	}
 
 	for _, tt := range tests {
@@ -179,8 +179,8 @@ func TestEnvironment(t *testing.T) {
 	if err.Message != "Docker not available" {
 		t.Errorf("Message = %q, want %q", err.Message, "Docker not available")
 	}
-	if err.ExitCode() != ExitEnvironmentError {
-		t.Errorf("ExitCode() = %d, want %d", err.ExitCode(), ExitEnvironmentError)
+	if err.ExitCode() != ExitEnvError {
+		t.Errorf("ExitCode() = %d, want %d", err.ExitCode(), ExitEnvError)
 	}
 }
 
@@ -284,7 +284,7 @@ func TestGetExitCode(t *testing.T) {
 		{"StructylError runtime", New("runtime"), ExitRuntimeError},
 		{"StructylError config", Config("config"), ExitConfigError},
 		{"StructylError validation", Validation("validation"), ExitConfigError},
-		{"StructylError environment", Environment("env"), ExitEnvironmentError},
+		{"StructylError environment", Environment("env"), ExitEnvError},
 		{"generic error", errors.New("generic"), ExitRuntimeError},
 	}
 
@@ -313,7 +313,7 @@ func TestGetExitCode_WrappedErrors(t *testing.T) {
 		{
 			"fmt.Errorf wrapping environment error",
 			fmt.Errorf("setup failed: %w", Environment("docker not found")),
-			ExitEnvironmentError,
+			ExitEnvError,
 		},
 		{
 			"double wrapped validation error",
@@ -363,8 +363,8 @@ func TestExitCodeConstants(t *testing.T) {
 	if ExitConfigError != 2 {
 		t.Errorf("ExitConfigError = %d, want 2", ExitConfigError)
 	}
-	if ExitEnvironmentError != 3 {
-		t.Errorf("ExitEnvironmentError = %d, want 3", ExitEnvironmentError)
+	if ExitEnvError != 3 {
+		t.Errorf("ExitEnvError = %d, want 3", ExitEnvError)
 	}
 }
 

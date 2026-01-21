@@ -22,15 +22,13 @@ For Go integrations, use the constants from `pkg/structyl`:
 | 0         | `ExitSuccess`               | `ExitSuccess`                |
 | 1         | `ExitFailure`               | `ExitRuntimeError`           |
 | 2         | `ExitConfigError`           | `ExitConfigError`            |
-| 3         | `ExitEnvError`              | `ExitEnvironmentError`       |
+| 3         | `ExitEnvError`              | `ExitEnvError`               |
 
-External tools SHOULD use the `pkg/structyl` constants. The internal constants have different names for historical reasons but map to the same exit codes.
+External tools SHOULD use the `pkg/structyl` constants. Internal constants alias public constants, with `ExitRuntimeError` providing semantic clarity for the generic `ExitFailure`.
 
 **Naming convention rationale:**
 - `ExitFailure` (public) is generic, suitable for scripting: "did it fail?"
 - `ExitRuntimeError` (internal) is specific, suitable for debugging: "what category of failure?"
-
-The public API uses simpler names because external integrations typically only care about success/failure, not internal categorization.
 
 ### Exit Code Categories
 

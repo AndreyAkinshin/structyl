@@ -273,6 +273,26 @@ func (tc TestCase) Clone() TestCase {
 	return clone
 }
 
+// WithSuite returns a copy of the TestCase with the Suite field set to the given value.
+// This is useful when loading test cases with [LoadTestCase], which does not populate
+// the Suite field, and you want to associate the test case with a suite name.
+//
+// Example:
+//
+//	tc, err := testhelper.LoadTestCase("/path/to/test.json")
+//	if err != nil {
+//	    return err
+//	}
+//	tc = tc.WithSuite("my-suite")
+//
+// Note: This performs a shallow copy like [Clone]; see Clone documentation for
+// details on which fields are deep-copied.
+func (tc TestCase) WithSuite(suite string) TestCase {
+	clone := tc.Clone()
+	clone.Suite = suite
+	return clone
+}
+
 // Validate checks that TestCase fields satisfy basic structural requirements.
 // Returns nil if valid, or an error describing the first validation failure.
 //

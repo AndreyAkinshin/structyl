@@ -15,9 +15,9 @@
 //     are informational and are logged as warnings rather than causing command
 //     failure. They are NOT included in combined error results.
 //
-// The Runner layer handles both types: StructylError causes failure (possibly
-// collected with Continue mode), while SkipError is logged and execution
-// continues to the next target.
+// The Runner layer handles both types: StructylError causes immediate failure
+// (fail-fast), while SkipError is logged and execution continues to the next
+// target.
 package errors
 
 import (

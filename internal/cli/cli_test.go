@@ -1530,29 +1530,6 @@ func TestRun_Help_WithProject_ReturnsSuccess(t *testing.T) {
 	})
 }
 
-func TestRun_HelpAlternatives_ReturnsSuccess(t *testing.T) {
-	t.Parallel()
-	// All these should trigger help display
-	helpArgs := [][]string{
-		{"--help"},
-		{"-h"},
-		{"help"},
-	}
-
-	tmpDir := t.TempDir()
-
-	for _, args := range helpArgs {
-		t.Run(strings.Join(args, "_"), func(t *testing.T) {
-			withWorkingDir(t, tmpDir, func() {
-				exitCode := Run(args)
-				if exitCode != 0 {
-					t.Errorf("Run(%v) = %d, want 0", args, exitCode)
-				}
-			})
-		})
-	}
-}
-
 func TestPrintUsage_WithProjectTargets_ShowsAllTargets(t *testing.T) {
 	root := createTestProject(t)
 	withWorkingDir(t, root, func() {

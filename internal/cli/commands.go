@@ -683,7 +683,7 @@ func printReleaseUsage() {
 	out.Println("  committing the changes, and optionally pushing to the remote.")
 
 	out.HelpSection("Arguments:")
-	out.HelpFlag("<version>", "Version number (e.g., 1.2.3)", widthFlagShort)
+	out.HelpFlag("<version>", "Semantic version (X.Y.Z or X.Y.Z-prerelease)", widthFlagShort)
 
 	out.HelpSection("Options:")
 	out.HelpFlag("--push", "Push to remote with tags after commit", widthFlagShort)

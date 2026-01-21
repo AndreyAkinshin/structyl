@@ -140,8 +140,11 @@ func formatMiseTaskName(cmd string, target string) string {
 // runViaMise executes a command via mise.
 // Mise handles dependency resolution and parallel execution internally,
 // so we simply delegate to RunTask regardless of the task structure.
-// The optional registry parameter enables helpful hints when a command fails because
-// the user may have typed a target name instead of a command name.
+//
+// The registry parameter is optional (may be nil). When provided, it enables
+// typo correction hints on failure—if the user typed a target name instead
+// of a command name (e.g., "structyl cs" instead of "structyl build cs"),
+// the hint suggests the correct syntax.
 func runViaMise(proj *project.Project, cmd string, targetName string, args []string, opts *GlobalOptions, registry *target.Registry) int {
 	ctx := context.Background()
 

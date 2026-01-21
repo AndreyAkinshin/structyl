@@ -140,6 +140,10 @@ const (
 	ArrayOrderStrict = "strict"
 
 	// ArrayOrderUnordered allows array elements to match in any order.
+	//
+	// Performance: Uses O(n²) matching algorithm. For arrays with >1000 elements,
+	// consider using ArrayOrderStrict with sorted/deterministic output, or
+	// breaking large outputs into smaller assertions.
 	ArrayOrderUnordered = "unordered"
 )
 

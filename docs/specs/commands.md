@@ -322,7 +322,7 @@ Creates a release by setting the version across all targets, committing the chan
 | `-h, --help`| Show help                                          |
 
 ::: warning --force includes uncommitted changes
-When `--force` is used, all uncommitted changes in the working directory are staged and included in the release commit. This is because the release process runs `git add -A` before committing. Use with caution: ensure uncommitted changes are intentional.
+When `--force` is used with uncommitted changes present, Structyl stages all working directory changes (`git add -A`) before committing. This behavior is intentional—`--force` explicitly opts into including whatever state exists. Users SHOULD verify uncommitted changes are intentional before using `--force`.
 :::
 
 **Dirty worktree behavior:**
@@ -394,7 +394,14 @@ This command only supports Go's JSON test output format (`go test -json`). Other
 
 - Summary of passed, failed, and skipped tests
 - Details of failed tests with failure reasons
-- Exit code 0 if all tests pass, 1 if any failures
+
+**Exit codes:**
+
+| Code | Condition |
+|------|-----------|
+| 0    | All tests passed (or empty input with no test events) |
+| 1    | One or more tests failed |
+| 2    | Invalid input (file not found, malformed JSON, parse error) |
 
 **Examples:**
 

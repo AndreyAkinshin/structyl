@@ -354,8 +354,12 @@ Lowercase or other variants are treated as regular strings, not special float va
 
 > **Note:** This section is **informative only**. The code examples illustrate one possible implementation approach. Conforming implementations MAY use different designs, APIs, or patterns as long as they satisfy the functional requirements.
 
-::: warning pkg/testhelper Limitation
-The public Go `pkg/testhelper` package does NOT support `$file` references. File reference resolution is only available in Structyl's internal test runner. Test cases using `$file` syntax SHOULD either use the internal `internal/tests` package or embed data directly in JSON.
+::: warning pkg/testhelper Limitations
+The public Go `pkg/testhelper` package has the following limitations compared to Structyl's internal test runner:
+
+1. **No `$file` references**: File reference resolution is only available in the internal runner. Test cases using `$file` syntax SHOULD either use the `internal/tests` package or embed data directly in JSON.
+
+2. **No recursive glob patterns**: `LoadTestSuite` uses `filepath.Glob("*.json")` which matches JSON files in the immediate suite directory only. The `tests.pattern` configuration setting (which supports `**` recursive patterns) is only used by Structyl's internal runner. To load nested test files with `pkg/testhelper`, iterate subdirectories manually.
 :::
 
 Each language MUST implement a test loader. Required functionality:
@@ -366,6 +370,10 @@ Each language MUST implement a test loader. Required functionality:
 4. **Compare outputs** with appropriate tolerance
 
 ### Example: Go Test Loader
+
+::: tip Public API vs Internal Implementation
+The example below is illustrative. For the actual public Go API, see the `pkg/testhelper` package. For internal implementation with full glob support and `$file` resolution, see `internal/tests`.
+:::
 
 ```go
 package testhelper

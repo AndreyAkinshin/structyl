@@ -157,7 +157,7 @@ structyl: configuration file not found
 Target-specific failure:
 
 ```
-[cs] build failed: exit code 1
+[cs] build: failed with exit code 1
 ```
 
 Warning message:

@@ -217,7 +217,6 @@ func validateCommands(targetName string, commands map[string]interface{}) error 
 func validateCommandDef(targetName, cmdName string, cmdDef interface{}) error {
 	switch v := cmdDef.(type) {
 	case nil, string:
-		// Valid types
 		return nil
 	case []interface{}:
 		// Validate each element in the command list

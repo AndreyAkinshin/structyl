@@ -15,6 +15,20 @@
 //   - The [TestCase] type is safe to read concurrently, but callers must not
 //     modify a TestCase while other goroutines are reading it.
 //
+// # Error Type Patterns
+//
+// This package uses two error patterns:
+//
+//   - Struct error types with sentinel matching: [ProjectNotFoundError],
+//     [SuiteNotFoundError], [TestCaseNotFoundError]. These carry context (path,
+//     name) and implement Is() for matching via [errors.Is]. Use when the error
+//     context is meaningful for debugging or recovery.
+//
+//   - Bare sentinel errors: [ErrEmptySuiteName], [ErrInvalidSuiteName],
+//     [ErrFileReferenceNotSupported]. These are simple sentinel values without
+//     additional context. Use [errors.Is] to match. Appropriate when the error
+//     condition is self-explanatory and no additional context would help.
+//
 // # Filesystem Conventions
 //
 // All path parameters use the host operating system's path separator.
@@ -166,6 +180,11 @@ type TestCase struct {
 	//   - bool (JSON booleans)
 	//   - []interface{} (JSON arrays)
 	//   - map[string]interface{} (JSON objects)
+	//
+	// Clone behavior: [TestCase.Clone] performs a shallow copy of Output.
+	// Both original and clone reference the same underlying value. This is
+	// intentional since Output is typically consumed read-only in assertions.
+	// If you need to modify Output independently, copy it manually.
 	Output interface{} `json:"output"`
 
 	// Description provides optional documentation.
@@ -605,7 +624,11 @@ var ErrInvalidSuiteName = errors.New("suite name contains invalid characters")
 // Returns ErrEmptySuiteName if the name is empty.
 // Returns ErrInvalidSuiteName if the name contains path traversal sequences (..),
 // path separators (/ or \), or null bytes.
-// Suite names must be non-empty strings corresponding to directory names.
+//
+// Valid suite names consist of any characters except the above restrictions.
+// This includes Unicode characters, leading dots, hyphens, and underscores.
+// Suite names should follow directory naming conventions for your target
+// filesystem to ensure portability.
 func ValidateSuiteName(name string) error {
 	if name == "" {
 		return ErrEmptySuiteName

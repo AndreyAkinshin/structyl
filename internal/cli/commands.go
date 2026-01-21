@@ -299,17 +299,25 @@ type TargetJSON struct {
 	DependsOn []string `json:"depends_on"` // Always present (may be empty array)
 }
 
+// nonNilStrings ensures a string slice is never nil (returns empty slice instead).
+// Used to guarantee JSON output has [] rather than null for array fields.
+func nonNilStrings(s []string) []string {
+	if s == nil {
+		return []string{}
+	}
+	return s
+}
+
 // printTargetsJSON outputs targets in machine-readable JSON format.
 func printTargetsJSON(targets []target.Target) int {
 	result := make([]TargetJSON, 0, len(targets))
 	for _, t := range targets {
-		// DependsOn() always returns non-nil slice per API contract (see target.go)
 		tj := TargetJSON{
 			Name:      t.Name(),
 			Type:      string(t.Type()),
 			Title:     t.Title(),
-			Commands:  t.Commands(),
-			DependsOn: t.DependsOn(),
+			Commands:  nonNilStrings(t.Commands()),
+			DependsOn: nonNilStrings(t.DependsOn()),
 		}
 		result = append(result, tj)
 	}

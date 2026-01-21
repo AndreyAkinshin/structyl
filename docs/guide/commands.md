@@ -266,6 +266,8 @@ Running a null command succeeds with a warning.
 | `--type=<type>` | Filter by target type                          |
 | `-q, --quiet`   | Minimal output (errors only)                   |
 | `-v, --verbose` | Maximum detail                                 |
+| `-h, --help`    | Show help message                              |
+| `--version`     | Show Structyl version                          |
 
 ::: info Docker Mode Precedence
 `--no-docker` overrides `--docker` and `STRUCTYL_DOCKER`. See [Commands Specification](../specs/commands#docker-mode-precedence) for full precedence rules.

@@ -12,7 +12,16 @@ cd my-library
 structyl init
 ```
 
-This creates the configuration file at `.structyl/config.json`.
+This creates:
+
+- `.structyl/config.json` — project configuration
+- `.structyl/PROJECT_VERSION` — version file (initialized to `0.1.0`)
+- `.structyl/version` — pinned CLI version
+- `.structyl/setup.sh` and `.structyl/setup.ps1` — bootstrap scripts
+- `.structyl/toolchains.json` — toolchain definitions
+- `.structyl/AGENTS.md` — LLM assistance guide
+- `tests/` — reference test directory
+- Updates `.gitignore` with Structyl entries
 
 ## Configure Targets
 

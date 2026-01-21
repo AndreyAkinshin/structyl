@@ -6,6 +6,8 @@
 
 > **Normative vs Informative:** Text containing RFC 2119 keywords is normative (defines requirements). Sections marked with "Note:", "Example:", or similar labels are informative (explanatory, non-binding). VitePress admonition blocks (:::info, :::warning, :::tip) are informative unless they contain RFC 2119 keywords.
 
+> **VitePress Components:** Some specification files include VitePress component tags (e.g., `<StandardCommands />`, `<ToolchainCommands />`) that render as formatted tables in the documentation site. When reading these files as raw markdown, these tags can be ignored—the surrounding prose contains the complete normative content.
+
 ---
 
 ## What is Structyl?

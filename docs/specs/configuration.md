@@ -427,7 +427,7 @@ The smallest valid configuration:
 With this minimal config, Structyl uses all defaults:
 
 - Version source: `.structyl/PROJECT_VERSION`
-- Tests directory: `tests/`
+- Tests directory: `tests`
 - Targets: auto-discovered from directories with recognized toolchain files
 
 ## Full Configuration Example

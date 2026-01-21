@@ -85,26 +85,35 @@ const (
 )
 
 // ensureMiseConfig ensures mise.toml is up-to-date.
-// If auto_generate is enabled, regenerates the file.
-// If mode is MiseForceRegenerate, always regenerates.
+// Regenerates when: forced, auto_generate enabled (default true), or file missing.
 func ensureMiseConfig(proj *project.Project, mode MiseRegenerateMode) error {
-	autoGen := true // default to auto-generation so mise.toml stays in sync
-
-	if proj.Config.Mise != nil && proj.Config.Mise.AutoGenerate != nil {
-		autoGen = *proj.Config.Mise.AutoGenerate
+	// Force mode always regenerates
+	if mode == MiseForceRegenerate {
+		return writeMiseConfig(proj)
 	}
 
-	// Regenerate if: explicitly forced, auto-generation enabled, or file is missing
-	fileMissing := !mise.MiseTomlExists(proj.Root)
-	shouldRegenerate := mode == MiseForceRegenerate || autoGen || fileMissing
-	if shouldRegenerate {
-		const forceWrite = true // Always write when regenerating; skip content comparison
-		_, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, forceWrite)
-		if err != nil {
-			return fmt.Errorf("failed to generate mise.toml: %w", err)
-		}
+	// Missing file always regenerates
+	if !mise.MiseTomlExists(proj.Root) {
+		return writeMiseConfig(proj)
 	}
 
+	// Auto-generation enabled (default true when not explicitly disabled)
+	autoGen := proj.Config.Mise == nil ||
+		proj.Config.Mise.AutoGenerate == nil ||
+		*proj.Config.Mise.AutoGenerate
+	if autoGen {
+		return writeMiseConfig(proj)
+	}
+
+	return nil
+}
+
+// writeMiseConfig writes the mise.toml file from project configuration.
+func writeMiseConfig(proj *project.Project) error {
+	_, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, true)
+	if err != nil {
+		return fmt.Errorf("failed to generate mise.toml: %w", err)
+	}
 	return nil
 }
 
@@ -454,26 +463,38 @@ func handleDockerError(err error) int {
 	return internalerrors.ExitRuntimeError
 }
 
-// cmdDockerBuild builds Docker images for services.
-func cmdDockerBuild(args []string, opts *GlobalOptions) int {
+// prepareDockerCommand handles common setup for Docker commands: verbosity, project
+// loading, and Docker availability check. Returns the project on success, or nil
+// with an exit code on failure.
+func prepareDockerCommand(opts *GlobalOptions) (*project.Project, int) {
 	applyVerbosityToOutput(opts)
 
+	proj, exitCode := loadProject()
+	if proj == nil {
+		return nil, exitCode
+	}
+
+	if err := runner.CheckDockerAvailable(); err != nil {
+		return nil, handleDockerError(err)
+	}
+
+	return proj, 0
+}
+
+// cmdDockerBuild builds Docker images for services.
+func cmdDockerBuild(args []string, opts *GlobalOptions) int {
 	if wantsHelp(args) {
 		printDockerBuildUsage()
 		return 0
 	}
 
-	proj, exitCode := loadProject()
+	proj, exitCode := prepareDockerCommand(opts)
 	if proj == nil {
 		return exitCode
 	}
 
 	// Use the full config runner to support per-target Dockerfiles
 	dockerRunner := runner.NewDockerRunnerWithConfig(proj.Root, proj.Config)
-
-	if err := runner.CheckDockerAvailable(); err != nil {
-		return handleDockerError(err)
-	}
 
 	ctx := context.Background()
 	if err := dockerRunner.Build(ctx, args...); err != nil {
@@ -487,23 +508,17 @@ func cmdDockerBuild(args []string, opts *GlobalOptions) int {
 
 // cmdDockerClean removes Docker containers and images.
 func cmdDockerClean(args []string, opts *GlobalOptions) int {
-	applyVerbosityToOutput(opts)
-
 	if wantsHelp(args) {
 		printDockerCleanUsage()
 		return 0
 	}
 
-	proj, exitCode := loadProject()
+	proj, exitCode := prepareDockerCommand(opts)
 	if proj == nil {
 		return exitCode
 	}
 
 	dockerRunner := runner.NewDockerRunner(proj.Root, proj.Config.Docker)
-
-	if err := runner.CheckDockerAvailable(); err != nil {
-		return handleDockerError(err)
-	}
 
 	ctx := context.Background()
 	if err := dockerRunner.Clean(ctx); err != nil {

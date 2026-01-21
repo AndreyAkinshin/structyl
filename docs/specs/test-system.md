@@ -387,6 +387,36 @@ All loader and comparison functions in `pkg/testhelper` are safe for concurrent 
 - **Comparison functions** (`Equal`, `Compare`, `FormatComparisonResult`) are pure functions with no shared state.
 - The `TestCase` type is safe to read concurrently, but callers MUST NOT modify a `TestCase` while other goroutines are reading it.
 
+### Panic Behavior
+
+The comparison functions (`Equal`, `Compare`, `FormatComparisonResult`) panic on invalid `CompareOptions`:
+
+| Condition | Panic |
+| --------- | ----- |
+| `ToleranceMode` not in `{"", "relative", "absolute", "ulp"}` | Yes |
+| `ArrayOrder` not in `{"", "strict", "unordered"}` | Yes |
+| `FloatTolerance` < 0 | Yes |
+| `ToleranceMode == "ulp"` and `FloatTolerance > math.MaxInt64` | Yes |
+
+This design treats invalid options as programmer errors (fail-fast) rather than runtime conditions. For user-provided options, use one of these approaches:
+
+1. **Validate before comparison**: Call `ValidateOptions(opts)` first; if it returns `nil`, subsequent comparison calls will not panic
+2. **Use error-returning variants**: `EqualE` and `CompareE` return errors instead of panicking
+
+```go
+// Option 1: Validate upfront
+if err := testhelper.ValidateOptions(opts); err != nil {
+    return fmt.Errorf("invalid options: %w", err)
+}
+result := testhelper.Equal(expected, actual, opts)  // safe
+
+// Option 2: Error-returning variant
+result, err := testhelper.EqualE(expected, actual, opts)
+if err != nil {
+    return fmt.Errorf("invalid options: %w", err)
+}
+```
+
 Each language MUST implement a test loader. Required functionality:
 
 1. **Locate project root** via marker file traversal

@@ -106,6 +106,7 @@ Structyl logs warnings when deprecated features are used.
 - `CompareOptions.String()` output format (explicitly unstable, see code comment)
 - `structyl targets` output format (intended for human consumption, not machine parsing)
 - Log message wording (structure is stable, wording is not)
+- Panic message format in `pkg/testhelper` comparison functions (currently `"testhelper.<FuncName>: <error>"` but may change)
 
 ## Breaking Change Process
 

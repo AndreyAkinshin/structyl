@@ -193,6 +193,10 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 
 // dryRun prints what would be done without doing it.
 func (r *Releaser) dryRun(ctx context.Context, verStr string, opts Options) error {
+	// Check for cancellation at start for consistency with Release()
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	r.out.DryRunStart()
 
 	steps := &stepCounter{}

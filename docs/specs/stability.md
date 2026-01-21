@@ -95,6 +95,7 @@ Structyl logs warnings when deprecated features are used.
 - Exit codes documented in [error-handling.md](error-handling.md)
 - Skip error reason identifiers: `disabled`, `command_not_found`, `script_not_found` (see [error-handling.md](error-handling.md#skip-errors))
 - `structyl targets --json` output format (see [TargetJSON Structure](#targetjson-structure) below)
+- Diff path format: JSON Path notation (`$`, `$.foo`, `$.foo[0].bar`) in `Compare`/`FormatComparisonResult` output (see [test-system.md](test-system.md#output-comparison))
 
 ### Unstable (May Change)
 

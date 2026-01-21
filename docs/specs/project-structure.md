@@ -18,6 +18,7 @@ project-root/
 │   ├── config.json            # Project configuration (root marker)
 │   ├── PROJECT_VERSION        # Project version file
 │   ├── version                # Pinned CLI version
+│   ├── toolchains.json        # Toolchain definitions
 │   ├── setup.sh               # Bootstrap script (Unix)
 │   ├── setup.ps1              # Bootstrap script (Windows)
 │   └── AGENTS.md              # LLM guidelines (auto-generated)
@@ -238,13 +239,15 @@ Reserved names SHOULD NOT be used as target names to avoid confusion.
 
 ### `.structyl/` Directory Contents
 
-| File          | Purpose                                    |
-| ------------- | ------------------------------------------ |
-| `config.json` | Project configuration (root marker)        |
-| `version`     | Pinned CLI version for reproducible builds |
-| `setup.sh`    | Bootstrap script for Unix/macOS            |
-| `setup.ps1`   | Bootstrap script for Windows               |
-| `AGENTS.md`   | LLM guidelines (auto-generated)            |
+| File              | Purpose                                    |
+| ----------------- | ------------------------------------------ |
+| `config.json`     | Project configuration (root marker)        |
+| `PROJECT_VERSION` | Canonical project version                  |
+| `version`         | Pinned CLI version for reproducible builds |
+| `toolchains.json` | Toolchain definitions                      |
+| `setup.sh`        | Bootstrap script for Unix/macOS            |
+| `setup.ps1`       | Bootstrap script for Windows               |
+| `AGENTS.md`       | LLM guidelines (auto-generated)            |
 
 New contributors can run the setup script to install the correct version of structyl:
 

@@ -101,7 +101,7 @@ An informational error indicating a command was skipped (not failed). Skip scena
 
 ### Slug
 
-See **Target Name**.
+See [Target Name](#target-name).
 
 ### Target Name
 

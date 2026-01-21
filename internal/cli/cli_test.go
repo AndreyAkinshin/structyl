@@ -1,11 +1,13 @@
 package cli
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: Testing Docker error handling requires runner package
 	"github.com/AndreyAkinshin/structyl/internal/target"
 	"github.com/AndreyAkinshin/structyl/internal/testing/mocks"
 )
@@ -1137,6 +1139,24 @@ func TestCmdDockerClean_NoProject_ReturnsError(t *testing.T) {
 			t.Error("cmdDockerClean() = 0, want non-zero when no project")
 		}
 	})
+}
+
+func TestHandleDockerError_DockerUnavailable(t *testing.T) {
+	t.Parallel()
+	err := &runner.DockerUnavailableError{}
+	exitCode := handleDockerError(err)
+	if exitCode != 3 {
+		t.Errorf("handleDockerError(DockerUnavailableError) = %d, want 3", exitCode)
+	}
+}
+
+func TestHandleDockerError_OtherError(t *testing.T) {
+	t.Parallel()
+	err := errors.New("some other error")
+	exitCode := handleDockerError(err)
+	if exitCode != 1 {
+		t.Errorf("handleDockerError(other) = %d, want 1", exitCode)
+	}
 }
 
 // =============================================================================

@@ -25,7 +25,7 @@ jobs:
         uses: jdx/mise-action@v2
 
       - name: Download dependencies
-        run: mise run deps
+        run: mise run restore
 
       - name: Run linter
         run: mise run lint

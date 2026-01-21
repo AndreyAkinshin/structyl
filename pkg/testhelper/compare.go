@@ -12,9 +12,40 @@ import (
 
 // CompareOptions configures output comparison behavior.
 //
+// # Zero Value
+//
+// The zero value of CompareOptions is valid and usable:
+//
+//	var opts CompareOptions  // valid: FloatTolerance=0, ToleranceMode="", ArrayOrder=""
+//
+// Empty strings for ToleranceMode and ArrayOrder are treated as defaults:
+//   - ToleranceMode "" → ToleranceModeRelative
+//   - ArrayOrder "" → ArrayOrderStrict
+//
+// The zero value uses strict equality (tolerance=0) which may not be suitable
+// for floating-point comparisons. For typical use cases, prefer [DefaultOptions]
+// or [NewCompareOptions].
+//
+// # Construction
+//
+// Three ways to create CompareOptions:
+//
+//  1. Zero value (exact equality): var opts CompareOptions
+//  2. Default options (recommended): opts := testhelper.DefaultOptions()
+//  3. Validated custom options: opts, err := testhelper.NewCompareOptions(...)
+//
+// Direct struct construction is valid but NOT validated:
+//
+//	opts := CompareOptions{ToleranceMode: "invalid"}  // compiles but panics on use
+//
+// Use [NewCompareOptions] for compile-time safety or [ValidateOptions] to check
+// before comparison.
+//
+// # String Fields
+//
 // Important: Use the provided constants (ToleranceModeRelative, ArrayOrderStrict,
 // etc.) for ToleranceMode and ArrayOrder fields. Arbitrary strings are rejected
-// by ValidateOptions with an error listing valid values.
+// by [ValidateOptions] with an error listing valid values.
 type CompareOptions struct {
 	// FloatTolerance specifies the tolerance for float comparisons.
 	// For "relative" and "absolute" modes, this is the tolerance threshold.

@@ -77,7 +77,6 @@ export default defineConfig({
             { text: 'Toolchains', link: '/specs/toolchains' },
             { text: 'Test System', link: '/specs/test-system' },
             { text: 'Version Management', link: '/specs/version-management' },
-            { text: 'Documentation', link: '/specs/documentation' },
             { text: 'Docker', link: '/specs/docker' },
             { text: 'CI Integration', link: '/specs/ci-integration' },
             { text: 'Cross-Platform', link: '/specs/cross-platform' },

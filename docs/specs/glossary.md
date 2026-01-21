@@ -56,6 +56,19 @@ Common causes:
 - Network timeout
 - Missing toolchain binary
 
+### Exit Code
+
+A numeric value returned by Structyl to indicate command outcome. Structyl defines four exit codes:
+
+| Code | Name | Meaning |
+|------|------|---------|
+| 0 | Success | Command completed successfully |
+| 1 | Failure | Runtime failure (build, test, command failed) |
+| 2 | Configuration Error | Invalid configuration |
+| 3 | Environment Error | External dependency unavailable |
+
+See [error-handling.md](error-handling.md#exit-codes) for detailed semantics.
+
 ### Fail-fast
 
 An execution strategy where processing stops on first failure. In fail-fast mode, when one target fails, pending targets are cancelled (though already-running targets complete). This is Structyl's default execution behavior.

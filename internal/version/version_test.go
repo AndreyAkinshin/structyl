@@ -148,7 +148,7 @@ func TestBump(t *testing.T) {
 	}
 }
 
-func TestBump_Invalid(t *testing.T) {
+func TestBump_InvalidPart(t *testing.T) {
 	t.Parallel()
 	invalidParts := []string{
 		"invalid", // unknown keyword
@@ -164,6 +164,26 @@ func TestBump_Invalid(t *testing.T) {
 			_, err := Bump("1.2.3", part)
 			if err == nil {
 				t.Errorf("Bump(1.2.3, %q) = nil, want error", part)
+			}
+		})
+	}
+}
+
+func TestBump_InvalidVersion(t *testing.T) {
+	t.Parallel()
+	invalidVersions := []string{
+		"invalid",
+		"",
+		"1.2",
+		"v1.2.3",
+		"a.b.c",
+	}
+	for _, v := range invalidVersions {
+		t.Run(v, func(t *testing.T) {
+			t.Parallel()
+			_, err := Bump(v, "major")
+			if err == nil {
+				t.Errorf("Bump(%q, major) = nil, want error", v)
 			}
 		})
 	}
@@ -217,6 +237,27 @@ func TestCompare(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("Compare() = %d, want %d", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCompare_InvalidVersion(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		a, b string
+	}{
+		{"first_invalid", "invalid", "1.0.0"},
+		{"second_invalid", "1.0.0", "invalid"},
+		{"both_invalid", "bad", "worse"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			_, err := Compare(tt.a, tt.b)
+			if err == nil {
+				t.Errorf("Compare(%q, %q) = nil, want error", tt.a, tt.b)
 			}
 		})
 	}

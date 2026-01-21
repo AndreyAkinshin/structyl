@@ -189,6 +189,9 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 	var mu sync.Mutex
 	var wg sync.WaitGroup
 	var errs []error
+	// Bounded parallelism via semaphore pattern: channel capacity limits concurrent
+	// goroutines. Each worker acquires a slot (send to channel) before executing
+	// and releases it (receive from channel) when done.
 	sem := make(chan struct{}, workers)
 
 	execOpts := target.ExecOptions{

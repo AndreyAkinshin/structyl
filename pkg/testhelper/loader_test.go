@@ -688,17 +688,15 @@ func TestLoadTestCase_MissingOutput_ReturnsError(t *testing.T) {
 	if err == nil {
 		t.Error("LoadTestCase() expected error for missing output field")
 	}
-	// Error message mentions both missing and null since they result in same nil value
-	if err != nil && !strings.Contains(err.Error(), "output") {
-		t.Errorf("error should mention output field, got: %v", err)
+	// Error message should specifically indicate the field is missing (not null)
+	if err != nil && !strings.Contains(err.Error(), "missing required field \"output\"") {
+		t.Errorf("error should mention missing output field, got: %v", err)
 	}
 }
 
 func TestLoadTestCase_NullOutput_ReturnsError(t *testing.T) {
 	// JSON null is NOT a valid output value. The spec requires an explicit
 	// value (empty string, empty object, etc.) for expected empty output.
-	// Both missing "output" field and "output": null result in tc.Output == nil
-	// after unmarshaling, so both are rejected as invalid.
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "null_output.json")
 
@@ -711,9 +709,9 @@ func TestLoadTestCase_NullOutput_ReturnsError(t *testing.T) {
 	if err == nil {
 		t.Error("LoadTestCase() expected error for null output")
 	}
-	// Error message should clarify that null is not valid
-	if err != nil && !strings.Contains(err.Error(), "null") {
-		t.Errorf("error should mention null is invalid, got: %v", err)
+	// Error message should specifically indicate null is not valid (distinct from missing)
+	if err != nil && !strings.Contains(err.Error(), "\"output\" field is null") {
+		t.Errorf("error should mention output field is null, got: %v", err)
 	}
 }
 

@@ -18,7 +18,7 @@ A specific type of [Artifact](#artifact) produced by a build command. Includes c
 
 ### Code Fence
 
-A markdown syntax for displaying code blocks. Uses triple backticks followed by a language identifier. Example: ` ```python `. Used in README templates to specify syntax highlighting for demo code.
+A markdown syntax for displaying code blocks. Uses triple backticks (` ``` `) followed by a language identifier (e.g., `python`, `rust`, `json`). Used in README templates to specify syntax highlighting for demo code.
 
 ### Command
 

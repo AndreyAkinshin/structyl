@@ -382,13 +382,7 @@ The public Go `pkg/testhelper` package has the following limitations compared to
 
 ### Deprecated Functions
 
-The following functions in `pkg/testhelper` are deprecated and will be removed in v2.0.0:
-
-| Deprecated                | Replacement              | Removal Target | Reason                                                     |
-| ------------------------- | ------------------------ | -------------- | ---------------------------------------------------------- |
-| `CompareOutput`           | `Equal`                  | v2.0.0         | Clearer function name                                      |
-| `FormatDiff`              | `FormatComparisonResult` | v2.0.0         | Better semantics (empty string on match, diff on mismatch) |
-| `SpecialFloatPosInfinity` | `SpecialFloatInfinity`   | v2.0.0         | Canonical form preferred (`"Infinity"` vs `"+Infinity"`)   |
+See [Stability Policy — Current Deprecations](stability.md#current-deprecations) for the complete list of deprecated `pkg/testhelper` functions and constants with their replacements and removal timeline.
 
 ### Thread Safety
 

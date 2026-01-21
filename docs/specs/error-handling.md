@@ -388,7 +388,7 @@ When `mise.auto_generate: true` is enabled, Structyl regenerates `mise.toml` on 
 **Solutions:**
 
 1. Delete `mise.toml` and let Structyl regenerate it: `rm mise.toml && structyl targets`
-2. Run `structyl mise sync --force` to force regeneration
+2. Run `structyl mise sync` to regenerate (always overwrites)
 3. If custom tasks are needed, set `auto_generate: false` and maintain `mise.toml` manually
 4. Check `.structyl/config.json` for invalid target or command definitions
 

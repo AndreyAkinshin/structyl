@@ -724,6 +724,10 @@ For detailed behavior specifications, see `docs/specs/`:
 | `cross-platform.md`     | Windows/Unix compatibility       |
 | `go-architecture.md`    | Internal implementation notes    |
 
+> **Note:** Spec files may contain VitePress component tags (e.g., `<ToolchainCommands />`)
+> that render as tables on the documentation site. These can be ignored when reading
+> raw markdown—the prose contains complete normative content.
+
 ## Known Issues / TODOs
 
 Current code quality:

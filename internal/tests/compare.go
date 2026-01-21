@@ -62,6 +62,8 @@ func compareValues(expected, actual interface{}, cfg ComparisonConfig, path stri
 	case []interface{}:
 		return compareArrays(exp, actual, cfg, path)
 	default:
+		// Fallback for types not explicitly handled above (e.g., nested primitives,
+		// custom types). reflect.DeepEqual is slower but provides correct semantics.
 		if reflect.DeepEqual(expected, actual) {
 			return true, ""
 		}

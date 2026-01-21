@@ -102,21 +102,21 @@ func isMiseAutoGenerateEnabled(cfg *config.Config) bool {
 // ensureMiseConfig ensures mise.toml is up-to-date.
 // Regenerates when: forced, auto_generate enabled (default true), or file missing.
 func ensureMiseConfig(proj *project.Project, mode MiseRegenerateMode) error {
-	// Force mode always regenerates
-	if mode == MiseForceRegenerate {
+	switch mode {
+	case MiseForceRegenerate:
 		return writeMiseConfig(proj)
+	case MiseAutoRegenerate:
+		// Missing file always regenerates
+		if !mise.MiseTomlExists(proj.Root) {
+			return writeMiseConfig(proj)
+		}
+		if isMiseAutoGenerateEnabled(proj.Config) {
+			return writeMiseConfig(proj)
+		}
+		return nil
+	default:
+		return fmt.Errorf("internal error: invalid MiseRegenerateMode: %d", mode)
 	}
-
-	// Missing file always regenerates
-	if !mise.MiseTomlExists(proj.Root) {
-		return writeMiseConfig(proj)
-	}
-
-	if isMiseAutoGenerateEnabled(proj.Config) {
-		return writeMiseConfig(proj)
-	}
-
-	return nil
 }
 
 // writeMiseConfig writes the mise.toml file from project configuration.

@@ -89,11 +89,14 @@ const (
 	SpecialFloatNaN = "NaN"
 
 	// SpecialFloatInfinity matches actual positive infinity (+Inf).
-	// Equivalent to SpecialFloatPosInfinity.
-	// Case-sensitive: only "Infinity" triggers special handling.
+	// This is the canonical representation for positive infinity; prefer this
+	// over SpecialFloatPosInfinity for consistency. Case-sensitive: only
+	// "Infinity" triggers special handling.
 	SpecialFloatInfinity = "Infinity"
 
 	// SpecialFloatPosInfinity matches actual positive infinity (+Inf).
+	// Equivalent to SpecialFloatInfinity; use when explicit "+" is desired
+	// for clarity. Prefer SpecialFloatInfinity as the canonical form.
 	// Case-sensitive: only "+Infinity" triggers special handling.
 	SpecialFloatPosInfinity = "+Infinity"
 

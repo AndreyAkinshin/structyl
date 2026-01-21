@@ -216,7 +216,7 @@ func (tc TestCase) String() string {
 	return fmt.Sprintf("TestCase{%s%s}", tc.Name, skip)
 }
 
-// Validate checks that TestCase fields satisfy the spec requirements.
+// Validate checks that TestCase fields satisfy basic structural requirements.
 // Returns nil if valid, or an error describing the first validation failure.
 //
 // This method is useful for callers who create TestCase programmatically
@@ -228,6 +228,12 @@ func (tc TestCase) String() string {
 //   - Name must not be empty
 //   - Input must not be nil (empty map {} is valid)
 //   - Output must not be nil (use explicit value like "", {}, or [] instead)
+//
+// Important: This method performs structural validation only. It does NOT verify
+// that Output is one of the five JSON-compatible Go types (float64, string,
+// bool, []interface{}, map[string]interface{}). Loader functions provide
+// stronger type guarantees because they unmarshal from JSON; use Validate()
+// for programmatically-constructed test cases where structural checks suffice.
 //
 // Note: This method does NOT check for $file references. Programmatically
 // constructed TestCase instances may contain $file syntax in Input or Output,

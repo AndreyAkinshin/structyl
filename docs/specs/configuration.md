@@ -329,7 +329,7 @@ Custom CI pipeline configuration. Overrides the default `ci` command steps.
 | `steps`                    | array    | `[]`      | CI pipeline step definitions                         |
 | `steps[].name`             | string   | Required  | Step name for display and references                 |
 | `steps[].target`           | string   | Required  | Target name or `"all"`                               |
-| `steps[].command`          | string   | Required  | Command to execute                                   |
+| `steps[].command`          | string   | Required  | Structyl command name (e.g., `build`, `test`, `check`) |
 | `steps[].flags`            | string[] | `[]`      | Additional flags appended to the command invocation  |
 | `steps[].depends_on`       | string[] | `[]`      | Step names that must complete first                  |
 | `steps[].continue_on_error`| boolean  | `false`   | Continue pipeline if step fails                      |

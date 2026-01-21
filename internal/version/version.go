@@ -252,13 +252,11 @@ func parseNumeric(s string) (int, bool) {
 	if len(s) > 1 && s[0] == '0' {
 		return 0, false
 	}
+	n := 0
 	for _, c := range s {
 		if c < '0' || c > '9' {
 			return 0, false
 		}
-	}
-	n := 0
-	for _, c := range s {
 		n = n*10 + int(c-'0')
 	}
 	return n, true

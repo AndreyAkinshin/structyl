@@ -18,8 +18,11 @@ import (
 // out is the shared output writer for runner messages.
 var out = output.New()
 
-// maxParallelWorkers caps STRUCTYL_PARALLEL; beyond 256, scheduling overhead
-// typically outweighs parallelism benefits.
+// maxParallelWorkers caps STRUCTYL_PARALLEL at 256 workers. Beyond this limit,
+// goroutine scheduling overhead typically outweighs parallelism benefits for
+// structyl's I/O-bound target execution (subprocess spawning, file system ops).
+// On typical systems (16-128 cores), 256 provides ample headroom without
+// risking scheduler thrashing or excessive memory usage from blocked goroutines.
 const maxParallelWorkers = 256
 
 // Runner orchestrates command execution across targets.
@@ -161,7 +164,13 @@ func (r *Runner) runSequential(ctx context.Context, targets []target.Target, cmd
 	return nil
 }
 
-// runParallel executes targets concurrently, respecting dependencies.
+// runParallel executes targets concurrently using a bounded worker pool.
+//
+// NOTE: This function does NOT respect depends_on ordering. All targets are
+// dispatched to available workers immediately. For dependency-aware execution,
+// use mise's built-in task runner which topologically sorts targets.
+//
+// Worker count is controlled by STRUCTYL_PARALLEL (default: runtime.NumCPU()).
 func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd string, opts RunOptions) error {
 	workers := getParallelWorkers()
 
@@ -203,8 +212,8 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 			case <-ctx.Done():
 				return
 			case sem <- struct{}{}:
-				defer func() { <-sem }()
 			}
+			defer func() { <-sem }()
 
 			err := t.Execute(ctx, cmd, execOpts)
 

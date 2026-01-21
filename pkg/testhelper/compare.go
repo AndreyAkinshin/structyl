@@ -240,6 +240,12 @@ func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
 //   - "NaN" matches actual NaN (per NaNEqualsNaN option)
 //   - "Infinity" or "+Infinity" matches actual +Inf
 //   - "-Infinity" matches actual -Inf
+//
+// The diff string uses JSON Path notation to identify mismatched locations:
+//   - "$" represents the root value
+//   - "$.foo" represents the "foo" key in a root object
+//   - "$.foo[0]" represents the first element of array "foo"
+//   - "$.foo.bar[2].baz" for deeply nested paths
 func Compare(expected, actual interface{}, opts CompareOptions) (bool, string) {
 	if err := ValidateOptions(opts); err != nil {
 		panic("testhelper.Compare: " + err.Error())
@@ -336,17 +342,20 @@ func floatsEqual(expected, actual float64, opts CompareOptions) bool {
 	}
 
 	switch opts.ToleranceMode {
+	case "", ToleranceModeRelative:
+		// Relative mode (default when ToleranceMode is empty string).
+		if expected == 0 {
+			return math.Abs(actual) <= opts.FloatTolerance
+		}
+		return math.Abs((expected-actual)/expected) <= opts.FloatTolerance
 	case ToleranceModeAbsolute:
 		return math.Abs(expected-actual) <= opts.FloatTolerance
 	case ToleranceModeULP:
 		return ulpDiff(expected, actual) <= int64(opts.FloatTolerance)
 	default:
-		// Relative mode is the default. Handles both ToleranceModeRelative and
-		// empty string (""). ValidateOptions ensures no other values reach here.
-		if expected == 0 {
-			return math.Abs(actual) <= opts.FloatTolerance
-		}
-		return math.Abs((expected-actual)/expected) <= opts.FloatTolerance
+		// ValidateOptions ensures this is unreachable for properly validated options.
+		// Panic to catch programming errors (invalid options passed without validation).
+		panic("testhelper.floatsEqual: invalid ToleranceMode: " + opts.ToleranceMode)
 	}
 }
 
@@ -356,9 +365,15 @@ func floatsEqual(expected, actual float64, opts CompareOptions) bool {
 // The result is always non-negative and symmetric: ULPDiff(a, b) == ULPDiff(b, a).
 //
 // Special cases:
-//   - ULPDiff(x, x) = 0 for any finite x
-//   - ULPDiff(NaN, y) returns a large value (behavior is undefined for NaN inputs)
-//   - ULPDiff(+Inf, -Inf) returns maximum int64
+//   - ULPDiff(x, x) = 0 for any x, including NaN and ±Inf
+//   - ULPDiff(NaN, y) for y ≠ NaN returns a large value (~9.2e18)
+//   - ULPDiff(+Inf, -Inf) returns a large value (~9e15, roughly the number
+//     of representable floats between -MaxFloat64 and +MaxFloat64)
+//
+// Note: The returned values for NaN and infinity comparisons are mathematically
+// meaningless but are predictable and symmetric. For float comparison with
+// tolerance, use the Equal function which handles special values explicitly
+// before calling ULPDiff.
 //
 // Use this function for debugging float comparisons or implementing custom
 // tolerance logic based on ULP distance.

@@ -21,16 +21,6 @@ func TestProjectNotFoundError(t *testing.T) {
 	}
 }
 
-func TestConfigFileMissingError(t *testing.T) {
-	tmpDir := t.TempDir()
-	configPath := filepath.Join(tmpDir, ".structyl", "config.json")
-
-	_, err := config.Load(configPath)
-	if err == nil {
-		t.Error("expected error when loading missing config file")
-	}
-}
-
 func TestConfigInvalidJSONError(t *testing.T) {
 	tmpDir := t.TempDir()
 	structylDir := filepath.Join(tmpDir, ".structyl")

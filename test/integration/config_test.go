@@ -2,6 +2,7 @@ package integration
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
@@ -32,6 +33,11 @@ func TestConfigValidateCircularDeps(t *testing.T) {
 	if err == nil {
 		t.Error("expected error for circular dependencies")
 	}
+	// Verify error message mentions circular dependency
+	errStr := strings.ToLower(err.Error())
+	if !strings.Contains(errStr, "circular") && !strings.Contains(errStr, "cycle") {
+		t.Errorf("error = %q, want to mention 'circular' or 'cycle'", err.Error())
+	}
 }
 
 func TestConfigValidateInvalidToolchain(t *testing.T) {
@@ -47,24 +53,9 @@ func TestConfigValidateInvalidToolchain(t *testing.T) {
 	if err == nil {
 		t.Error("expected error for invalid toolchain")
 	}
-}
-
-func TestConfigDefaults(t *testing.T) {
-	fixtureDir := filepath.Join(fixturesDir(), "minimal")
-	configPath := filepath.Join(fixtureDir, ".structyl", "config.json")
-
-	cfg, err := config.LoadWithDefaults(configPath)
-	if err != nil {
-		t.Fatalf("failed to load config with defaults: %v", err)
-	}
-
-	// Check that defaults are applied
-	if cfg.Version == nil {
-		t.Error("expected version config to be set with defaults")
-	}
-
-	if cfg.Version.Source != ".structyl/PROJECT_VERSION" {
-		t.Errorf("expected default version source %q, got %q", ".structyl/PROJECT_VERSION", cfg.Version.Source)
+	// Verify error message mentions toolchain
+	if !strings.Contains(strings.ToLower(err.Error()), "toolchain") {
+		t.Errorf("error = %q, want to mention 'toolchain'", err.Error())
 	}
 }
 

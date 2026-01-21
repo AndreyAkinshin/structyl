@@ -182,7 +182,10 @@ func Compare(a, b string) (int, error) {
 		return cmp.Compare(va.Patch, vb.Patch), nil
 	}
 
-	// Prerelease comparison: version without prerelease is greater (SemVer §9)
+	// Prerelease comparison per SemVer §9:
+	// - Version without prerelease is greater than version with prerelease
+	// - If both have prereleases, compare them per §11
+	// - If both empty (or equal), fall through to return 0
 	if va.Prerelease == "" && vb.Prerelease != "" {
 		return 1, nil
 	}

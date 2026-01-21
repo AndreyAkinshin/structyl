@@ -213,7 +213,6 @@ func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) 
 		return fmt.Errorf("invalid command definition type: %T", cmdDef)
 	}
 
-	// Interpolate variables
 	cmdStr = t.interpolateVars(cmdStr)
 
 	// Check if the command is available before executing
@@ -243,7 +242,6 @@ func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) 
 		cmdStr += " " + strings.Join(opts.Args, " ")
 	}
 
-	// Execute the command
 	return t.executeShell(ctx, cmdStr, opts)
 }
 

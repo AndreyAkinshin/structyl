@@ -3,6 +3,7 @@ package testparser
 import "testing"
 
 func TestPytestParser(t *testing.T) {
+	t.Parallel()
 	parser := &PytestParser{}
 
 	tests := []struct {
@@ -51,6 +52,7 @@ tests/test_foo.py::test_baz PASSED
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := parser.Parse(tt.output)
 			if result.Passed != tt.expected.Passed {
 				t.Errorf("Passed: got %d, want %d", result.Passed, tt.expected.Passed)
@@ -72,6 +74,7 @@ tests/test_foo.py::test_baz PASSED
 }
 
 func TestPytestParserName(t *testing.T) {
+	t.Parallel()
 	parser := &PytestParser{}
 	if parser.Name() != "pytest" {
 		t.Errorf("Name: got %s, want pytest", parser.Name())

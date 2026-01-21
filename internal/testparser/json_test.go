@@ -6,6 +6,7 @@ import (
 )
 
 func TestJSONParser(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name           string
 		input          string
@@ -62,6 +63,7 @@ func TestJSONParser(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := parser.ParseJSON(strings.NewReader(tt.input))
 			if result.Passed != tt.expectedCounts.Passed {
 				t.Errorf("Passed: got %d, want %d", result.Passed, tt.expectedCounts.Passed)
@@ -83,6 +85,7 @@ func TestJSONParser(t *testing.T) {
 }
 
 func TestJSONParserFailedTestDetails(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name          string
 		input         string
@@ -124,6 +127,7 @@ func TestJSONParserFailedTestDetails(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := parser.ParseJSON(strings.NewReader(tt.input))
 			if len(result.FailedTests) != len(tt.expectedTests) {
 				t.Errorf("FailedTests length: got %d, want %d", len(result.FailedTests), len(tt.expectedTests))

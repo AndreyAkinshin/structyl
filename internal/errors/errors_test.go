@@ -7,6 +7,7 @@ import (
 )
 
 func TestStructylError_Error(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		err      *StructylError
@@ -36,6 +37,7 @@ func TestStructylError_Error(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := tt.err.Error(); got != tt.expected {
 				t.Errorf("Error() = %q, want %q", got, tt.expected)
 			}
@@ -44,6 +46,7 @@ func TestStructylError_Error(t *testing.T) {
 }
 
 func TestStructylError_Unwrap(t *testing.T) {
+	t.Parallel()
 	cause := errors.New("underlying error")
 	err := &StructylError{
 		Message: "wrapper",
@@ -62,6 +65,7 @@ func TestStructylError_Unwrap(t *testing.T) {
 }
 
 func TestStructylError_ExitCode(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		kind     ErrorKind
@@ -76,6 +80,7 @@ func TestStructylError_ExitCode(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			err := &StructylError{Kind: tt.kind}
 			if got := err.ExitCode(); got != tt.expected {
 				t.Errorf("ExitCode() = %d, want %d", got, tt.expected)
@@ -85,6 +90,7 @@ func TestStructylError_ExitCode(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
+	t.Parallel()
 	err := New("test error")
 
 	if err.Kind != KindRuntime {
@@ -96,6 +102,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestNewf(t *testing.T) {
+	t.Parallel()
 	err := Newf("error %d: %s", 42, "details")
 
 	if err.Kind != KindRuntime {
@@ -107,6 +114,7 @@ func TestNewf(t *testing.T) {
 }
 
 func TestConfig(t *testing.T) {
+	t.Parallel()
 	err := Config("invalid config")
 
 	if err.Kind != KindConfig {
@@ -121,6 +129,7 @@ func TestConfig(t *testing.T) {
 }
 
 func TestConfigf(t *testing.T) {
+	t.Parallel()
 	err := Configf("field %q: %s", "name", "is required")
 
 	if err.Kind != KindConfig {
@@ -133,6 +142,7 @@ func TestConfigf(t *testing.T) {
 }
 
 func TestValidation(t *testing.T) {
+	t.Parallel()
 	err := Validation("invalid version format")
 
 	if err.Kind != KindValidation {
@@ -147,6 +157,7 @@ func TestValidation(t *testing.T) {
 }
 
 func TestValidationf(t *testing.T) {
+	t.Parallel()
 	err := Validationf("version %q: %s", "1.0.invalid", "not semantic version")
 
 	if err.Kind != KindValidation {
@@ -159,6 +170,7 @@ func TestValidationf(t *testing.T) {
 }
 
 func TestEnvironment(t *testing.T) {
+	t.Parallel()
 	err := Environment("Docker not available")
 
 	if err.Kind != KindEnvironment {
@@ -173,6 +185,7 @@ func TestEnvironment(t *testing.T) {
 }
 
 func TestEnvironmentf(t *testing.T) {
+	t.Parallel()
 	err := Environmentf("tool %q not found in PATH", "docker")
 
 	if err.Kind != KindEnvironment {
@@ -185,6 +198,7 @@ func TestEnvironmentf(t *testing.T) {
 }
 
 func TestWrap(t *testing.T) {
+	t.Parallel()
 	cause := errors.New("original error")
 	err := Wrap(cause, "wrapped message")
 
@@ -203,6 +217,7 @@ func TestWrap(t *testing.T) {
 }
 
 func TestWrapf(t *testing.T) {
+	t.Parallel()
 	cause := errors.New("original error")
 	err := Wrapf(cause, "wrapped with %s and %d", "string", 42)
 
@@ -222,6 +237,7 @@ func TestWrapf(t *testing.T) {
 }
 
 func TestTargetError(t *testing.T) {
+	t.Parallel()
 	err := TargetError("rs", "build", "compilation failed")
 
 	if err.Kind != KindRuntime {
@@ -245,6 +261,7 @@ func TestTargetError(t *testing.T) {
 }
 
 func TestNotFound(t *testing.T) {
+	t.Parallel()
 	err := NotFound("target", "nonexistent")
 
 	if err.Kind != KindNotFound {
@@ -257,6 +274,7 @@ func TestNotFound(t *testing.T) {
 }
 
 func TestGetExitCode(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		err      error
@@ -272,6 +290,7 @@ func TestGetExitCode(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := GetExitCode(tt.err); got != tt.expected {
 				t.Errorf("GetExitCode() = %d, want %d", got, tt.expected)
 			}
@@ -280,6 +299,7 @@ func TestGetExitCode(t *testing.T) {
 }
 
 func TestGetExitCode_WrappedErrors(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		err      error
@@ -309,6 +329,7 @@ func TestGetExitCode_WrappedErrors(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if got := GetExitCode(tt.err); got != tt.expected {
 				t.Errorf("GetExitCode() = %d, want %d", got, tt.expected)
 			}
@@ -317,6 +338,7 @@ func TestGetExitCode_WrappedErrors(t *testing.T) {
 }
 
 func TestErrorKindConstants(t *testing.T) {
+	t.Parallel()
 	// Verify error kinds have distinct values
 	kinds := []ErrorKind{KindRuntime, KindConfig, KindNotFound, KindValidation, KindEnvironment}
 	seen := make(map[ErrorKind]bool)
@@ -330,6 +352,7 @@ func TestErrorKindConstants(t *testing.T) {
 }
 
 func TestExitCodeConstants(t *testing.T) {
+	t.Parallel()
 	// Verify exit codes match specification
 	if ExitSuccess != 0 {
 		t.Errorf("ExitSuccess = %d, want 0", ExitSuccess)
@@ -346,6 +369,7 @@ func TestExitCodeConstants(t *testing.T) {
 }
 
 func TestErrorChain_Is(t *testing.T) {
+	t.Parallel()
 	sentinel := errors.New("sentinel error")
 
 	// Wrap sentinel in StructylError
@@ -364,6 +388,7 @@ func TestErrorChain_Is(t *testing.T) {
 }
 
 func TestErrorChain_As(t *testing.T) {
+	t.Parallel()
 	// Create a chain: generic error -> StructylError (config) -> StructylError (runtime)
 	rootCause := errors.New("root cause")
 	configErr := &StructylError{Kind: KindConfig, Message: "config issue", Cause: rootCause}
@@ -388,6 +413,7 @@ func TestErrorChain_As(t *testing.T) {
 }
 
 func TestErrorChain_MultiLevel(t *testing.T) {
+	t.Parallel()
 	// Three levels deep
 	level1 := errors.New("level 1")
 	level2 := Wrap(level1, "level 2")

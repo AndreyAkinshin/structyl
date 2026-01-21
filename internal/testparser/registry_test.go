@@ -3,6 +3,7 @@ package testparser
 import "testing"
 
 func TestRegistry(t *testing.T) {
+	t.Parallel()
 	registry := NewRegistry()
 
 	tests := []struct {
@@ -27,6 +28,7 @@ func TestRegistry(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.toolchain, func(t *testing.T) {
+			t.Parallel()
 			parser := registry.GetParser(tt.toolchain)
 			if parser == nil {
 				t.Errorf("GetParser(%s): got nil, want parser", tt.toolchain)
@@ -40,6 +42,7 @@ func TestRegistry(t *testing.T) {
 }
 
 func TestRegistryUnknownToolchain(t *testing.T) {
+	t.Parallel()
 	registry := NewRegistry()
 	parser := registry.GetParser("unknown")
 	if parser != nil {
@@ -48,6 +51,7 @@ func TestRegistryUnknownToolchain(t *testing.T) {
 }
 
 func TestRegistryGetParserForTask(t *testing.T) {
+	t.Parallel()
 	registry := NewRegistry()
 
 	tests := []struct {
@@ -67,6 +71,7 @@ func TestRegistryGetParserForTask(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.taskName, func(t *testing.T) {
+			t.Parallel()
 			parser := registry.GetParserForTask(tt.taskName)
 			if tt.expectNil {
 				if parser != nil {
@@ -86,6 +91,7 @@ func TestRegistryGetParserForTask(t *testing.T) {
 }
 
 func TestRegistryRegisterParser(t *testing.T) {
+	t.Parallel()
 	registry := NewRegistry()
 
 	// Register a custom parser
@@ -99,6 +105,7 @@ func TestRegistryRegisterParser(t *testing.T) {
 }
 
 func TestRegistryCaseInsensitive(t *testing.T) {
+	t.Parallel()
 	registry := NewRegistry()
 
 	tests := []string{"Go", "GO", "go", "gO"}

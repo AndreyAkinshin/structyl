@@ -3,6 +3,7 @@ package testparser
 import "testing"
 
 func TestGoParser(t *testing.T) {
+	t.Parallel()
 	parser := &GoParser{}
 
 	tests := []struct {
@@ -68,6 +69,7 @@ ok  	example.com/pkg	0.012s`,
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := parser.Parse(tt.output)
 			if result.Passed != tt.expected.Passed {
 				t.Errorf("Passed: got %d, want %d", result.Passed, tt.expected.Passed)
@@ -89,6 +91,7 @@ ok  	example.com/pkg	0.012s`,
 }
 
 func TestGoParserName(t *testing.T) {
+	t.Parallel()
 	parser := &GoParser{}
 	if parser.Name() != "go" {
 		t.Errorf("Name: got %s, want go", parser.Name())
@@ -96,6 +99,7 @@ func TestGoParserName(t *testing.T) {
 }
 
 func TestGoParserFailedTestDetails(t *testing.T) {
+	t.Parallel()
 	parser := &GoParser{}
 
 	tests := []struct {
@@ -160,6 +164,7 @@ FAIL`,
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := parser.Parse(tt.output)
 			if result.Failed != tt.expectedFailed {
 				t.Errorf("Failed count: got %d, want %d", result.Failed, tt.expectedFailed)

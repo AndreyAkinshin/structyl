@@ -3,6 +3,7 @@ package testparser
 import "testing"
 
 func TestDotnetParser(t *testing.T) {
+	t.Parallel()
 	parser := &DotnetParser{}
 
 	tests := []struct {
@@ -51,6 +52,7 @@ Passed!  - Failed:     0, Passed:    47, Skipped:     0, Total:    47`,
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := parser.Parse(tt.output)
 			if result.Passed != tt.expected.Passed {
 				t.Errorf("Passed: got %d, want %d", result.Passed, tt.expected.Passed)
@@ -72,6 +74,7 @@ Passed!  - Failed:     0, Passed:    47, Skipped:     0, Total:    47`,
 }
 
 func TestDotnetParserName(t *testing.T) {
+	t.Parallel()
 	parser := &DotnetParser{}
 	if parser.Name() != "dotnet" {
 		t.Errorf("Name: got %s, want dotnet", parser.Name())

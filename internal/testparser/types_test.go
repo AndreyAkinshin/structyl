@@ -3,6 +3,7 @@ package testparser
 import "testing"
 
 func TestTestCountsAdd_NilReceiver(t *testing.T) {
+	t.Parallel()
 	// Document that nil receiver panics (standard Go behavior)
 	defer func() {
 		if r := recover(); r == nil {
@@ -15,6 +16,7 @@ func TestTestCountsAdd_NilReceiver(t *testing.T) {
 }
 
 func TestTestCountsAdd(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		base     TestCounts
@@ -55,6 +57,7 @@ func TestTestCountsAdd(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			base := tt.base
 			base.Add(tt.add)
 

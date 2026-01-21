@@ -10,6 +10,7 @@ import (
 // TestExitCodeValues verifies that exit code constants have the expected values
 // as documented in docs/specs/error-handling.md.
 func TestExitCodeValues(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		constant int
@@ -23,6 +24,7 @@ func TestExitCodeValues(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if tt.constant != tt.expected {
 				t.Errorf("structyl.%s = %d, want %d", tt.name, tt.constant, tt.expected)
 			}
@@ -34,6 +36,7 @@ func TestExitCodeValues(t *testing.T) {
 // the internal errors package constants. This prevents drift between
 // the public API and internal implementation.
 func TestExitCodeConsistency(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		name     string
 		public   int
@@ -47,6 +50,7 @@ func TestExitCodeConsistency(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			if tt.public != tt.internal {
 				t.Errorf("exit code mismatch: structyl constant = %d, errors constant = %d",
 					tt.public, tt.internal)

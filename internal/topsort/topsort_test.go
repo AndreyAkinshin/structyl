@@ -9,6 +9,7 @@ import (
 )
 
 func TestSort_Empty(t *testing.T) {
+	t.Parallel()
 	g := Graph{}
 	result, err := Sort(g, nil)
 	if err != nil {
@@ -20,6 +21,7 @@ func TestSort_Empty(t *testing.T) {
 }
 
 func TestSort_SingleNode(t *testing.T) {
+	t.Parallel()
 	g := Graph{"a": nil}
 	result, err := Sort(g, nil)
 	if err != nil {
@@ -31,6 +33,7 @@ func TestSort_SingleNode(t *testing.T) {
 }
 
 func TestSort_LinearChain(t *testing.T) {
+	t.Parallel()
 	// c depends on b, b depends on a
 	g := Graph{
 		"a": nil,
@@ -61,6 +64,7 @@ func TestSort_LinearChain(t *testing.T) {
 }
 
 func TestSort_Diamond(t *testing.T) {
+	t.Parallel()
 	// d depends on b and c, b and c depend on a
 	g := Graph{
 		"a": nil,
@@ -93,6 +97,7 @@ func TestSort_Diamond(t *testing.T) {
 }
 
 func TestSort_Cycle(t *testing.T) {
+	t.Parallel()
 	g := Graph{
 		"a": {"b"},
 		"b": {"a"},
@@ -107,6 +112,7 @@ func TestSort_Cycle(t *testing.T) {
 }
 
 func TestSort_LongCycle(t *testing.T) {
+	t.Parallel()
 	// 4-node cycle: a -> b -> c -> d -> a
 	g := Graph{
 		"a": {"b"},
@@ -124,6 +130,7 @@ func TestSort_LongCycle(t *testing.T) {
 }
 
 func TestSort_CycleWithBranch(t *testing.T) {
+	t.Parallel()
 	// Graph with a cycle and a branch:
 	//   a -> b -> c -> d -> b (cycle: b -> c -> d -> b)
 	//        |
@@ -146,6 +153,7 @@ func TestSort_CycleWithBranch(t *testing.T) {
 }
 
 func TestSort_SelfReference(t *testing.T) {
+	t.Parallel()
 	g := Graph{
 		"a": {"a"},
 	}
@@ -159,6 +167,7 @@ func TestSort_SelfReference(t *testing.T) {
 }
 
 func TestSort_UndefinedDependency(t *testing.T) {
+	t.Parallel()
 	g := Graph{
 		"a": {"undefined"},
 	}
@@ -172,6 +181,7 @@ func TestSort_UndefinedDependency(t *testing.T) {
 }
 
 func TestSort_SelectedNodes(t *testing.T) {
+	t.Parallel()
 	g := Graph{
 		"a": nil,
 		"b": {"a"},
@@ -193,6 +203,7 @@ func TestSort_SelectedNodes(t *testing.T) {
 }
 
 func TestSort_NilVsEmptyNodes(t *testing.T) {
+	t.Parallel()
 	g := Graph{
 		"a": nil,
 		"b": {"a"},
@@ -219,6 +230,7 @@ func TestSort_NilVsEmptyNodes(t *testing.T) {
 }
 
 func TestValidate_Valid(t *testing.T) {
+	t.Parallel()
 	g := Graph{
 		"a": nil,
 		"b": {"a"},
@@ -230,6 +242,7 @@ func TestValidate_Valid(t *testing.T) {
 }
 
 func TestValidate_SelfReference(t *testing.T) {
+	t.Parallel()
 	g := Graph{
 		"a": {"a"},
 	}
@@ -243,6 +256,7 @@ func TestValidate_SelfReference(t *testing.T) {
 }
 
 func TestValidate_UndefinedDependency(t *testing.T) {
+	t.Parallel()
 	g := Graph{
 		"a": {"missing"},
 	}
@@ -256,6 +270,7 @@ func TestValidate_UndefinedDependency(t *testing.T) {
 }
 
 func TestValidate_Cycle(t *testing.T) {
+	t.Parallel()
 	g := Graph{
 		"a": {"b"},
 		"b": {"c"},
@@ -271,6 +286,7 @@ func TestValidate_Cycle(t *testing.T) {
 }
 
 func TestSort_DisconnectedWithCycle(t *testing.T) {
+	t.Parallel()
 	// Graph with two disconnected components:
 	// Component 1: a -> b (valid)
 	// Component 2: c -> d -> c (cycle)
@@ -290,6 +306,7 @@ func TestSort_DisconnectedWithCycle(t *testing.T) {
 }
 
 func TestValidate_DisconnectedWithCycle(t *testing.T) {
+	t.Parallel()
 	// Graph with two disconnected components where one has a cycle
 	g := Graph{
 		"a": nil,
@@ -308,6 +325,7 @@ func TestValidate_DisconnectedWithCycle(t *testing.T) {
 }
 
 func TestSort_MultipleDisconnectedComponents(t *testing.T) {
+	t.Parallel()
 	// Graph with three disconnected components, all valid
 	g := Graph{
 		"a": nil,
@@ -345,6 +363,7 @@ func TestSort_MultipleDisconnectedComponents(t *testing.T) {
 }
 
 func TestSort_LargeGraph(t *testing.T) {
+	t.Parallel()
 	// Build a linear chain of 100 nodes: n000 <- n001 <- n002 <- ... <- n099
 	const nodeCount = 100
 	g := make(Graph, nodeCount)

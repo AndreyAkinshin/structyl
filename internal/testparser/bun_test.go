@@ -3,6 +3,7 @@ package testparser
 import "testing"
 
 func TestBunParser(t *testing.T) {
+	t.Parallel()
 	parser := &BunParser{}
 
 	tests := []struct {
@@ -54,6 +55,7 @@ test_foo.ts:
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := parser.Parse(tt.output)
 			if result.Passed != tt.expected.Passed {
 				t.Errorf("Passed: got %d, want %d", result.Passed, tt.expected.Passed)
@@ -75,6 +77,7 @@ test_foo.ts:
 }
 
 func TestBunParserName(t *testing.T) {
+	t.Parallel()
 	parser := &BunParser{}
 	if parser.Name() != "bun" {
 		t.Errorf("Name: got %s, want bun", parser.Name())

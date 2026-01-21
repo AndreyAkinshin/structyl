@@ -9,6 +9,7 @@ import (
 )
 
 func TestTaskResult_ZeroValue(t *testing.T) {
+	t.Parallel()
 	var result TaskResult
 
 	if result.Name != "" {
@@ -29,6 +30,7 @@ func TestTaskResult_ZeroValue(t *testing.T) {
 }
 
 func TestTaskResult_WithValues(t *testing.T) {
+	t.Parallel()
 	testErr := errors.New("test error")
 	testCounts := &testparser.TestCounts{Passed: 5, Failed: 1}
 
@@ -58,6 +60,7 @@ func TestTaskResult_WithValues(t *testing.T) {
 }
 
 func TestTaskResult_SuccessfulTask(t *testing.T) {
+	t.Parallel()
 	result := TaskResult{
 		Name:     "test:rs",
 		Success:  true,
@@ -73,6 +76,7 @@ func TestTaskResult_SuccessfulTask(t *testing.T) {
 }
 
 func TestTaskRunSummary_ZeroValue(t *testing.T) {
+	t.Parallel()
 	var summary TaskRunSummary
 
 	if len(summary.Tasks) != 0 {
@@ -93,6 +97,7 @@ func TestTaskRunSummary_ZeroValue(t *testing.T) {
 }
 
 func TestTaskRunSummary_WithTasks(t *testing.T) {
+	t.Parallel()
 	tasks := []TaskResult{
 		{Name: "build:go", Success: true, Duration: 1 * time.Second},
 		{Name: "build:rs", Success: true, Duration: 2 * time.Second},
@@ -121,6 +126,7 @@ func TestTaskRunSummary_WithTasks(t *testing.T) {
 }
 
 func TestTaskRunSummary_WithTestCounts(t *testing.T) {
+	t.Parallel()
 	testCounts := &testparser.TestCounts{
 		Passed:  10,
 		Failed:  2,
@@ -152,6 +158,7 @@ func TestTaskRunSummary_WithTestCounts(t *testing.T) {
 }
 
 func TestTaskRunSummary_AllPassed(t *testing.T) {
+	t.Parallel()
 	summary := TaskRunSummary{
 		Tasks: []TaskResult{
 			{Name: "build", Success: true, Duration: 1 * time.Second},
@@ -171,6 +178,7 @@ func TestTaskRunSummary_AllPassed(t *testing.T) {
 }
 
 func TestTaskRunSummary_AllFailed(t *testing.T) {
+	t.Parallel()
 	summary := TaskRunSummary{
 		Tasks: []TaskResult{
 			{Name: "build", Success: false, Duration: 1 * time.Second, Error: errors.New("fail1")},

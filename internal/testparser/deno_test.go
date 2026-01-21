@@ -3,6 +3,7 @@ package testparser
 import "testing"
 
 func TestDenoParser(t *testing.T) {
+	t.Parallel()
 	parser := &DenoParser{}
 
 	tests := []struct {
@@ -53,6 +54,7 @@ ok | 47 passed | 0 failed (123ms)`,
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			result := parser.Parse(tt.output)
 			if result.Passed != tt.expected.Passed {
 				t.Errorf("Passed: got %d, want %d", result.Passed, tt.expected.Passed)
@@ -74,6 +76,7 @@ ok | 47 passed | 0 failed (123ms)`,
 }
 
 func TestDenoParserName(t *testing.T) {
+	t.Parallel()
 	parser := &DenoParser{}
 	if parser.Name() != "deno" {
 		t.Errorf("Name: got %s, want deno", parser.Name())

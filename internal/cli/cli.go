@@ -186,8 +186,11 @@ func parseGlobalFlags(args []string) (*GlobalOptions, []string, error) {
 	}
 
 	// Validate target type
-	if opts.TargetType != "" && opts.TargetType != "language" && opts.TargetType != "auxiliary" {
-		return nil, nil, fmt.Errorf("invalid --type value %q\n  valid values: language, auxiliary\n  example: structyl build --type=language", opts.TargetType)
+	if opts.TargetType != "" {
+		if _, ok := target.ParseTargetType(opts.TargetType); !ok {
+			return nil, nil, fmt.Errorf("invalid --type value %q\n  valid values: %s\n  example: structyl build --type=language",
+				opts.TargetType, strings.Join(target.ValidTargetTypes(), ", "))
+		}
 	}
 
 	// Validate mutual exclusivity of quiet and verbose

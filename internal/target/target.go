@@ -30,6 +30,25 @@ func (t TargetType) IsValid() bool {
 	return t == TypeLanguage || t == TypeAuxiliary
 }
 
+// ParseTargetType parses a string into a TargetType.
+// Returns the parsed type and true if valid, or empty string and false if invalid.
+func ParseTargetType(s string) (TargetType, bool) {
+	switch s {
+	case string(TypeLanguage):
+		return TypeLanguage, true
+	case string(TypeAuxiliary):
+		return TypeAuxiliary, true
+	default:
+		return "", false
+	}
+}
+
+// ValidTargetTypes returns the valid target type values as strings.
+// Useful for error messages.
+func ValidTargetTypes() []string {
+	return []string{string(TypeLanguage), string(TypeAuxiliary)}
+}
+
 // Target represents a build target (language or auxiliary).
 type Target interface {
 	// Identification

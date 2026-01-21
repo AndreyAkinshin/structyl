@@ -39,6 +39,60 @@ func TestTargetType_IsValid(t *testing.T) {
 	}
 }
 
+func TestParseTargetType(t *testing.T) {
+	tests := []struct {
+		input   string
+		wantTyp TargetType
+		wantOk  bool
+	}{
+		{"language", TypeLanguage, true},
+		{"auxiliary", TypeAuxiliary, true},
+		{"", "", false},
+		{"unknown", "", false},
+		{"Language", "", false}, // case sensitive
+		{"LANGUAGE", "", false},
+		{"lang", "", false},
+		{"aux", "", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			gotTyp, gotOk := ParseTargetType(tt.input)
+			if gotTyp != tt.wantTyp || gotOk != tt.wantOk {
+				t.Errorf("ParseTargetType(%q) = (%q, %v), want (%q, %v)",
+					tt.input, gotTyp, gotOk, tt.wantTyp, tt.wantOk)
+			}
+		})
+	}
+}
+
+func TestValidTargetTypes(t *testing.T) {
+	types := ValidTargetTypes()
+
+	if len(types) != 2 {
+		t.Errorf("ValidTargetTypes() returned %d types, want 2", len(types))
+	}
+
+	// Check that both valid types are present
+	hasLanguage := false
+	hasAuxiliary := false
+	for _, typ := range types {
+		if typ == "language" {
+			hasLanguage = true
+		}
+		if typ == "auxiliary" {
+			hasAuxiliary = true
+		}
+	}
+
+	if !hasLanguage {
+		t.Error("ValidTargetTypes() missing 'language'")
+	}
+	if !hasAuxiliary {
+		t.Error("ValidTargetTypes() missing 'auxiliary'")
+	}
+}
+
 // readTestOutput reads a file and decodes it to a string, handling Windows UTF-16 encoding.
 // On Windows, PowerShell's redirection operator creates UTF-16 LE files with BOM.
 func readTestOutput(path string) (string, error) {

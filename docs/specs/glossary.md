@@ -97,7 +97,7 @@ A test case defined in JSON format in the `tests/` directory. Reference tests ar
 
 ### Skip Error
 
-An informational error indicating a command was skipped (not failed). Skip scenarios include disabled commands (`null` in configuration), missing executables, and missing npm scripts. Skip errors are logged as warnings rather than causing command failure and are excluded from combined error results.
+An informational error indicating a command was skipped (not failed). Skip scenarios include disabled commands (`null` in configuration), missing executables, and missing npm scripts. Skip errors are logged as warnings rather than causing command failure and are excluded from combined error results. See [error-handling.md](error-handling.md#skip-errors) for complete semantics including exit code behavior.
 
 ### Slug
 

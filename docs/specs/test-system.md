@@ -57,9 +57,7 @@ Every test file has `input` and `output`:
 
 **Tag usage:** Tags have no built-in semantics in Structyl. Language implementations MAY use tags to filter test execution, group tests in output, or skip tests based on environment capabilities. Tag values are free-form strings; establish conventions per-project.
 
-::: info Reserved Field Names
-The following field names are reserved for potential future use and SHOULD NOT be used for custom metadata: `timeout`, `setup`, `teardown`. These are currently ignored but may gain semantics in future versions.
-:::
+**Reserved field names:** The field names `timeout`, `setup`, and `teardown` are reserved for future specification versions. Users SHOULD NOT use these for custom metadata as they MAY gain normative semantics in future releases. These fields are currently ignored by all loaders.
 
 ### Loading Failure Behavior
 

@@ -150,10 +150,15 @@ type Runner interface {
 }
 
 type RunOptions struct {
-    Docker   bool
-    Continue bool   // Continue on failure
-    Parallel bool   // Run in parallel where possible
+    Docker    bool              // Run in Docker container
+    Continue  bool              // Continue on failure (INTERNAL USE ONLY)
+    Parallel  bool              // Run in parallel (INTERNAL USE ONLY)
+    Args      []string          // Arguments to pass to commands
+    Env       map[string]string // Additional environment variables
+    Verbosity target.Verbosity  // Output verbosity level
 }
+// Note: Continue and Parallel are internal-only. CLI commands use mise for
+// orchestration, which handles failure modes and dependency-aware parallelism.
 ```
 
 ## Package Dependencies

@@ -99,7 +99,7 @@ All toolchains implement this vocabulary:
 <!-- VitePress component: Renders standard command summary table in docs site (non-normative) -->
 <StandardCommands variant="brief" />
 
-† `build:release` is only provided by toolchains with distinct release/optimized build modes (e.g., `cargo`, `dotnet`, `swift`, `make`, `zig`). Toolchains without a native release mode do not define this variant.
+† `build:release` is only provided by toolchains with distinct release/optimized build modes (e.g., `cargo`, `dotnet`, `swift`, `make`, `zig`). Toolchains that use configuration-time flags rather than build-time flags for release mode (e.g., `cmake` which uses `-DCMAKE_BUILD_TYPE=Release` at configure time) do not define this variant.
 
 ‡ `test:coverage` is OPTIONAL. **No built-in toolchain provides a default implementation** because coverage tools vary significantly by ecosystem. Configure a custom `test:coverage` command in target configuration if needed. See [commands.md](commands.md) for semantics.
 
@@ -184,6 +184,8 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 ---
 
+> **Note for Node.js toolchains (npm, pnpm, yarn, bun):** Commands like `clean`, `lint`, `typecheck`, and `format` assume corresponding scripts are defined in `package.json`. Missing scripts result in skip errors.
+
 ### `npm`
 
 **Ecosystem:** Node.js (npm)
@@ -205,8 +207,6 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish:dry`   | `npm publish --dry-run`                                                  |
 
 <ToolchainCommands name="npm" variant="spec" />
-
-- Note: Assumes `package.json` defines corresponding scripts
 
 ---
 

@@ -492,12 +492,12 @@ A command value of `null` indicates the command is not available for this target
 
 ### Behavior When Invoked
 
+A `null` command is a deliberate "not applicable" marker that signals the command should be skipped gracefully. An undefined command (not in target's map and no toolchain to inherit from) is an error because Structyl cannot determine what to execute.
+
 | Condition                    | Behavior                                                                    |
 | ---------------------------- | --------------------------------------------------------------------------- |
 | Explicitly set to `null`     | Exit code 0 (no-op), warning: `[{target}] command "{cmd}" is not available` |
 | Not defined and no toolchain | Exit code 1, error: `[{target}] command "{cmd}" not defined`                |
-
-A `null` command is a deliberate "not applicable" marker. This differs from an undefined command, which is an error.
 
 ### Use Cases
 

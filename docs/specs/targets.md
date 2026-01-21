@@ -51,6 +51,7 @@ Characteristics:
 - Only included in `structyl build`
 - May have dependencies on other targets
 - No test/demo expectations
+- When `structyl test` or `structyl demo` runs on all targets, auxiliary targets are skipped (see [commands.md](commands.md#null-commands) for skip behavior)
 
 ## Target Configuration
 

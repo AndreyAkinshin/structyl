@@ -66,7 +66,7 @@ structyl version set 2.0.0
 
 This:
 
-1. Updates the `.structyl/PROJECT_VERSION` file
+1. Updates the version file at the configured `version.source` path (default: `.structyl/PROJECT_VERSION`)
 2. Propagates to all configured files
 3. Regenerates documentation (if configured)
 

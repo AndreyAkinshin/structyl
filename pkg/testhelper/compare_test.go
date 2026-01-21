@@ -1548,3 +1548,121 @@ func TestCompareE_DoesNotPanic_InvalidOptions(t *testing.T) {
 		})
 	}
 }
+
+// Tests for EqualE
+
+func TestEqualE_ValidOptions_MatchesEqual(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		expected interface{}
+		actual   interface{}
+		opts     CompareOptions
+	}{
+		{"equal floats", 1.0, 1.0, DefaultOptions()},
+		{"unequal floats within tolerance", 1.0, 1.0000000001, DefaultOptions()},
+		{"equal strings", "hello", "hello", DefaultOptions()},
+		{"unequal strings", "hello", "world", DefaultOptions()},
+		{"equal arrays", []interface{}{1, 2, 3}, []interface{}{1, 2, 3}, DefaultOptions()},
+		{"equal objects", map[string]interface{}{"a": 1}, map[string]interface{}{"a": 1}, DefaultOptions()},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			wantEqual := Equal(tt.expected, tt.actual, tt.opts)
+			gotEqual, err := EqualE(tt.expected, tt.actual, tt.opts)
+
+			if err != nil {
+				t.Errorf("EqualE() returned unexpected error: %v", err)
+			}
+			if gotEqual != wantEqual {
+				t.Errorf("EqualE() = %v, Equal() = %v", gotEqual, wantEqual)
+			}
+		})
+	}
+}
+
+func TestEqualE_InvalidToleranceMode_ReturnsError(t *testing.T) {
+	t.Parallel()
+
+	opts := CompareOptions{
+		FloatTolerance: 0.01,
+		ToleranceMode:  "invalid",
+	}
+
+	equal, err := EqualE(1.0, 1.0, opts)
+
+	if err == nil {
+		t.Error("EqualE() should return error for invalid ToleranceMode")
+	}
+	if equal {
+		t.Error("EqualE() should return equal=false when err is non-nil")
+	}
+	if !strings.Contains(err.Error(), "invalid ToleranceMode") {
+		t.Errorf("error should mention invalid ToleranceMode, got: %v", err)
+	}
+}
+
+func TestEqualE_InvalidArrayOrder_ReturnsError(t *testing.T) {
+	t.Parallel()
+
+	opts := CompareOptions{
+		ArrayOrder: "random",
+	}
+
+	equal, err := EqualE([]interface{}{1}, []interface{}{1}, opts)
+
+	if err == nil {
+		t.Error("EqualE() should return error for invalid ArrayOrder")
+	}
+	if equal {
+		t.Error("EqualE() should return equal=false when err is non-nil")
+	}
+	if !strings.Contains(err.Error(), "invalid ArrayOrder") {
+		t.Errorf("error should mention invalid ArrayOrder, got: %v", err)
+	}
+}
+
+func TestEqualE_NegativeTolerance_ReturnsError(t *testing.T) {
+	t.Parallel()
+
+	opts := CompareOptions{
+		FloatTolerance: -1.0,
+	}
+
+	equal, err := EqualE(1.0, 1.0, opts)
+
+	if err == nil {
+		t.Error("EqualE() should return error for negative tolerance")
+	}
+	if equal {
+		t.Error("EqualE() should return equal=false when err is non-nil")
+	}
+	if !strings.Contains(err.Error(), "FloatTolerance") {
+		t.Errorf("error should mention FloatTolerance, got: %v", err)
+	}
+}
+
+func TestEqualE_DoesNotPanic_InvalidOptions(t *testing.T) {
+	t.Parallel()
+
+	invalidOptionsList := []CompareOptions{
+		{ToleranceMode: "fuzzy"},
+		{ArrayOrder: "scrambled"},
+		{FloatTolerance: -0.1},
+	}
+
+	for _, opts := range invalidOptionsList {
+		t.Run(opts.String(), func(t *testing.T) {
+			t.Parallel()
+			// This should NOT panic
+			_, err := EqualE(1.0, 1.0, opts)
+			if err == nil {
+				t.Error("EqualE() should return error for invalid options")
+			}
+		})
+	}
+}

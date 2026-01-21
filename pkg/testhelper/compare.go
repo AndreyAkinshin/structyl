@@ -354,6 +354,40 @@ func CompareE(expected, actual interface{}, opts CompareOptions) (bool, string, 
 	return equal, diff, nil
 }
 
+// EqualE compares expected and actual outputs for equality.
+// Returns true if they match, or an error if opts contains invalid values.
+//
+// This is an error-returning variant of [Equal]. Use EqualE when options
+// come from user input or external configuration where validation errors
+// should be handled gracefully rather than causing a panic.
+//
+// The return values are:
+//   - equal: true if expected and actual match according to opts
+//   - err: non-nil if opts is invalid
+//
+// When err is non-nil, equal is false.
+//
+// Special string values in expected trigger float comparisons:
+//   - "NaN" matches actual NaN (per NaNEqualsNaN option)
+//   - "Infinity" or "+Infinity" matches actual +Inf
+//   - "-Infinity" matches actual -Inf
+//
+// Example:
+//
+//	opts := testhelper.CompareOptions{ToleranceMode: userInput}
+//	equal, err := testhelper.EqualE(expected, actual, opts)
+//	if err != nil {
+//	    // Handle invalid options from user input
+//	    return fmt.Errorf("invalid comparison options: %w", err)
+//	}
+//	if !equal {
+//	    fmt.Println("Values differ")
+//	}
+func EqualE(expected, actual interface{}, opts CompareOptions) (bool, error) {
+	equal, _, err := CompareE(expected, actual, opts)
+	return equal, err
+}
+
 func compareValues(expected, actual interface{}, opts CompareOptions, path string) (bool, string) {
 	// Handle nil
 	if expected == nil && actual == nil {

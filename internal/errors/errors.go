@@ -70,11 +70,14 @@ func (e *StructylError) Unwrap() error {
 // ExitCode returns the appropriate exit code for this error.
 func (e *StructylError) ExitCode() int {
 	switch e.Kind {
+	case KindRuntime, KindNotFound:
+		return ExitRuntimeError
 	case KindConfig, KindValidation:
 		return ExitConfigError
 	case KindEnvironment:
 		return ExitEnvironmentError
 	default:
+		// Unknown error kinds default to runtime error
 		return ExitRuntimeError
 	}
 }

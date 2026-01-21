@@ -88,6 +88,43 @@ func TestGetMarkerFiles(t *testing.T) {
 	}
 }
 
+func TestDetect_UnknownMarkerFile(t *testing.T) {
+	t.Parallel()
+	// Verify that files resembling marker files but not in the detection list
+	// do not cause false positives
+	tests := []struct {
+		name  string
+		files []string
+	}{
+		{"unknown config file", []string{"unknown.config"}},
+		{"custom build file", []string{"BUILD.custom"}},
+		{"similar to cargo", []string{"Cargo.lock"}},             // lock file without .toml
+		{"similar to go", []string{"go.sum"}},                    // sum without mod
+		{"json file", []string{"config.json"}},                   // generic json
+		{"toml file", []string{"config.toml"}},                   // generic toml
+		{"makefile variant", []string{"makefile.inc"}},           // not exactly Makefile
+		{"requirements.txt alone", []string{"requirements.txt"}}, // no pyproject.toml
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			dir := t.TempDir()
+			for _, file := range tt.files {
+				path := filepath.Join(dir, file)
+				if err := os.WriteFile(path, []byte{}, 0644); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			toolchain, ok := Detect(dir)
+			if ok {
+				t.Errorf("Detect() = (%q, true), want (\"\", false) for files %v", toolchain, tt.files)
+			}
+		})
+	}
+}
+
 func TestDetect_Priority(t *testing.T) {
 	// Verify that more specific toolchains are detected before generic ones
 	// when multiple marker files exist

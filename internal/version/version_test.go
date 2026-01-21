@@ -149,9 +149,23 @@ func TestBump(t *testing.T) {
 }
 
 func TestBump_Invalid(t *testing.T) {
-	_, err := Bump("1.2.3", "invalid")
-	if err == nil {
-		t.Error("Bump() expected error for invalid part")
+	t.Parallel()
+	invalidParts := []string{
+		"invalid", // unknown keyword
+		"",        // empty string
+		"1",       // numeric string
+		"Major",   // wrong case
+		"PATCH",   // all caps
+		"unknown", // another unknown
+	}
+	for _, part := range invalidParts {
+		t.Run(part, func(t *testing.T) {
+			t.Parallel()
+			_, err := Bump("1.2.3", part)
+			if err == nil {
+				t.Errorf("Bump(1.2.3, %q) = nil, want error", part)
+			}
+		})
 	}
 }
 

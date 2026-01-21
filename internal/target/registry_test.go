@@ -125,6 +125,7 @@ func TestRegistry_ByType(t *testing.T) {
 }
 
 func TestRegistry_ValidateDependencies_SelfReference(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Project: config.ProjectConfig{Name: "test"},
 		Targets: map[string]config.TargetConfig{
@@ -143,6 +144,7 @@ func TestRegistry_ValidateDependencies_SelfReference(t *testing.T) {
 }
 
 func TestRegistry_ValidateDependencies_Undefined(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Project: config.ProjectConfig{Name: "test"},
 		Targets: map[string]config.TargetConfig{
@@ -161,6 +163,7 @@ func TestRegistry_ValidateDependencies_Undefined(t *testing.T) {
 }
 
 func TestRegistry_ValidateDependencies_Circular(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Project: config.ProjectConfig{Name: "test"},
 		Targets: map[string]config.TargetConfig{
@@ -193,6 +196,7 @@ func TestRegistry_ValidateDependencies_Circular(t *testing.T) {
 }
 
 func TestRegistry_ValidateDependencies_TwoNodeCycle(t *testing.T) {
+	t.Parallel()
 	// Test simplest cycle: A depends on B, B depends on A
 	cfg := &config.Config{
 		Project: config.ProjectConfig{Name: "test"},
@@ -221,6 +225,7 @@ func TestRegistry_ValidateDependencies_TwoNodeCycle(t *testing.T) {
 }
 
 func TestRegistry_TopologicalOrder(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Project: config.ProjectConfig{Name: "test"},
 		Targets: map[string]config.TargetConfig{
@@ -277,6 +282,7 @@ func TestRegistry_TopologicalOrder(t *testing.T) {
 }
 
 func TestRegistry_Names(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Project: config.ProjectConfig{Name: "test"},
 		Targets: map[string]config.TargetConfig{
@@ -403,4 +409,44 @@ func TestNewRegistry_VersionFileValid_InterpolatesVersion(t *testing.T) {
 		t.Fatal("NewRegistry() returned nil registry")
 	}
 	// Registry created successfully with version available for interpolation
+}
+
+func TestRegistry_EmptyDependsOnArray(t *testing.T) {
+	t.Parallel()
+	// Verify that explicit empty depends_on: [] behaves identically to undefined depends_on
+	cfg := &config.Config{
+		Project: config.ProjectConfig{Name: "test"},
+		Targets: map[string]config.TargetConfig{
+			"a": {Type: "language", Title: "A", DependsOn: []string{}}, // explicit empty
+			"b": {Type: "language", Title: "B"},                        // undefined (nil)
+		},
+	}
+
+	r, err := NewRegistry(cfg, "/project")
+	if err != nil {
+		t.Fatalf("NewRegistry() error = %v", err)
+	}
+
+	targetA, okA := r.Get("a")
+	targetB, okB := r.Get("b")
+	if !okA || !okB {
+		t.Fatal("expected both targets to exist")
+	}
+
+	// Both should have empty dependencies
+	if len(targetA.DependsOn()) != 0 {
+		t.Errorf("target A DependsOn() = %v, want empty", targetA.DependsOn())
+	}
+	if len(targetB.DependsOn()) != 0 {
+		t.Errorf("target B DependsOn() = %v, want empty", targetB.DependsOn())
+	}
+
+	// Topological order should work for both
+	order, err := r.TopologicalOrder()
+	if err != nil {
+		t.Fatalf("TopologicalOrder() error = %v", err)
+	}
+	if len(order) != 2 {
+		t.Errorf("TopologicalOrder() = %d items, want 2", len(order))
+	}
 }

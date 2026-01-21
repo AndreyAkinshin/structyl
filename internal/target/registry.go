@@ -18,6 +18,27 @@ type Registry struct {
 	targets map[string]Target
 }
 
+// loadProjectVersion reads the project version from the configured source file.
+// Returns empty string if no version source is configured or if the file doesn't exist.
+// Returns error if the file exists but cannot be read (permission error) or is malformed.
+func loadProjectVersion(cfg *config.Config, rootDir string) (string, error) {
+	if cfg.Version == nil || cfg.Version.Source == "" {
+		return "", nil
+	}
+
+	versionPath := filepath.Join(rootDir, cfg.Version.Source)
+	v, err := version.Read(versionPath)
+	if err == nil {
+		return v, nil
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		// Missing version file is acceptable: ${version} interpolates to empty string
+		return "", nil
+	}
+	// Version file exists but is unreadable or malformed - this is a configuration error
+	return "", fmt.Errorf("version file %q: %w", cfg.Version.Source, err)
+}
+
 // NewRegistry creates a registry from configuration.
 // Returns error if:
 //   - toolchain resolution fails (unknown toolchain, circular extends)
@@ -29,20 +50,9 @@ func NewRegistry(cfg *config.Config, rootDir string) (*Registry, error) {
 		return nil, fmt.Errorf("failed to create toolchain resolver: %w", err)
 	}
 
-	// Read project version for ${version} interpolation (optional, empty if not available)
-	projectVersion := ""
-	if cfg.Version != nil && cfg.Version.Source != "" {
-		versionPath := filepath.Join(rootDir, cfg.Version.Source)
-		v, err := version.Read(versionPath)
-		if err == nil {
-			projectVersion = v
-		} else if !errors.Is(err, os.ErrNotExist) {
-			// Version file exists but is unreadable or malformed - this is a configuration error.
-			// Missing files are acceptable (version interpolation becomes empty), but permission
-			// errors or malformed files indicate a real problem that should be surfaced.
-			return nil, fmt.Errorf("version file %q: %w", cfg.Version.Source, err)
-		}
-		// File not found is acceptable: ${version} interpolates to empty string
+	projectVersion, err := loadProjectVersion(cfg, rootDir)
+	if err != nil {
+		return nil, err
 	}
 
 	r := &Registry{

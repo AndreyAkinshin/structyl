@@ -159,7 +159,7 @@ structyl ci
 | Command                   | Description                    |
 | ------------------------- | ------------------------------ |
 | `structyl build`          | Build all targets              |
-| `structyl test`           | Test all targets               |
+| `structyl test`           | Test all language targets      |
 | `structyl clean`          | Clean build artifacts          |
 | `structyl restore`        | Install dependencies           |
 | `structyl ci`             | Run full CI pipeline           |

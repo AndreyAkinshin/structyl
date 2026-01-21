@@ -215,7 +215,7 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 	// See AGENTS.md "Known Limitations" for workarounds and fix requirements.
 	for _, t := range targets {
 		wg.Add(1)
-		go func(t target.Target) {
+		go func() {
 			defer wg.Done()
 
 			select {
@@ -244,7 +244,7 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 					cancel()
 				}
 			}
-		}(t)
+		}()
 	}
 
 	wg.Wait()

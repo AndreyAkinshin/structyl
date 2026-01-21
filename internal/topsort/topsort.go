@@ -83,7 +83,6 @@ func Validate(g Graph) error {
 		}
 	}
 
-	// Check for cycles by attempting a full sort
 	_, err := Sort(g, nil)
 	return err
 }

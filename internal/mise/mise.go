@@ -21,6 +21,27 @@ const (
 	WriteAlways
 )
 
+// defaultCommands defines the fallback command lists when toolchain configuration is not available.
+// This is the single source of truth for default command lists, preventing duplication.
+var defaultCommands = struct {
+	// Standard contains commands to generate per-target tasks for.
+	Standard []string
+	// Aggregate contains commands that get aggregate tasks across all targets.
+	Aggregate []string
+	// CIPipeline contains the default CI pipeline steps.
+	CIPipeline []string
+}{
+	Standard: []string{
+		"clean", "restore", "build", "build:release", "test",
+		"check", "check:fix", "bench", "demo", "doc", "pack",
+	},
+	Aggregate: []string{
+		"clean", "restore", "build", "build:release", "test",
+		"check", "check:fix",
+	},
+	CIPipeline: []string{"clean", "restore", "check", "build", "test"},
+}
+
 // MiseConfig represents a mise.toml configuration.
 type MiseConfig struct {
 	Tools map[string]string
@@ -87,11 +108,7 @@ func getCommandsToGenerate(loaded *toolchain.ToolchainsFile) []string {
 	if len(commands) > 0 {
 		return commands
 	}
-	// Fallback defaults
-	return []string{
-		"clean", "restore", "build", "build:release", "test",
-		"check", "check:fix", "bench", "demo", "doc", "pack",
-	}
+	return defaultCommands.Standard
 }
 
 // getAggregateCommands returns the list of commands that get aggregate tasks.
@@ -101,11 +118,7 @@ func getAggregateCommands(loaded *toolchain.ToolchainsFile) []string {
 	if len(commands) > 0 {
 		return commands
 	}
-	// Fallback defaults
-	return []string{
-		"clean", "restore", "build", "build:release", "test",
-		"check", "check:fix",
-	}
+	return defaultCommands.Aggregate
 }
 
 // getCIPipeline returns the CI pipeline commands.
@@ -115,8 +128,7 @@ func getCIPipeline(loaded *toolchain.ToolchainsFile) []string {
 	if len(pipeline) > 0 {
 		return pipeline
 	}
-	// Fallback defaults
-	return []string{"clean", "restore", "check", "build", "test"}
+	return defaultCommands.CIPipeline
 }
 
 // generateTasksWithToolchains creates mise tasks from project config

@@ -14,6 +14,9 @@ const (
 	maxTargetTitleLength = 64
 )
 
+// TargetAll is the special target name meaning "all targets".
+const TargetAll = "all"
+
 // Validation patterns from the specification.
 var (
 	// Project name: must start with lowercase letter, may contain lowercase, digits, hyphens.
@@ -104,7 +107,7 @@ func validateCI(cfg *Config) error {
 		}
 
 		// Step target must reference a defined target (unless it's "all")
-		if step.Target != "all" {
+		if step.Target != TargetAll {
 			if _, ok := cfg.Targets[step.Target]; !ok {
 				return &ValidationError{
 					Field:   fmt.Sprintf("ci.%s.target", step.Name),

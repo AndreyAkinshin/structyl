@@ -88,7 +88,7 @@ structyl build --docker
 | ---------------------------------------------- | ------------------------------------------------- |
 | [glossary.md](glossary.md)                     | Term definitions and abbreviations                |
 | [configuration.md](configuration.md)           | `.structyl/config.json` configuration file format |
-| [config.schema.json](../public/schema/config.schema.json) | JSON Schema for configuration validation |
+| [config.schema.json](/schema/config.schema.json) | JSON Schema for configuration validation |
 | [commands.md](commands.md)                     | Command vocabulary and execution model            |
 | [toolchains.md](toolchains.md)                 | Built-in toolchain presets                        |
 | [targets.md](targets.md)                       | Language and auxiliary target definitions         |

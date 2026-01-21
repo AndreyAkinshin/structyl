@@ -196,9 +196,9 @@ type RunOptions struct {
     Env      map[string]string // Additional env vars
 }
 
-func (r *Runner) Run(ctx, targetName, cmd string, opts) error      // Single target
-func (r *Runner) RunAll(ctx, cmd string, opts) error               // All targets
-func (r *Runner) RunTargets(ctx, names []string, cmd, opts) error  // Specific targets
+func (r *Runner) Run(ctx context.Context, targetName, cmd string, opts RunOptions) error
+func (r *Runner) RunAll(ctx context.Context, cmd string, opts RunOptions) error
+func (r *Runner) RunTargets(ctx context.Context, targetNames []string, cmd string, opts RunOptions) error
 ```
 
 ### Registry Interface

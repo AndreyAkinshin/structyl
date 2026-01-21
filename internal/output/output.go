@@ -751,24 +751,23 @@ func FormatDuration(d time.Duration) string {
 // colorPlaceholders highlights <placeholder> patterns in text.
 func (w *Writer) colorPlaceholders(text string) string {
 	var result strings.Builder
-	i := 0
-	for i < len(text) {
-		if text[i] == '<' {
-			// Find closing >
-			end := strings.Index(text[i:], ">")
-			if end != -1 {
-				// Found a placeholder
-				placeholder := text[i : i+end+1]
-				result.WriteString(reset)
-				result.WriteString(colorPlaceholder)
-				result.WriteString(placeholder)
-				result.WriteString(reset)
-				i += end + 1
-				continue
-			}
+	for {
+		start := strings.Index(text, "<")
+		if start == -1 {
+			result.WriteString(text)
+			break
 		}
-		result.WriteByte(text[i])
-		i++
+		end := strings.Index(text[start:], ">")
+		if end == -1 {
+			result.WriteString(text)
+			break
+		}
+		result.WriteString(text[:start])
+		result.WriteString(reset)
+		result.WriteString(colorPlaceholder)
+		result.WriteString(text[start : start+end+1])
+		result.WriteString(reset)
+		text = text[start+end+1:]
 	}
 	return result.String()
 }

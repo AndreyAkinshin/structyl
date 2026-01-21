@@ -1362,6 +1362,10 @@ func TestWriter_ColorPlaceholders(t *testing.T) {
 		{"placeholder in text", "run <task> now", "run \033[0m\033[32m<task>\033[0m now"},
 		{"multiple placeholders", "<cmd> <arg>", "\033[0m\033[32m<cmd>\033[0m \033[0m\033[32m<arg>\033[0m"},
 		{"unclosed bracket", "test < value", "test < value"},
+		{"utf8 no placeholder", "构建 проект", "构建 проект"},
+		{"utf8 with placeholder", "构建 <target> 项目", "构建 \033[0m\033[32m<target>\033[0m 项目"},
+		{"emoji no placeholder", "🚀 build 🎉", "🚀 build 🎉"},
+		{"emoji with placeholder", "🚀 <task> 🎉", "🚀 \033[0m\033[32m<task>\033[0m 🎉"},
 	}
 
 	for _, tt := range tests {

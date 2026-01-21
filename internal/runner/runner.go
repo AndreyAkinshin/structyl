@@ -148,7 +148,7 @@ func (r *Runner) runSequential(ctx context.Context, targets []target.Target, cmd
 		}
 
 		if err := t.Execute(ctx, cmd, execOpts); err != nil {
-			if handleSkipError(err) {
+			if logSkipWarningIfSkipped(err) {
 				continue
 			}
 			errs = append(errs, fmt.Errorf("[%s] %s failed: %w", t.Name(), cmd, err))
@@ -221,7 +221,7 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 			defer mu.Unlock()
 
 			if err != nil {
-				if handleSkipError(err) {
+				if logSkipWarningIfSkipped(err) {
 					return
 				}
 				errs = append(errs, fmt.Errorf("[%s] %s failed: %w", t.Name(), cmd, err))
@@ -260,11 +260,14 @@ func getParallelWorkers() int {
 	return max(1, runtime.NumCPU())
 }
 
-// handleSkipError checks if err is a skip error, logs a warning if so, and
-// returns true to signal the caller should skip (not fail).
-// This function has a side effect: it logs the skip reason as a warning.
+// logSkipWarningIfSkipped checks if err is a skip error, logs a warning if so,
+// and returns true to signal the caller should skip (not fail).
+//
+// IMPORTANT: This function has a side effect—it logs the skip reason as a warning.
+// The name explicitly includes "log" to indicate this behavior.
+//
 // Per docs/specs/commands.md, disabled commands produce warnings, not info.
-func handleSkipError(err error) bool {
+func logSkipWarningIfSkipped(err error) bool {
 	if target.IsSkipError(err) {
 		out.Warning("%s", err.Error())
 		return true

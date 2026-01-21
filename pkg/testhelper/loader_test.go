@@ -1546,3 +1546,105 @@ func TestTestCase_WithSuite(t *testing.T) {
 		}
 	})
 }
+
+// =============================================================================
+// SuiteExistsErr and TestCaseExistsErr validation tests
+// =============================================================================
+
+func TestSuiteExistsErr_InvalidName_ReturnsFalse(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	// Create tests directory
+	os.MkdirAll(filepath.Join(tmpDir, "tests"), 0755)
+
+	tests := []struct {
+		name  string
+		suite string
+	}{
+		{"empty", ""},
+		{"path_traversal", "../etc"},
+		{"path_separator_forward", "foo/bar"},
+		{"path_separator_back", "foo\\bar"},
+		{"null_byte", "foo\x00bar"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			exists, err := SuiteExistsErr(tmpDir, tt.suite)
+			if err != nil {
+				t.Errorf("SuiteExistsErr(%q) error = %v, want nil", tt.suite, err)
+			}
+			if exists {
+				t.Errorf("SuiteExistsErr(%q) = true, want false for invalid name", tt.suite)
+			}
+		})
+	}
+}
+
+func TestTestCaseExistsErr_InvalidSuiteName_ReturnsFalse(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	// Create a suite with a test case
+	suiteDir := filepath.Join(tmpDir, "tests", "valid")
+	os.MkdirAll(suiteDir, 0755)
+	os.WriteFile(filepath.Join(suiteDir, "test.json"), []byte(`{}`), 0644)
+
+	tests := []struct {
+		name  string
+		suite string
+	}{
+		{"empty", ""},
+		{"path_traversal", "../etc"},
+		{"path_separator_forward", "foo/bar"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			exists, err := TestCaseExistsErr(tmpDir, tt.suite, "test")
+			if err != nil {
+				t.Errorf("TestCaseExistsErr(%q, test) error = %v, want nil", tt.suite, err)
+			}
+			if exists {
+				t.Errorf("TestCaseExistsErr(%q, test) = true, want false for invalid suite name", tt.suite)
+			}
+		})
+	}
+}
+
+func TestTestCaseExistsErr_InvalidTestName_ReturnsFalse(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := t.TempDir()
+	// Create a suite with a test case
+	suiteDir := filepath.Join(tmpDir, "tests", "valid")
+	os.MkdirAll(suiteDir, 0755)
+	os.WriteFile(filepath.Join(suiteDir, "test.json"), []byte(`{}`), 0644)
+
+	tests := []struct {
+		name     string
+		testName string
+	}{
+		{"empty", ""},
+		{"path_traversal", "../etc"},
+		{"path_separator_forward", "foo/bar"},
+		{"path_separator_back", "foo\\bar"},
+		{"null_byte", "foo\x00bar"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			exists, err := TestCaseExistsErr(tmpDir, "valid", tt.testName)
+			if err != nil {
+				t.Errorf("TestCaseExistsErr(valid, %q) error = %v, want nil", tt.testName, err)
+			}
+			if exists {
+				t.Errorf("TestCaseExistsErr(valid, %q) = true, want false for invalid test name", tt.testName)
+			}
+		})
+	}
+}

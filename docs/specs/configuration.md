@@ -30,6 +30,18 @@ For validation, use the [JSON Schema](/schema/config.schema.json) (published URL
 
 ## Configuration Sections
 
+### `$schema` (optional)
+
+IDE integration field for JSON Schema validation. Structyl ignores this field during parsing per the [Extensibility Rules](./index.md#extensibility-rules).
+
+```json
+{
+  "$schema": "https://structyl.akinshin.dev/schema/config.json"
+}
+```
+
+See [Schema Validation](#schema-validation) for details on local vs published schema URLs.
+
 ### `project` (required)
 
 Project metadata used in documentation and package generation.

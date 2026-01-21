@@ -192,7 +192,12 @@ tests/
 
 ### Binary Output Comparison
 
-Binary outputs (referenced via `$file`) are compared **byte-for-byte exactly**. No tolerance is applied.
+Binary outputs (referenced via `$file`) are compared **byte-for-byte exactly**:
+
+- No byte order normalization (files MUST use consistent endianness)
+- No line ending normalization (CRLF and LF are distinct bytes)
+- No encoding normalization (UTF-8 BOM presence is significant)
+- No tolerance is applied to binary data
 
 For outputs requiring approximate comparison (e.g., images with compression artifacts), test authors MUST either:
 

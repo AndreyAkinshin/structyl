@@ -46,7 +46,7 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 > - MUST run test suite with coverage instrumentation enabled
 > - Coverage output location: implementation-defined (commonly `coverage/` or tool default)
 > - Output format: implementation-defined
-> - Exit code: Implementation-defined. No requirement is placed on coverage percentage enforcement
+> - Exit code: SHOULD be 0 if tests pass (regardless of coverage percentage), non-zero if tests fail
 > - Coverage threshold enforcement is NOT part of Structyl's contract; use CI tooling if required
 
 ### Command Semantics

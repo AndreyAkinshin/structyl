@@ -176,7 +176,7 @@ The file containing the canonical project version. Default: `.structyl/PROJECT_V
 A fixed set of concurrent execution slots used for parallel target execution. The number of workers is controlled by the `STRUCTYL_PARALLEL` environment variable (valid range: 1-256). Each worker processes one target at a time.
 
 ::: warning Dependency Ordering
-The internal worker pool does NOT respect `depends_on` ordering. Use mise for dependency-aware parallel execution. See [runner.md](runner.md#parallel-execution) for details.
+The internal worker pool does NOT respect `depends_on` ordering. Use mise for dependency-aware parallel execution. See [targets.md](targets.md#known-limitation-parallel-execution-and-dependencies) for details.
 :::
 
 ### Workspace

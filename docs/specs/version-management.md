@@ -42,12 +42,11 @@ Examples:
 
 ### Error Conditions
 
-| Condition                   | Exit Code | Error Message                                   |
-| --------------------------- | --------- | ----------------------------------------------- |
-| Version source file missing | 2         | `version source file not found: {path}`         |
-| Version source file empty   | 2         | `version source file is empty: {path}`          |
-| Invalid version format      | 2         | `invalid version format in {path}: "{content}"` |
-| Version file not readable   | 3         | `cannot read version file: {path}: {error}`     |
+| Condition                   | Exit Code | Error Message                                     |
+| --------------------------- | --------- | ------------------------------------------------- |
+| Version source file missing | 2         | `version source file not found: {os_error}`       |
+| Version source file empty   | 2         | `version source file is empty: {path}`            |
+| Invalid version format      | 2         | `invalid version in {path}: {validation_error}`   |
 
 ## Version Commands
 

@@ -13,6 +13,15 @@ Structyl supports running builds inside Docker containers, providing:
 - Isolation between different language runtimes
 - CI/local build parity
 
+## Requirements
+
+| Component        | Minimum Version | Notes                                          |
+| ---------------- | --------------- | ---------------------------------------------- |
+| Docker Engine    | 20.10+          | Required for `--user` mapping on Unix systems  |
+| Docker Compose   | v2.0+           | Uses `docker compose` (v2) syntax              |
+
+Older versions MAY work but are not tested. Structyl uses `docker compose` (v2) commands, not the legacy `docker-compose` (v1) binary.
+
 ## Enabling Docker Mode
 
 ### Command Line Flag

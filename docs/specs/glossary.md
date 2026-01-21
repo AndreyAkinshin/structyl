@@ -167,6 +167,14 @@ The level of output detail. Structyl supports three verbosity levels:
 
 Quiet and verbose modes are mutually exclusive. See [commands.md](commands.md#global-flags) for flag usage.
 
+### Verbosity Variant
+
+A [Variant](#variant) that provides verbosity-specific command behavior. When `--verbose` or `--quiet` flags are passed, Structyl automatically resolves `<command>:verbose` or `<command>:quiet` variants before falling back to the base command.
+
+**Example:** With `test:verbose` defined as `cargo test -- --nocapture`, running `structyl test rs --verbose` executes `test:verbose` instead of `test`.
+
+Verbosity variants are optional. If not defined, the base command executes unchanged. See [commands.md](commands.md#verbosity-variants) for resolution rules.
+
 ### Version Source
 
 The file containing the canonical project version. Default: `.structyl/PROJECT_VERSION`.

@@ -115,10 +115,12 @@ type TestCase struct {
 	// Use an explicit value (e.g., empty string "", empty object {}, or empty
 	// array []) for expected empty output.
 	//
-	// Important: JSON null is NOT a valid output value. Both missing "output"
-	// field and "output": null result in nil after JSON unmarshaling, so both
-	// are rejected. If your test expects a null/nil result, use one of these
-	// patterns:
+	// Important: JSON null is NOT a valid output value. The loader validates
+	// this and returns distinct errors:
+	//   - Missing "output" field: "missing required field \"output\""
+	//   - Explicit "output": null: "\"output\" field is null"
+	//
+	// If your test expects a null/nil result, use one of these patterns:
 	//
 	//   {"output": {"value": null}}  // wrap in object with nullable field
 	//   {"output": "__NULL__"}       // use sentinel string + custom handling
@@ -182,6 +184,12 @@ func (tc TestCase) String() string {
 //   - Name must not be empty
 //   - Input must not be nil (empty map {} is valid)
 //   - Output must not be nil (use explicit value like "", {}, or [] instead)
+//
+// Note: This method does NOT check for $file references. Programmatically
+// constructed TestCase instances may contain $file syntax in Input or Output,
+// which will cause errors when used with the internal test runner. The loader
+// functions (LoadTestCase, LoadTestSuite) reject $file references; this method
+// does not, to avoid coupling Validate() to internal implementation details.
 func (tc TestCase) Validate() error {
 	if tc.Name == "" {
 		return errors.New("name must not be empty")
@@ -252,6 +260,21 @@ func LoadTestCaseWithSuite(path, suite string) (*TestCase, error) {
 	return loadTestCaseInternal(path, suite)
 }
 
+// outputPresenceChecker is used to distinguish between missing and null output fields.
+// Go's json.Unmarshal sets interface{} to nil for both cases, so we check if the
+// "output" key exists in the raw JSON object.
+type outputPresenceChecker struct {
+	m map[string]json.RawMessage
+}
+
+func (c *outputPresenceChecker) hasOutputField(data []byte) bool {
+	if err := json.Unmarshal(data, &c.m); err != nil {
+		return false
+	}
+	_, exists := c.m["output"]
+	return exists
+}
+
 // loadTestCaseInternal is the shared implementation for LoadTestCase and LoadTestCaseWithSuite.
 func loadTestCaseInternal(path, suite string) (*TestCase, error) {
 	data, err := os.ReadFile(path)
@@ -277,7 +300,12 @@ func loadTestCaseInternal(path, suite string) (*TestCase, error) {
 		return nil, fmt.Errorf("%s: missing required field \"input\"", filepath.Base(path))
 	}
 	if tc.Output == nil {
-		return nil, fmt.Errorf("%s: missing or null \"output\" field (use empty string, object, or array instead of null)", filepath.Base(path))
+		// Distinguish between missing output field and explicit null.
+		var checker outputPresenceChecker
+		if checker.hasOutputField(data) {
+			return nil, fmt.Errorf("%s: \"output\" field is null (use empty string, object, or array instead)", filepath.Base(path))
+		}
+		return nil, fmt.Errorf("%s: missing required field \"output\"", filepath.Base(path))
 	}
 
 	tc.Name = strings.TrimSuffix(filepath.Base(path), ".json")

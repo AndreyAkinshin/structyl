@@ -88,18 +88,12 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 
 	steps := &stepCounter{}
 
-	if err := ctx.Err(); err != nil {
-		return err
-	}
 	r.out.Step(steps.next(), "Setting version to %s", verStr)
 	if err := r.setVersion(verStr); err != nil {
 		return fmt.Errorf("failed to set version: %w", err)
 	}
 
 	if r.config.Version != nil && len(r.config.Version.Files) > 0 {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
 		r.out.Step(steps.next(), "Propagating version to configured files...")
 		// Resolve paths relative to project root
 		resolvedFiles := make([]config.VersionFileConfig, len(r.config.Version.Files))
@@ -117,9 +111,6 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 	}
 
 	if r.config.Release != nil && len(r.config.Release.PreCommands) > 0 {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
 		r.out.Step(steps.next(), "Running pre-commit commands...")
 		for _, cmdStr := range r.config.Release.PreCommands {
 			if err := ctx.Err(); err != nil {
@@ -132,9 +123,6 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 		}
 	}
 
-	if err := ctx.Err(); err != nil {
-		return err
-	}
 	r.out.Step(steps.next(), "Creating commit...")
 	if err := r.gitAddAll(ctx); err != nil {
 		return fmt.Errorf("git add failed: %w", err)
@@ -144,9 +132,6 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 		return fmt.Errorf("git commit failed: %w", err)
 	}
 
-	if err := ctx.Err(); err != nil {
-		return err
-	}
 	branch := r.getBranch()
 	currentBranch, err := r.getCurrentBranch(ctx)
 	if err == nil && currentBranch != branch {
@@ -157,9 +142,6 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 	}
 
 	if opts.Push {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
 		remote := r.getRemote()
 		r.out.Step(steps.next(), "Pushing to %s...", remote)
 

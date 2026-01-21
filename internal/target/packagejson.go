@@ -39,16 +39,17 @@ func getPackageJSON(dir string) *PackageJSON {
 	packageJSONCache.RUnlock()
 
 	// Load from disk (outside lock)
-	result := loadPackageJSONFromDisk(absDir)
+	loaded := loadPackageJSONFromDisk(absDir)
 
-	// Double-check: another goroutine may have populated the cache
+	// Double-check: another goroutine may have populated the cache while we were loading.
+	// If so, discard our loaded copy and return the cached version.
 	packageJSONCache.Lock()
 	defer packageJSONCache.Unlock()
-	if existing, ok := packageJSONCache.data[absDir]; ok {
-		return existing
+	if cached, ok := packageJSONCache.data[absDir]; ok {
+		return cached
 	}
-	packageJSONCache.data[absDir] = result
-	return result
+	packageJSONCache.data[absDir] = loaded
+	return loaded
 }
 
 // loadPackageJSONFromDisk loads and parses package.json from the given directory.

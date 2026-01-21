@@ -11,7 +11,27 @@ import (
 )
 
 // SemverRegex validates semantic version strings.
+// Capture groups:
+//   - 1: major version
+//   - 2: minor version
+//   - 3: patch version
+//   - 4: prerelease with dash prefix (e.g., "-alpha.1")
+//   - 5: prerelease without dash (e.g., "alpha.1")
+//   - 6: prerelease sub-group (internal)
+//   - 7: build metadata with plus prefix (e.g., "+build.123")
+//   - 8: build metadata without plus (e.g., "build.123")
+//   - 9: build sub-group (internal)
 var SemverRegex = regexp.MustCompile(`^(\d+)\.(\d+)\.(\d+)(-([a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*))?(\+([a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*))?$`)
+
+// Regex capture group indices for SemverRegex.
+// These constants document the capture group structure and prevent magic numbers.
+const (
+	idxMajor      = 1 // Major version number
+	idxMinor      = 2 // Minor version number
+	idxPatch      = 3 // Patch version number
+	idxPrerelease = 5 // Prerelease string without leading dash
+	idxBuild      = 8 // Build metadata without leading plus
+)
 
 // Semver represents a parsed semantic version.
 type Semver struct {
@@ -68,16 +88,16 @@ func Parse(version string) (*Semver, error) {
 	}
 
 	// Errors ignored: regex guarantees these capture groups contain only digits
-	major, _ := strconv.Atoi(match[1])
-	minor, _ := strconv.Atoi(match[2])
-	patch, _ := strconv.Atoi(match[3])
+	major, _ := strconv.Atoi(match[idxMajor])
+	minor, _ := strconv.Atoi(match[idxMinor])
+	patch, _ := strconv.Atoi(match[idxPatch])
 
 	return &Semver{
 		Major:      major,
 		Minor:      minor,
 		Patch:      patch,
-		Prerelease: match[5], // Group 5 is prerelease without the dash
-		Build:      match[8], // Group 8 is build without the plus
+		Prerelease: match[idxPrerelease],
+		Build:      match[idxBuild],
 	}, nil
 }
 

@@ -11,8 +11,8 @@ Structyl provides a local CI simulation command that replicates what a CI system
 ## The `structyl ci` Command
 
 ```bash
-structyl ci [--docker] [--continue]
-structyl ci:release [--docker] [--continue]
+structyl ci [--docker]
+structyl ci:release [--docker]
 ```
 
 ### Behavior
@@ -43,8 +43,7 @@ For `ci:release`, step 4 uses `build:release` instead of `build`.
 ### Exit Behavior
 
 - Exits with code `0` if all steps succeed
-- Exits with code `1` on first failure (fail-fast by default)
-- Use `--continue` to run all steps even on failure
+- Exits with code `1` on first failure (fail-fast behavior)
 
 ## Build Pipeline Steps
 

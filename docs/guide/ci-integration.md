@@ -33,10 +33,9 @@ structyl ci:release  # Release/optimized builds
 
 ### Flags
 
-| Flag         | Description                          |
-| ------------ | ------------------------------------ |
-| `--docker`   | Run all builds in Docker             |
-| `--continue` | Continue on errors (don't fail-fast) |
+| Flag       | Description                |
+| ---------- | -------------------------- |
+| `--docker` | Run all builds in Docker   |
 
 ## Local CI Validation
 

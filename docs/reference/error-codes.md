@@ -99,8 +99,8 @@ structyl test
 
 ### Continue Mode
 
-::: warning DEPRECATED
-The `--continue` flag is deprecated and **has no effect** when Structyl executes commands via mise (the default backend). The flag is parsed for backwards compatibility but does not change execution behavior.
+::: danger REMOVED
+The `--continue` flag has been removed. Using it will result in an error.
 :::
 
 **Alternatives:**

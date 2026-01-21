@@ -268,12 +268,14 @@ Running a null command succeeds with a warning.
 | `STRUCTYL_PARALLEL` | Number of parallel workers for internal execution | `runtime.NumCPU()` |
 | `NO_COLOR`          | Disable colored output (any non-empty value)     | (unset)            |
 
-**`STRUCTYL_PARALLEL` behavior:**
+::: warning STRUCTYL_PARALLEL has limited effect
+`STRUCTYL_PARALLEL` only affects internal parallelism when Structyl runs targets directly. Since mise-based execution is now the default backend, this variable has **no effect** in most workflows. Mise handles its own parallelism independently.
+:::
+
+**`STRUCTYL_PARALLEL` behavior (when applicable):**
 - Value `0` or negative: Uses `runtime.NumCPU()`
 - Value `> 256`: Capped to 256 (safety limit)
 - Invalid (non-numeric): Falls back to `runtime.NumCPU()`
-
-Note: `STRUCTYL_PARALLEL` controls internal parallelism when Structyl runs targets directly. For mise-based execution (the default), mise handles its own parallelism.
 
 ## Exit Codes
 

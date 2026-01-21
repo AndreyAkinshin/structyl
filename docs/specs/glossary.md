@@ -129,6 +129,10 @@ A buildable unit in a Structyl project. Targets are either language implementati
 
 A preset that provides default command implementations for a specific build ecosystem. Examples: `cargo` (Rust), `dotnet` (C#), `npm` (Node.js). Toolchains map Structyl's standard commands to ecosystem-specific invocations.
 
+### Topological Order
+
+An ordering of targets such that for every dependency edge (A depends on B), B appears before A. Used to ensure dependencies build before dependents. See [targets.md](targets.md) for dependency resolution details.
+
 ### Toolchain Version
 
 The version of the underlying tool managed by a toolchain. Used by mise to determine which tool version to install.
@@ -166,6 +170,10 @@ A single test defined in a JSON file. Contains `input` (parameters) and `output`
 ### Version Source
 
 The file containing the canonical project version. Default: `.structyl/PROJECT_VERSION`.
+
+### Worker Pool
+
+A fixed set of concurrent execution slots used for parallel target execution. The number of workers is controlled by the `STRUCTYL_PARALLEL` environment variable (valid range: 1-256). Each worker processes one target at a time. Note: The internal worker pool does NOT respect `depends_on` ordering; use mise for dependency-aware parallel execution.
 
 ### Workspace
 

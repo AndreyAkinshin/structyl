@@ -181,7 +181,6 @@ type Runner struct {
 
 type RunOptions struct {
     Docker   bool              // Run in Docker
-    Continue bool              // Continue on error
     Parallel bool              // Parallel execution
     Args     []string          // Pass-through arguments
     Env      map[string]string // Additional env vars
@@ -279,6 +278,8 @@ errors.New(message string) *StructylError               // Runtime error
 errors.Newf(format string, args...) *StructylError      // Formatted runtime
 errors.Config(message string) *StructylError            // Config error
 errors.Configf(format, args...) *StructylError          // Formatted config
+errors.Validation(message string) *StructylError        // Validation error (valid syntax, semantic error)
+errors.Validationf(format, args...) *StructylError      // Formatted validation
 errors.Environment(message string) *StructylError       // Environment error
 errors.Environmentf(format, args...) *StructylError     // Formatted environment
 errors.Wrap(err, message) *StructylError                // Wrap with context
@@ -292,7 +293,7 @@ errors.GetExitCode(err) int                             // Get exit code
 ### Command Routing
 
 1. `main.go` calls `cli.Run(os.Args[1:])`
-2. `cli.Run()` parses global flags (`--docker`, `--continue`, etc.)
+2. `cli.Run()` parses global flags (`--docker`, `--quiet`, `--verbose`, etc.)
 3. Routes to handler based on command:
    - `init` → `cmdInit()`
    - `build`, `test`, `clean`, etc. → `cmdMeta()`
@@ -622,13 +623,13 @@ func cmdSomething() int {
 
 ## Environment Variables
 
-| Variable            | Purpose                    | Default            |
-| ------------------- | -------------------------- | ------------------ |
-| `STRUCTYL_DOCKER`   | Enable Docker mode         | `false`            |
-| `STRUCTYL_PARALLEL` | Number of parallel workers | `runtime.NumCPU()` |
-| `NO_COLOR`          | Disable colored output     | (unset)            |
+| Variable            | Purpose                                              | Default            |
+| ------------------- | ---------------------------------------------------- | ------------------ |
+| `STRUCTYL_DOCKER`   | Enable Docker mode                                   | `false`            |
+| `STRUCTYL_PARALLEL` | Parallel workers (internal runner only; no effect with mise) | `runtime.NumCPU()` |
+| `NO_COLOR`          | Disable colored output                               | (unset)            |
 
-**`STRUCTYL_PARALLEL` behavior:**
+**`STRUCTYL_PARALLEL` behavior (internal runner only—mise backend ignores this):**
 - Value `0` or negative: Uses `runtime.NumCPU()`
 - Value `> 256`: Capped to 256 (safety limit)
 - Invalid (non-numeric): Falls back to `runtime.NumCPU()`

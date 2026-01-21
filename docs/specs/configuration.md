@@ -107,6 +107,8 @@ Version management configuration. See [version-management.md](version-management
 
 By default, the pattern MUST match exactly once. Set `replace_all: true` for files with multiple version occurrences.
 
+> **Note on placeholder syntax:** Version file replacements use `{version}` syntax (curly braces without `$`), while command variable interpolation uses `${version}` syntax. This distinction exists because version file patterns use regex replacement where `$` has special meaning (backreferences). For command variables, see [commands.md](commands.md#variables).
+
 ### `targets`
 
 Build targets configuration. See [targets.md](targets.md) for details.

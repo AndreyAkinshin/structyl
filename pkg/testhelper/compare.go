@@ -32,13 +32,19 @@ import (
 //   - ToleranceMode "" → ToleranceModeRelative
 //   - ArrayOrder "" → ArrayOrderStrict
 //
+// While empty strings work, prefer explicit values for clarity. Use [DefaultOptions]
+// as the canonical way to get defaults, then override specific fields as needed:
+//
+//	opts := testhelper.DefaultOptions()
+//	opts.FloatTolerance = 1e-6  // customize one field
+//
 // # Construction
 //
 // Three ways to create CompareOptions:
 //
-//  1. Zero value (exact equality): var opts CompareOptions
-//  2. Default options (recommended): opts := testhelper.DefaultOptions()
-//  3. Validated custom options: opts, err := testhelper.NewCompareOptions(...)
+//  1. Default options (recommended): opts := testhelper.DefaultOptions()
+//  2. Validated custom options: opts, err := testhelper.NewCompareOptions(...)
+//  3. Zero value (exact equality): var opts CompareOptions
 //
 // Direct struct construction is valid but NOT validated:
 //
@@ -52,6 +58,28 @@ import (
 // Important: Use the provided constants (ToleranceModeRelative, ArrayOrderStrict,
 // etc.) for ToleranceMode and ArrayOrder fields. Arbitrary strings are rejected
 // by [ValidateOptions] with an error listing valid values.
+//
+// # Panic vs Error API Design
+//
+// The comparison functions ([Equal], [Compare], [FormatComparisonResult]) panic
+// on invalid options. This is intentional: options are typically compile-time
+// constants or loaded from static configuration, so invalid options represent
+// programmer errors rather than runtime conditions. Panicking fails fast during
+// development.
+//
+// For dynamic or user-provided options, use the error-returning variants
+// ([EqualE], [CompareE]) or call [ValidateOptions] before comparison:
+//
+//	// Option 1: Validate upfront
+//	if err := testhelper.ValidateOptions(opts); err != nil {
+//	    return err
+//	}
+//	result := testhelper.Equal(expected, actual, opts)  // safe, won't panic
+//
+//	// Option 2: Use error-returning variant
+//	result, err := testhelper.EqualE(expected, actual, opts)
+//
+// The panic functions are the primary API; the *E variants are escape hatches.
 type CompareOptions struct {
 	// FloatTolerance specifies the tolerance for float comparisons.
 	// For "relative" and "absolute" modes, this is the tolerance threshold.

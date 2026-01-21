@@ -296,8 +296,6 @@ Colors are enabled by default for terminal output. Disable with the `NO_COLOR` e
 NO_COLOR=1 structyl build
 ```
 
-> **Note**: The `--no-color` flag is not yet implemented. Use the `NO_COLOR` environment variable instead.
-
 ## Recovery Strategies
 
 ### Clean Build

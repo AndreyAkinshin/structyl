@@ -234,7 +234,9 @@ The `tests.pattern` field supports a simplified subset of glob syntax:
 | `*`        | Any sequence of non-separator characters           |
 | `**/*.json`| All `.json` files recursively (simplified)         |
 
-**Implementation note:** The internal test loader uses a simplified pattern matching implementation, not a full glob library. The double-star (`**`) pattern specifically matches `**/*.json` by recursively finding all `.json` files—it does not provide full globstar semantics. For standard test organization, this is sufficient.
+::: info Simplified Pattern Matching
+The internal test loader uses a simplified pattern matching implementation, not a full glob library. The `**/*.json` pattern recursively finds all `.json` files but does not support full globstar semantics (e.g., intermediate directory matching like `foo/**/bar`). For most test organization patterns, this is sufficient.
+:::
 
 Examples:
 

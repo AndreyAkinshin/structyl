@@ -133,7 +133,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.22"
+          go-version: "1.24"
 
       - name: Install Structyl
         run: go install github.com/AndreyAkinshin/structyl/cmd/structyl@latest
@@ -152,7 +152,7 @@ jobs:
 
 ```yaml
 build:
-  image: golang:1.22
+  image: golang:1.24
   services:
     - docker:dind
   script:

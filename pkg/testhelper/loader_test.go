@@ -388,6 +388,31 @@ func TestSuiteExists(t *testing.T) {
 	}
 }
 
+func TestSuiteExists_InvalidNames(t *testing.T) {
+	tmpDir := t.TempDir()
+	os.MkdirAll(filepath.Join(tmpDir, "tests", "valid"), 0755)
+
+	tests := []struct {
+		name  string
+		suite string
+	}{
+		{"path_traversal", "../etc"},
+		{"path_separator_forward", "suite/sub"},
+		{"path_separator_back", "suite\\sub"},
+		{"double_dot", ".."},
+		{"embedded_traversal", "foo/../bar"},
+		{"empty", ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if SuiteExists(tmpDir, tt.suite) {
+				t.Errorf("SuiteExists(%q) = true, want false for invalid suite name", tt.suite)
+			}
+		})
+	}
+}
+
 func TestTestCaseExists(t *testing.T) {
 	tmpDir := t.TempDir()
 	os.MkdirAll(filepath.Join(tmpDir, "tests", "suite"), 0755)
@@ -399,6 +424,35 @@ func TestTestCaseExists(t *testing.T) {
 
 	if TestCaseExists(tmpDir, "suite", "notexists") {
 		t.Error("TestCaseExists should return false for non-existing test")
+	}
+}
+
+func TestTestCaseExists_InvalidNames(t *testing.T) {
+	tmpDir := t.TempDir()
+	os.MkdirAll(filepath.Join(tmpDir, "tests", "suite"), 0755)
+	os.WriteFile(filepath.Join(tmpDir, "tests", "suite", "test.json"), []byte(`{}`), 0644)
+
+	tests := []struct {
+		name  string
+		suite string
+		tc    string
+	}{
+		{"invalid_suite_traversal", "../etc", "test"},
+		{"invalid_suite_slash", "suite/sub", "test"},
+		{"invalid_suite_empty", "", "test"},
+		{"invalid_name_traversal", "suite", "../test"},
+		{"invalid_name_slash", "suite", "test/sub"},
+		{"invalid_name_backslash", "suite", "test\\sub"},
+		{"invalid_name_double_dot", "suite", ".."},
+		{"both_invalid", "../etc", "../passwd"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if TestCaseExists(tmpDir, tt.suite, tt.tc) {
+				t.Errorf("TestCaseExists(%q, %q) = true, want false for invalid names", tt.suite, tt.tc)
+			}
+		})
 	}
 }
 

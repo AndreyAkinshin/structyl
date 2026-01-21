@@ -262,6 +262,12 @@ Invalid flag values cause immediate errors:
 | ---------------------- | --------------------------------------------------------------------- | --------- |
 | Invalid `--type` value | `invalid --type value: "{value}" (must be "language" or "auxiliary")` | 2         |
 
+### Version Command Errors
+
+| Condition                              | Error Message                                              | Exit Code |
+| -------------------------------------- | ---------------------------------------------------------- | --------- |
+| `bump prerelease` on release version   | `cannot bump prerelease on release version "{version}"`    | 2         |
+
 ## Dependency Checks
 
 Before running commands, Structyl checks dependencies:

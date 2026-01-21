@@ -115,6 +115,16 @@ func LoadTestCase(path string) (*TestCase, error) {
 }
 
 // findMatches finds files matching the glob pattern.
+//
+// Pattern support is intentionally limited to common use cases:
+//   - "*.json" matches all .json files in the directory tree
+//   - "**/*.json" matches all .json files recursively (simplified double-star)
+//   - Standard filepath.Match patterns on the filename portion
+//
+// Note: This is NOT a full glob implementation. The double-star ("**") support
+// is simplified—it matches any .json file recursively rather than providing
+// true globstar semantics. For complex patterns, consider using the doublestar
+// library or restructuring test directories.
 func findMatches(dir, pattern string) ([]string, error) {
 	var matches []string
 

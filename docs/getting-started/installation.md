@@ -3,7 +3,7 @@
 <InstallTabs />
 
 ::: details Manual Installation (if tabs don't render)
-**macOS (Homebrew):**
+**macOS (Homebrew):** *(Coming soon)*
 ```bash
 brew install structyl
 ```

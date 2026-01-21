@@ -480,6 +480,12 @@ Response parsing:
 | 1    | Runtime error (network failure, file I/O, not in project) |
 | 2    | Usage error (invalid version format, unknown flag)        |
 
+**Exit code 1 conditions:**
+
+- GitHub API request fails (network error, timeout, rate limit)
+- `.structyl/version` file cannot be read or written
+- Not inside a Structyl project (no `.structyl/config.json` found in current or parent directories)
+
 ### Output Examples
 
 **Upgrade to latest:**

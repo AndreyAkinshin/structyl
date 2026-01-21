@@ -889,6 +889,16 @@ func validatePathComponent(name string) error {
 	return nil
 }
 
+// ValidateTestCaseName checks if a test case name is valid.
+// Returns an error if the name is empty, contains path traversal sequences (..),
+// path separators (/ or \), or null bytes.
+//
+// This function provides symmetry with [ValidateSuiteName] for callers who
+// construct test paths programmatically.
+func ValidateTestCaseName(name string) error {
+	return validatePathComponent(name)
+}
+
 // SuiteExistsErr checks if a test suite exists, returning detailed error information.
 // Returns (true, nil) if the suite exists, (false, nil) if it doesn't exist,
 // or (false, error) for other errors like permission denied or invalid suite name.

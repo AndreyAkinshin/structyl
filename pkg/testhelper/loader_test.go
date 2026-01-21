@@ -1266,6 +1266,39 @@ func TestValidateSuiteName_ErrorContext(t *testing.T) {
 	}
 }
 
+func TestValidateTestCaseName(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		input   string
+		wantErr bool
+	}{
+		{"valid_simple", "test1", false},
+		{"valid_with_hyphen", "test-case", false},
+		{"valid_with_underscore", "test_case", false},
+		{"empty_string", "", true},
+		{"path_traversal", "..", true},
+		{"path_traversal_prefix", "../foo", true},
+		{"forward_slash", "foo/bar", true},
+		{"backslash", "foo\\bar", true},
+		{"null_byte", "foo\x00bar", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := ValidateTestCaseName(tt.input)
+			if tt.wantErr && err == nil {
+				t.Errorf("ValidateTestCaseName(%q) = nil, want error", tt.input)
+			}
+			if !tt.wantErr && err != nil {
+				t.Errorf("ValidateTestCaseName(%q) = %v, want nil", tt.input, err)
+			}
+		})
+	}
+}
+
 func TestLoadTestCaseWithSuite_EmptySuite_ReturnsError(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test1.json")

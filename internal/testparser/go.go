@@ -147,7 +147,8 @@ func (p *GoParser) findFailureReason(lines []string, testName string) string {
 		}
 	}
 
-	// Truncate if too long
+	// Truncate if too long. 80 chars is a common terminal width that keeps
+	// failure reasons readable in summary output without excessive wrapping.
 	const maxLen = 80
 	if len(reason) > maxLen {
 		reason = reason[:maxLen-3] + "..."

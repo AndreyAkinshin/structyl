@@ -2,6 +2,7 @@ package testhelper
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -265,6 +266,81 @@ func TestErrProjectNotFound_FromFindProjectRoot(t *testing.T) {
 	if !errors.Is(err, ErrProjectNotFound) {
 		t.Error("FindProjectRootFrom error should match ErrProjectNotFound via errors.Is")
 	}
+}
+
+// API contract tests - verify errors.Is works through wrapped errors
+func TestErrorChains_WorkThroughWrapping(t *testing.T) {
+	t.Parallel()
+
+	t.Run("ProjectNotFoundError_through_wrap", func(t *testing.T) {
+		t.Parallel()
+		original := &ProjectNotFoundError{StartDir: "/some/path"}
+		wrapped := fmt.Errorf("outer context: %w", original)
+
+		if !errors.Is(wrapped, ErrProjectNotFound) {
+			t.Error("errors.Is should find ErrProjectNotFound through wrapped error")
+		}
+
+		var target *ProjectNotFoundError
+		if !errors.As(wrapped, &target) {
+			t.Error("errors.As should extract ProjectNotFoundError through wrapped error")
+		}
+		if target.StartDir != "/some/path" {
+			t.Errorf("StartDir: got %q, want %q", target.StartDir, "/some/path")
+		}
+	})
+
+	t.Run("SuiteNotFoundError_through_wrap", func(t *testing.T) {
+		t.Parallel()
+		original := &SuiteNotFoundError{Suite: "my-suite"}
+		wrapped := fmt.Errorf("outer context: %w", original)
+
+		if !errors.Is(wrapped, ErrSuiteNotFound) {
+			t.Error("errors.Is should find ErrSuiteNotFound through wrapped error")
+		}
+
+		var target *SuiteNotFoundError
+		if !errors.As(wrapped, &target) {
+			t.Error("errors.As should extract SuiteNotFoundError through wrapped error")
+		}
+		if target.Suite != "my-suite" {
+			t.Errorf("Suite: got %q, want %q", target.Suite, "my-suite")
+		}
+	})
+
+	t.Run("TestCaseNotFoundError_through_wrap", func(t *testing.T) {
+		t.Parallel()
+		original := &TestCaseNotFoundError{Path: "/path/to/test.json"}
+		wrapped := fmt.Errorf("outer context: %w", original)
+
+		if !errors.Is(wrapped, ErrTestCaseNotFound) {
+			t.Error("errors.Is should find ErrTestCaseNotFound through wrapped error")
+		}
+
+		var target *TestCaseNotFoundError
+		if !errors.As(wrapped, &target) {
+			t.Error("errors.As should extract TestCaseNotFoundError through wrapped error")
+		}
+		if target.Path != "/path/to/test.json" {
+			t.Errorf("Path: got %q, want %q", target.Path, "/path/to/test.json")
+		}
+	})
+
+	t.Run("double_wrapped", func(t *testing.T) {
+		t.Parallel()
+		original := &ProjectNotFoundError{StartDir: "/deep/path"}
+		wrapped1 := fmt.Errorf("middle: %w", original)
+		wrapped2 := fmt.Errorf("outer: %w", wrapped1)
+
+		if !errors.Is(wrapped2, ErrProjectNotFound) {
+			t.Error("errors.Is should find ErrProjectNotFound through double-wrapped error")
+		}
+
+		var target *ProjectNotFoundError
+		if !errors.As(wrapped2, &target) {
+			t.Error("errors.As should extract ProjectNotFoundError through double-wrapped error")
+		}
+	})
 }
 
 func TestListSuites(t *testing.T) {
@@ -1336,6 +1412,83 @@ func TestTestCase_Clone(t *testing.T) {
 		cloneOutput["new"] = "added"
 		if _, exists := originalOutput["new"]; !exists {
 			t.Error("Output should be shallow-copied (modifying clone should affect original)")
+		}
+	})
+}
+
+func TestTestCase_WithSuite(t *testing.T) {
+	t.Parallel()
+
+	t.Run("sets_suite", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Suite:  "",
+			Input:  map[string]interface{}{"key": "value"},
+			Output: "result",
+		}
+
+		result := original.WithSuite("my-suite")
+
+		if result.Suite != "my-suite" {
+			t.Errorf("Suite: got %q, want %q", result.Suite, "my-suite")
+		}
+	})
+
+	t.Run("original_unchanged", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Suite:  "original-suite",
+			Input:  map[string]interface{}{"key": "value"},
+			Output: "result",
+		}
+
+		_ = original.WithSuite("new-suite")
+
+		if original.Suite != "original-suite" {
+			t.Errorf("original Suite changed: got %q, want %q", original.Suite, "original-suite")
+		}
+	})
+
+	t.Run("preserves_other_fields", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:        "test-name",
+			Suite:       "old-suite",
+			Description: "description",
+			Input:       map[string]interface{}{"a": 1.0},
+			Output:      "output",
+			Tags:        []string{"tag1"},
+			Skip:        true,
+		}
+
+		result := original.WithSuite("new-suite")
+
+		if result.Name != original.Name {
+			t.Errorf("Name: got %q, want %q", result.Name, original.Name)
+		}
+		if result.Description != original.Description {
+			t.Errorf("Description: got %q, want %q", result.Description, original.Description)
+		}
+		if result.Skip != original.Skip {
+			t.Errorf("Skip: got %v, want %v", result.Skip, original.Skip)
+		}
+	})
+
+	t.Run("input_independent", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{"key": "value"},
+			Output: "result",
+		}
+
+		result := original.WithSuite("suite")
+		result.Input["new"] = "added"
+
+		if _, exists := original.Input["new"]; exists {
+			t.Error("modifying result's Input affected original")
 		}
 	})
 }

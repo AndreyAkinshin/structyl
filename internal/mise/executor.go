@@ -43,25 +43,33 @@ func buildRunArgs(task string, args []string) []string {
 	return cmdArgs
 }
 
+// newMiseCommand creates a configured exec.Cmd for running mise with the given arguments.
+// Sets working directory and environment; caller must configure stdin/stdout/stderr.
+func (e *Executor) newMiseCommand(ctx context.Context, args []string) *exec.Cmd {
+	cmd := exec.CommandContext(ctx, "mise", args...)
+	cmd.Dir = e.projectRoot
+	cmd.Env = os.Environ()
+	return cmd
+}
+
+// logCommand prints the command being executed if verbose mode is enabled.
+func (e *Executor) logCommand(args []string) {
+	if e.verbose {
+		fmt.Printf("Running: mise %s\n", strings.Join(args, " "))
+	}
+}
+
 // RunTask executes a mise task by name.
 // Errors from mise (including non-zero exit) are returned as-is.
 // Mise outputs its own diagnostics to stderr.
 func (e *Executor) RunTask(ctx context.Context, task string, args []string) error {
 	cmdArgs := buildRunArgs(task, args)
-
-	cmd := exec.CommandContext(ctx, "mise", cmdArgs...)
-	cmd.Dir = e.projectRoot
+	cmd := e.newMiseCommand(ctx, cmdArgs)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 
-	// Pass through environment
-	cmd.Env = os.Environ()
-
-	if e.verbose {
-		fmt.Printf("Running: mise %s\n", strings.Join(cmdArgs, " "))
-	}
-
+	e.logCommand(cmdArgs)
 	return cmd.Run()
 }
 
@@ -69,25 +77,15 @@ func (e *Executor) RunTask(ctx context.Context, task string, args []string) erro
 // Returns the combined stdout+stderr output and any execution error.
 func (e *Executor) RunTaskWithCapture(ctx context.Context, task string, args []string) (string, error) {
 	cmdArgs := buildRunArgs(task, args)
-
-	cmd := exec.CommandContext(ctx, "mise", cmdArgs...)
-	cmd.Dir = e.projectRoot
+	cmd := e.newMiseCommand(ctx, cmdArgs)
 	cmd.Stdin = os.Stdin
-
-	// Pass through environment
-	cmd.Env = os.Environ()
 
 	// Create a buffer to capture output while also streaming to stdout/stderr
 	var capturedOutput bytes.Buffer
-
-	// Use MultiWriter to both capture and stream output
 	cmd.Stdout = io.MultiWriter(os.Stdout, &capturedOutput)
 	cmd.Stderr = io.MultiWriter(os.Stderr, &capturedOutput)
 
-	if e.verbose {
-		fmt.Printf("Running: mise %s\n", strings.Join(cmdArgs, " "))
-	}
-
+	e.logCommand(cmdArgs)
 	err := cmd.Run()
 	return capturedOutput.String(), err
 }
@@ -95,10 +93,7 @@ func (e *Executor) RunTaskWithCapture(ctx context.Context, task string, args []s
 // RunTaskOutput executes a mise task and returns the output.
 func (e *Executor) RunTaskOutput(ctx context.Context, task string, args []string) (string, error) {
 	cmdArgs := buildRunArgs(task, args)
-
-	cmd := exec.CommandContext(ctx, "mise", cmdArgs...)
-	cmd.Dir = e.projectRoot
-	cmd.Env = os.Environ()
+	cmd := e.newMiseCommand(ctx, cmdArgs)
 
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout

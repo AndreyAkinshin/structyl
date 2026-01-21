@@ -73,7 +73,6 @@ func TestMalformedJSONFixtureError(t *testing.T) {
 	}
 
 	// Verify it's a JSON syntax error (wrapped in the error chain)
-	var syntaxErr *json.SyntaxError
 	if !containsJSONSyntaxError(err) {
 		// Fallback: check error message for JSON-related keywords
 		errStr := err.Error()
@@ -85,7 +84,6 @@ func TestMalformedJSONFixtureError(t *testing.T) {
 			t.Errorf("expected JSON parse error, got: %v (type: %T)", err, err)
 		}
 	}
-	_ = syntaxErr // silence unused variable warning
 }
 
 func TestDockerUnavailableError(t *testing.T) {

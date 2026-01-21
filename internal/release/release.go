@@ -195,37 +195,32 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 func (r *Releaser) dryRun(ctx context.Context, verStr string, opts Options) error {
 	r.out.DryRunStart()
 
-	stepNum := 1
-	r.out.Step(stepNum, "Set version to: %s", verStr)
-	stepNum++
+	steps := &stepCounter{}
+	r.out.Step(steps.next(), "Set version to: %s", verStr)
 
 	if r.config.Version != nil && len(r.config.Version.Files) > 0 {
-		r.out.Step(stepNum, "Propagate version to:")
-		stepNum++
+		r.out.Step(steps.next(), "Propagate version to:")
 		for _, f := range r.config.Version.Files {
 			r.out.StepDetail("%s", f.Path)
 		}
 	}
 
 	if r.config.Release != nil && len(r.config.Release.PreCommands) > 0 {
-		r.out.Step(stepNum, "Run pre-commit commands:")
-		stepNum++
+		r.out.Step(steps.next(), "Run pre-commit commands:")
 		for _, cmd := range r.config.Release.PreCommands {
 			r.out.StepDetail("%s", cmd)
 		}
 	}
 
-	r.out.Step(stepNum, "Create commit: \"set version %s\"", verStr)
-	stepNum++
+	r.out.Step(steps.next(), "Create commit: \"set version %s\"", verStr)
 
 	branch := r.getBranch()
-	r.out.Step(stepNum, "Move %s branch to HEAD", branch)
-	stepNum++
+	r.out.Step(steps.next(), "Move %s branch to HEAD", branch)
 
 	if opts.Push {
 		remote := r.getRemote()
 		tags := r.getTags(verStr)
-		r.out.Step(stepNum, "Push to %s:", remote)
+		r.out.Step(steps.next(), "Push to %s:", remote)
 		r.out.StepDetail("Branch: %s", branch)
 		for _, tag := range tags {
 			r.out.StepDetail("Tag: %s", tag)

@@ -439,3 +439,164 @@ func TestSchemaConfigInvalidProjectNamePattern(t *testing.T) {
 		})
 	}
 }
+
+func TestSchemaValidConfig_MultipleTargets(t *testing.T) {
+	t.Parallel()
+	// Test a config with multiple targets of different types
+	data := []byte(`{
+		"project": {"name": "multi-target-test"},
+		"targets": {
+			"cs": {
+				"type": "language",
+				"title": "C#",
+				"toolchain": "dotnet"
+			},
+			"go": {
+				"type": "language",
+				"title": "Go",
+				"toolchain": "go"
+			},
+			"docs": {
+				"type": "auxiliary",
+				"title": "Documentation"
+			}
+		}
+	}`)
+
+	if err := ValidateConfig(data); err != nil {
+		t.Errorf("expected valid config with multiple targets, got error: %v", err)
+	}
+}
+
+func TestSchemaInvalidConfig_EmptyTargetName(t *testing.T) {
+	t.Parallel()
+	// Target names must match ^[a-z][a-z0-9-]*$
+	data := []byte(`{
+		"project": {"name": "test"},
+		"targets": {
+			"": {
+				"type": "language",
+				"title": "Empty Name"
+			}
+		}
+	}`)
+
+	err := ValidateConfig(data)
+	if err == nil {
+		t.Error("expected validation error for empty target name, got nil")
+	}
+}
+
+func TestSchemaInvalidConfig_TargetNameStartsWithNumber(t *testing.T) {
+	t.Parallel()
+	data := []byte(`{
+		"project": {"name": "test"},
+		"targets": {
+			"123target": {
+				"type": "language",
+				"title": "Bad Name"
+			}
+		}
+	}`)
+
+	err := ValidateConfig(data)
+	if err == nil {
+		t.Error("expected validation error for target name starting with number, got nil")
+	}
+}
+
+func TestSchemaToolchainsWithExtends(t *testing.T) {
+	t.Parallel()
+	data := []byte(`{
+		"version": "1.0",
+		"toolchains": {
+			"base": {
+				"commands": {
+					"build": "make build"
+				}
+			},
+			"derived": {
+				"extends": "base",
+				"commands": {
+					"test": "make test"
+				}
+			}
+		}
+	}`)
+
+	if err := ValidateToolchains(data); err != nil {
+		t.Errorf("expected valid toolchains with extends, got error: %v", err)
+	}
+}
+
+func TestSchemaValidConfig_WithCISection(t *testing.T) {
+	t.Parallel()
+	data := []byte(`{
+		"project": {"name": "ci-test"},
+		"ci": {
+			"steps": [
+				{"name": "Clean", "target": "all", "command": "clean"},
+				{"name": "Restore", "target": "all", "command": "restore"},
+				{"name": "Build", "target": "all", "command": "build"},
+				{"name": "Test", "target": "all", "command": "test"}
+			]
+		}
+	}`)
+
+	if err := ValidateConfig(data); err != nil {
+		t.Errorf("expected valid config with CI section, got error: %v", err)
+	}
+}
+
+func TestSchemaValidConfig_WithTestsSection(t *testing.T) {
+	t.Parallel()
+	data := []byte(`{
+		"project": {"name": "tests-config"},
+		"tests": {
+			"comparison": {
+				"tolerance": 1e-10,
+				"tolerance_mode": "relative",
+				"nan_equals_nan": true,
+				"array_order": "strict"
+			}
+		}
+	}`)
+
+	if err := ValidateConfig(data); err != nil {
+		t.Errorf("expected valid config with tests section, got error: %v", err)
+	}
+}
+
+func TestSchemaInvalidConfig_InvalidToleranceMode(t *testing.T) {
+	t.Parallel()
+	data := []byte(`{
+		"project": {"name": "test"},
+		"tests": {
+			"comparison": {
+				"tolerance_mode": "invalid"
+			}
+		}
+	}`)
+
+	err := ValidateConfig(data)
+	if err == nil {
+		t.Error("expected validation error for invalid tolerance_mode, got nil")
+	}
+}
+
+func TestSchemaInvalidConfig_InvalidArrayOrder(t *testing.T) {
+	t.Parallel()
+	data := []byte(`{
+		"project": {"name": "test"},
+		"tests": {
+			"comparison": {
+				"array_order": "invalid"
+			}
+		}
+	}`)
+
+	err := ValidateConfig(data)
+	if err == nil {
+		t.Error("expected validation error for invalid array_order, got nil")
+	}
+}

@@ -26,6 +26,10 @@ A markdown syntax for displaying code blocks. Uses triple backticks (` ``` `) fo
 
 An action that can be performed on a target. Standard commands include `clean`, `restore`, `build`, `build:release`, `test`, `test:coverage`, `check`, `check:fix`, `bench`, `demo`, `doc`, `pack`, `publish`, and `publish:dry`. Custom commands are also permitted. See [commands.md](commands.md) for the complete vocabulary.
 
+### Command Composition
+
+A [Command](#command) defined as an array of command names or shell commands. Array elements execute sequentially with fail-fast behavior: if any element fails, subsequent elements are not executed. See [commands.md](commands.md#command-composition) for resolution rules distinguishing command references from shell commands.
+
 ### Configuration
 
 The project settings defined in `.structyl/config.json`. Configuration includes project metadata, target definitions, toolchain settings, version management rules, and optional sections for tests, documentation, Docker, CI, and artifacts. See [configuration.md](configuration.md) for the complete schema.

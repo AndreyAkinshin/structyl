@@ -549,7 +549,9 @@ The `STRUCTYL_PARALLEL` environment variable controls the number of parallel wor
 - Value `1`: Serial execution (one target at a time)
 - Value `2-256`: Parallel execution with N workers
 - Value `0`, negative, `>256`, or non-integer: Falls back to CPU core count with warning
-  :::
+
+**Worker Limit Rationale:** The 256-worker maximum prevents scheduler thrashing from excessive goroutines on typical systems. Beyond this limit, coordination overhead typically outweighs parallelism benefits for I/O-bound subprocess execution.
+:::
 
 ### Docker Mode Precedence
 

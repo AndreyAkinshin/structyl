@@ -108,4 +108,4 @@ Note: Basic README templating via `documentation.readme_template` is supported. 
 
 ## Status
 
-**v1.0** - This specification defines Structyl v1.0. The API is stable.
+**v1.0** - This specification defines Structyl v1.0. The API is stable per the [Stability Policy](stability.md).

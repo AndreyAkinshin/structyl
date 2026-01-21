@@ -456,6 +456,10 @@ Auxiliary:
   web  Website (depends: img, pdf)
 ```
 
+::: info Output Format Stability
+The `structyl targets` output is designed for human readability and is explicitly unstable. Do not parse this output programmatically. See [stability.md](stability.md) for the list of unstable interfaces.
+:::
+
 ## Adding Custom Targets
 
 1. Create directory

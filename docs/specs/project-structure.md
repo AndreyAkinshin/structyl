@@ -168,6 +168,8 @@ Standard language slugs:
 | `rs` | Rust       | `cargo`       | `Cargo.toml`                        |
 | `ts` | TypeScript | `npm`/`pnpm`  | `package.json`                      |
 
+> **Note:** This table shows common language slugs. For the complete auto-detection marker file list, see [toolchains.md](toolchains.md#auto-detection).
+
 Custom slugs are allowed—the slug is just a directory name and target key.
 
 ### Test Directory

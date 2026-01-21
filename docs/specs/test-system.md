@@ -224,21 +224,19 @@ Structyl does not provide perceptual or fuzzy binary comparison.
 
 ### Glob Pattern Syntax
 
-The `tests.pattern` field uses [doublestar](https://github.com/bmatcuk/doublestar) glob syntax:
+The `tests.pattern` field supports a simplified subset of glob syntax:
 
-| Pattern | Matches                                            |
-| ------- | -------------------------------------------------- |
-| `*`     | Any sequence of non-separator characters           |
-| `**`    | Any sequence including path separators (recursive) |
-| `?`     | Any single non-separator character                 |
-| `[abc]` | Any character in the set                           |
-| `[a-z]` | Any character in the range                         |
+| Pattern    | Matches                                            |
+| ---------- | -------------------------------------------------- |
+| `*`        | Any sequence of non-separator characters           |
+| `**/*.json`| All `.json` files recursively (simplified)         |
+
+**Implementation note:** The internal test loader uses a simplified pattern matching implementation, not a full glob library. The double-star (`**`) pattern specifically matches `**/*.json` by recursively finding all `.json` files—it does not provide full globstar semantics. For standard test organization, this is sufficient.
 
 Examples:
 
-- `**/*.json` - All JSON files in any subdirectory
-- `*.json` - JSON files in the test directory root only
-- `suite-*/*.json` - JSON files in directories starting with `suite-`
+- `**/*.json` - All JSON files in any subdirectory (default)
+- `*.json` - JSON files matching standard glob on filename only
 
 ### Directory Structure
 

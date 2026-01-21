@@ -270,13 +270,17 @@ Invalid flag values cause immediate errors:
 
 Before running commands, Structyl checks dependencies:
 
-### Missing Command
+### Missing Command Definition
+
+When a command is invoked on a target that doesn't define it:
 
 ```
-structyl: target "cs": command "build" not defined
+[cs] build: command "build" not defined for target "cs"
 ```
 
-Exit code: `2` (Configuration Error)
+Exit code: `1` (Failure)
+
+This is a runtime failure, not a configuration error, because the target exists and the configuration is valid—the target simply doesn't support the requested command. Compare with toolchain validation errors (exit code 2), which are detected at configuration load time.
 
 ### Missing Docker
 

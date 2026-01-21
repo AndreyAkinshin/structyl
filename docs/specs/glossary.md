@@ -45,9 +45,9 @@ Common causes:
 
 A target that must be built before another target. Specified via the `depends_on` configuration field.
 
-### Doublestar
+### Doublestar Pattern
 
-A Go library for path matching with support for `**` recursive glob patterns. Structyl uses doublestar for test file discovery via the `tests.pattern` configuration. See [github.com/bmatcuk/doublestar](https://github.com/bmatcuk/doublestar) and [Test System](test-system.md#glob-pattern-syntax) for pattern syntax.
+A glob pattern convention using `**` for recursive directory matching. Structyl's internal test loader supports a simplified double-star pattern (`**/*.json`) for test file discovery via the `tests.pattern` configuration. This implementation recursively finds all `.json` files rather than providing full globstar semantics. See [Test System](test-system.md#glob-pattern-syntax) for pattern syntax.
 
 ### Environment Error
 
@@ -240,4 +240,3 @@ In Docker context, the `/workspace` directory inside a container where the proje
 - [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) - Key words for use in RFCs to Indicate Requirement Levels
 - [Semantic Versioning](https://semver.org/) - Version number format used by Structyl
 - [RE2 Syntax](https://github.com/google/re2/wiki/Syntax) - Regex syntax for version patterns
-- [doublestar](https://github.com/bmatcuk/doublestar) - Glob pattern syntax for test discovery

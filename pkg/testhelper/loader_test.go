@@ -831,3 +831,78 @@ func TestLoadTestCaseWithSuite_EmptySuite_ReturnsError(t *testing.T) {
 		t.Errorf("error should be ErrEmptySuiteName, got: %v", err)
 	}
 }
+
+func TestTestCase_Validate(t *testing.T) {
+	tests := []struct {
+		name    string
+		tc      TestCase
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name: "valid",
+			tc: TestCase{
+				Name:   "test1",
+				Input:  map[string]interface{}{"a": 1},
+				Output: 42,
+			},
+			wantErr: false,
+		},
+		{
+			name: "valid_empty_input",
+			tc: TestCase{
+				Name:   "test2",
+				Input:  map[string]interface{}{},
+				Output: "result",
+			},
+			wantErr: false,
+		},
+		{
+			name: "nil_input",
+			tc: TestCase{
+				Name:   "test3",
+				Input:  nil,
+				Output: 42,
+			},
+			wantErr: true,
+			errMsg:  "input",
+		},
+		{
+			name: "nil_output",
+			tc: TestCase{
+				Name:   "test4",
+				Input:  map[string]interface{}{"a": 1},
+				Output: nil,
+			},
+			wantErr: true,
+			errMsg:  "output",
+		},
+		{
+			name: "both_nil",
+			tc: TestCase{
+				Name:   "test5",
+				Input:  nil,
+				Output: nil,
+			},
+			wantErr: true,
+			errMsg:  "input",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.tc.Validate()
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("Validate() = nil, want error containing %q", tt.errMsg)
+				} else if !strings.Contains(err.Error(), tt.errMsg) {
+					t.Errorf("Validate() error = %q, want error containing %q", err.Error(), tt.errMsg)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Validate() = %v, want nil", err)
+				}
+			}
+		})
+	}
+}

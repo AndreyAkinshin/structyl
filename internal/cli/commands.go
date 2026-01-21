@@ -64,9 +64,10 @@ func ensureMiseConfig(proj *project.Project, force bool) error {
 	}
 
 	miseTomlMissing := !mise.MiseTomlExists(proj.Root)
+	// Regenerate if: explicitly forced, auto-generation enabled, or file is missing
 	needsRegeneration := force || autoGen || miseTomlMissing
 	if needsRegeneration {
-		_, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, true)
+		_, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, miseConfigForceRegenerate)
 		if err != nil {
 			return fmt.Errorf("failed to generate mise.toml: %w", err)
 		}
@@ -400,7 +401,7 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 	}
 
 	// Generate mise.toml using loaded toolchains (always regenerates)
-	created, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, true)
+	created, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, miseConfigForceRegenerate)
 	if err != nil {
 		out.ErrorPrefix("mise sync: %v", err)
 		return internalerrors.ExitRuntimeError

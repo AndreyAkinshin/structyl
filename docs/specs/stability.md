@@ -77,12 +77,12 @@ Structyl logs warnings when deprecated features are used.
 
 ### Current Deprecations
 
-| Feature | Deprecated In | Removal Target | Replacement |
-|---------|---------------|----------------|-------------|
-| `CompareOutput` function | v1.0.0 | v2.0.0 | `Equal` |
-| `FormatDiff` function | v1.0.0 | v2.0.0 | `FormatComparisonResult` |
-| `SpecialFloatPosInfinity` constant | v1.0.0 | v2.0.0 | `SpecialFloatInfinity` |
-| `new` command (alias) | v1.0.0 | v2.0.0 | `init` |
+| Feature | Deprecated In | Removal Target | Replacement | Reason |
+|---------|---------------|----------------|-------------|--------|
+| `CompareOutput` function | v1.0.0 | v2.0.0 | `Equal` | Clearer function name |
+| `FormatDiff` function | v1.0.0 | v2.0.0 | `FormatComparisonResult` | Better semantics (empty string on match, diff on mismatch) |
+| `SpecialFloatPosInfinity` constant | v1.0.0 | v2.0.0 | `SpecialFloatInfinity` | Canonical form preferred (`"Infinity"` vs `"+Infinity"`) |
+| `new` command (alias) | v1.0.0 | v2.0.0 | `init` | Standardize on `init` for initialization |
 
 ## Public API Surface
 
@@ -157,7 +157,7 @@ The `structyl targets --json` command outputs an array of target objects with th
 | `name` | string | Yes | Target identifier (e.g., `"rs"`, `"py"`, `"img"`) |
 | `type` | string | Yes | Target type: `"language"` or `"auxiliary"` |
 | `title` | string | Yes | Human-readable name (required in config schema) |
-| `commands` | string[] | Yes | Available commands for this target |
+| `commands` | string[] | Yes | Available commands for this target (always present, may be empty) |
 | `depends_on` | string[] | No | Dependency target names (omitted if empty) |
 
 This structure is stable and covered by the [Source Compatibility](#source-compatibility) guarantees. New optional fields MAY be added in minor versions.

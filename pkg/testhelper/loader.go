@@ -148,6 +148,14 @@ type TestCase struct {
 	// a scalar (number, string, boolean), an array, or an object.
 	// This flexibility accommodates functions that return simple values,
 	// collections, or complex structures.
+	//
+	// Post-load type guarantee: After successful loading, Output will be
+	// exactly one of these Go types (matching the JSON Type Mapping above):
+	//   - float64 (JSON numbers, including integers)
+	//   - string (JSON strings)
+	//   - bool (JSON booleans)
+	//   - []interface{} (JSON arrays)
+	//   - map[string]interface{} (JSON objects)
 	Output interface{} `json:"output"`
 
 	// Description provides optional documentation.

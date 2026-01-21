@@ -231,8 +231,16 @@ Initializes a new Structyl project in the current directory. This command is ide
 2. Creates `.structyl/config.json` with minimal configuration (project name from directory)
 3. Creates `.structyl/version` with current CLI version
 4. Creates `.structyl/setup.sh` and `.structyl/setup.ps1` bootstrap scripts
-5. Creates `.structyl/AGENTS.md` for LLM assistance
+5. Creates `.structyl/AGENTS.md` for LLM assistance (see below)
 6. Creates `.structyl/toolchains.json` with toolchain definitions
+
+**`.structyl/AGENTS.md`** contains project-specific instructions for LLM agents, including:
+- Directory structure and target layout
+- Development commands (build, test, check)
+- Testing conventions and test data location
+- Common workflows and debugging tips
+
+This file complements the root `AGENTS.md` with project-specific context.
 7. Creates `.structyl/PROJECT_VERSION` file with initial version `0.1.0`
 8. Creates `tests/` directory
 9. Updates `.gitignore` with Structyl entries

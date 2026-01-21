@@ -199,6 +199,17 @@ warning: unknown field "foo" in targets.cs
 
 ## Command Exit Codes
 
+### `test-summary` Exit Codes
+
+The `test-summary` command parses `go test -json` output and returns:
+
+| Exit Code | Condition |
+| --------- | --------- |
+| 0         | All tests passed |
+| 1         | One or more tests failed |
+
+### Target Command Normalization
+
 Commands executed by Structyl SHOULD use standard exit codes. Structyl normalizes exit codes as follows:
 
 | Target Exit Code | Structyl Exit Code |

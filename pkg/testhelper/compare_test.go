@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestCompareOutput_Primitives(t *testing.T) {
+func TestEqual_Primitives(t *testing.T) {
 	opts := DefaultOptions()
 
 	tests := []struct {
@@ -32,14 +32,14 @@ func TestCompareOutput_Primitives(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if CompareOutput(tt.expected, tt.actual, opts) != tt.pass {
-				t.Errorf("CompareOutput() = %v, want %v", !tt.pass, tt.pass)
+			if Equal(tt.expected, tt.actual, opts) != tt.pass {
+				t.Errorf("Equal() = %v, want %v", !tt.pass, tt.pass)
 			}
 		})
 	}
 }
 
-func TestCompareOutput_Floats(t *testing.T) {
+func TestEqual_Floats(t *testing.T) {
 	opts := CompareOptions{
 		FloatTolerance: 1e-9,
 		ToleranceMode:  "relative",
@@ -60,29 +60,29 @@ func TestCompareOutput_Floats(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if CompareOutput(tt.expected, tt.actual, opts) != tt.pass {
-				t.Errorf("CompareOutput() = %v, want %v", !tt.pass, tt.pass)
+			if Equal(tt.expected, tt.actual, opts) != tt.pass {
+				t.Errorf("Equal() = %v, want %v", !tt.pass, tt.pass)
 			}
 		})
 	}
 }
 
-func TestCompareOutput_AbsoluteTolerance(t *testing.T) {
+func TestEqual_AbsoluteTolerance(t *testing.T) {
 	opts := CompareOptions{
 		FloatTolerance: 0.01,
 		ToleranceMode:  "absolute",
 	}
 
-	if !CompareOutput(1.0, 1.005, opts) {
+	if !Equal(1.0, 1.005, opts) {
 		t.Error("expected pass with absolute tolerance")
 	}
 
-	if CompareOutput(1.0, 1.02, opts) {
+	if Equal(1.0, 1.02, opts) {
 		t.Error("expected fail outside absolute tolerance")
 	}
 }
 
-func TestCompareOutput_SpecialFloats(t *testing.T) {
+func TestEqual_SpecialFloats(t *testing.T) {
 	opts := CompareOptions{
 		NaNEqualsNaN: true,
 	}
@@ -101,24 +101,24 @@ func TestCompareOutput_SpecialFloats(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if CompareOutput(tt.expected, tt.actual, opts) != tt.pass {
-				t.Errorf("CompareOutput() = %v, want %v", !tt.pass, tt.pass)
+			if Equal(tt.expected, tt.actual, opts) != tt.pass {
+				t.Errorf("Equal() = %v, want %v", !tt.pass, tt.pass)
 			}
 		})
 	}
 }
 
-func TestCompareOutput_NaNWithoutFlag(t *testing.T) {
+func TestEqual_NaNWithoutFlag(t *testing.T) {
 	opts := CompareOptions{
 		NaNEqualsNaN: false,
 	}
 
-	if CompareOutput("NaN", math.NaN(), opts) {
+	if Equal("NaN", math.NaN(), opts) {
 		t.Error("NaN should not equal NaN when NaNEqualsNaN is false")
 	}
 }
 
-func TestCompareOutput_Maps(t *testing.T) {
+func TestEqual_Maps(t *testing.T) {
 	opts := DefaultOptions()
 
 	expected := map[string]interface{}{
@@ -130,48 +130,48 @@ func TestCompareOutput_Maps(t *testing.T) {
 		"b": "hello",
 	}
 
-	if !CompareOutput(expected, actual, opts) {
+	if !Equal(expected, actual, opts) {
 		t.Error("expected equal maps to pass")
 	}
 
 	// Missing key
 	delete(actual, "b")
-	if CompareOutput(expected, actual, opts) {
+	if Equal(expected, actual, opts) {
 		t.Error("expected missing key to fail")
 	}
 
 	// Extra key
 	actual["b"] = "hello"
 	actual["c"] = "extra"
-	if CompareOutput(expected, actual, opts) {
+	if Equal(expected, actual, opts) {
 		t.Error("expected extra key to fail")
 	}
 }
 
-func TestCompareOutput_Arrays(t *testing.T) {
+func TestEqual_Arrays(t *testing.T) {
 	opts := DefaultOptions()
 
 	expected := []interface{}{float64(1), float64(2), float64(3)}
 	actual := []interface{}{float64(1), float64(2), float64(3)}
 
-	if !CompareOutput(expected, actual, opts) {
+	if !Equal(expected, actual, opts) {
 		t.Error("expected equal arrays to pass")
 	}
 
 	// Wrong order with strict mode
 	actual = []interface{}{float64(3), float64(2), float64(1)}
-	if CompareOutput(expected, actual, opts) {
+	if Equal(expected, actual, opts) {
 		t.Error("expected wrong order to fail in strict mode")
 	}
 
 	// Wrong order with unordered mode
 	opts.ArrayOrder = "unordered"
-	if !CompareOutput(expected, actual, opts) {
+	if !Equal(expected, actual, opts) {
 		t.Error("expected wrong order to pass in unordered mode")
 	}
 }
 
-func TestCompareOutput_NestedStructures(t *testing.T) {
+func TestEqual_NestedStructures(t *testing.T) {
 	opts := DefaultOptions()
 
 	expected := map[string]interface{}{
@@ -185,7 +185,7 @@ func TestCompareOutput_NestedStructures(t *testing.T) {
 		},
 	}
 
-	if !CompareOutput(expected, actual, opts) {
+	if !Equal(expected, actual, opts) {
 		t.Error("expected nested structures to pass")
 	}
 
@@ -513,7 +513,7 @@ func TestUlpDiff_ExtremeValues(t *testing.T) {
 	}
 }
 
-func TestCompareOutput_UlpTolerance(t *testing.T) {
+func TestEqual_UlpTolerance(t *testing.T) {
 	// Test ULP tolerance mode
 	a := 1.0
 	b := math.Nextafter(a, math.Inf(1)) // 1 ULP away
@@ -523,31 +523,31 @@ func TestCompareOutput_UlpTolerance(t *testing.T) {
 		FloatTolerance: 1,
 		ToleranceMode:  "ulp",
 	}
-	if !CompareOutput(a, b, opts) {
+	if !Equal(a, b, opts) {
 		t.Error("expected 1 ULP difference to pass with tolerance 1")
 	}
 
 	// With ULP tolerance of 0, should fail
 	opts.FloatTolerance = 0
-	if CompareOutput(a, b, opts) {
+	if Equal(a, b, opts) {
 		t.Error("expected 1 ULP difference to fail with tolerance 0")
 	}
 
 	// 3 ULPs away with tolerance of 2 should fail
 	c := math.Nextafter(math.Nextafter(math.Nextafter(a, math.Inf(1)), math.Inf(1)), math.Inf(1))
 	opts.FloatTolerance = 2
-	if CompareOutput(a, c, opts) {
+	if Equal(a, c, opts) {
 		t.Error("expected 3 ULP difference to fail with tolerance 2")
 	}
 
 	// 3 ULPs away with tolerance of 3 should pass
 	opts.FloatTolerance = 3
-	if !CompareOutput(a, c, opts) {
+	if !Equal(a, c, opts) {
 		t.Error("expected 3 ULP difference to pass with tolerance 3")
 	}
 }
 
-func TestCompareOutput_TypeMismatch(t *testing.T) {
+func TestEqual_TypeMismatch(t *testing.T) {
 	opts := DefaultOptions()
 
 	tests := []struct {
@@ -585,7 +585,7 @@ func TestCompareOutput_TypeMismatch(t *testing.T) {
 	}
 }
 
-func TestCompareOutput_FloatTypeMismatch(t *testing.T) {
+func TestEqual_FloatTypeMismatch(t *testing.T) {
 	opts := DefaultOptions()
 
 	// Expected float64, actual is string
@@ -607,7 +607,7 @@ func TestCompareOutput_FloatTypeMismatch(t *testing.T) {
 	}
 }
 
-func TestCompareOutput_SpecialFloatTypeMismatch(t *testing.T) {
+func TestEqual_SpecialFloatTypeMismatch(t *testing.T) {
 	opts := DefaultOptions()
 
 	// Expected "NaN" string (special), actual is not a number type
@@ -638,7 +638,7 @@ func TestCompareOutput_SpecialFloatTypeMismatch(t *testing.T) {
 	}
 }
 
-func TestCompareOutput_SpecialFloatMismatch(t *testing.T) {
+func TestEqual_SpecialFloatMismatch(t *testing.T) {
 	opts := DefaultOptions()
 
 	// Expected NaN, got regular number
@@ -685,28 +685,28 @@ func TestFloatsEqual_InfinityMismatch(t *testing.T) {
 	opts := DefaultOptions()
 
 	// +Inf vs regular number
-	if CompareOutput(math.Inf(1), float64(42), opts) {
+	if Equal(math.Inf(1), float64(42), opts) {
 		t.Error("expected +Inf vs regular to fail")
 	}
 
 	// -Inf vs regular number
-	if CompareOutput(math.Inf(-1), float64(42), opts) {
+	if Equal(math.Inf(-1), float64(42), opts) {
 		t.Error("expected -Inf vs regular to fail")
 	}
 
 	// +Inf vs -Inf
-	if CompareOutput(math.Inf(1), math.Inf(-1), opts) {
+	if Equal(math.Inf(1), math.Inf(-1), opts) {
 		t.Error("expected +Inf vs -Inf to fail")
 	}
 
 	// NaN vs regular (with NaNEqualsNaN=false)
 	opts.NaNEqualsNaN = false
-	if CompareOutput(math.NaN(), float64(42), opts) {
+	if Equal(math.NaN(), float64(42), opts) {
 		t.Error("expected NaN vs regular to fail")
 	}
 
 	// Regular vs NaN
-	if CompareOutput(float64(42), math.NaN(), opts) {
+	if Equal(float64(42), math.NaN(), opts) {
 		t.Error("expected regular vs NaN to fail")
 	}
 }
@@ -717,12 +717,12 @@ func TestFloatsEqual_NaNWithoutFlag(t *testing.T) {
 	}
 
 	// NaN vs NaN with flag disabled
-	if CompareOutput(math.NaN(), math.NaN(), opts) {
+	if Equal(math.NaN(), math.NaN(), opts) {
 		t.Error("expected NaN vs NaN to fail when NaNEqualsNaN is false")
 	}
 }
 
-func TestCompareOutput_ArrayLengthMismatch(t *testing.T) {
+func TestEqual_ArrayLengthMismatch(t *testing.T) {
 	opts := DefaultOptions()
 
 	expected := []interface{}{1, 2, 3}
@@ -737,7 +737,7 @@ func TestCompareOutput_ArrayLengthMismatch(t *testing.T) {
 	}
 }
 
-func TestCompareOutput_UnorderedArrayNoMatch(t *testing.T) {
+func TestEqual_UnorderedArrayNoMatch(t *testing.T) {
 	opts := CompareOptions{
 		ArrayOrder: "unordered",
 	}
@@ -779,7 +779,7 @@ func TestCompareValues_DefaultCase(t *testing.T) {
 	}
 }
 
-func TestCompareOutput_NilMismatch(t *testing.T) {
+func TestEqual_NilMismatch(t *testing.T) {
 	opts := DefaultOptions()
 
 	// value vs nil
@@ -906,19 +906,19 @@ func TestConstantsWithCompare(t *testing.T) {
 	}
 
 	// Float comparison with absolute tolerance
-	if !CompareOutput(1.0, 1.005, opts) {
+	if !Equal(1.0, 1.005, opts) {
 		t.Error("expected absolute tolerance to pass")
 	}
 
 	// Array comparison with unordered mode
 	expected := []interface{}{float64(1), float64(2), float64(3)}
 	actual := []interface{}{float64(3), float64(1), float64(2)}
-	if !CompareOutput(expected, actual, opts) {
+	if !Equal(expected, actual, opts) {
 		t.Error("expected unordered array comparison to pass")
 	}
 }
 
-func TestCompareOutput_UlpTolerance_Truncation(t *testing.T) {
+func TestEqual_UlpTolerance_Truncation(t *testing.T) {
 	// Test that FloatTolerance is truncated to integer for ULP mode
 	// (e.g., 1.9 allows 1 ULP, not 2)
 	a := 1.0
@@ -931,17 +931,17 @@ func TestCompareOutput_UlpTolerance_Truncation(t *testing.T) {
 		FloatTolerance: 1.9,
 		ToleranceMode:  ToleranceModeULP,
 	}
-	if !CompareOutput(a, b, opts) {
+	if !Equal(a, b, opts) {
 		t.Error("expected 1 ULP to pass with tolerance 1.9 (truncated to 1)")
 	}
 
 	// With tolerance 1.9, truncated to 1, should fail for 2 ULPs
-	if CompareOutput(a, c, opts) {
+	if Equal(a, c, opts) {
 		t.Error("expected 2 ULPs to fail with tolerance 1.9 (truncated to 1)")
 	}
 }
 
-func TestCompareOutput_UlpTolerance_ZeroTolerance(t *testing.T) {
+func TestEqual_UlpTolerance_ZeroTolerance(t *testing.T) {
 	// Test ULP mode with zero tolerance (exact match required)
 	a := 1.0
 	b := math.Nextafter(a, math.Inf(1)) // 1 ULP away
@@ -952,17 +952,17 @@ func TestCompareOutput_UlpTolerance_ZeroTolerance(t *testing.T) {
 	}
 
 	// Same value should pass
-	if !CompareOutput(a, a, opts) {
+	if !Equal(a, a, opts) {
 		t.Error("expected identical values to pass with ULP tolerance 0")
 	}
 
 	// 1 ULP away should fail
-	if CompareOutput(a, b, opts) {
+	if Equal(a, b, opts) {
 		t.Error("expected 1 ULP difference to fail with tolerance 0")
 	}
 }
 
-func TestCompareOutput_UlpTolerance_LargeTolerance(t *testing.T) {
+func TestEqual_UlpTolerance_LargeTolerance(t *testing.T) {
 	// Test ULP mode with large tolerance value
 	// Note: Behavior for tolerances >= 2^63 is undefined per documentation
 	a := 1.0
@@ -975,7 +975,7 @@ func TestCompareOutput_UlpTolerance_LargeTolerance(t *testing.T) {
 	}
 
 	// Should pass because tolerance is huge
-	if !CompareOutput(a, b, opts) {
+	if !Equal(a, b, opts) {
 		t.Error("expected large ULP tolerance to pass for 1.0 vs 2.0")
 	}
 }
@@ -1045,22 +1045,22 @@ func TestCompare_PlusInfinityString(t *testing.T) {
 	opts := DefaultOptions()
 
 	// "+Infinity" should match positive infinity (same as "Infinity")
-	if !CompareOutput("+Infinity", math.Inf(1), opts) {
+	if !Equal("+Infinity", math.Inf(1), opts) {
 		t.Error("expected \"+Infinity\" string to match math.Inf(1)")
 	}
 
 	// "+Infinity" should NOT match negative infinity
-	if CompareOutput("+Infinity", math.Inf(-1), opts) {
+	if Equal("+Infinity", math.Inf(-1), opts) {
 		t.Error("expected \"+Infinity\" string to NOT match math.Inf(-1)")
 	}
 
 	// "+Infinity" should NOT match regular numbers
-	if CompareOutput("+Infinity", float64(42), opts) {
+	if Equal("+Infinity", float64(42), opts) {
 		t.Error("expected \"+Infinity\" string to NOT match regular number")
 	}
 
 	// "+Infinity" should NOT match NaN
-	if CompareOutput("+Infinity", math.NaN(), opts) {
+	if Equal("+Infinity", math.NaN(), opts) {
 		t.Error("expected \"+Infinity\" string to NOT match NaN")
 	}
 

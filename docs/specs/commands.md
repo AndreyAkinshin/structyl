@@ -437,13 +437,34 @@ structyl mise sync  # Regenerate mise.toml
 | --------------- | ---------------------------------------------------------- |
 | `--docker`      | Run command in Docker container                            |
 | `--no-docker`   | Disable Docker mode (overrides `STRUCTYL_DOCKER` env var)  |
-| `--type=<type>` | Filter targets by type: `language` or `auxiliary` (invalid values cause exit code 2) |
+| `--type=<type>` | Filter targets by type (see [Target Type Values](#target-type-values) below) |
 | `-q, --quiet`   | Minimal output (errors only)                               |
 | `-v, --verbose` | Maximum detail                                             |
 | `-h, --help`    | Show help message                                          |
 | `--version`     | Show Structyl version (also accepts `version` as command)  |
 
 Note: `-q, --quiet` and `-v, --verbose` are mutually exclusive.
+
+### Target Type Values
+
+The `--type` flag accepts these values:
+
+| Value       | Description                                    |
+| ----------- | ---------------------------------------------- |
+| `language`  | Programming language implementations           |
+| `auxiliary` | Supporting tools and utilities (e.g., docs)    |
+
+These values are part of the stable public CLI contract. Invalid values cause exit code 2 (configuration error).
+
+Example usage:
+
+```bash
+# Build only language targets
+structyl build --type=language
+
+# Test only auxiliary targets
+structyl test --type=auxiliary
+```
 
 ### Removed Flags
 
@@ -727,10 +748,10 @@ When you run `structyl <command> <target>`:
 
 Commands are executed via the system shell:
 
-| Platform   | Shell      | Invocation Pattern    |
-| ---------- | ---------- | --------------------- |
-| Unix/macOS | `/bin/sh`  | `sh -c "<command>"`   |
-| Windows    | `cmd.exe`  | `cmd /c "<command>"`  |
+| Platform   | Shell      | Invocation Pattern                                               |
+| ---------- | ---------- | ---------------------------------------------------------------- |
+| Unix/macOS | `/bin/sh`  | `sh -c "<command>"`                                              |
+| Windows    | PowerShell | `powershell.exe -NoProfile -NonInteractive -Command "<command>"` |
 
 Shell selection is automatic based on the operating system. There is no configuration option to override the shell.
 

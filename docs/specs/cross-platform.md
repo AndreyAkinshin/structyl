@@ -18,10 +18,10 @@ This document describes Structyl's cross-platform capabilities.
 
 Structyl executes commands defined in `.structyl/config.json` using the platform's shell:
 
-| Platform            | Shell      | Invocation                        |
-| ------------------- | ---------- | --------------------------------- |
-| Unix (macOS, Linux) | sh         | `sh -c "<command>"`               |
-| Windows             | PowerShell | `powershell -Command "<command>"` |
+| Platform            | Shell      | Invocation                                                       |
+| ------------------- | ---------- | ---------------------------------------------------------------- |
+| Unix (macOS, Linux) | sh         | `sh -c "<command>"`                                              |
+| Windows             | PowerShell | `powershell.exe -NoProfile -NonInteractive -Command "<command>"` |
 
 ### Shell Selection Logic
 

@@ -185,3 +185,77 @@ FAIL`,
 		})
 	}
 }
+
+func TestGoParserReasonTruncation(t *testing.T) {
+	t.Parallel()
+	parser := &GoParser{}
+
+	// maxLen is 80 in go.go:152
+	// Generate strings of specific lengths to test boundary conditions
+	chars79 := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"                       // 79 chars
+	chars80 := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"                      // 80 chars
+	chars81 := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"                     // 81 chars
+	chars100 := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" // 100 chars
+
+	// Truncated result: 77 chars + "..." = 80 chars
+	chars77 := "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" // 77 chars
+
+	tests := []struct {
+		name           string
+		output         string
+		expectedReason string
+	}{
+		{
+			name: "reason_79_chars_no_truncation",
+			output: `=== RUN   TestFoo
+    foo_test.go:10: ` + chars79 + `
+--- FAIL: TestFoo (0.00s)
+FAIL`,
+			expectedReason: chars79,
+		},
+		{
+			name: "reason_80_chars_no_truncation",
+			output: `=== RUN   TestFoo
+    foo_test.go:10: ` + chars80 + `
+--- FAIL: TestFoo (0.00s)
+FAIL`,
+			expectedReason: chars80,
+		},
+		{
+			name: "reason_81_chars_truncated",
+			output: `=== RUN   TestFoo
+    foo_test.go:10: ` + chars81 + `
+--- FAIL: TestFoo (0.00s)
+FAIL`,
+			expectedReason: chars77 + "...",
+		},
+		{
+			name: "reason_100_chars_truncated",
+			output: `=== RUN   TestFoo
+    foo_test.go:10: ` + chars100 + `
+--- FAIL: TestFoo (0.00s)
+FAIL`,
+			expectedReason: chars77 + "...",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := parser.Parse(tt.output)
+			if result.Failed != 1 {
+				t.Errorf("Failed count: got %d, want 1", result.Failed)
+				return
+			}
+			if len(result.FailedTests) != 1 {
+				t.Errorf("FailedTests length: got %d, want 1", len(result.FailedTests))
+				return
+			}
+			got := result.FailedTests[0].Reason
+			if got != tt.expectedReason {
+				t.Errorf("Reason: got %q (len=%d), want %q (len=%d)",
+					got, len(got), tt.expectedReason, len(tt.expectedReason))
+			}
+		})
+	}
+}

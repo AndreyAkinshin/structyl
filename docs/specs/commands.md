@@ -275,6 +275,14 @@ Creates a release by setting the version across all targets, committing the chan
 When `--force` is used, all uncommitted changes in the working directory are staged and included in the release commit. This is because the release process runs `git add -A` before committing. Use with caution: ensure uncommitted changes are intentional.
 :::
 
+**Dirty worktree behavior:**
+
+| Flag     | Uncommitted changes | Behavior                                                            |
+| -------- | ------------------- | ------------------------------------------------------------------- |
+| (none)   | Present             | Exit with code 1: `uncommitted changes detected; use --force to include them` |
+| `--force`| Present             | Changes included in release commit                                  |
+| (none)   | None                | Proceed normally                                                    |
+
 **Exit codes:**
 
 | Code | Condition                                              |
@@ -704,6 +712,17 @@ When you run `structyl <command> <target>`:
    - Error if command not found
 4. If command is an array, resolve each element recursively
 5. Execute shell command(s) in target directory
+
+### Shell Selection
+
+Commands are executed via the system shell:
+
+| Platform   | Shell      | Invocation Pattern    |
+| ---------- | ---------- | --------------------- |
+| Unix/macOS | `/bin/sh`  | `sh -c "<command>"`   |
+| Windows    | `cmd.exe`  | `cmd /c "<command>"`  |
+
+Shell selection is automatic based on the operating system. There is no configuration option to override the shell.
 
 ### Working Directory
 

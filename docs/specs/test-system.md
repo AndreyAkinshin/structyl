@@ -360,6 +360,23 @@ The public Go `pkg/testhelper` package has the following limitations compared to
 2. **No recursive glob patterns**: `LoadTestSuite` uses `filepath.Glob("*.json")` which matches JSON files in the immediate suite directory only. The `tests.pattern` configuration setting (which supports `**` recursive patterns) is only used by Structyl's internal runner. To load nested test files with `pkg/testhelper`, iterate subdirectories manually.
 :::
 
+### Deprecated Functions
+
+The following functions in `pkg/testhelper` are deprecated and will be removed in v2.0.0:
+
+| Deprecated       | Replacement              | Reason                                                  |
+| ---------------- | ------------------------ | ------------------------------------------------------- |
+| `CompareOutput`  | `Equal`                  | Clearer function name                                   |
+| `FormatDiff`     | `FormatComparisonResult` | Better semantics (empty string on match, diff on mismatch) |
+
+### Thread Safety
+
+All loader and comparison functions in `pkg/testhelper` are safe for concurrent use:
+
+- **Loader functions** (`LoadTestSuite`, `LoadTestCase`, etc.) perform read-only filesystem operations and can be called concurrently.
+- **Comparison functions** (`Equal`, `Compare`, `FormatComparisonResult`) are pure functions with no shared state.
+- The `TestCase` type is safe to read concurrently, but callers MUST NOT modify a `TestCase` while other goroutines are reading it.
+
 Each language MUST implement a test loader. Required functionality:
 
 1. **Locate project root** via marker file traversal

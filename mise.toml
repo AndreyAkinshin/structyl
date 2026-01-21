@@ -151,3 +151,56 @@ run = "pnpm preview"
 description = "Install documentation dependencies"
 dir = "docs"
 run = "pnpm install"
+
+# ==========================================================================
+# Release Tasks
+# ==========================================================================
+
+[tasks.release]
+description = "Create and push a release tag (usage: mise run release <version>)"
+run = """
+#!/bin/bash
+set -e
+
+VERSION="${1:-}"
+
+if [ -z "$VERSION" ]; then
+    echo "error: version argument required"
+    echo "usage: mise run release <version>"
+    echo "example: mise run release 0.1.0"
+    exit 1
+fi
+
+# Validate semver format (X.Y.Z with optional pre-release)
+if ! echo "$VERSION" | grep -qE '^[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
+    echo "error: invalid version format: $VERSION"
+    echo "expected: X.Y.Z (e.g., 0.1.0, 1.0.0-beta.1)"
+    exit 1
+fi
+
+TAG="v$VERSION"
+
+# Check if tag already exists
+if git rev-parse "$TAG" >/dev/null 2>&1; then
+    echo "error: tag $TAG already exists"
+    exit 1
+fi
+
+# Check for uncommitted changes
+if ! git diff-index --quiet HEAD --; then
+    echo "error: uncommitted changes detected"
+    echo "commit or stash changes before releasing"
+    exit 1
+fi
+
+echo "Creating tag: $TAG"
+git tag "$TAG"
+
+echo "Pushing tag to origin..."
+git push origin "$TAG"
+
+echo ""
+echo "Release $TAG created and pushed!"
+echo "GitHub Actions will build and publish the release."
+echo "Monitor at: https://github.com/AndreyAkinshin/structyl/actions"
+"""

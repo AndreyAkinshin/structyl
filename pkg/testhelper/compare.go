@@ -405,6 +405,9 @@ func compareValues(expected, actual interface{}, opts CompareOptions, path strin
 	}
 }
 
+// compareFloat compares a float64 expected value against an actual value.
+// Handles int as actual type for convenience (JSON integers like "expected: 1"
+// are sometimes decoded as int rather than float64 depending on context).
 func compareFloat(expected float64, actual interface{}, opts CompareOptions, path string) (bool, string) {
 	var a float64
 	switch v := actual.(type) {

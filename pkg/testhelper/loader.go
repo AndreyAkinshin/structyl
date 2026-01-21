@@ -31,6 +31,24 @@
 //     available in the internal test runner. Test cases using $file syntax
 //     should use the internal tests package or embed data directly in JSON.
 //
+// # Panic Behavior
+//
+// Comparison functions ([Equal], [Compare], [FormatComparisonResult]) panic if
+// [CompareOptions] contains invalid values. This design treats invalid options
+// as programmer errors (options are typically constants or static config) rather
+// than runtime conditions. To validate options before comparison:
+//
+//   - Use [NewCompareOptions] for validated construction
+//   - Use [ValidateOptions] to check options explicitly
+//   - Use [CompareE] for an error-returning variant that does not panic
+//
+// # String() Output Stability
+//
+// The String() methods on [TestCase] and [CompareOptions] return human-readable
+// representations for debugging. These formats are NOT stable and may change
+// between versions without notice. Do not parse, compare, or rely on this output
+// in tests or production code.
+//
 // # JSON Schema
 //
 // The JSON format for test case files is defined in the structyl JSON schema.
@@ -519,6 +537,10 @@ var ErrFileReferenceNotSupported = errors.New("$file references not supported; e
 
 // ErrEmptySuiteName is returned when an empty suite name is provided.
 // Suite names must be non-empty strings corresponding to directory names.
+//
+// Note: Unlike [ErrProjectNotFound] or [ErrSuiteNotFound], this sentinel has no
+// companion struct type. An empty suite name provides no useful context beyond
+// the error message itself—there's no path or attempted name to include.
 var ErrEmptySuiteName = errors.New("suite name cannot be empty")
 
 // ValidateSuiteName checks if a suite name is valid.

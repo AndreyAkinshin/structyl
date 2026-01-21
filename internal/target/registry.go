@@ -1,7 +1,9 @@
 package target
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 
@@ -31,10 +33,16 @@ func NewRegistry(cfg *config.Config, rootDir string) (*Registry, error) {
 	projectVersion := ""
 	if cfg.Version != nil && cfg.Version.Source != "" {
 		versionPath := filepath.Join(rootDir, cfg.Version.Source)
-		if v, err := version.Read(versionPath); err == nil {
+		v, err := version.Read(versionPath)
+		if err == nil {
 			projectVersion = v
+		} else if !errors.Is(err, os.ErrNotExist) {
+			// Version file exists but is unreadable or malformed - this is a configuration error.
+			// Missing files are acceptable (version interpolation becomes empty), but permission
+			// errors or malformed files indicate a real problem that should be surfaced.
+			return nil, fmt.Errorf("version file %q: %w", cfg.Version.Source, err)
 		}
-		// Ignore errors: version file is optional for interpolation purposes
+		// File not found is acceptable: ${version} interpolates to empty string
 	}
 
 	r := &Registry{

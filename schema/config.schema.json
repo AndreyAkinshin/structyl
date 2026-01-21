@@ -175,6 +175,14 @@
         "comparison": {
           "type": "object",
           "description": "Output comparison settings",
+          "examples": [
+            {
+              "float_tolerance": 1e-6,
+              "tolerance_mode": "relative",
+              "array_order": "strict",
+              "nan_equals_nan": true
+            }
+          ],
           "properties": {
             "float_tolerance": {
               "type": "number",

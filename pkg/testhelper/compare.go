@@ -71,18 +71,26 @@ const (
 // JSON cannot represent NaN or Infinity directly, so these strings are used
 // in expected output to indicate special float values.
 // Using these constants prevents typos and enables IDE autocomplete.
+//
+// IMPORTANT: These strings are case-sensitive. Only the exact strings defined
+// below trigger special handling. For example, "NaN" works but "nan", "NAN",
+// and "Nan" are treated as regular strings.
 const (
 	// SpecialFloatNaN matches actual NaN values (per NaNEqualsNaN option).
+	// Case-sensitive: only "NaN" triggers special handling.
 	SpecialFloatNaN = "NaN"
 
 	// SpecialFloatInfinity matches actual positive infinity (+Inf).
 	// Equivalent to SpecialFloatPosInfinity.
+	// Case-sensitive: only "Infinity" triggers special handling.
 	SpecialFloatInfinity = "Infinity"
 
 	// SpecialFloatPosInfinity matches actual positive infinity (+Inf).
+	// Case-sensitive: only "+Infinity" triggers special handling.
 	SpecialFloatPosInfinity = "+Infinity"
 
 	// SpecialFloatNegInfinity matches actual negative infinity (-Inf).
+	// Case-sensitive: only "-Infinity" triggers special handling.
 	SpecialFloatNegInfinity = "-Infinity"
 )
 
@@ -172,7 +180,7 @@ func Equal(expected, actual interface{}, opts CompareOptions) bool {
 // Returns true if they match according to the options.
 // Panics if opts contains invalid enum values (use ValidateOptions to check beforehand).
 //
-// Deprecated: Use Equal instead. CompareOutput will be removed in v1.0.
+// Deprecated: since v0.1.0. Use Equal instead. CompareOutput will be removed in v1.0.
 func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
 	return Equal(expected, actual, opts)
 }

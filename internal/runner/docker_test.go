@@ -879,9 +879,9 @@ func TestSelectTargetsToBuild_EmptyServices_ReturnsAllTargets(t *testing.T) {
 	t.Parallel()
 	cfg := &config.Config{
 		Targets: map[string]config.TargetConfig{
-			"go":   {Type: "language", Title: "Go"},
-			"rs":   {Type: "language", Title: "Rust"},
-			"ts":   {Type: "language", Title: "TypeScript"},
+			"go": {Type: "language", Title: "Go"},
+			"rs": {Type: "language", Title: "Rust"},
+			"ts": {Type: "language", Title: "TypeScript"},
 		},
 	}
 	runner := &DockerRunner{projectConfig: cfg}
@@ -919,9 +919,9 @@ func TestSelectTargetsToBuild_SpecificServices_ReturnsMatching(t *testing.T) {
 	t.Parallel()
 	cfg := &config.Config{
 		Targets: map[string]config.TargetConfig{
-			"go":   {Type: "language", Title: "Go"},
-			"rs":   {Type: "language", Title: "Rust"},
-			"ts":   {Type: "language", Title: "TypeScript"},
+			"go": {Type: "language", Title: "Go"},
+			"rs": {Type: "language", Title: "Rust"},
+			"ts": {Type: "language", Title: "TypeScript"},
 		},
 	}
 	runner := &DockerRunner{projectConfig: cfg}

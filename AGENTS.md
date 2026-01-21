@@ -173,6 +173,19 @@ type Target interface {
     Execute(ctx context.Context, cmd string, opts ExecOptions) error
 }
 
+type ExecOptions struct {
+    Args      []string          // Additional arguments
+    Env       map[string]string // Additional environment variables
+    Verbosity Verbosity         // Output verbosity level (affects variant resolution)
+}
+
+type Verbosity int
+const (
+    VerbosityDefault Verbosity = iota  // Normal output level
+    VerbosityQuiet                     // Errors only (-q/--quiet)
+    VerbosityVerbose                   // Maximum detail (-v/--verbose)
+)
+
 type TargetType string
 const (
     TypeLanguage  TargetType = "language"
@@ -190,10 +203,12 @@ type Runner struct {
 }
 
 type RunOptions struct {
-    Docker   bool              // Run in Docker
-    Parallel bool              // Parallel execution
-    Args     []string          // Pass-through arguments
-    Env      map[string]string // Additional env vars
+    Docker    bool              // Run in Docker container
+    Continue  bool              // Continue after failure (internal API only; CLI removed --continue)
+    Parallel  bool              // Parallel execution (internal runner; mise handles its own parallelism)
+    Args      []string          // Pass-through arguments
+    Env       map[string]string // Additional environment variables
+    Verbosity target.Verbosity  // Output verbosity level
 }
 
 func (r *Runner) Run(ctx context.Context, targetName, cmd string, opts RunOptions) error

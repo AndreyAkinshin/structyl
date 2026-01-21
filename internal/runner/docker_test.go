@@ -2,8 +2,11 @@ package runner
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
@@ -654,5 +657,215 @@ func TestGetDockerfilePath_RootDirectory(t *testing.T) {
 	expected := filepath.FromSlash("/project/Dockerfile")
 	if path != expected {
 		t.Errorf("getDockerfilePath() = %q, want %q", path, expected)
+	}
+}
+
+// =============================================================================
+// Mock DockerCommandRunner Tests
+// =============================================================================
+
+// mockDockerCommandRunner is a test double for DockerCommandRunner.
+type mockDockerCommandRunner struct {
+	// runFunc is called when Run is invoked.
+	runFunc func(ctx context.Context, args []string, dir string) error
+	// checkAvailableFunc is called when CheckAvailable is invoked.
+	checkAvailableFunc func() error
+	// calls records all Run invocations for verification.
+	calls []mockDockerCall
+}
+
+type mockDockerCall struct {
+	args []string
+	dir  string
+}
+
+func (m *mockDockerCommandRunner) Run(ctx context.Context, args []string, dir string, stdin io.Reader, stdout, stderr io.Writer) error {
+	m.calls = append(m.calls, mockDockerCall{args: args, dir: dir})
+	if m.runFunc != nil {
+		return m.runFunc(ctx, args, dir)
+	}
+	return nil
+}
+
+func (m *mockDockerCommandRunner) CheckAvailable() error {
+	if m.checkAvailableFunc != nil {
+		return m.checkAvailableFunc()
+	}
+	return nil
+}
+
+func TestDockerRunner_Run_WithMock(t *testing.T) {
+	t.Parallel()
+	mock := &mockDockerCommandRunner{}
+
+	runner := NewDockerRunnerWithCommandRunner("/project", nil, mock)
+	err := runner.Run(context.Background(), "myservice", "echo hello")
+
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	if len(mock.calls) != 1 {
+		t.Fatalf("expected 1 call, got %d", len(mock.calls))
+	}
+	call := mock.calls[0]
+	if call.dir != "/project" {
+		t.Errorf("dir = %q, want /project", call.dir)
+	}
+
+	// Verify args contain expected elements
+	argsStr := strings.Join(call.args, " ")
+	if !strings.Contains(argsStr, "compose") {
+		t.Error("args should contain 'compose'")
+	}
+	if !strings.Contains(argsStr, "run") {
+		t.Error("args should contain 'run'")
+	}
+	if !strings.Contains(argsStr, "myservice") {
+		t.Error("args should contain 'myservice'")
+	}
+}
+
+func TestDockerRunner_Run_DockerUnavailable(t *testing.T) {
+	t.Parallel()
+	mock := &mockDockerCommandRunner{
+		checkAvailableFunc: func() error {
+			return &DockerUnavailableError{}
+		},
+	}
+
+	runner := NewDockerRunnerWithCommandRunner("/project", nil, mock)
+	err := runner.Run(context.Background(), "service", "cmd")
+
+	if err == nil {
+		t.Fatal("Run() expected error when Docker unavailable")
+	}
+	if _, ok := err.(*DockerUnavailableError); !ok {
+		t.Errorf("error type = %T, want *DockerUnavailableError", err)
+	}
+	if len(mock.calls) != 0 {
+		t.Error("Run should not be called when Docker is unavailable")
+	}
+}
+
+func TestDockerRunner_Build_WithMock(t *testing.T) {
+	t.Parallel()
+	mock := &mockDockerCommandRunner{}
+
+	runner := NewDockerRunnerWithCommandRunner("/project", nil, mock)
+	err := runner.Build(context.Background(), "service1", "service2")
+
+	if err != nil {
+		t.Fatalf("Build() error = %v", err)
+	}
+	if len(mock.calls) != 1 {
+		t.Fatalf("expected 1 call, got %d", len(mock.calls))
+	}
+	call := mock.calls[0]
+
+	// Verify args contain expected elements
+	argsStr := strings.Join(call.args, " ")
+	if !strings.Contains(argsStr, "compose") {
+		t.Error("args should contain 'compose'")
+	}
+	if !strings.Contains(argsStr, "build") {
+		t.Error("args should contain 'build'")
+	}
+	if !strings.Contains(argsStr, "service1") {
+		t.Error("args should contain 'service1'")
+	}
+	if !strings.Contains(argsStr, "service2") {
+		t.Error("args should contain 'service2'")
+	}
+}
+
+func TestDockerRunner_Clean_WithMock(t *testing.T) {
+	t.Parallel()
+	mock := &mockDockerCommandRunner{}
+
+	runner := NewDockerRunnerWithCommandRunner("/project", nil, mock)
+	err := runner.Clean(context.Background())
+
+	if err != nil {
+		t.Fatalf("Clean() error = %v", err)
+	}
+	if len(mock.calls) != 1 {
+		t.Fatalf("expected 1 call, got %d", len(mock.calls))
+	}
+	call := mock.calls[0]
+
+	// Verify args contain expected elements
+	argsStr := strings.Join(call.args, " ")
+	if !strings.Contains(argsStr, "compose") {
+		t.Error("args should contain 'compose'")
+	}
+	if !strings.Contains(argsStr, "down") {
+		t.Error("args should contain 'down'")
+	}
+	if !strings.Contains(argsStr, "--rmi") {
+		t.Error("args should contain '--rmi'")
+	}
+}
+
+func TestDockerRunner_Exec_WithMock(t *testing.T) {
+	t.Parallel()
+	mock := &mockDockerCommandRunner{}
+
+	runner := NewDockerRunnerWithCommandRunner("/project", nil, mock)
+	err := runner.Exec(context.Background(), "myservice", "npm test")
+
+	if err != nil {
+		t.Fatalf("Exec() error = %v", err)
+	}
+	if len(mock.calls) != 1 {
+		t.Fatalf("expected 1 call, got %d", len(mock.calls))
+	}
+	call := mock.calls[0]
+
+	// Verify args contain expected elements
+	argsStr := strings.Join(call.args, " ")
+	if !strings.Contains(argsStr, "compose") {
+		t.Error("args should contain 'compose'")
+	}
+	if !strings.Contains(argsStr, "exec") {
+		t.Error("args should contain 'exec'")
+	}
+	if !strings.Contains(argsStr, "myservice") {
+		t.Error("args should contain 'myservice'")
+	}
+}
+
+func TestDockerRunner_RunError_WithMock(t *testing.T) {
+	t.Parallel()
+	expectedErr := fmt.Errorf("docker run failed")
+	mock := &mockDockerCommandRunner{
+		runFunc: func(ctx context.Context, args []string, dir string) error {
+			return expectedErr
+		},
+	}
+
+	runner := NewDockerRunnerWithCommandRunner("/project", nil, mock)
+	err := runner.Run(context.Background(), "service", "cmd")
+
+	if err != expectedErr {
+		t.Errorf("Run() error = %v, want %v", err, expectedErr)
+	}
+}
+
+func TestNewDockerRunnerWithCommandRunner(t *testing.T) {
+	t.Parallel()
+	mock := &mockDockerCommandRunner{}
+
+	runner := NewDockerRunnerWithCommandRunner("/project", &config.DockerConfig{
+		ComposeFile: "custom.yml",
+	}, mock)
+
+	if runner.projectRoot != "/project" {
+		t.Errorf("projectRoot = %q, want /project", runner.projectRoot)
+	}
+	if runner.composeFile != "custom.yml" {
+		t.Errorf("composeFile = %q, want custom.yml", runner.composeFile)
+	}
+	if runner.runner != mock {
+		t.Error("runner should be the provided mock")
 	}
 }

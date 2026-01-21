@@ -59,7 +59,7 @@ export default defineConfig({
           text: 'Reference',
           items: [
             { text: 'Error Codes', link: '/reference/error-codes' },
-            { text: 'Glossary', link: '/reference/glossary' },
+            { text: 'Glossary', link: '/specs/glossary' },
             { text: 'JSON Schema', link: '/reference/schema' },
           ],
         },

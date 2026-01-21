@@ -127,40 +127,10 @@ func (r *DockerRunner) Build(ctx context.Context, services ...string) error {
 		return err
 	}
 
-	// If we have project config, try per-target Dockerfiles first
-	if r.projectConfig != nil && len(services) == 0 {
-		// Try to build all targets using per-target Dockerfiles
-		builtAny := false
-		for name, targetCfg := range r.projectConfig.Targets {
-			dockerfilePath := r.getDockerfilePath(name, targetCfg)
-			if _, err := os.Stat(dockerfilePath); err == nil {
-				if err := r.buildTarget(ctx, name, targetCfg); err != nil {
-					return err
-				}
-				builtAny = true
-			}
-		}
-		if builtAny {
-			return nil
-		}
-	}
-
-	// If specific services requested, try per-target Dockerfiles first
-	if r.projectConfig != nil && len(services) > 0 {
-		builtAny := false
-		for _, service := range services {
-			if targetCfg, ok := r.projectConfig.Targets[service]; ok {
-				dockerfilePath := r.getDockerfilePath(service, targetCfg)
-				if _, err := os.Stat(dockerfilePath); err == nil {
-					if err := r.buildTarget(ctx, service, targetCfg); err != nil {
-						return err
-					}
-					builtAny = true
-				}
-			}
-		}
-		if builtAny {
-			return nil
+	// Try per-target Dockerfiles first if project config is available
+	if r.projectConfig != nil {
+		if built, err := r.tryBuildWithDockerfiles(ctx, services); err != nil || built {
+			return err
 		}
 	}
 
@@ -174,6 +144,42 @@ func (r *DockerRunner) Build(ctx context.Context, services ...string) error {
 	dockerCmd.Stderr = os.Stderr
 
 	return dockerCmd.Run()
+}
+
+// tryBuildWithDockerfiles attempts to build targets using per-target Dockerfiles.
+// Returns (true, nil) if at least one target was built, (false, nil) if no Dockerfiles found,
+// or (false, err) on build failure.
+func (r *DockerRunner) tryBuildWithDockerfiles(ctx context.Context, services []string) (bool, error) {
+	targets := r.selectTargetsToBuild(services)
+	builtAny := false
+
+	for name, targetCfg := range targets {
+		dockerfilePath := r.getDockerfilePath(name, targetCfg)
+		if _, err := os.Stat(dockerfilePath); err == nil {
+			if err := r.buildTarget(ctx, name, targetCfg); err != nil {
+				return false, err
+			}
+			builtAny = true
+		}
+	}
+
+	return builtAny, nil
+}
+
+// selectTargetsToBuild returns the targets to build based on the services filter.
+// If services is empty, returns all targets. Otherwise, returns only matching targets.
+func (r *DockerRunner) selectTargetsToBuild(services []string) map[string]config.TargetConfig {
+	if len(services) == 0 {
+		return r.projectConfig.Targets
+	}
+
+	targets := make(map[string]config.TargetConfig)
+	for _, service := range services {
+		if targetCfg, ok := r.projectConfig.Targets[service]; ok {
+			targets[service] = targetCfg
+		}
+	}
+	return targets
 }
 
 // buildTarget builds a Docker image for a specific target using its Dockerfile.

@@ -1774,6 +1774,198 @@ func TestTestCase_ValidateStrict(t *testing.T) {
 	})
 }
 
+func TestTestCase_ValidateDeep(t *testing.T) {
+	t.Parallel()
+
+	// Valid deeply nested structures should pass
+	t.Run("valid_nested_objects", func(t *testing.T) {
+		t.Parallel()
+		tc := TestCase{
+			Name: "test",
+			Input: map[string]interface{}{
+				"user": map[string]interface{}{
+					"profile": map[string]interface{}{
+						"name":   "alice",
+						"age":    float64(30),
+						"active": true,
+					},
+				},
+			},
+			Output: map[string]interface{}{
+				"result": "success",
+				"data": map[string]interface{}{
+					"items": []interface{}{
+						map[string]interface{}{"id": float64(1)},
+						map[string]interface{}{"id": float64(2)},
+					},
+				},
+			},
+		}
+		if err := tc.ValidateDeep(); err != nil {
+			t.Errorf("ValidateDeep() = %v, want nil", err)
+		}
+	})
+
+	t.Run("valid_nested_arrays", func(t *testing.T) {
+		t.Parallel()
+		tc := TestCase{
+			Name: "test",
+			Input: map[string]interface{}{
+				"matrix": []interface{}{
+					[]interface{}{float64(1), float64(2)},
+					[]interface{}{float64(3), float64(4)},
+				},
+			},
+			Output: []interface{}{
+				[]interface{}{float64(5), float64(6)},
+				[]interface{}{float64(7), float64(8)},
+			},
+		}
+		if err := tc.ValidateDeep(); err != nil {
+			t.Errorf("ValidateDeep() = %v, want nil", err)
+		}
+	})
+
+	t.Run("valid_with_nil_values", func(t *testing.T) {
+		t.Parallel()
+		tc := TestCase{
+			Name: "test",
+			Input: map[string]interface{}{
+				"nullable": nil,
+				"items":    []interface{}{nil, "value", nil},
+			},
+			Output: map[string]interface{}{
+				"data": nil,
+			},
+		}
+		if err := tc.ValidateDeep(); err != nil {
+			t.Errorf("ValidateDeep() = %v, want nil", err)
+		}
+	})
+
+	// Invalid nested types should fail with path information
+	t.Run("invalid_nested_int_in_output", func(t *testing.T) {
+		t.Parallel()
+		tc := TestCase{
+			Name:  "test",
+			Input: map[string]interface{}{"a": float64(1)},
+			Output: map[string]interface{}{
+				"data": map[string]interface{}{
+					"count": 42, // int instead of float64
+				},
+			},
+		}
+		err := tc.ValidateDeep()
+		if err == nil {
+			t.Error("ValidateDeep() = nil, want error for nested int")
+		}
+		if err != nil && !strings.Contains(err.Error(), "output.data.count") {
+			t.Errorf("error = %q, want path 'output.data.count'", err.Error())
+		}
+	})
+
+	t.Run("invalid_nested_int_in_input", func(t *testing.T) {
+		t.Parallel()
+		tc := TestCase{
+			Name: "test",
+			Input: map[string]interface{}{
+				"config": map[string]interface{}{
+					"port": 8080, // int instead of float64
+				},
+			},
+			Output: "ok",
+		}
+		err := tc.ValidateDeep()
+		if err == nil {
+			t.Error("ValidateDeep() = nil, want error for nested int")
+		}
+		if err != nil && !strings.Contains(err.Error(), "input.config.port") {
+			t.Errorf("error = %q, want path 'input.config.port'", err.Error())
+		}
+	})
+
+	t.Run("invalid_type_in_array", func(t *testing.T) {
+		t.Parallel()
+		tc := TestCase{
+			Name:  "test",
+			Input: map[string]interface{}{"a": float64(1)},
+			Output: []interface{}{
+				"valid",
+				42, // int instead of float64
+				"also valid",
+			},
+		}
+		err := tc.ValidateDeep()
+		if err == nil {
+			t.Error("ValidateDeep() = nil, want error for int in array")
+		}
+		if err != nil && !strings.Contains(err.Error(), "output[1]") {
+			t.Errorf("error = %q, want path 'output[1]'", err.Error())
+		}
+	})
+
+	t.Run("invalid_deeply_nested", func(t *testing.T) {
+		t.Parallel()
+		tc := TestCase{
+			Name:  "test",
+			Input: map[string]interface{}{"a": float64(1)},
+			Output: map[string]interface{}{
+				"level1": map[string]interface{}{
+					"level2": []interface{}{
+						map[string]interface{}{
+							"level3": []int{1, 2, 3}, // []int instead of []interface{}
+						},
+					},
+				},
+			},
+		}
+		err := tc.ValidateDeep()
+		if err == nil {
+			t.Error("ValidateDeep() = nil, want error for deeply nested invalid type")
+		}
+	})
+
+	// ValidateDeep should still catch basic Validate() errors
+	t.Run("nil_output", func(t *testing.T) {
+		t.Parallel()
+		tc := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: nil,
+		}
+		err := tc.ValidateDeep()
+		if err == nil {
+			t.Error("ValidateDeep() = nil for nil output, want error")
+		}
+	})
+
+	t.Run("nil_input", func(t *testing.T) {
+		t.Parallel()
+		tc := TestCase{
+			Name:   "test",
+			Input:  nil,
+			Output: "value",
+		}
+		err := tc.ValidateDeep()
+		if err == nil {
+			t.Error("ValidateDeep() = nil for nil input, want error")
+		}
+	})
+
+	t.Run("empty_name", func(t *testing.T) {
+		t.Parallel()
+		tc := TestCase{
+			Name:   "",
+			Input:  map[string]interface{}{},
+			Output: "value",
+		}
+		err := tc.ValidateDeep()
+		if err == nil {
+			t.Error("ValidateDeep() = nil for empty name, want error")
+		}
+	})
+}
+
 func TestTestCase_Clone(t *testing.T) {
 	t.Parallel()
 

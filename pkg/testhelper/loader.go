@@ -463,6 +463,57 @@ func validateOutputType(v interface{}) error {
 	}
 }
 
+// ValidateDeep performs all Validate() checks plus recursive type validation.
+// Verifies that all nested values in Input and Output are JSON-compatible types.
+//
+// In addition to Validate() and ValidateStrict() checks, ValidateDeep recursively
+// verifies that every nested value in arrays and maps is also a valid JSON type:
+//   - nil
+//   - float64 (JSON numbers)
+//   - string (JSON strings)
+//   - bool (JSON booleans)
+//   - []interface{} (JSON arrays)
+//   - map[string]interface{} (JSON objects)
+//
+// Use this method when creating TestCase instances programmatically with complex
+// nested structures to ensure all values follow JSON type conventions.
+//
+// Returns the first validation error encountered during traversal, with a path
+// indicating the location of the invalid value (e.g., "input.users[0].age").
+func (tc TestCase) ValidateDeep() error {
+	if err := tc.Validate(); err != nil {
+		return err
+	}
+	if err := validateDeepType("input", tc.Input); err != nil {
+		return err
+	}
+	return validateDeepType("output", tc.Output)
+}
+
+// validateDeepType recursively checks that v and all nested values are JSON-compatible Go types.
+func validateDeepType(path string, v interface{}) error {
+	switch val := v.(type) {
+	case nil, float64, string, bool:
+		return nil
+	case []interface{}:
+		for i, elem := range val {
+			if err := validateDeepType(fmt.Sprintf("%s[%d]", path, i), elem); err != nil {
+				return err
+			}
+		}
+		return nil
+	case map[string]interface{}:
+		for k, elem := range val {
+			if err := validateDeepType(path+"."+k, elem); err != nil {
+				return err
+			}
+		}
+		return nil
+	default:
+		return fmt.Errorf("%s: unsupported type %T; must be nil, float64, string, bool, []interface{}, or map[string]interface{}", path, v)
+	}
+}
+
 // LoadTestSuite loads all test cases from a suite directory.
 // It looks for JSON files in <projectRoot>/tests/<suite>/*.json.
 // Returns ErrEmptySuiteName or ErrInvalidSuiteName if the suite name is invalid.

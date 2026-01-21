@@ -1,4 +1,19 @@
 // Package output provides formatted output utilities for the CLI.
+//
+// # Design Note: Singleton Pattern
+//
+// CLI commands typically use a package-level Writer instance created via New().
+// This singleton pattern is intentional for CLI applications where:
+//   - Output configuration (color, verbosity) is set once at startup
+//   - Thread safety is not a concern (CLI is single-threaded)
+//   - Simplifies command handlers that need output access
+//
+// For testing, use NewWithWriters to inject custom io.Writers and capture output.
+// Tests should create isolated Writer instances rather than modifying the global.
+//
+// Write errors are intentionally ignored throughout this package. CLI output
+// failures (broken pipe, closed terminal) are non-recoverable and should not
+// affect exit codes or program flow.
 package output
 
 import (

@@ -154,7 +154,7 @@ The `structyl targets --json` command outputs an array of target objects with th
 |-------|------|----------|-------------|
 | `name` | string | Yes | Target identifier (e.g., `"rs"`, `"py"`, `"img"`) |
 | `type` | string | Yes | Target type: `"language"` or `"auxiliary"` |
-| `title` | string | No | Human-readable name (omitted if empty) |
+| `title` | string | Yes | Human-readable name (required in config schema) |
 | `commands` | string[] | Yes | Available commands for this target |
 | `depends_on` | string[] | No | Dependency target names (omitted if empty) |
 

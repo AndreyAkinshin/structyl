@@ -45,6 +45,10 @@ Common causes:
 
 A target that must be built before another target. Specified via the `depends_on` configuration field.
 
+### Doublestar
+
+A Go library for path matching with support for `**` recursive glob patterns. Structyl uses doublestar for test file discovery via the `tests.pattern` configuration. See [github.com/bmatcuk/doublestar](https://github.com/bmatcuk/doublestar) and [Test System](test-system.md#glob-pattern-syntax) for pattern syntax.
+
 ### Environment Error
 
 Exit code 3. Indicates an external system or resource is unavailable. The configuration may be valid but the environment cannot support the requested operation.
@@ -107,6 +111,10 @@ A command that operates across multiple targets. Examples: `structyl build` (all
 ### Mise
 
 A polyglot tool version manager and task runner. Structyl integrates with mise for tool version management and task execution. See [mise.jdx.dev](https://mise.jdx.dev/).
+
+### mise.toml
+
+The configuration file for mise in a project. Structyl generates this file automatically from `.structyl/config.json` via `structyl mise sync`. Contains tool versions and task definitions. See [mise.jdx.dev](https://mise.jdx.dev/) for format details.
 
 ### Pipeline
 

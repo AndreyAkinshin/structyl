@@ -226,6 +226,8 @@ Reference test system configuration. See [test-system.md](test-system.md) for de
 }
 ```
 
+> **Note:** The `pattern` field configures Structyl's internal test runner. The public `pkg/testhelper` Go package uses `*.json` (immediate directory only), not recursive patterns. See [test-system.md](test-system.md#test-loader-implementation) for details.
+
 ### `documentation`
 
 Documentation generation settings.

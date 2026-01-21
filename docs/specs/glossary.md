@@ -130,7 +130,7 @@ The directory containing `.structyl/config.json`. Structyl locates this by walki
 
 ### Reference Test
 
-A test case defined in JSON format in the `tests/` directory. Reference tests are language-agnostic and shared across all language implementations. See [Test System Specification](test-system.md) for the test data format. The public Go API for loading and comparing test data is available in `pkg/testhelper`.
+A test case defined in JSON format in the `tests/` directory. Reference tests are language-agnostic and shared across all language implementations. See [Test System Specification](test-system.md) for the test data format. The public Go API for loading and comparing test data is available in `pkg/testhelper` (see [limitations](test-system.md#test-loader-implementation) for differences between the public package and internal runner).
 
 ### Skip Error
 

@@ -360,13 +360,15 @@ Lowercase or other variants are treated as regular strings, not special float va
 | `+Infinity == -Infinity` | `false`                                           |
 | `-0.0 == +0.0`           | `true`                                            |
 
-## Test Loader Implementation
+## Test Loader Implementation {#test-loader-implementation}
 
 ::: info Informative Section
 This section is **informative only**. The code examples illustrate one possible implementation approach. Conforming implementations MAY use different designs, APIs, or patterns as long as they satisfy the functional requirements.
 :::
 
-::: warning pkg/testhelper Limitations
+### pkg/testhelper Limitations {#pkg-testhelper-limitations}
+
+::: warning
 The public Go `pkg/testhelper` package has the following limitations compared to Structyl's internal test runner:
 
 1. **No `$file` references**: File reference resolution is only available in the internal runner. Test cases using `$file` syntax SHOULD either use the `internal/tests` package or embed data directly in JSON.
@@ -403,7 +405,9 @@ The comparison functions (`Equal`, `Compare`, `FormatComparisonResult`) panic on
 | `FloatTolerance` < 0                                          | Yes   |
 | `ToleranceMode == "ulp"` and `FloatTolerance > math.MaxInt64` | Yes   |
 
-This design treats invalid options as programmer errors (fail-fast) rather than runtime conditions. For user-provided options, use one of these approaches:
+This design treats invalid options as programmer errors (fail-fast) rather than runtime conditions.
+
+> **Stability Note:** Panic message format is unstable and MAY change between versions. See [stability.md](stability.md#unstable-may-change) for details. For user-provided options, use one of these approaches:
 
 1. **Validate before comparison**: Call `ValidateOptions(opts)` first; if it returns `nil`, subsequent comparison calls will not panic
 2. **Use error-returning variants**: `EqualE` and `CompareE` return errors instead of panicking

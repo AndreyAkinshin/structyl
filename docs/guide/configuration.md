@@ -69,11 +69,17 @@ Project metadata used in documentation and package generation.
 
 | Field         | Required | Description                               |
 | ------------- | -------- | ----------------------------------------- |
-| `name`        | Yes      | Project name (lowercase, hyphens allowed) |
+| `name`        | Yes      | Project name (pattern: `^[a-z][a-z0-9]*(-[a-z0-9]+)*$`, 1-128 chars) |
 | `description` | No       | Short description                         |
 | `homepage`    | No       | Project website URL                       |
 | `repository`  | No       | Source repository URL                     |
 | `license`     | No       | SPDX license identifier                   |
+
+**Project Name Rules:**
+- Must start with a lowercase letter (`a-z`)
+- May contain lowercase letters, digits, and hyphens
+- Hyphens must not be consecutive or trailing
+- Length: 1-128 characters
 
 ### `version`
 

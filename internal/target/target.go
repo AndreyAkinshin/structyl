@@ -46,11 +46,16 @@ type Target interface {
 	// Configuration
 	//
 	// GetCommand returns the command definition for the given name.
-	// The returned interface{} can be:
-	//   - string: a shell command to execute
-	//   - []string or []interface{}: a list of sub-command names to execute in sequence
-	//   - nil: command is explicitly disabled (Execute returns SkipError)
-	// Returns (nil, false) if the command is not defined.
+	//
+	// Return values:
+	//   - (string, true): shell command to execute
+	//   - ([]interface{}, true): list of sub-command names to execute in sequence
+	//   - (nil, true): command is explicitly disabled; Execute returns *SkipError
+	//   - (nil, false): command is not defined; Execute returns error
+	//
+	// The distinction between (nil, true) and (nil, false) is important:
+	//   - (nil, true) means the command is deliberately disabled (JSON null value)
+	//   - (nil, false) means the command doesn't exist in the target's command map
 	GetCommand(name string) (interface{}, bool)
 	Env() map[string]string  // Environment variables
 	Vars() map[string]string // Variables for interpolation

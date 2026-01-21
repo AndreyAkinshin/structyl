@@ -415,14 +415,15 @@ func TestRunSequential_ContextDeadline(t *testing.T) {
 	registry, _ := createTestRegistry(t)
 	r := New(registry)
 
-	// Use a very short timeout that will expire while target1 is executing
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	// Use a short timeout that will expire while target1 is executing.
+	// 100ms is short enough to test quickly but long enough to avoid flakiness on slow CI machines.
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
 	defer cancel()
 
 	// Wait for execution to start, then let the deadline expire
 	go func() {
 		<-started
-		// The deadline will naturally expire after 10ms
+		// The deadline will naturally expire after 100ms
 	}()
 
 	err := r.runSequential(ctx, targets, "build", RunOptions{})

@@ -362,6 +362,54 @@ func TestSort_MultipleDisconnectedComponents(t *testing.T) {
 	}
 }
 
+func TestSort_DuplicateDependencies(t *testing.T) {
+	t.Parallel()
+	// Graph with duplicate dependencies: a depends on b twice
+	g := Graph{
+		"a": {"b", "b"},
+		"b": nil,
+	}
+	result, err := Sort(g, nil)
+	if err != nil {
+		t.Errorf("Sort() error = %v, want nil", err)
+	}
+	// Should still produce valid ordering despite duplicates
+	if len(result) != 2 {
+		t.Errorf("Sort() returned %d nodes, want 2", len(result))
+	}
+
+	indexOf := func(s string) int {
+		for i, v := range result {
+			if v == s {
+				return i
+			}
+		}
+		return -1
+	}
+
+	// b must come before a
+	if indexOf("b") >= indexOf("a") {
+		t.Errorf("Sort() b should come before a: %v", result)
+	}
+}
+
+func TestSort_EmptyNodeName(t *testing.T) {
+	t.Parallel()
+	// Graph with empty node name
+	g := Graph{
+		"":  nil,
+		"a": {""},
+	}
+	result, err := Sort(g, nil)
+	if err != nil {
+		t.Errorf("Sort() error = %v, want nil", err)
+	}
+	// Empty string is a valid node name (though unusual)
+	if len(result) != 2 {
+		t.Errorf("Sort() returned %d nodes, want 2", len(result))
+	}
+}
+
 func TestSort_LargeGraph(t *testing.T) {
 	t.Parallel()
 	// Build a linear chain of 100 nodes: n000 <- n001 <- n002 <- ... <- n099

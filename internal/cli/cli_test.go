@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -500,6 +501,54 @@ func TestCmdTargets_UnknownFlag_ReturnsError(t *testing.T) {
 			t.Errorf("cmdTargets(--unknown) = %d, want 2 (config error)", exitCode)
 		}
 	})
+}
+
+func TestTargetJSON_DependsOnAlwaysPresent(t *testing.T) {
+	t.Parallel()
+	// Verify that TargetJSON serializes depends_on even when empty.
+	// This ensures consistent JSON schema for API consumers.
+	tests := []struct {
+		name   string
+		target TargetJSON
+		want   string
+	}{
+		{
+			name: "empty depends_on",
+			target: TargetJSON{
+				Name:      "go",
+				Type:      "language",
+				Title:     "Go",
+				Commands:  []string{"build", "test"},
+				DependsOn: []string{},
+			},
+			want: `"depends_on": []`,
+		},
+		{
+			name: "non-empty depends_on",
+			target: TargetJSON{
+				Name:      "go",
+				Type:      "language",
+				Title:     "Go",
+				Commands:  []string{"build"},
+				DependsOn: []string{"core"},
+			},
+			want: `"depends_on": [`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			data, err := json.MarshalIndent(tt.target, "", "  ")
+			if err != nil {
+				t.Fatalf("failed to marshal: %v", err)
+			}
+			output := string(data)
+			if !strings.Contains(output, tt.want) {
+				t.Errorf("JSON output missing %q:\n%s", tt.want, output)
+			}
+		})
+	}
 }
 
 func TestCmdConfig_NoSubcommand_ReturnsError(t *testing.T) {

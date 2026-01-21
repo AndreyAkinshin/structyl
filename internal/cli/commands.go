@@ -290,26 +290,29 @@ func cmdTargets(args []string, opts *GlobalOptions) int {
 
 // TargetJSON represents a target in JSON output format.
 // This structure is stable and part of the public CLI API.
+// All fields are always present in the JSON output for consistent parsing.
 type TargetJSON struct {
 	Name      string   `json:"name"`
 	Type      string   `json:"type"`
-	Title     string   `json:"title"` // Always present (required in config schema)
-	Commands  []string `json:"commands"`
-	DependsOn []string `json:"depends_on,omitempty"`
+	Title     string   `json:"title"`      // Always present (required in config schema)
+	Commands  []string `json:"commands"`   // Always present (may be empty array)
+	DependsOn []string `json:"depends_on"` // Always present (may be empty array)
 }
 
 // printTargetsJSON outputs targets in machine-readable JSON format.
 func printTargetsJSON(targets []target.Target) int {
 	result := make([]TargetJSON, 0, len(targets))
 	for _, t := range targets {
-		tj := TargetJSON{
-			Name:     t.Name(),
-			Type:     string(t.Type()),
-			Title:    t.Title(),
-			Commands: t.Commands(),
+		deps := t.DependsOn()
+		if deps == nil {
+			deps = []string{}
 		}
-		if deps := t.DependsOn(); len(deps) > 0 {
-			tj.DependsOn = deps
+		tj := TargetJSON{
+			Name:      t.Name(),
+			Type:      string(t.Type()),
+			Title:     t.Title(),
+			Commands:  t.Commands(),
+			DependsOn: deps,
 		}
 		result = append(result, tj)
 	}

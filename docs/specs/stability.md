@@ -158,7 +158,7 @@ The `structyl targets --json` command outputs an array of target objects with th
 | `type` | string | Yes | Target type: `"language"` or `"auxiliary"` |
 | `title` | string | Yes | Human-readable name (required in config schema) |
 | `commands` | string[] | Yes | Available commands for this target (always present, may be empty) |
-| `depends_on` | string[] | No | Dependency target names (omitted if empty) |
+| `depends_on` | string[] | Yes | Dependency target names (always present, may be empty array) |
 
 This structure is stable and covered by the [Source Compatibility](#source-compatibility) guarantees. New optional fields MAY be added in minor versions.
 

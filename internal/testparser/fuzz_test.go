@@ -131,6 +131,13 @@ func FuzzCargoParser(f *testing.F) {
 					result.Passed, result.Failed, result.Skipped, result.Total)
 			}
 		}
+
+		// Note: CargoParser does not populate FailedTests (see cargo_test.go).
+		// Only GoParser and JSONParser extract failure details.
+		if len(result.FailedTests) != 0 {
+			t.Errorf("CargoParser should not populate FailedTests, got %d entries",
+				len(result.FailedTests))
+		}
 	})
 }
 
@@ -171,12 +178,27 @@ func FuzzDotnetParser(f *testing.F) {
 				result.Passed, result.Failed, result.Skipped, result.Total)
 		}
 
+		// Total should equal sum of components when parsed
+		if result.Parsed {
+			sum := result.Passed + result.Failed + result.Skipped
+			if result.Total != sum {
+				t.Errorf("total mismatch: total=%d, sum=%d", result.Total, sum)
+			}
+		}
+
 		// When not parsed, all counts must be zero
 		if !result.Parsed {
 			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
 				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
 					result.Passed, result.Failed, result.Skipped, result.Total)
 			}
+		}
+
+		// Note: DotnetParser does not populate FailedTests.
+		// Only GoParser and JSONParser extract failure details.
+		if len(result.FailedTests) != 0 {
+			t.Errorf("DotnetParser should not populate FailedTests, got %d entries",
+				len(result.FailedTests))
 		}
 	})
 }
@@ -218,12 +240,27 @@ func FuzzPytestParser(f *testing.F) {
 				result.Passed, result.Failed, result.Skipped, result.Total)
 		}
 
+		// Total should equal sum of components when parsed
+		if result.Parsed {
+			sum := result.Passed + result.Failed + result.Skipped
+			if result.Total != sum {
+				t.Errorf("total mismatch: total=%d, sum=%d", result.Total, sum)
+			}
+		}
+
 		// When not parsed, all counts must be zero
 		if !result.Parsed {
 			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
 				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
 					result.Passed, result.Failed, result.Skipped, result.Total)
 			}
+		}
+
+		// Note: PytestParser does not populate FailedTests.
+		// Only GoParser and JSONParser extract failure details.
+		if len(result.FailedTests) != 0 {
+			t.Errorf("PytestParser should not populate FailedTests, got %d entries",
+				len(result.FailedTests))
 		}
 	})
 }
@@ -262,12 +299,27 @@ func FuzzBunParser(f *testing.F) {
 				result.Passed, result.Failed, result.Skipped, result.Total)
 		}
 
+		// Total should equal sum of components when parsed
+		if result.Parsed {
+			sum := result.Passed + result.Failed + result.Skipped
+			if result.Total != sum {
+				t.Errorf("total mismatch: total=%d, sum=%d", result.Total, sum)
+			}
+		}
+
 		// When not parsed, all counts must be zero
 		if !result.Parsed {
 			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
 				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
 					result.Passed, result.Failed, result.Skipped, result.Total)
 			}
+		}
+
+		// Note: BunParser does not populate FailedTests.
+		// Only GoParser and JSONParser extract failure details.
+		if len(result.FailedTests) != 0 {
+			t.Errorf("BunParser should not populate FailedTests, got %d entries",
+				len(result.FailedTests))
 		}
 	})
 }
@@ -307,12 +359,27 @@ func FuzzDenoParser(f *testing.F) {
 				result.Passed, result.Failed, result.Skipped, result.Total)
 		}
 
+		// Total should equal sum of components when parsed
+		if result.Parsed {
+			sum := result.Passed + result.Failed + result.Skipped
+			if result.Total != sum {
+				t.Errorf("total mismatch: total=%d, sum=%d", result.Total, sum)
+			}
+		}
+
 		// When not parsed, all counts must be zero
 		if !result.Parsed {
 			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
 				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
 					result.Passed, result.Failed, result.Skipped, result.Total)
 			}
+		}
+
+		// Note: DenoParser does not populate FailedTests.
+		// Only GoParser and JSONParser extract failure details.
+		if len(result.FailedTests) != 0 {
+			t.Errorf("DenoParser should not populate FailedTests, got %d entries",
+				len(result.FailedTests))
 		}
 	})
 }
@@ -357,11 +424,32 @@ func FuzzJSONParser(f *testing.F) {
 				result.Passed, result.Failed, result.Skipped, result.Total)
 		}
 
+		// Total should equal sum of components when parsed
+		if result.Parsed {
+			sum := result.Passed + result.Failed + result.Skipped
+			if result.Total != sum {
+				t.Errorf("total mismatch: total=%d, sum=%d", result.Total, sum)
+			}
+		}
+
 		// When not parsed, all counts must be zero
 		if !result.Parsed {
 			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
 				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
 					result.Passed, result.Failed, result.Skipped, result.Total)
+			}
+		}
+
+		// FailedTests length should not exceed Failed count
+		if len(result.FailedTests) > result.Failed {
+			t.Errorf("FailedTests length %d exceeds Failed count %d",
+				len(result.FailedTests), result.Failed)
+		}
+
+		// FailedTests elements should have non-empty names
+		for i, ft := range result.FailedTests {
+			if ft.Name == "" {
+				t.Errorf("FailedTests[%d].Name is empty", i)
 			}
 		}
 	})

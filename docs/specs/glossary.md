@@ -18,7 +18,7 @@ A markdown syntax for displaying code blocks. Uses triple backticks followed by 
 
 ### Command
 
-An action that can be performed on a target. Standard commands include `clean`, `restore`, `check`, `check:fix`, `build`, `build:release`, `test`, `test:coverage`, `bench`, `demo`, `doc`, `pack`, `publish`, and `publish:dry`. Custom commands are also permitted. See [commands.md](commands.md) for the complete vocabulary.
+An action that can be performed on a target. Standard commands include `clean`, `restore`, `build`, `build:release`, `test`, `test:coverage`, `check`, `check:fix`, `bench`, `demo`, `doc`, `pack`, `publish`, and `publish:dry`. Custom commands are also permitted. See [commands.md](commands.md) for the complete vocabulary.
 
 ### Configuration Error
 

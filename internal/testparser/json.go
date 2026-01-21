@@ -85,47 +85,71 @@ func (p *JSONParser) ParseJSON(r io.Reader) TestCounts {
 	return counts
 }
 
+// maxReasonLength is the maximum length for failure reason strings.
+const maxReasonLength = 100
+
 // extractFailureReason extracts the most relevant failure message from test output.
+// Uses a two-pass strategy:
+// 1. Look for Go's standard error format (file.go:line: message)
+// 2. Fall back to the first non-boilerplate line
 func extractFailureReason(outputLines []string) string {
-	// Look for lines with file:line: pattern (typical Go test error format)
+	// First pass: look for structured error format
+	if reason := extractGoErrorMessage(outputLines); reason != "" {
+		return reason
+	}
+
+	// Second pass: first meaningful line
+	return extractFirstMeaningfulLine(outputLines)
+}
+
+// extractGoErrorMessage looks for Go's standard error format: file.go:line: message
+func extractGoErrorMessage(outputLines []string) string {
 	for _, line := range outputLines {
 		trimmed := strings.TrimSpace(line)
-		// Skip empty lines and common noise
-		if trimmed == "" || strings.HasPrefix(trimmed, "=== RUN") ||
-			strings.HasPrefix(trimmed, "--- FAIL") {
+		if isBoilerplateLine(trimmed) {
 			continue
 		}
-		// Look for error lines (file.go:123: message)
-		if strings.Contains(trimmed, ".go:") && strings.Contains(trimmed, ": ") {
-			// Extract just the message part
-			idx := strings.Index(trimmed, ".go:")
-			if idx >= 0 {
-				afterFile := trimmed[idx+4:]
-				if colonIdx := strings.Index(afterFile, ": "); colonIdx != -1 {
-					reason := strings.TrimSpace(afterFile[colonIdx+2:])
-					// Truncate if too long
-					const maxLen = 100
-					if len(reason) > maxLen {
-						reason = reason[:maxLen-3] + "..."
-					}
-					return reason
-				}
-			}
-		}
-	}
 
-	// Fallback: return the first non-empty, non-boilerplate line
+		// Look for error lines (file.go:123: message)
+		if !strings.Contains(trimmed, ".go:") || !strings.Contains(trimmed, ": ") {
+			continue
+		}
+
+		idx := strings.Index(trimmed, ".go:")
+		afterFile := trimmed[idx+4:]
+		colonIdx := strings.Index(afterFile, ": ")
+		if colonIdx == -1 {
+			continue
+		}
+
+		reason := strings.TrimSpace(afterFile[colonIdx+2:])
+		return truncate(reason, maxReasonLength)
+	}
+	return ""
+}
+
+// extractFirstMeaningfulLine returns the first non-empty, non-boilerplate line.
+func extractFirstMeaningfulLine(outputLines []string) string {
 	for _, line := range outputLines {
 		trimmed := strings.TrimSpace(line)
-		if trimmed != "" && !strings.HasPrefix(trimmed, "=== RUN") &&
-			!strings.HasPrefix(trimmed, "--- FAIL") && !strings.HasPrefix(trimmed, "--- PASS") {
-			const maxLen = 100
-			if len(trimmed) > maxLen {
-				trimmed = trimmed[:maxLen-3] + "..."
-			}
-			return trimmed
+		if !isBoilerplateLine(trimmed) && !strings.HasPrefix(trimmed, "--- PASS") {
+			return truncate(trimmed, maxReasonLength)
 		}
 	}
-
 	return ""
+}
+
+// isBoilerplateLine returns true for lines that are test framework noise.
+func isBoilerplateLine(line string) bool {
+	return line == "" ||
+		strings.HasPrefix(line, "=== RUN") ||
+		strings.HasPrefix(line, "--- FAIL")
+}
+
+// truncate shortens a string to maxLen, adding "..." if truncated.
+func truncate(s string, maxLen int) string {
+	if len(s) <= maxLen {
+		return s
+	}
+	return s[:maxLen-3] + "..."
 }

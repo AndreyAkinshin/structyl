@@ -207,7 +207,8 @@ func (r *DockerRunner) Clean(ctx context.Context) error {
 		return err
 	}
 
-	// Stop and remove containers
+	// Stop and remove containers, volumes, and locally-built images.
+	// --rmi local: remove only images built locally (not pulled from registry)
 	downArgs := []string{"compose", "-f", r.composeFile, "down", "--rmi", "local", "-v", "--remove-orphans"}
 
 	dockerCmd := exec.CommandContext(ctx, "docker", downArgs...)

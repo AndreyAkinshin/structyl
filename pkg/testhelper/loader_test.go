@@ -1149,3 +1149,163 @@ func TestTestCase_Validate(t *testing.T) {
 		})
 	}
 }
+
+func TestTestCase_Clone(t *testing.T) {
+	t.Parallel()
+
+	t.Run("shallow_fields_copied", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:        "original",
+			Suite:       "suite1",
+			Description: "desc",
+			Skip:        true,
+		}
+		original.Input = map[string]interface{}{"key": "value"}
+		original.Output = "result"
+
+		clone := original.Clone()
+
+		if clone.Name != original.Name {
+			t.Errorf("Name: got %q, want %q", clone.Name, original.Name)
+		}
+		if clone.Suite != original.Suite {
+			t.Errorf("Suite: got %q, want %q", clone.Suite, original.Suite)
+		}
+		if clone.Description != original.Description {
+			t.Errorf("Description: got %q, want %q", clone.Description, original.Description)
+		}
+		if clone.Skip != original.Skip {
+			t.Errorf("Skip: got %v, want %v", clone.Skip, original.Skip)
+		}
+	})
+
+	t.Run("input_map_independent", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{"a": 1.0, "b": "two"},
+			Output: "result",
+		}
+
+		clone := original.Clone()
+
+		// Modify clone's Input
+		clone.Input["c"] = 3.0
+
+		// Original should be unaffected
+		if _, exists := original.Input["c"]; exists {
+			t.Error("modifying clone's Input affected original")
+		}
+	})
+
+	t.Run("tags_slice_independent", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "result",
+			Tags:   []string{"tag1", "tag2"},
+		}
+
+		clone := original.Clone()
+
+		// Modify clone's Tags
+		clone.Tags[0] = "modified"
+
+		// Original should be unaffected
+		if original.Tags[0] != "tag1" {
+			t.Errorf("modifying clone's Tags affected original: got %q, want %q", original.Tags[0], "tag1")
+		}
+	})
+
+	t.Run("nil_input_preserved", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  nil,
+			Output: "result",
+		}
+
+		clone := original.Clone()
+
+		if clone.Input != nil {
+			t.Error("nil Input should remain nil in clone")
+		}
+	})
+
+	t.Run("nil_tags_preserved", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "result",
+			Tags:   nil,
+		}
+
+		clone := original.Clone()
+
+		if clone.Tags != nil {
+			t.Error("nil Tags should remain nil in clone")
+		}
+	})
+
+	t.Run("empty_input_preserved", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "result",
+		}
+
+		clone := original.Clone()
+
+		if clone.Input == nil {
+			t.Error("empty Input should not become nil in clone")
+		}
+		if len(clone.Input) != 0 {
+			t.Errorf("empty Input should remain empty: got len %d", len(clone.Input))
+		}
+	})
+
+	t.Run("empty_tags_preserved", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "result",
+			Tags:   []string{},
+		}
+
+		clone := original.Clone()
+
+		if clone.Tags == nil {
+			t.Error("empty Tags should not become nil in clone")
+		}
+		if len(clone.Tags) != 0 {
+			t.Errorf("empty Tags should remain empty: got len %d", len(clone.Tags))
+		}
+	})
+
+	t.Run("output_shallow_copied", func(t *testing.T) {
+		t.Parallel()
+		// Output is interface{} and is shallow-copied (by design)
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: map[string]interface{}{"nested": "value"},
+		}
+
+		clone := original.Clone()
+
+		// Both should reference the same Output map (shallow copy)
+		originalOutput := original.Output.(map[string]interface{})
+		cloneOutput := clone.Output.(map[string]interface{})
+
+		// Modifying clone's Output affects original (shallow copy behavior)
+		cloneOutput["new"] = "added"
+		if _, exists := originalOutput["new"]; !exists {
+			t.Error("Output should be shallow-copied (modifying clone should affect original)")
+		}
+	})
+}

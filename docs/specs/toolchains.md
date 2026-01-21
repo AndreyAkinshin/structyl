@@ -107,6 +107,8 @@ All toolchains implement this vocabulary:
 
 ### `check` Composition Summary
 
+> **Table notation:** In command tables below, `—` (em-dash) indicates the command is not available for this toolchain (equivalent to `null` in configuration). Invoking a `null` command succeeds with a warning: `command "X" is not available`.
+
 | Toolchain  | Lint | Typecheck | Format-check |
 | ---------- | ---- | --------- | ------------ |
 | `cargo`    | ✓ (clippy) | — | ✓ |
@@ -138,8 +140,6 @@ All toolchains implement this vocabulary:
 | `rebar3`   | ✓ (dialyzer, lint) | — | — |
 
 Commands not applicable to a toolchain are set to `null` (skipped).
-
-> **Table notation:** In command tables below, `—` (em-dash) indicates the command is not available for this toolchain (equivalent to `null` in configuration). Invoking a `null` command succeeds with a warning: `command "X" is not available`.
 
 ---
 

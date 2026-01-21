@@ -173,7 +173,10 @@ These commands operate across all targets.
 | `restore`              | Run restore for all targets                                             |
 | `check`                | Run check for all targets                                               |
 | `ci`                   | Run full CI pipeline (see [ci-integration.md](ci-integration.md))       |
-| `version <subcommand>` | Version management (see [version-management.md](version-management.md)) |
+| `version`              | Show current project version                                            |
+| `version set <ver>`    | Set version and propagate to configured files                           |
+| `version bump <level>` | Bump major/minor/patch/prerelease (see [version-management.md](version-management.md)) |
+| `version check`        | Verify version consistency across configured files                      |
 
 ## Utility Commands
 
@@ -535,7 +538,7 @@ A `null` command is a deliberate "not applicable" marker that signals the comman
 
 | Condition                    | Behavior                                                                    |
 | ---------------------------- | --------------------------------------------------------------------------- |
-| Explicitly set to `null`     | Exit code 0 (no-op), warning: `[{target}] command "{cmd}" is not available` |
+| Explicitly set to `null`     | [Skip error](glossary.md#skip-error): exit code 0 (no-op), warning: `[{target}] command "{cmd}" is not available` |
 | Not defined and no toolchain | Exit code 1, error: `[{target}] command "{cmd}" not defined`                |
 
 ### Use Cases

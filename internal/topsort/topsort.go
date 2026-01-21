@@ -69,8 +69,7 @@ func Sort(g Graph, nodes []string) ([]string, error) {
 	return result, nil
 }
 
-// Validate checks the graph for self-references and undefined dependencies.
-// Returns nil if the graph is valid.
+// Validate checks the graph for self-references, undefined dependencies, and cycles.
 func Validate(g Graph) error {
 	for name, deps := range g {
 		for _, dep := range deps {

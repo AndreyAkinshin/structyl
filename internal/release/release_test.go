@@ -339,6 +339,52 @@ func TestDryRun_MinimalConfig(t *testing.T) {
 	}
 }
 
+func TestRelease_VersionFiles_ReplaceAllPropagated(t *testing.T) {
+	dir := createTestGitRepo(t)
+
+	// Create a file with multiple version occurrences
+	testFile := filepath.Join(dir, "versions.txt")
+	content := `version1: 1.0.0, version2: 1.0.0`
+	if err := os.WriteFile(testFile, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := &config.Config{
+		Version: &config.VersionConfig{
+			Files: []config.VersionFileConfig{
+				{
+					Path:       "versions.txt",
+					Pattern:    `[\d]+\.[\d]+\.[\d]+`,
+					Replace:    `{version}`,
+					ReplaceAll: true, // This must be propagated correctly
+				},
+			},
+		},
+	}
+
+	r := NewReleaser(dir, cfg)
+
+	// Capture stdout to suppress output
+	captureStdout(t, func() {
+		err := r.Release(context.Background(), Options{
+			Version: "2.0.0",
+		})
+		if err != nil {
+			t.Fatalf("Release() error = %v", err)
+		}
+	})
+
+	// Verify both versions were updated (ReplaceAll=true behavior)
+	result, err := os.ReadFile(testFile)
+	if err != nil {
+		t.Fatalf("ReadFile() error = %v", err)
+	}
+	expected := `version1: 2.0.0, version2: 2.0.0`
+	if string(result) != expected {
+		t.Errorf("content = %q, want %q (ReplaceAll should have replaced all occurrences)", string(result), expected)
+	}
+}
+
 func TestDryRun_WithVersionFiles(t *testing.T) {
 	dir := t.TempDir()
 	cfg := &config.Config{

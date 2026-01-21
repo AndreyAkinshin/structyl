@@ -491,6 +491,16 @@ func TestCmdTargets_JSONEmptyResult(t *testing.T) {
 	})
 }
 
+func TestCmdTargets_UnknownFlag_ReturnsError(t *testing.T) {
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		exitCode := cmdTargets([]string{"--unknown"}, &GlobalOptions{})
+		if exitCode != 2 {
+			t.Errorf("cmdTargets(--unknown) = %d, want 2 (config error)", exitCode)
+		}
+	})
+}
+
 func TestCmdConfig_NoSubcommand_ReturnsError(t *testing.T) {
 	exitCode := cmdConfig([]string{})
 	if exitCode != 2 {

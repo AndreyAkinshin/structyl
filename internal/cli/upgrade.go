@@ -291,13 +291,14 @@ func updateProjectFiles(structylDir string) {
 	}
 }
 
-// fetchLatestVersion retrieves the latest stable version from GitHub API.
-func fetchLatestVersion() (string, error) {
+// fetchGitHubRelease fetches release data from the GitHub API.
+// Returns the release data or an error. Handles HTTP client setup and headers.
+func fetchGitHubRelease(url string) (*GitHubRelease, error) {
 	client := &http.Client{Timeout: httpTimeout}
 
-	req, err := http.NewRequest("GET", githubAPIURL, nil)
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// GitHub API requires User-Agent header
@@ -306,53 +307,45 @@ func fetchLatestVersion() (string, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer func() { _ = resp.Body.Close() }()
 
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, fmt.Errorf("release not found")
+	}
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("github API returned status %d", resp.StatusCode)
+		return nil, fmt.Errorf("github API returned status %d", resp.StatusCode)
 	}
 
 	var release GitHubRelease
 	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
-		return "", fmt.Errorf("failed to parse GitHub API response: %w", err)
+		return nil, fmt.Errorf("failed to parse GitHub API response: %w", err)
+	}
+
+	return &release, nil
+}
+
+// fetchLatestVersion retrieves the latest stable version from GitHub API.
+func fetchLatestVersion() (string, error) {
+	release, err := fetchGitHubRelease(githubAPIURL)
+	if err != nil {
+		return "", err
 	}
 
 	// Strip "v" prefix if present
-	ver := strings.TrimPrefix(release.TagName, "v")
-	return ver, nil
+	return strings.TrimPrefix(release.TagName, "v"), nil
 }
 
 // fetchNightlyVersion retrieves the actual nightly version from the GitHub nightly release.
 // The version is extracted from the release body which contains "**Version:** `X.Y.Z-nightly+SHA`".
 func fetchNightlyVersion() (string, error) {
-	client := &http.Client{Timeout: httpTimeout}
-
-	req, err := http.NewRequest("GET", githubNightlyAPIURL, nil)
+	release, err := fetchGitHubRelease(githubNightlyAPIURL)
 	if err != nil {
+		if err.Error() == "release not found" {
+			return "", fmt.Errorf("no nightly release found")
+		}
 		return "", err
-	}
-
-	req.Header.Set("User-Agent", "structyl-cli")
-	req.Header.Set("Accept", "application/vnd.github.v3+json")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode == http.StatusNotFound {
-		return "", fmt.Errorf("no nightly release found")
-	}
-	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("github API returned status %d", resp.StatusCode)
-	}
-
-	var release GitHubRelease
-	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
-		return "", fmt.Errorf("failed to parse GitHub API response: %w", err)
 	}
 
 	// Extract version from release body

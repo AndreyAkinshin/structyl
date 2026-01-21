@@ -158,7 +158,7 @@ func parseGlobalFlags(args []string) (*GlobalOptions, []string, error) {
 			opts.NoDocker = true
 			i++
 		case arg == "--continue":
-			return nil, nil, fmt.Errorf("--continue flag has been removed (mise backend always stops on first failure)")
+			return nil, nil, fmt.Errorf("--continue flag has been removed; multi-target operations now stop on first failure")
 		case arg == "-q" || arg == "--quiet":
 			opts.Quiet = true
 			i++

@@ -16,8 +16,15 @@ import (
 
 // createTestGitRepo creates a git repo with initial commit for testing.
 // Disables GPG signing to work in environments with strict git configs.
+// Skips the test if git is not available in the environment.
 func createTestGitRepo(t *testing.T) string {
 	t.Helper()
+
+	// Skip if git is not available
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not available")
+	}
+
 	dir := t.TempDir()
 
 	// Initialize git repo

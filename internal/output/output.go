@@ -100,7 +100,7 @@ func (w *Writer) Info(format string, args ...interface{}) {
 // Success prints a success message.
 func (w *Writer) Success(format string, args ...interface{}) {
 	if w.color {
-		w.Println("\033[32m"+format+"\033[0m", args...)
+		w.Println(green+format+reset, args...)
 	} else {
 		w.Println(format, args...)
 	}
@@ -109,7 +109,7 @@ func (w *Writer) Success(format string, args ...interface{}) {
 // Warning prints a warning message.
 func (w *Writer) Warning(format string, args ...interface{}) {
 	if w.color {
-		w.Errorln("\033[33mwarning: "+format+"\033[0m", args...)
+		w.Errorln(yellow+"warning: "+format+reset, args...)
 	} else {
 		w.Errorln("warning: "+format, args...)
 	}
@@ -136,7 +136,7 @@ func (w *Writer) TargetSuccess(target, command string) {
 		return
 	}
 	if w.color {
-		w.Println("\033[32m[%s]\033[0m %s \033[32m✓\033[0m", target, command)
+		w.Println(green+"[%s]"+reset+" %s "+green+"✓"+reset, target, command)
 	} else {
 		w.Println("[%s] %s done", target, command)
 	}
@@ -145,7 +145,7 @@ func (w *Writer) TargetSuccess(target, command string) {
 // TargetFailed prints target command failure.
 func (w *Writer) TargetFailed(target, command string, err error) {
 	if w.color {
-		w.Errorln("\033[31m[%s] %s failed:\033[0m %v", target, command, err)
+		w.Errorln(red+"[%s] %s failed:"+reset+" %v", target, command, err)
 	} else {
 		w.Errorln("[%s] %s failed: %v", target, command, err)
 	}
@@ -158,7 +158,7 @@ func (w *Writer) Section(title string) {
 	}
 	w.Println("")
 	if w.color {
-		w.Println("\033[1m=== %s ===\033[0m", title)
+		w.Println(bold+"=== %s ==="+reset, title)
 	} else {
 		w.Println("=== %s ===", title)
 	}

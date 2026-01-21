@@ -258,7 +258,7 @@ ENV CARGO_HOME=/tmp/.cargo
 ### Go
 
 ```dockerfile
-FROM golang:1.24
+FROM golang:1.23
 
 WORKDIR /workspace/go
 ENV GOCACHE=/tmp/.cache

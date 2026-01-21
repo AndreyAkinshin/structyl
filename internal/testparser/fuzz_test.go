@@ -54,10 +54,25 @@ func FuzzGoParser(f *testing.F) {
 			}
 		}
 
+		// When not parsed, all counts must be zero
+		if !result.Parsed {
+			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
+				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
+					result.Passed, result.Failed, result.Skipped, result.Total)
+			}
+		}
+
 		// FailedTests length should match Failed count
 		if len(result.FailedTests) > result.Failed {
 			t.Errorf("FailedTests length %d exceeds Failed count %d",
 				len(result.FailedTests), result.Failed)
+		}
+
+		// FailedTests elements should have non-empty names
+		for i, ft := range result.FailedTests {
+			if ft.Name == "" {
+				t.Errorf("FailedTests[%d].Name is empty", i)
+			}
 		}
 	})
 }
@@ -105,6 +120,14 @@ func FuzzCargoParser(f *testing.F) {
 				t.Errorf("total mismatch: total=%d, sum=%d", result.Total, sum)
 			}
 		}
+
+		// When not parsed, all counts must be zero
+		if !result.Parsed {
+			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
+				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
+					result.Passed, result.Failed, result.Skipped, result.Total)
+			}
+		}
 	})
 }
 
@@ -143,6 +166,14 @@ func FuzzDotnetParser(f *testing.F) {
 		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
 			t.Errorf("negative count: passed=%d failed=%d skipped=%d total=%d",
 				result.Passed, result.Failed, result.Skipped, result.Total)
+		}
+
+		// When not parsed, all counts must be zero
+		if !result.Parsed {
+			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
+				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
+					result.Passed, result.Failed, result.Skipped, result.Total)
+			}
 		}
 	})
 }
@@ -183,6 +214,14 @@ func FuzzPytestParser(f *testing.F) {
 			t.Errorf("negative count: passed=%d failed=%d skipped=%d total=%d",
 				result.Passed, result.Failed, result.Skipped, result.Total)
 		}
+
+		// When not parsed, all counts must be zero
+		if !result.Parsed {
+			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
+				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
+					result.Passed, result.Failed, result.Skipped, result.Total)
+			}
+		}
 	})
 }
 
@@ -218,6 +257,14 @@ func FuzzBunParser(f *testing.F) {
 		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
 			t.Errorf("negative count: passed=%d failed=%d skipped=%d total=%d",
 				result.Passed, result.Failed, result.Skipped, result.Total)
+		}
+
+		// When not parsed, all counts must be zero
+		if !result.Parsed {
+			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
+				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
+					result.Passed, result.Failed, result.Skipped, result.Total)
+			}
 		}
 	})
 }
@@ -255,6 +302,14 @@ func FuzzDenoParser(f *testing.F) {
 		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
 			t.Errorf("negative count: passed=%d failed=%d skipped=%d total=%d",
 				result.Passed, result.Failed, result.Skipped, result.Total)
+		}
+
+		// When not parsed, all counts must be zero
+		if !result.Parsed {
+			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
+				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
+					result.Passed, result.Failed, result.Skipped, result.Total)
+			}
 		}
 	})
 }
@@ -297,6 +352,14 @@ func FuzzJSONParser(f *testing.F) {
 		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
 			t.Errorf("negative count: passed=%d failed=%d skipped=%d total=%d",
 				result.Passed, result.Failed, result.Skipped, result.Total)
+		}
+
+		// When not parsed, all counts must be zero
+		if !result.Parsed {
+			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
+				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
+					result.Passed, result.Failed, result.Skipped, result.Total)
+			}
 		}
 	})
 }

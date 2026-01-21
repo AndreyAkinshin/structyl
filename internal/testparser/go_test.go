@@ -65,6 +65,36 @@ ok  	example.com/pkg	0.012s`,
 			output:   "building...\ncompiling...\n",
 			expected: TestCounts{Parsed: false},
 		},
+		{
+			name: "interleaved parallel output",
+			output: `=== RUN   TestFoo
+=== RUN   TestBar
+    foo_test.go:10: foo failed
+--- FAIL: TestFoo (0.00s)
+    bar_test.go:20: bar assertion
+--- PASS: TestBar (0.01s)
+=== RUN   TestBaz
+--- PASS: TestBaz (0.00s)
+FAIL
+exit status 1`,
+			expected: TestCounts{Passed: 2, Failed: 1, Skipped: 0, Total: 3, Parsed: true},
+		},
+		{
+			name: "panic_in_test",
+			output: `=== RUN   TestPanic
+--- FAIL: TestPanic (0.00s)
+panic: runtime error: index out of range
+FAIL	example.com/pkg	0.005s`,
+			expected: TestCounts{Passed: 0, Failed: 1, Skipped: 0, Total: 1, Parsed: true},
+		},
+		{
+			name: "test_name_with_special_chars",
+			output: `=== RUN   TestFoo_Bar/case-1_[special]
+--- PASS: TestFoo_Bar/case-1_[special] (0.00s)
+PASS
+ok  	example.com/pkg	0.001s`,
+			expected: TestCounts{Passed: 1, Failed: 0, Skipped: 0, Total: 1, Parsed: true},
+		},
 	}
 
 	for _, tt := range tests {

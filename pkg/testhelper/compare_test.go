@@ -217,6 +217,76 @@ func TestDefaultOptions(t *testing.T) {
 	}
 }
 
+func TestNewCompareOptions(t *testing.T) {
+	t.Parallel()
+
+	t.Run("valid options", func(t *testing.T) {
+		t.Parallel()
+		opts, err := NewCompareOptions(ToleranceModeRelative, ArrayOrderStrict, 1e-6, true)
+		if err != nil {
+			t.Fatalf("NewCompareOptions() error = %v", err)
+		}
+		if opts.ToleranceMode != ToleranceModeRelative {
+			t.Errorf("ToleranceMode = %q, want %q", opts.ToleranceMode, ToleranceModeRelative)
+		}
+		if opts.ArrayOrder != ArrayOrderStrict {
+			t.Errorf("ArrayOrder = %q, want %q", opts.ArrayOrder, ArrayOrderStrict)
+		}
+		if opts.FloatTolerance != 1e-6 {
+			t.Errorf("FloatTolerance = %v, want 1e-6", opts.FloatTolerance)
+		}
+		if !opts.NaNEqualsNaN {
+			t.Error("NaNEqualsNaN should be true")
+		}
+	})
+
+	t.Run("invalid tolerance mode", func(t *testing.T) {
+		t.Parallel()
+		_, err := NewCompareOptions("invalid", ArrayOrderStrict, 1e-6, true)
+		if err == nil {
+			t.Error("NewCompareOptions() expected error for invalid ToleranceMode")
+		}
+		if !strings.Contains(err.Error(), "ToleranceMode") {
+			t.Errorf("error should mention ToleranceMode, got: %v", err)
+		}
+	})
+
+	t.Run("invalid array order", func(t *testing.T) {
+		t.Parallel()
+		_, err := NewCompareOptions(ToleranceModeRelative, "invalid", 1e-6, true)
+		if err == nil {
+			t.Error("NewCompareOptions() expected error for invalid ArrayOrder")
+		}
+		if !strings.Contains(err.Error(), "ArrayOrder") {
+			t.Errorf("error should mention ArrayOrder, got: %v", err)
+		}
+	})
+
+	t.Run("negative tolerance", func(t *testing.T) {
+		t.Parallel()
+		_, err := NewCompareOptions(ToleranceModeRelative, ArrayOrderStrict, -1, true)
+		if err == nil {
+			t.Error("NewCompareOptions() expected error for negative tolerance")
+		}
+		if !strings.Contains(err.Error(), "FloatTolerance") {
+			t.Errorf("error should mention FloatTolerance, got: %v", err)
+		}
+	})
+
+	t.Run("empty strings use defaults", func(t *testing.T) {
+		t.Parallel()
+		// Empty strings are valid and default to relative/strict
+		opts, err := NewCompareOptions("", "", 1e-6, false)
+		if err != nil {
+			t.Fatalf("NewCompareOptions() error = %v", err)
+		}
+		// Empty strings are stored as-is; they're handled at comparison time
+		if opts.ToleranceMode != "" {
+			t.Errorf("ToleranceMode = %q, want empty string", opts.ToleranceMode)
+		}
+	})
+}
+
 func TestCompareOptions_String(t *testing.T) {
 	t.Parallel()
 

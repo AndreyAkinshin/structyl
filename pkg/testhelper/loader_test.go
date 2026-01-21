@@ -301,6 +301,70 @@ func TestTestCaseExists(t *testing.T) {
 	}
 }
 
+func TestSuiteExistsErr(t *testing.T) {
+	tmpDir := t.TempDir()
+	os.MkdirAll(filepath.Join(tmpDir, "tests", "exists"), 0755)
+
+	// Existing suite returns (true, nil)
+	exists, err := SuiteExistsErr(tmpDir, "exists")
+	if err != nil {
+		t.Errorf("SuiteExistsErr() unexpected error: %v", err)
+	}
+	if !exists {
+		t.Error("SuiteExistsErr should return true for existing suite")
+	}
+
+	// Non-existing suite returns (false, nil)
+	exists, err = SuiteExistsErr(tmpDir, "notexists")
+	if err != nil {
+		t.Errorf("SuiteExistsErr() unexpected error: %v", err)
+	}
+	if exists {
+		t.Error("SuiteExistsErr should return false for non-existing suite")
+	}
+}
+
+func TestSuiteExistsErr_FileNotDir(t *testing.T) {
+	tmpDir := t.TempDir()
+	testsDir := filepath.Join(tmpDir, "tests")
+	os.MkdirAll(testsDir, 0755)
+	// Create a file instead of directory
+	os.WriteFile(filepath.Join(testsDir, "notadir"), []byte{}, 0644)
+
+	// File (not dir) returns (false, nil)
+	exists, err := SuiteExistsErr(tmpDir, "notadir")
+	if err != nil {
+		t.Errorf("SuiteExistsErr() unexpected error: %v", err)
+	}
+	if exists {
+		t.Error("SuiteExistsErr should return false when path exists but is not a directory")
+	}
+}
+
+func TestTestCaseExistsErr(t *testing.T) {
+	tmpDir := t.TempDir()
+	os.MkdirAll(filepath.Join(tmpDir, "tests", "suite"), 0755)
+	os.WriteFile(filepath.Join(tmpDir, "tests", "suite", "test.json"), []byte(`{}`), 0644)
+
+	// Existing test returns (true, nil)
+	exists, err := TestCaseExistsErr(tmpDir, "suite", "test")
+	if err != nil {
+		t.Errorf("TestCaseExistsErr() unexpected error: %v", err)
+	}
+	if !exists {
+		t.Error("TestCaseExistsErr should return true for existing test")
+	}
+
+	// Non-existing test returns (false, nil)
+	exists, err = TestCaseExistsErr(tmpDir, "suite", "notexists")
+	if err != nil {
+		t.Errorf("TestCaseExistsErr() unexpected error: %v", err)
+	}
+	if exists {
+		t.Error("TestCaseExistsErr should return false for non-existing test")
+	}
+}
+
 func TestTestCase_Fields(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.json")
@@ -714,6 +778,11 @@ func TestLoadTestCase_FileReference_ReturnsError(t *testing.T) {
 	// Verify it's the correct error type
 	if !errors.Is(err, ErrFileReferenceNotSupported) {
 		t.Errorf("error should be ErrFileReferenceNotSupported, got: %v", err)
+	}
+
+	// Verify error message contains the filename for context
+	if !strings.Contains(err.Error(), "file_ref.json") {
+		t.Errorf("error message should contain filename, got: %v", err)
 	}
 }
 

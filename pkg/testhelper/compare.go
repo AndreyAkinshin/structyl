@@ -98,6 +98,9 @@ const (
 	// Equivalent to SpecialFloatInfinity; use when explicit "+" is desired
 	// for clarity. Prefer SpecialFloatInfinity as the canonical form.
 	// Case-sensitive: only "+Infinity" triggers special handling.
+	//
+	// Deprecated: Use [SpecialFloatInfinity] instead. SpecialFloatPosInfinity
+	// will be removed in v2.0.0.
 	SpecialFloatPosInfinity = "+Infinity"
 
 	// SpecialFloatNegInfinity matches actual negative infinity (-Inf).

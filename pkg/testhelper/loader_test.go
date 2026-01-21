@@ -393,6 +393,41 @@ func TestTestCase_Fields(t *testing.T) {
 	}
 }
 
+func TestTestCase_HasSuite(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		tc   TestCase
+		want bool
+	}{
+		{
+			name: "empty_suite",
+			tc:   TestCase{Name: "test1", Suite: ""},
+			want: false,
+		},
+		{
+			name: "suite_set",
+			tc:   TestCase{Name: "test1", Suite: "math"},
+			want: true,
+		},
+		{
+			name: "whitespace_suite",
+			tc:   TestCase{Name: "test1", Suite: " "},
+			want: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := tt.tc.HasSuite(); got != tt.want {
+				t.Errorf("HasSuite() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestTestCase_String(t *testing.T) {
 	t.Parallel()
 
@@ -883,6 +918,16 @@ func TestTestCase_Validate(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "empty_name",
+			tc: TestCase{
+				Name:   "",
+				Input:  map[string]interface{}{"a": 1},
+				Output: 42,
+			},
+			wantErr: true,
+			errMsg:  "name",
+		},
+		{
 			name: "nil_input",
 			tc: TestCase{
 				Name:   "test3",
@@ -911,6 +956,16 @@ func TestTestCase_Validate(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "input",
+		},
+		{
+			name: "empty_name_takes_priority",
+			tc: TestCase{
+				Name:   "",
+				Input:  nil,
+				Output: nil,
+			},
+			wantErr: true,
+			errMsg:  "name",
 		},
 	}
 

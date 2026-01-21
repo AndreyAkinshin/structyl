@@ -31,6 +31,12 @@
 //     available in the internal test runner. Test cases using $file syntax
 //     should use the internal tests package or embed data directly in JSON.
 //
+// # JSON Schema
+//
+// The JSON format for test case files is defined in the structyl JSON schema.
+// See docs/specs/test-system.md for the complete test file specification,
+// including field definitions, comparison options, and special value handling.
+//
 // Example usage in a Go test:
 //
 //	func TestCalculation(t *testing.T) {
@@ -143,6 +149,14 @@ type TestCase struct {
 	Tags []string `json:"tags,omitempty"`
 }
 
+// HasSuite reports whether the Suite field was explicitly set.
+// Returns false for the zero value (""), true otherwise.
+// This is useful when distinguishing between "Suite not set" (from LoadTestCase)
+// and "Suite explicitly set" (from LoadTestSuite or LoadTestCaseWithSuite).
+func (tc TestCase) HasSuite() bool {
+	return tc.Suite != ""
+}
+
 // String returns a human-readable representation of TestCase for debugging.
 // The format is for debugging only and may change without notice.
 func (tc TestCase) String() string {
@@ -165,9 +179,13 @@ func (tc TestCase) String() string {
 // after LoadTestCase or LoadTestSuite is unnecessary.
 //
 // Validation rules:
+//   - Name must not be empty
 //   - Input must not be nil (empty map {} is valid)
 //   - Output must not be nil (use explicit value like "", {}, or [] instead)
 func (tc TestCase) Validate() error {
+	if tc.Name == "" {
+		return errors.New("name must not be empty")
+	}
 	if tc.Input == nil {
 		return errors.New("input must not be nil")
 	}

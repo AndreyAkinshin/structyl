@@ -207,14 +207,15 @@ func DefaultOptions() CompareOptions {
 // This constructor ensures options are valid at creation time, avoiding panics
 // when options are passed to Equal, Compare, or FormatComparisonResult.
 //
+// Deprecated: Use [NewCompareOptionsOrdered] instead. NewCompareOptions has
+// parameter order that differs from the [CompareOptions] struct field order,
+// which is confusing and error-prone. NewCompareOptions will be removed in v2.0.0.
+//
 // Parameters:
 //   - toleranceMode: Use ToleranceModeRelative, ToleranceModeAbsolute, or ToleranceModeULP
 //   - arrayOrder: Use ArrayOrderStrict or ArrayOrderUnordered
 //   - tolerance: Must be >= 0; for ULP mode, must fit in int64
 //   - nanEqualsNaN: Whether NaN values should be considered equal
-//
-// Note: Parameter order differs from [CompareOptions] struct field order for
-// historical reasons. This may be addressed in v2.0.0.
 //
 // Example:
 //

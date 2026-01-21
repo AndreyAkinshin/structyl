@@ -102,17 +102,17 @@ func isMiseAutoGenerateEnabled(cfg *config.Config) bool {
 // ensureMiseConfig ensures mise.toml is up-to-date.
 // Regenerates when: forced, auto_generate enabled (default true), or file missing.
 func ensureMiseConfig(proj *project.Project, mode MiseRegenerateMode) error {
-	if mode == MiseForceRegenerate {
+	switch mode {
+	case MiseForceRegenerate:
 		return writeMiseConfig(proj)
-	}
-	if mode != MiseAutoRegenerate {
+	case MiseAutoRegenerate:
+		if !mise.MiseTomlExists(proj.Root) || isMiseAutoGenerateEnabled(proj.Config) {
+			return writeMiseConfig(proj)
+		}
+		return nil
+	default:
 		return fmt.Errorf("internal error: invalid MiseRegenerateMode: %d", mode)
 	}
-	// MiseAutoRegenerate: regenerate if missing or auto-generate enabled
-	if !mise.MiseTomlExists(proj.Root) || isMiseAutoGenerateEnabled(proj.Config) {
-		return writeMiseConfig(proj)
-	}
-	return nil
 }
 
 // writeMiseConfig writes the mise.toml file from project configuration.
@@ -235,8 +235,14 @@ func cmdTargets(args []string, opts *GlobalOptions) int {
 	// Parse --json flag
 	jsonOutput := false
 	for _, arg := range args {
-		if arg == "--json" {
+		switch arg {
+		case "--json":
 			jsonOutput = true
+		default:
+			if strings.HasPrefix(arg, "-") {
+				out.ErrorPrefix("targets: unknown option %q", arg)
+				return internalerrors.ExitConfigError
+			}
 		}
 	}
 

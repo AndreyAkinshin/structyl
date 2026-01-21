@@ -342,8 +342,8 @@ func TestWriter_TargetFailed(t *testing.T) {
 		color  bool
 		expect string
 	}{
-		{"without color", false, "[rs] build failed: compilation error\n"},
-		{"with color", true, "\033[31m[rs] build failed:\033[0m compilation error\n"},
+		{"without color", false, "[rs] build: compilation error\n"},
+		{"with color", true, "\033[31m[rs] build:\033[0m compilation error\n"},
 	}
 
 	for _, tt := range tests {

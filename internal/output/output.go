@@ -157,11 +157,12 @@ func (w *Writer) TargetSuccess(target, command string) {
 }
 
 // TargetFailed prints target command failure.
+// Format matches docs/specs/error-handling.md grammar: [target] command: message
 func (w *Writer) TargetFailed(target, command string, err error) {
 	if w.color {
-		w.Errorln(red+"[%s] %s failed:"+reset+" %v", target, command, err)
+		w.Errorln(red+"[%s] %s:"+reset+" %v", target, command, err)
 	} else {
-		w.Errorln("[%s] %s failed: %v", target, command, err)
+		w.Errorln("[%s] %s: %v", target, command, err)
 	}
 }
 

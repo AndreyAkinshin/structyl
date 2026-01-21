@@ -313,6 +313,7 @@ func filterByCommand(targets []target.Target, cmd string) []target.Target {
 }
 
 // formatTargetError formats a target execution error with consistent messaging.
+// Format matches docs/specs/error-handling.md grammar: [target] command: message
 func formatTargetError(targetName, cmd string, err error) error {
-	return fmt.Errorf("[%s] %s failed: %w", targetName, cmd, err)
+	return fmt.Errorf("[%s] %s: %w", targetName, cmd, err)
 }

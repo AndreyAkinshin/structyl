@@ -279,18 +279,18 @@ Exit codes are defined in [docs/specs/error-handling.md](docs/specs/error-handli
 | 0 | `ExitSuccess` | `ExitSuccess` |
 | 1 | `ExitFailure` | `ExitRuntimeError` |
 | 2 | `ExitConfigError` | `ExitConfigError` |
-| 3 | `ExitEnvError` | `ExitEnvironmentError` |
+| 3 | `ExitEnvError` | `ExitEnvError` |
 
-**External integrations** SHOULD use `pkg/structyl` constants (shorter names, stable API). Internal packages use longer names for semantic clarity.
+**External integrations** SHOULD use `pkg/structyl` constants (stable API). Internal packages alias these with semantic names where helpful (`ExitRuntimeError` for `ExitFailure`).
 
 ```go
 // internal/errors/errors.go
 
 const (
-    ExitSuccess          = 0  // Success
-    ExitRuntimeError     = 1  // Command failed, target error
-    ExitConfigError      = 2  // Invalid configuration
-    ExitEnvironmentError = 3  // Environment error (Docker not available, etc.)
+    ExitSuccess      = 0  // Success
+    ExitRuntimeError = 1  // Command failed, target error
+    ExitConfigError  = 2  // Invalid configuration
+    ExitEnvError     = 3  // Environment error (Docker not available, etc.)
 )
 
 type ErrorKind int

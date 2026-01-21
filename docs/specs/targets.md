@@ -17,6 +17,8 @@ Target names (the keys in the `targets` object) MUST follow these rules:
 - **Pattern**: `^[a-z][a-z0-9-]*$` (lowercase letters, digits, hyphens only)
 - **Length**: 1-64 characters (enforced both at runtime and by JSON Schema for IDE validation)
 
+> **Note:** Target names allow trailing hyphens and consecutive hyphens (e.g., `my-target-`, `my--target`), unlike [project names](./configuration.md#project) which have stricter rules for package registry compatibility. Target names are internal identifiers and don't flow to external systems.
+
 Invalid target names cause exit code 2 with message: `targets.{name}: target name must match pattern ^[a-z][a-z0-9-]*$ (lowercase letters, digits, hyphens)`
 
 ## Target Types

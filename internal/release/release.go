@@ -98,9 +98,10 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 		resolvedFiles := make([]config.VersionFileConfig, len(r.config.Version.Files))
 		for i, f := range r.config.Version.Files {
 			resolvedFiles[i] = config.VersionFileConfig{
-				Path:    filepath.Join(r.projectRoot, f.Path),
-				Pattern: f.Pattern,
-				Replace: f.Replace,
+				Path:       filepath.Join(r.projectRoot, f.Path),
+				Pattern:    f.Pattern,
+				Replace:    f.Replace,
+				ReplaceAll: f.ReplaceAll,
 			}
 		}
 		if err := version.Propagate(verStr, resolvedFiles); err != nil {

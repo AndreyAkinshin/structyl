@@ -114,6 +114,25 @@ func LoadTestCase(path string) (*TestCase, error) {
 	}, nil
 }
 
+// matchesPattern checks if a filename matches a pattern.
+//
+// Matching strategy:
+//  1. Standard filepath.Match on the filename
+//  2. Double-star recursive match: "**/*.json" matches any .json file
+//
+// Returns false for invalid patterns (e.g., malformed bracket expressions).
+func matchesPattern(filename, pattern string) bool {
+	// Standard glob match
+	if matched, err := filepath.Match(pattern, filename); err == nil && matched {
+		return true
+	}
+	// Double-star recursive match: "**/*.json" matches any .json file
+	if strings.Contains(pattern, "**") && strings.HasSuffix(pattern, "*.json") {
+		return strings.HasSuffix(filename, ".json")
+	}
+	return false
+}
+
 // findMatches finds files matching the glob pattern.
 //
 // Pattern support is intentionally limited to common use cases:
@@ -143,21 +162,7 @@ func findMatches(dir, pattern string) ([]string, error) {
 		}
 
 		// Check if it matches the pattern
-		matched, err := filepath.Match(pattern, filepath.Base(rel))
-		if err != nil {
-			return err
-		}
-
-		// Fallback matching for patterns not handled by filepath.Match
-		if !matched && strings.HasSuffix(path, ".json") {
-			if strings.Contains(pattern, "**") && strings.HasSuffix(pattern, "*.json") {
-				// Simplified double-star: match any .json file recursively
-				matched = true
-			} else if strings.HasSuffix(pattern, ".json") {
-				// Direct .json suffix match
-				matched = true
-			}
-		}
+		matched := matchesPattern(filepath.Base(rel), pattern)
 
 		if matched {
 			matches = append(matches, path)

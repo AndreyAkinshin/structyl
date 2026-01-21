@@ -99,7 +99,7 @@
           "type": {
             "type": "string",
             "enum": ["language", "auxiliary"],
-            "description": "Target type. Can be omitted for known language slugs (cs, go, kt, py, rs, ts) which default to 'language'"
+            "description": "Target type: 'language' for programming language implementations, 'auxiliary' for supporting tools"
           },
           "title": {
             "type": "string",

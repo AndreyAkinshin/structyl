@@ -568,7 +568,6 @@ func printUnifiedUsage(cmd string) {
 	w.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
 	w.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
 	w.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
-	w.HelpFlag("--continue", "[REMOVED] Fails with error", helpFlagWidthGlobal)
 	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
 	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
 
@@ -640,7 +639,6 @@ func printCIUsage(cmd string) {
 	w.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
 	w.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
 	w.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
-	w.HelpFlag("--continue", "[REMOVED] Fails with error", helpFlagWidthGlobal)
 	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
 	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
 

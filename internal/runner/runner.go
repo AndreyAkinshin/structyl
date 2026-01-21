@@ -31,19 +31,23 @@ type Runner struct {
 }
 
 // RunOptions configures execution behavior.
+//
+// NOTE: This type is part of the internal Runner API. CLI commands use mise
+// for orchestration and do not expose Continue or Parallel options to users.
+// These fields exist for internal use (tests, direct API calls) only.
 type RunOptions struct {
 	Docker bool // Run in Docker container
+
 	// Continue controls whether execution continues after a target fails.
-	// NOTE: The CLI --continue flag was removed; mise backend always stops on
-	// first failure. This field is retained for internal use only (e.g., direct
-	// Runner API calls in tests). CLI commands do not expose this option.
+	// INTERNAL USE ONLY: The CLI --continue flag was removed; mise backend
+	// always stops on first failure. This field exists for direct Runner API
+	// calls in tests.
 	Continue bool
+
 	// Parallel enables concurrent target execution with a worker pool.
-	// KNOWN LIMITATION: Parallel mode does NOT respect depends_on ordering.
-	// Targets may execute before their dependencies complete. For dependency-
-	// aware parallel execution, use mise tasks instead (structyl delegates to
-	// mise which handles dependencies correctly). This field is primarily for
-	// internal use; CLI commands use mise for orchestration.
+	// INTERNAL USE ONLY: Does NOT respect depends_on ordering—targets may
+	// execute before their dependencies complete. CLI commands use mise for
+	// dependency-aware parallel execution.
 	Parallel  bool
 	Args      []string          // Arguments to pass to commands
 	Env       map[string]string // Additional environment variables

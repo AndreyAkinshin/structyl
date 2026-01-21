@@ -82,13 +82,13 @@ func (r *Resolver) buildCustomToolchain(name string, cfg config.ToolchainConfig)
 }
 
 // resolveBase resolves a base toolchain for extension.
+// Check order: builtins → custom. Builtins are checked first because they are
+// immutable and cover 95%+ of use cases; custom toolchains only matter for
+// chained extensions (custom extends custom).
 func (r *Resolver) resolveBase(name string) (*Toolchain, error) {
-	// Check built-in first (most common case)
 	if tc, ok := builtinToolchains[name]; ok {
 		return tc, nil
 	}
-
-	// Check custom toolchains (for chained extensions)
 	if tc, ok := r.custom[name]; ok {
 		return tc, nil
 	}

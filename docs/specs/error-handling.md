@@ -26,6 +26,12 @@ For Go integrations, use the constants from `pkg/structyl`:
 
 External tools SHOULD use the `pkg/structyl` constants. The internal constants have different names for historical reasons but map to the same exit codes.
 
+**Naming convention rationale:**
+- `ExitFailure` (public) is generic, suitable for scripting: "did it fail?"
+- `ExitRuntimeError` (internal) is specific, suitable for debugging: "what category of failure?"
+
+The public API uses simpler names because external integrations typically only care about success/failure, not internal categorization.
+
 ### Exit Code Categories
 
 **Code 1 (Failure)** indicates the user's project has an issue that Structyl correctly detected. The configuration is valid; the build/test simply failed.

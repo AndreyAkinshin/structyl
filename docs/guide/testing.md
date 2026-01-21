@@ -160,6 +160,10 @@ tests/
 
 Binary outputs are compared byte-for-byte (no tolerance).
 
+::: warning Internal API Only
+The `$file` syntax is only available in Structyl's internal test runner. The public `pkg/testhelper` package does NOT support file references. For external use, embed data directly in JSON or use the internal `internal/tests` package.
+:::
+
 ## Configuration
 
 Full test configuration:

@@ -97,12 +97,13 @@ Define variants in configuration:
 
 Commands that operate on multiple targets:
 
-| Command          | Description                               |
-| ---------------- | ----------------------------------------- |
-| `structyl build` | Build all targets (respects dependencies) |
-| `structyl test`  | Test all language targets                 |
-| `structyl clean` | Clean all targets                         |
-| `structyl ci`    | Run full CI pipeline                      |
+| Command            | Description                               |
+| ------------------ | ----------------------------------------- |
+| `structyl build`   | Build all targets (respects dependencies) |
+| `structyl test`    | Test all language targets                 |
+| `structyl clean`   | Clean all targets                         |
+| `structyl ci`      | Run full CI pipeline                      |
+| `structyl version` | Version management (get, set, bump)       |
 
 ### CI Pipeline
 

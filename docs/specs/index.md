@@ -73,7 +73,7 @@ For installation and first-project setup, see the [Getting Started Guide](../get
 | ---------------------------------------------- | ------------------------------------------------- |
 | [glossary.md](glossary.md)                     | Term definitions and abbreviations                |
 | [configuration.md](configuration.md)           | `.structyl/config.json` configuration file format |
-| [config.schema.json](/schema/config.schema.json) | JSON Schema for configuration validation |
+| [config.schema.json](../../schema/config.schema.json) | JSON Schema for configuration validation |
 | [project-structure.md](project-structure.md)   | Directory layout conventions                      |
 | [commands.md](commands.md)                     | Command vocabulary and execution model            |
 | [toolchains.md](toolchains.md)                 | Built-in toolchain presets                        |

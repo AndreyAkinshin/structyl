@@ -111,7 +111,7 @@ An informational error indicating a command was skipped (not failed). Skip scena
 
 ### Slug
 
-See [Target Name](#target-name).
+A short identifier for a target (e.g., `rs`, `py`, `cs`). Synonymous with [Target Name](#target-name).
 
 ### Suite
 

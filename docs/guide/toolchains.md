@@ -55,6 +55,8 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 | `rebar.config`                     | rebar3             |
 | `DESCRIPTION`                      | r                  |
 
+> **Detection order matters:** When multiple marker files exist in a directory, the first match in the table above wins. For example, a directory with both `pnpm-lock.yaml` and `package.json` detects as `pnpm`, not `npm`. Similarly, `uv.lock` takes precedence over `pyproject.toml`.
+
 ## Built-in Toolchains
 
 ### Rust: `cargo`

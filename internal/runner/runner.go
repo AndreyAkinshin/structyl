@@ -151,7 +151,7 @@ func (r *Runner) runSequential(ctx context.Context, targets []target.Target, cmd
 			if shouldContinueAfterError(err) {
 				continue
 			}
-			errs = append(errs, fmt.Errorf("[%s] %s failed: %w", t.Name(), cmd, err))
+			errs = append(errs, formatTargetError(t.Name(), cmd, err))
 			if !opts.Continue {
 				return errs[0]
 			}
@@ -232,7 +232,7 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 				if shouldContinueAfterError(err) {
 					return
 				}
-				errs = append(errs, fmt.Errorf("[%s] %s failed: %w", t.Name(), cmd, err))
+				errs = append(errs, formatTargetError(t.Name(), cmd, err))
 				if !opts.Continue {
 					cancel()
 				}
@@ -303,4 +303,9 @@ func filterByCommand(targets []target.Target, cmd string) []target.Target {
 		}
 	}
 	return filtered
+}
+
+// formatTargetError formats a target execution error with consistent messaging.
+func formatTargetError(targetName, cmd string, err error) error {
+	return fmt.Errorf("[%s] %s failed: %w", targetName, cmd, err)
 }

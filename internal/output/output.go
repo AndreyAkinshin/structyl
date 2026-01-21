@@ -174,6 +174,8 @@ func (w *Writer) Table(headers []string, rows [][]string) {
 	for i, h := range headers {
 		widths[i] = len(h)
 	}
+	// Note: Extra columns in rows beyond headers are silently ignored.
+	// This allows flexible row data without strict schema enforcement.
 	for _, row := range rows {
 		for i, cell := range row {
 			if i < len(widths) && len(cell) > widths[i] {

@@ -42,7 +42,7 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 > - MUST run test suite with coverage instrumentation enabled
 > - Coverage output location: implementation-defined (commonly `coverage/` or tool default)
 > - Output format: implementation-defined
-> - Exit code: SHOULD return 0 if tests pass regardless of coverage percentage; coverage enforcement is out of scope
+> - Exit code: Implementation-defined. No requirement is placed on coverage percentage enforcement
 > - Coverage threshold enforcement is NOT part of Structyl's contract; use CI tooling if required
 
 ### Command Semantics
@@ -424,6 +424,16 @@ structyl mise sync  # Regenerate mise.toml
 | `--version`     | Show Structyl version (also accepts `version` as command)  |
 
 Note: `-q, --quiet` and `-v, --verbose` are mutually exclusive.
+
+### Removed Flags
+
+| Flag | Removed In | Replacement |
+|------|-----------|-------------|
+| `--continue` | v1.0.0 | None; fail-fast is now mandatory |
+
+::: warning
+Using removed flags results in an error. For continue-on-error workflows in CI, use `continue_on_error: true` in pipeline step definitions.
+:::
 
 ### Environment Variables
 

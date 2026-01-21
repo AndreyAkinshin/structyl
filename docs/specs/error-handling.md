@@ -83,9 +83,13 @@ Structyl uses **fail-fast** behavior:
 
 Note: There is no continue-on-error mode. Structyl delegates to mise for task execution, and mise stops on first failure.
 
+::: warning --continue Flag Removed
+The `--continue` flag has been removed. Using it results in an error. For continue-on-error workflows, use `continue_on_error: true` in CI pipeline step definitions.
+:::
+
 ## Skip Errors
 
-Skip errors indicate a command was skipped (not failed). Skip scenarios include:
+A [skip error](glossary.md#skip-error) indicates a command was skipped (not failed). Skip scenarios include:
 
 | Reason | Description | Example |
 |--------|-------------|---------|

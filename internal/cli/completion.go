@@ -137,7 +137,6 @@ func globalFlags() []string {
 	return []string{
 		"--docker",
 		"--no-docker",
-		"--continue",
 		"--type",
 		"--help",
 		"--version",
@@ -282,7 +281,6 @@ func generateZshCompletion(cmdName string) string {
     flags=(
         '--docker[Run in Docker container]'
         '--no-docker[Disable Docker mode]'
-        '--continue[Continue on error]'
         '--type=[Filter targets by type]:type:(language auxiliary)'
         '--help[Show help]'
         '--version[Show version]'

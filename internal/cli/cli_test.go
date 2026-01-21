@@ -17,7 +17,6 @@ func TestParseGlobalFlags(t *testing.T) {
 		args           []string
 		wantDocker     bool
 		wantNoDocker   bool
-		wantContinue   bool
 		wantTargetType string
 		wantQuiet      bool
 		wantVerbose    bool
@@ -42,10 +41,9 @@ func TestParseGlobalFlags(t *testing.T) {
 			wantRemaining: []string{"build"},
 		},
 		{
-			name:          "--continue flag",
-			args:          []string{"--continue", "build"},
-			wantContinue:  true,
-			wantRemaining: []string{"build"},
+			name:    "--continue flag is removed",
+			args:    []string{"--continue", "build"},
+			wantErr: true,
 		},
 		{
 			name:          "-q flag",
@@ -90,16 +88,15 @@ func TestParseGlobalFlags(t *testing.T) {
 		},
 		{
 			name:          "multiple flags",
-			args:          []string{"--docker", "--continue", "build"},
+			args:          []string{"--docker", "--quiet", "build"},
 			wantDocker:    true,
-			wantContinue:  true,
+			wantQuiet:     true,
 			wantRemaining: []string{"build"},
 		},
 		{
 			name:           "all flags combined",
-			args:           []string{"--docker", "--continue", "--type=language", "test", "rs"},
+			args:           []string{"--docker", "--type=language", "test", "rs"},
 			wantDocker:     true,
-			wantContinue:   true,
 			wantTargetType: "language",
 			wantRemaining:  []string{"test", "rs"},
 		},
@@ -153,9 +150,6 @@ func TestParseGlobalFlags(t *testing.T) {
 			}
 			if opts.NoDocker != tt.wantNoDocker {
 				t.Errorf("NoDocker = %v, want %v", opts.NoDocker, tt.wantNoDocker)
-			}
-			if opts.ContinueOnError != tt.wantContinue {
-				t.Errorf("ContinueOnError = %v, want %v", opts.ContinueOnError, tt.wantContinue)
 			}
 			if opts.TargetType != tt.wantTargetType {
 				t.Errorf("TargetType = %q, want %q", opts.TargetType, tt.wantTargetType)
@@ -1173,18 +1167,6 @@ func TestCmdCI_ReleaseMode_UsesBuildRelease(t *testing.T) {
 		// Exit code 2 would indicate routing/parsing failure
 		if exitCode == 2 {
 			t.Errorf("cmdCI(ci:release) = 2 (usage error), want 0 or 1")
-		}
-	})
-}
-
-func TestCmdCI_ContinueOnError(t *testing.T) {
-	root := createTestProject(t)
-	withWorkingDir(t, root, func() {
-		// With continue-on-error, pipeline should attempt all phases
-		exitCode := cmdCI("ci", nil, &GlobalOptions{ContinueOnError: true})
-		// Exit code 2 would indicate routing/parsing failure
-		if exitCode == 2 {
-			t.Errorf("cmdCI(ci) with ContinueOnError = 2 (usage error), want 0 or 1")
 		}
 	})
 }

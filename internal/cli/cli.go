@@ -134,12 +134,11 @@ func Run(args []string) int {
 
 // GlobalOptions holds parsed global flags.
 type GlobalOptions struct {
-	Docker          bool
-	NoDocker        bool
-	ContinueOnError bool
-	TargetType      string
-	Quiet           bool
-	Verbose         bool
+	Docker     bool
+	NoDocker   bool
+	TargetType string
+	Quiet      bool
+	Verbose    bool
 }
 
 // parseGlobalFlags extracts global flags from arguments.
@@ -159,8 +158,7 @@ func parseGlobalFlags(args []string) (*GlobalOptions, []string, error) {
 			opts.NoDocker = true
 			i++
 		case arg == "--continue":
-			opts.ContinueOnError = true
-			i++
+			return nil, nil, fmt.Errorf("--continue flag has been removed (mise backend always stops on first failure)")
 		case arg == "-q" || arg == "--quiet":
 			opts.Quiet = true
 			i++

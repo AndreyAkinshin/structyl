@@ -166,7 +166,6 @@ func TestGlobalFlags_ContainsExpected(t *testing.T) {
 	expected := []string{
 		"--docker",
 		"--no-docker",
-		"--continue",
 		"--type",
 		"--help",
 		"--version",

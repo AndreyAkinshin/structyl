@@ -87,12 +87,6 @@ func formatMiseTaskName(cmd string, target string) string {
 func runViaMise(proj *project.Project, cmd string, targetName string, args []string, opts *GlobalOptions) int {
 	ctx := context.Background()
 
-	// Warn if --continue is used: mise backend stops on first failure.
-	// The --continue flag has no effect when running via mise.
-	if opts.ContinueOnError {
-		out.WarningSimple("--continue flag has no effect with mise backend (mise stops on first failure)")
-	}
-
 	task := formatMiseTaskName(cmd, targetName)
 
 	executor := mise.NewExecutor(proj.Root)
@@ -356,7 +350,7 @@ func filterTargetsByType(targets []target.Target, targetType target.TargetType) 
 func cmdMise(args []string, opts *GlobalOptions) int {
 	if len(args) == 0 {
 		out.ErrorPrefix("mise: subcommand required (sync)")
-		out.Println("usage: structyl mise sync [--force]")
+		out.Println("usage: structyl mise sync")
 		return internalerrors.ExitConfigError
 	}
 
@@ -370,7 +364,7 @@ func cmdMise(args []string, opts *GlobalOptions) int {
 		return 0
 	default:
 		out.ErrorPrefix("mise: unknown subcommand %q", args[0])
-		out.Println("usage: structyl mise sync [--force]")
+		out.Println("usage: structyl mise sync")
 		return internalerrors.ExitConfigError
 	}
 }
@@ -385,9 +379,8 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 	// Parse flags
 	for _, arg := range args {
 		if arg == "--force" {
-			// Deprecated flag: mise sync always regenerates, so --force has no effect.
-			out.Warning("--force is deprecated: mise sync always regenerates")
-			continue
+			out.ErrorPrefix("--force flag has been removed: mise sync always regenerates")
+			return internalerrors.ExitConfigError
 		}
 		if strings.HasPrefix(arg, "-") {
 			out.ErrorPrefix("mise sync: unknown option %q", arg)
@@ -400,8 +393,7 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 		return exitCode
 	}
 
-	// Generate mise.toml using loaded toolchains
-	// Explicit sync always forces regeneration regardless of --force flag
+	// Generate mise.toml using loaded toolchains (always regenerates)
 	created, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, true)
 	if err != nil {
 		out.ErrorPrefix("mise sync: %v", err)

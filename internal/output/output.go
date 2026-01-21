@@ -54,6 +54,15 @@ func (w *Writer) IsVerbose() bool {
 	return w.verbose
 }
 
+// styled wraps text with ANSI style codes if color is enabled.
+// Returns plain text when color output is disabled.
+func (w *Writer) styled(style, text string) string {
+	if w.color {
+		return style + text + reset
+	}
+	return text
+}
+
 // Debug prints a debug message (only in verbose mode).
 func (w *Writer) Debug(format string, args ...interface{}) {
 	if !w.verbose {
@@ -99,20 +108,14 @@ func (w *Writer) Info(format string, args ...interface{}) {
 
 // Success prints a success message.
 func (w *Writer) Success(format string, args ...interface{}) {
-	if w.color {
-		w.Println(green+format+reset, args...)
-	} else {
-		w.Println(format, args...)
-	}
+	msg := fmt.Sprintf(format, args...)
+	w.Println("%s", w.styled(green, msg))
 }
 
 // Warning prints a warning message.
 func (w *Writer) Warning(format string, args ...interface{}) {
-	if w.color {
-		w.Errorln(yellow+"warning: "+format+reset, args...)
-	} else {
-		w.Errorln("warning: "+format, args...)
-	}
+	msg := fmt.Sprintf("warning: "+format, args...)
+	w.Errorln("%s", w.styled(yellow, msg))
 }
 
 // TargetStart prints the start of a target command with enhanced visibility.
@@ -123,11 +126,7 @@ func (w *Writer) TargetStart(target, command string) {
 	// Empty line for visual separation
 	w.Println("")
 	label := fmt.Sprintf("─── [%s] %s ───", target, command)
-	if w.color {
-		w.Println("%s%s%s", bold+cyan, label, reset)
-	} else {
-		w.Println("%s", label)
-	}
+	w.Println("%s", w.styled(bold+cyan, label))
 }
 
 // TargetSuccess prints target command success.
@@ -157,11 +156,8 @@ func (w *Writer) Section(title string) {
 		return
 	}
 	w.Println("")
-	if w.color {
-		w.Println(bold+"=== %s ==="+reset, title)
-	} else {
-		w.Println("=== %s ===", title)
-	}
+	header := fmt.Sprintf("=== %s ===", title)
+	w.Println("%s", w.styled(bold, header))
 }
 
 // List prints a list of items.
@@ -247,21 +243,13 @@ const (
 
 // HelpTitle formats the main help title line.
 func (w *Writer) HelpTitle(title string) {
-	if w.color {
-		w.Println("%s%s%s", colorTitle, title, reset)
-	} else {
-		w.Println("%s", title)
-	}
+	w.Println("%s", w.styled(colorTitle, title))
 }
 
 // HelpSection formats a section header (e.g., "Meta Commands:").
 func (w *Writer) HelpSection(title string) {
 	w.Println("")
-	if w.color {
-		w.Println("%s%s%s", colorSection, title, reset)
-	} else {
-		w.Println("%s", title)
-	}
+	w.Println("%s", w.styled(colorSection, title))
 }
 
 // HelpCommand formats a command with its description.

@@ -86,6 +86,14 @@ func validateCI(cfg *Config) error {
 			}
 		}
 
+		// Step command must not be empty
+		if step.Command == "" {
+			return &ValidationError{
+				Field:   fmt.Sprintf("ci.steps[%d].command", i),
+				Message: "required",
+			}
+		}
+
 		// Step target must reference a defined target (unless it's "all")
 		if step.Target != "all" {
 			if _, ok := cfg.Targets[step.Target]; !ok {

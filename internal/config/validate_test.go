@@ -559,6 +559,34 @@ func TestValidate_CIStepTargetAll_Succeeds(t *testing.T) {
 	}
 }
 
+func TestValidate_CIStepEmptyCommand_ReturnsError(t *testing.T) {
+	t.Parallel()
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Targets: map[string]TargetConfig{
+			"rs": {Type: "language", Title: "Rust"},
+		},
+		CI: &CIConfig{
+			Steps: []CIStep{
+				{Name: "build", Target: "rs", Command: ""},
+			},
+		},
+	}
+
+	_, err := Validate(cfg)
+	if err == nil {
+		t.Fatal("Validate() expected error for empty CI step command")
+	}
+
+	valErr, ok := err.(*ValidationError)
+	if !ok {
+		t.Fatalf("expected ValidationError, got %T", err)
+	}
+	if valErr.Field != "ci.steps[0].command" {
+		t.Errorf("ValidationError.Field = %q, want %q", valErr.Field, "ci.steps[0].command")
+	}
+}
+
 func TestValidate_ToleranceMode_Valid(t *testing.T) {
 	t.Parallel()
 	validModes := []string{"", "relative", "absolute", "ulp"}

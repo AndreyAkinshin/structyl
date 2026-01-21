@@ -642,9 +642,9 @@ func cmdSomething() int {
 | `NO_COLOR`          | Disable colored output                               | (unset)            |
 
 **`STRUCTYL_PARALLEL` behavior (internal runner only—mise backend ignores this):**
-- Value `0` or negative: Uses `runtime.NumCPU()`
-- Value `> 256`: Capped to 256 (safety limit)
-- Invalid (non-numeric): Falls back to `runtime.NumCPU()`
+- Value `1`: Serial execution (one target at a time)
+- Value `2-256`: Parallel execution with N workers
+- Value `0`, negative, `>256`, or non-numeric: Falls back to `runtime.NumCPU()` with warning
 
 ## Dependencies
 

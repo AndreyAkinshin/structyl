@@ -364,7 +364,7 @@ func TestFilterTargetsByType_FiltersCorrectly(t *testing.T) {
 	}
 }
 
-func TestFilterTargetsByType_EmptySlice_ReturnsEmpty(t *testing.T) {
+func TestFilterTargetsByType_Empty(t *testing.T) {
 	t.Parallel()
 	filtered := filterTargetsByType(nil, target.TypeLanguage)
 	if len(filtered) != 0 {
@@ -377,7 +377,7 @@ func TestFilterTargetsByType_EmptySlice_ReturnsEmpty(t *testing.T) {
 	}
 }
 
-func TestFilterTargetsByType_NoMatches_ReturnsEmpty(t *testing.T) {
+func TestFilterTargetsByType_NoMatch(t *testing.T) {
 	t.Parallel()
 	targets := []target.Target{
 		mocks.NewTarget("cs").WithType(target.TypeLanguage),
@@ -390,7 +390,7 @@ func TestFilterTargetsByType_NoMatches_ReturnsEmpty(t *testing.T) {
 	}
 }
 
-func TestFilterTargetsByType_AllMatch_ReturnsAll(t *testing.T) {
+func TestFilterTargetsByType_AllMatch(t *testing.T) {
 	t.Parallel()
 	targets := []target.Target{
 		mocks.NewTarget("cs").WithType(target.TypeLanguage),

@@ -418,6 +418,7 @@
   },
   "$defs": {
     "commandDefinition": {
+      "description": "A command definition. Commands may have verbosity variants: defining 'build' allows 'build:verbose' and 'build:quiet' variants to be auto-generated based on the toolchain's verbosity flags.",
       "oneOf": [
         {
           "type": "null",

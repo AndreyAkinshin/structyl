@@ -33,6 +33,7 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 | `publish`      | Publish package to registry                    |
 | `publish:dry`  | Dry-run publish (validate without uploading)   |
 
+<!-- VitePress component: Renders full standard command reference table in docs site (non-normative) -->
 <StandardCommands />
 
 > **Note:** The `test:coverage` command is part of the standard vocabulary but **no built-in toolchain provides a default implementation**. Projects requiring coverage MUST define a custom `test:coverage` command in target configuration. This command is OPTIONAL and not required for toolchain conformance.
@@ -183,7 +184,7 @@ These commands operate across all targets.
 | `github`                 | Generate GitHub Actions CI workflow                                                                         |
 | `mise sync`              | Regenerate `mise.toml` from configuration                                                                   |
 | `completion <shell>`     | Generate shell completion script (bash, zsh, fish)                                                          |
-| `test-summary`           | Parse and summarize `go test -json` output                                                                  |
+| `test-summary`           | Parse and summarize `go test -json` output (see [below](#test-summary-command))                             |
 
 ### `config validate` Command
 
@@ -353,9 +354,17 @@ go test -json ./... 2>&1 | tee test.json && structyl test-summary test.json
 | `-h, --help`    | Show help message                                          |
 | `--version`     | Show Structyl version (also accepts `version` as command)  |
 
-To disable colored output, set the `NO_COLOR` environment variable (any non-empty value). See [no-color.org](https://no-color.org/) for the standard.
-
 Note: `-q, --quiet` and `-v, --verbose` are mutually exclusive.
+
+### Environment Variables
+
+| Variable            | Description                                                       | Default              |
+| ------------------- | ----------------------------------------------------------------- | -------------------- |
+| `STRUCTYL_PARALLEL` | Number of parallel workers for concurrent execution (1-256)       | `runtime.NumCPU()`   |
+| `STRUCTYL_DOCKER`   | Enable Docker mode (`1`, `true`, or `yes`, case-insensitive)      | (disabled)           |
+| `NO_COLOR`          | Disable colored output (any non-empty value)                      | (colors enabled)     |
+
+For `NO_COLOR`, see [no-color.org](https://no-color.org/) for the standard.
 
 ### Docker Mode Precedence
 

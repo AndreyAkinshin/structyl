@@ -95,6 +95,7 @@ All toolchains implement this vocabulary:
 | `publish`      | Publish package to registry                         |
 | `publish:dry`  | Dry-run publish (validate without uploading)        |
 
+<!-- VitePress component: Renders standard command summary table in docs site (non-normative) -->
 <StandardCommands variant="brief" />
 
 † `build:release` is only provided by toolchains with distinct release/optimized build modes (e.g., `cargo`, `dotnet`, `swift`, `make`, `zig`). Toolchains without a native release mode do not define this variant.

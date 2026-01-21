@@ -227,6 +227,9 @@ func DefaultOptions() CompareOptions {
 //	if err != nil {
 //	    // handle invalid options
 //	}
+//
+// For a constructor with parameter order matching the struct field order,
+// see [NewCompareOptionsOrdered].
 func NewCompareOptions(toleranceMode, arrayOrder string, tolerance float64, nanEqualsNaN bool) (CompareOptions, error) {
 	opts := CompareOptions{
 		ToleranceMode:  toleranceMode,
@@ -238,6 +241,34 @@ func NewCompareOptions(toleranceMode, arrayOrder string, tolerance float64, nanE
 		return CompareOptions{}, err
 	}
 	return opts, nil
+}
+
+// NewCompareOptionsOrdered creates validated CompareOptions with parameters in
+// struct field order. This constructor is preferred over [NewCompareOptions]
+// because the parameter order matches the [CompareOptions] struct definition,
+// reducing confusion when constructing options.
+//
+// Parameters (in struct field order):
+//   - tolerance: FloatTolerance value; must be >= 0; for ULP mode, must fit in int64
+//   - toleranceMode: Use ToleranceModeRelative, ToleranceModeAbsolute, or ToleranceModeULP
+//   - nanEqualsNaN: Whether NaN values should be considered equal
+//   - arrayOrder: Use ArrayOrderStrict or ArrayOrderUnordered
+//
+// Returns an error if any parameter is invalid.
+//
+// Example:
+//
+//	opts, err := testhelper.NewCompareOptionsOrdered(
+//	    1e-9,                              // FloatTolerance
+//	    testhelper.ToleranceModeRelative,  // ToleranceMode
+//	    true,                              // NaNEqualsNaN
+//	    testhelper.ArrayOrderStrict,       // ArrayOrder
+//	)
+//	if err != nil {
+//	    // handle invalid options
+//	}
+func NewCompareOptionsOrdered(tolerance float64, toleranceMode string, nanEqualsNaN bool, arrayOrder string) (CompareOptions, error) {
+	return NewCompareOptions(toleranceMode, arrayOrder, tolerance, nanEqualsNaN)
 }
 
 // ValidateOptions validates that CompareOptions has valid enum values.

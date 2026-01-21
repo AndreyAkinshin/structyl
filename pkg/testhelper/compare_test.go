@@ -291,6 +291,69 @@ func TestNewCompareOptions(t *testing.T) {
 	})
 }
 
+func TestNewCompareOptionsOrdered(t *testing.T) {
+	t.Parallel()
+
+	t.Run("valid options match NewCompareOptions", func(t *testing.T) {
+		t.Parallel()
+		// NewCompareOptionsOrdered parameters are in struct field order:
+		// tolerance, toleranceMode, nanEqualsNaN, arrayOrder
+		ordered, err := NewCompareOptionsOrdered(1e-6, ToleranceModeRelative, true, ArrayOrderStrict)
+		if err != nil {
+			t.Fatalf("NewCompareOptionsOrdered() error = %v", err)
+		}
+
+		// NewCompareOptions parameters are in historical order:
+		// toleranceMode, arrayOrder, tolerance, nanEqualsNaN
+		original, err := NewCompareOptions(ToleranceModeRelative, ArrayOrderStrict, 1e-6, true)
+		if err != nil {
+			t.Fatalf("NewCompareOptions() error = %v", err)
+		}
+
+		if ordered != original {
+			t.Errorf("NewCompareOptionsOrdered() = %v, NewCompareOptions() = %v; should be equal", ordered, original)
+		}
+	})
+
+	t.Run("invalid tolerance mode", func(t *testing.T) {
+		t.Parallel()
+		_, err := NewCompareOptionsOrdered(1e-6, "invalid", true, ArrayOrderStrict)
+		if err == nil {
+			t.Error("NewCompareOptionsOrdered() expected error for invalid ToleranceMode")
+		}
+	})
+
+	t.Run("invalid array order", func(t *testing.T) {
+		t.Parallel()
+		_, err := NewCompareOptionsOrdered(1e-6, ToleranceModeRelative, true, "invalid")
+		if err == nil {
+			t.Error("NewCompareOptionsOrdered() expected error for invalid ArrayOrder")
+		}
+	})
+
+	t.Run("negative tolerance", func(t *testing.T) {
+		t.Parallel()
+		_, err := NewCompareOptionsOrdered(-1, ToleranceModeRelative, true, ArrayOrderStrict)
+		if err == nil {
+			t.Error("NewCompareOptionsOrdered() expected error for negative tolerance")
+		}
+	})
+
+	t.Run("all tolerance modes", func(t *testing.T) {
+		t.Parallel()
+		modes := []string{ToleranceModeRelative, ToleranceModeAbsolute, ToleranceModeULP}
+		for _, mode := range modes {
+			opts, err := NewCompareOptionsOrdered(1e-6, mode, false, ArrayOrderStrict)
+			if err != nil {
+				t.Errorf("NewCompareOptionsOrdered(%q) error = %v", mode, err)
+			}
+			if opts.ToleranceMode != mode {
+				t.Errorf("ToleranceMode = %q, want %q", opts.ToleranceMode, mode)
+			}
+		}
+	})
+}
+
 func TestCompareOptions_String(t *testing.T) {
 	t.Parallel()
 

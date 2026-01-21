@@ -23,14 +23,17 @@ package errors
 import (
 	"errors"
 	"fmt"
+
+	"github.com/AndreyAkinshin/structyl/pkg/structyl"
 )
 
 // Exit codes as defined in the specification.
+// These constants alias the public pkg/structyl constants to ensure consistency.
 const (
-	ExitSuccess          = 0 // Success
-	ExitRuntimeError     = 1 // Runtime error (command failed, etc.)
-	ExitConfigError      = 2 // Configuration error (invalid config, etc.)
-	ExitEnvironmentError = 3 // Environment error (Docker not available, missing dependency, etc.)
+	ExitSuccess          = structyl.ExitSuccess     // 0 - Success
+	ExitRuntimeError     = structyl.ExitFailure     // 1 - Runtime error (command failed, etc.)
+	ExitConfigError      = structyl.ExitConfigError // 2 - Configuration error (invalid config, etc.)
+	ExitEnvironmentError = structyl.ExitEnvError    // 3 - Environment error (Docker not available, missing dependency, etc.)
 )
 
 // ErrorKind represents the type of error.

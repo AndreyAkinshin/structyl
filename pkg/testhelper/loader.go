@@ -372,6 +372,11 @@ func loadTestCaseInternal(path, suite string) (*TestCase, error) {
 // Note: Empty suites (directories with no .json test files) are excluded from
 // the returned map. Use [ListSuites] to enumerate all suite directories
 // regardless of whether they contain test cases.
+//
+// Iteration order: The returned map has no guaranteed iteration order (Go maps
+// are unordered). Within each suite's []TestCase slice, test cases are sorted
+// alphabetically by filename for deterministic ordering. If you need to iterate
+// over suites in a deterministic order, sort the map keys explicitly.
 func LoadAllSuites(projectRoot string) (map[string][]TestCase, error) {
 	testsDir := filepath.Join(projectRoot, "tests")
 	entries, err := os.ReadDir(testsDir)

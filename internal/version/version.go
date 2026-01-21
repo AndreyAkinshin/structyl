@@ -23,10 +23,13 @@ type Semver struct {
 }
 
 // Read reads a version from a file and validates it.
+// Returns the underlying os error (wrapped) if the file cannot be read,
+// allowing callers to use errors.Is(err, os.ErrNotExist) to distinguish
+// missing files from other errors.
 func Read(path string) (string, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return "", fmt.Errorf("version source file not found: %s", path)
+		return "", fmt.Errorf("version source file not found: %w", err)
 	}
 
 	version := strings.TrimSpace(string(data))

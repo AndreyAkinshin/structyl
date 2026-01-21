@@ -320,25 +320,8 @@ func (t *targetImpl) interpolateVars(cmd string) string {
 }
 
 func (t *targetImpl) executeShell(ctx context.Context, cmdStr string, opts ExecOptions) error {
-	// Determine working directory
 	workDir := filepath.Join(t.rootDir, t.cwd)
-
-	// Create cross-platform shell command
-	var shellCmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		// Windows: Use full path to PowerShell to bypass mise shims.
-		// This prevents command interception that can cause infinite loops
-		// when mise shims call structyl which calls mise shims again.
-		systemRoot := os.Getenv("SYSTEMROOT")
-		if systemRoot == "" {
-			systemRoot = `C:\Windows`
-		}
-		powershellPath := filepath.Join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
-		shellCmd = exec.CommandContext(ctx, powershellPath, "-NoProfile", "-NonInteractive", "-Command", cmdStr)
-	} else {
-		shellCmd = exec.CommandContext(ctx, "sh", "-c", cmdStr)
-	}
-
+	shellCmd := buildShellCommand(ctx, cmdStr)
 	shellCmd.Dir = workDir
 	shellCmd.Stdout = os.Stdout
 	shellCmd.Stderr = os.Stderr
@@ -465,4 +448,26 @@ var shellBuiltins = map[string]struct{}{
 func isShellBuiltin(cmdName string) bool {
 	_, ok := shellBuiltins[cmdName]
 	return ok
+}
+
+// buildShellCommand creates a cross-platform shell command.
+// On Windows, uses full path to PowerShell to bypass mise shims.
+// On Unix, uses sh -c.
+func buildShellCommand(ctx context.Context, cmdStr string) *exec.Cmd {
+	if runtime.GOOS == "windows" {
+		return buildWindowsShellCommand(ctx, cmdStr)
+	}
+	return exec.CommandContext(ctx, "sh", "-c", cmdStr)
+}
+
+// buildWindowsShellCommand creates a PowerShell command using the full path.
+// This prevents command interception that can cause infinite loops
+// when mise shims call structyl which calls mise shims again.
+func buildWindowsShellCommand(ctx context.Context, cmdStr string) *exec.Cmd {
+	systemRoot := os.Getenv("SYSTEMROOT")
+	if systemRoot == "" {
+		systemRoot = `C:\Windows`
+	}
+	powershellPath := filepath.Join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe")
+	return exec.CommandContext(ctx, powershellPath, "-NoProfile", "-NonInteractive", "-Command", cmdStr)
 }

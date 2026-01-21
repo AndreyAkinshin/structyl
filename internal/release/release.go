@@ -81,7 +81,6 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 
 	steps := &stepCounter{}
 
-	// 1. Update VERSION file
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -90,7 +89,6 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 		return fmt.Errorf("failed to set version: %w", err)
 	}
 
-	// 2. Propagate version to configured files
 	if r.config.Version != nil && len(r.config.Version.Files) > 0 {
 		if err := ctx.Err(); err != nil {
 			return err
@@ -110,7 +108,6 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 		}
 	}
 
-	// 3. Run pre-commit commands
 	if r.config.Release != nil && len(r.config.Release.PreCommands) > 0 {
 		if err := ctx.Err(); err != nil {
 			return err
@@ -127,7 +124,6 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 		}
 	}
 
-	// 4. Git add and commit
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -140,7 +136,6 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 		return fmt.Errorf("git commit failed: %w", err)
 	}
 
-	// 5. Move main branch to HEAD (if configured)
 	if err := ctx.Err(); err != nil {
 		return err
 	}
@@ -153,7 +148,6 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 		}
 	}
 
-	// 6. Push if requested
 	if opts.Push {
 		if err := ctx.Err(); err != nil {
 			return err

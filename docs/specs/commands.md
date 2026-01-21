@@ -691,7 +691,7 @@ See [error-handling.md](error-handling.md) for exit code definitions.
 
 ### Runtime Errors (Exit Code 1)
 
-| Error             | Message                                             |
-| ----------------- | --------------------------------------------------- |
-| Command failed    | `[{target}] {command} failed with exit code {code}` |
-| Command not found | `[{target}] command "{cmd}" not defined`            |
+| Error             | Message                                             | Exit Code |
+| ----------------- | --------------------------------------------------- | --------- |
+| Command failed    | `[{target}] {command} failed with exit code {code}` | 1         |
+| Command not found | `[{target}] command "{cmd}" not defined`            | 1         |

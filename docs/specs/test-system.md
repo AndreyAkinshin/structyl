@@ -310,11 +310,15 @@ Comparison behavior for IEEE 754 special values:
 | `+Infinity == -Infinity` | `false`                                           |
 | `-0.0 == +0.0`           | `true`                                            |
 
-JSON representation of special values:
+JSON representation of special values (CASE-SENSITIVE):
 
-- Infinity: Use string `"Infinity"` or `"+Infinity"`
-- Negative infinity: Use string `"-Infinity"`
-- NaN: Use string `"NaN"`
+- Infinity: Use string `"Infinity"` or `"+Infinity"` (not `"infinity"` or `"INFINITY"`)
+- Negative infinity: Use string `"-Infinity"` (not `"-infinity"`)
+- NaN: Use string `"NaN"` (not `"nan"` or `"NAN"`)
+
+::: warning Case Sensitivity
+These strings are matched exactly. Lowercase variants like `"nan"` or `"infinity"` are treated as regular strings, not special float values.
+:::
 
 Example:
 

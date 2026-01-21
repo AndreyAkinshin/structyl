@@ -359,7 +359,9 @@ Lowercase or other variants are treated as regular strings, not special float va
 
 ## Test Loader Implementation
 
-> **Note:** This section is **informative only**. The code examples illustrate one possible implementation approach. Conforming implementations MAY use different designs, APIs, or patterns as long as they satisfy the functional requirements.
+::: info Informative Section
+This section is **informative only**. The code examples illustrate one possible implementation approach. Conforming implementations MAY use different designs, APIs, or patterns as long as they satisfy the functional requirements.
+:::
 
 ::: warning pkg/testhelper Limitations
 The public Go `pkg/testhelper` package has the following limitations compared to Structyl's internal test runner:
@@ -513,6 +515,10 @@ def compare_output(expected, actual, tolerance=1e-9) -> bool:
 | `comparison.tolerance_mode`  | `"relative"`  | How tolerance is applied    |
 | `comparison.array_order`     | `"strict"`    | Array comparison mode       |
 | `comparison.nan_equals_nan`  | `true`        | NaN equality behavior       |
+
+::: info pkg/testhelper Limitation
+The `pattern` configuration only applies to Structyl's internal runner. The public `pkg/testhelper.LoadTestSuite` function always uses `*.json` (non-recursive, immediate directory only). To load nested test files with `pkg/testhelper`, iterate subdirectories manually.
+:::
 
 ## Test Generation
 

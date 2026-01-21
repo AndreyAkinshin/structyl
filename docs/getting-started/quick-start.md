@@ -105,7 +105,7 @@ name = "my-library"
 version = "0.1.0"
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.18"]
 build-backend = "hatchling.build"
 ```
 

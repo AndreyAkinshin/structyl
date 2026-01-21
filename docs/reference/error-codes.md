@@ -105,7 +105,7 @@ Structyl stops on the first failure when running commands across multiple target
 - Prevents cascading errors from incomplete builds
 - Aligns with mise backend behavior
 
-::: danger --continue Flag Removed
+::: warning --continue Flag Removed
 The `--continue` flag has been removed. Using it will result in an error.
 :::
 

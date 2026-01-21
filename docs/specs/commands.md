@@ -40,14 +40,16 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 
 For standard command definitions per toolchain, see [toolchains.md](toolchains.md).
 
-> **Note:** The `test:coverage` command is part of the standard vocabulary but **no built-in toolchain provides a default implementation**. Projects requiring coverage MUST define a custom `test:coverage` command in target configuration. This command is OPTIONAL and not required for toolchain conformance.
->
-> **Semantics (when defined):**
-> - MUST run test suite with coverage instrumentation enabled
-> - Coverage output location: implementation-defined (commonly `coverage/` or tool default)
-> - Output format: implementation-defined
-> - Exit code: SHOULD be 0 if tests pass (regardless of coverage percentage), non-zero if tests fail
-> - Coverage threshold enforcement is NOT part of Structyl's contract; use CI tooling if required
+::: info test:coverage Command
+The `test:coverage` command is part of the standard vocabulary but **no built-in toolchain provides a default implementation**. Projects requiring coverage MUST define a custom `test:coverage` command in target configuration. This command is OPTIONAL and not required for toolchain conformance.
+
+**Semantics (when defined):**
+- MUST run test suite with coverage instrumentation enabled
+- Coverage output location: implementation-defined (commonly `coverage/` or tool default)
+- Output format: implementation-defined
+- Exit code: SHOULD be 0 if tests pass (regardless of coverage percentage), non-zero if tests fail
+- Coverage threshold enforcement is NOT part of Structyl's contract; use CI tooling if required
+:::
 
 ### Command Semantics
 

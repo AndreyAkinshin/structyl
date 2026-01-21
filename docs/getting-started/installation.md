@@ -3,11 +3,6 @@
 <InstallTabs />
 
 ::: details Manual Installation (if tabs don't render)
-**macOS (Homebrew):** *(Coming soon)*
-```bash
-brew install structyl
-```
-
 **Linux/macOS (curl):**
 ```bash
 curl -fsSL https://structyl.akinshin.dev/install.sh | sh

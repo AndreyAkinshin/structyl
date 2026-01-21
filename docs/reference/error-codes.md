@@ -97,13 +97,19 @@ structyl test
 # Exits immediately when first target fails
 ```
 
-### Continue Mode
+### Fail-Fast Behavior
 
-::: danger REMOVED
+Structyl stops on the first failure when running commands across multiple targets. This fail-fast approach:
+
+- Provides immediate feedback on failures
+- Prevents cascading errors from incomplete builds
+- Aligns with mise backend behavior
+
+::: danger --continue Flag Removed
 The `--continue` flag has been removed. Using it will result in an error.
 :::
 
-**Alternatives:**
+**Alternatives for continue-on-error workflows:**
 
 1. Use `continue_on_error: true` in CI pipeline step definitions (see [CI Integration](../specs/ci-integration.md))
 2. Configure individual mise tasks with shell-level error handling (e.g., `|| true`)
@@ -134,13 +140,13 @@ structyl: configuration file not found
 [cs] build: command failed with exit code 1
 ```
 
-**Example - Multi-line error:**
+**Example - Configuration error:**
 
 ```
-structyl: invalid configuration
-  - project.name: required field missing
-  - targets.cs.type: must be "language" or "auxiliary"
+structyl: project.name: required
 ```
+
+Note: Structyl reports validation errors one at a time. Fix and re-run to see subsequent errors.
 
 ## Verbosity Levels
 

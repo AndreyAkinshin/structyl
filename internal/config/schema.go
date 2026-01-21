@@ -97,9 +97,12 @@ type DockerConfig struct {
 	Targets     map[string]DockerTargetConfig `json:"targets,omitempty"`
 }
 
-// ServiceConfig defines Docker service settings.
+// ServiceConfig defines Docker service settings for image building.
 type ServiceConfig struct {
-	BaseImage string `json:"base_image,omitempty"`
+	BaseImage  string   `json:"base_image,omitempty"`
+	Dockerfile string   `json:"dockerfile,omitempty"`
+	Platform   string   `json:"platform,omitempty"`
+	Volumes    []string `json:"volumes,omitempty"`
 }
 
 // DockerTargetConfig defines Docker settings for a specific target.

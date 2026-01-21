@@ -225,6 +225,56 @@ func TestLoadWithDefaults_NoDockerSection(t *testing.T) {
 	}
 }
 
+func TestLoad_DockerServiceConfigAllFields(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	path := filepath.Join(dir, "config.json")
+	content := `{
+		"project": {"name": "myproject"},
+		"docker": {
+			"services": {
+				"rs": {
+					"base_image": "rust:1.70",
+					"dockerfile": "rs/Dockerfile.custom",
+					"platform": "linux/amd64",
+					"volumes": ["/cache:/root/.cargo", "/data:/data"]
+				}
+			}
+		}
+	}`
+	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := Load(path)
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	if cfg.Docker == nil {
+		t.Fatal("Docker config should not be nil")
+	}
+	svc, ok := cfg.Docker.Services["rs"]
+	if !ok {
+		t.Fatal("Docker.Services['rs'] not found")
+	}
+	if svc.BaseImage != "rust:1.70" {
+		t.Errorf("ServiceConfig.BaseImage = %q, want %q", svc.BaseImage, "rust:1.70")
+	}
+	if svc.Dockerfile != "rs/Dockerfile.custom" {
+		t.Errorf("ServiceConfig.Dockerfile = %q, want %q", svc.Dockerfile, "rs/Dockerfile.custom")
+	}
+	if svc.Platform != "linux/amd64" {
+		t.Errorf("ServiceConfig.Platform = %q, want %q", svc.Platform, "linux/amd64")
+	}
+	if len(svc.Volumes) != 2 {
+		t.Errorf("len(ServiceConfig.Volumes) = %d, want 2", len(svc.Volumes))
+	}
+	if svc.Volumes[0] != "/cache:/root/.cargo" {
+		t.Errorf("ServiceConfig.Volumes[0] = %q, want %q", svc.Volumes[0], "/cache:/root/.cargo")
+	}
+}
+
 // =============================================================================
 // LoadAndValidate Tests
 // =============================================================================

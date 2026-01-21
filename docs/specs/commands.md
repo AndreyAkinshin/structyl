@@ -248,6 +248,39 @@ Initializes a new Structyl project in the current directory. This command is ide
 | 1 | File system error |
 | 2 | Configuration error (e.g., invalid existing config) |
 
+### `release` Command
+
+```
+structyl release <version> [--push] [--dry-run] [--force]
+```
+
+Creates a release by setting the version across all targets, committing the changes, and optionally pushing to the remote.
+
+**Flags:**
+
+| Flag        | Description                                        |
+| ----------- | -------------------------------------------------- |
+| `--push`    | Push commit and tags to remote after release       |
+| `--dry-run` | Print what would be done without making changes    |
+| `--force`   | Allow release even with uncommitted changes        |
+| `-h, --help`| Show help                                          |
+
+**Exit codes:**
+
+| Code | Condition                                              |
+| ---- | ------------------------------------------------------ |
+| 0    | Success                                                |
+| 1    | Release failed (git error, version propagation error)  |
+| 2    | Invalid version format or configuration error          |
+
+**Examples:**
+
+```bash
+structyl release 1.2.3           # Create release 1.2.3
+structyl release 1.2.3 --push    # Create and push release 1.2.3
+structyl release 1.2.3 --dry-run # Preview release without changes
+```
+
 ### `completion` Command
 
 ```

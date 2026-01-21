@@ -160,7 +160,7 @@ A file reference is a JSON object with exactly one key `$file`:
 | `{"$file": ""}`                  | ✗     | Empty path                   |
 | `{"$file": "../input.bin"}`      | ✗     | Parent reference not allowed |
 | `{"$file": "/etc/passwd"}`       | ✗     | Absolute paths not allowed   |
-| `{"$file": "x.bin", "extra": 1}` | ✗     | Rejected (contains `$file` reference) |
+| `{"$file": "x.bin", "extra": 1}` | ✗     | Extra keys not allowed       |
 | `{"FILE": "input.bin"}`          | ✗     | Wrong key (case-sensitive)   |
 
 > **Implementation note:** The validation table above describes semantics for Structyl's internal runner. The public `pkg/testhelper` package rejects ANY `$file` reference regardless of object structure—see the warning box in [Binary Data References](#binary-data-references-internal-only).

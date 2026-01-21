@@ -16,7 +16,8 @@ import (
 // Version is set at build time.
 var Version = "dev"
 
-// wantsHelp checks if args contain -h or --help flag.
+// wantsHelp returns true if args contain -h or --help before any -- separator.
+// Arguments after -- are passed through to commands, so help flags there are ignored.
 func wantsHelp(args []string) bool {
 	for _, arg := range args {
 		if arg == "-h" || arg == "--help" {
@@ -349,7 +350,7 @@ func printGlobalFlags(w *output.Writer) {
 	w.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
 	w.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
 	w.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
-	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
+	w.HelpFlag("--type=<type>", "Filter targets by type: 'language' or 'auxiliary'", helpFlagWidthGlobal)
 	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
 	w.HelpFlag("--version", "Show version", helpFlagWidthGlobal)
 

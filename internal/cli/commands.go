@@ -106,7 +106,9 @@ func formatMiseTaskName(cmd string, target string) string {
 // runViaMise executes a command via mise.
 // Mise handles dependency resolution and parallel execution internally,
 // so we simply delegate to RunTask regardless of the task structure.
-func runViaMise(proj *project.Project, cmd string, targetName string, args []string, opts *GlobalOptions) int {
+// The optional registry parameter enables helpful hints when a command fails because
+// the user may have typed a target name instead of a command name.
+func runViaMise(proj *project.Project, cmd string, targetName string, args []string, opts *GlobalOptions, registry *target.Registry) int {
 	ctx := context.Background()
 
 	task := formatMiseTaskName(cmd, targetName)
@@ -116,6 +118,13 @@ func runViaMise(proj *project.Project, cmd string, targetName string, args []str
 
 	// Error details are output by mise directly to stderr; we only need the exit code.
 	if err := executor.RunTask(ctx, task, args); err != nil {
+		// If no target was specified and cmd matches a known target name,
+		// the user likely typed "structyl cs" instead of "structyl build cs"
+		if registry != nil && targetName == "" {
+			if _, exists := registry.Get(cmd); exists {
+				out.Hint("Did you mean 'structyl build %s'?", cmd)
+			}
+		}
 		return internalerrors.ExitRuntimeError
 	}
 	return 0
@@ -180,14 +189,14 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 		}
 		// Run command for each matching target
 		for _, t := range targets {
-			if result := runViaMise(proj, cmd, t.Name(), cmdArgs, opts); result != 0 {
+			if result := runViaMise(proj, cmd, t.Name(), cmdArgs, opts, registry); result != 0 {
 				return result
 			}
 		}
 		return 0
 	}
 
-	return runViaMise(proj, cmd, targetName, cmdArgs, opts)
+	return runViaMise(proj, cmd, targetName, cmdArgs, opts, registry)
 }
 
 // cmdTargets lists all configured targets.
@@ -338,7 +347,7 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 		return internalerrors.ExitRuntimeError
 	}
 
-	return runViaMise(proj, cmd, targetName, cmdArgs, opts)
+	return runViaMise(proj, cmd, targetName, cmdArgs, opts, registry)
 }
 
 // extractTargetArg extracts an optional target name from args if the first arg is a known target.

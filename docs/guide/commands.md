@@ -261,6 +261,16 @@ Running a null command succeeds with a warning.
 `--no-docker` overrides `--docker` and `STRUCTYL_DOCKER`. See [Commands Specification](../specs/commands#docker-mode-precedence) for full precedence rules.
 :::
 
+## Removed Flags (Migration)
+
+The following flags have been removed:
+
+| Flag         | Removed In | Alternative                                              |
+| ------------ | ---------- | -------------------------------------------------------- |
+| `--continue` | v1.0.0     | Use `continue_on_error: true` in CI pipeline step definitions |
+
+Using removed flags produces an error.
+
 ## Environment Variables
 
 | Variable            | Description                                      | Default            |

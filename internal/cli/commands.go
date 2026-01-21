@@ -27,10 +27,10 @@ var out = output.New()
 // These values align the flag/command names with their descriptions.
 // Each width accommodates the longest string in its category plus padding.
 const (
-	helpFlagWidthShort      = 10 // Accommodates "-h, --help" (10 chars)
-	helpFlagWidthLong       = 12 // Accommodates "[services]" (10 chars) + 2 padding
-	helpFlagWidthGlobal     = 14 // Accommodates "--type=<type>" (13 chars) + 1 padding
-	helpSubcommandWidthSync = 6  // Accommodates "sync" (4 chars) + 2 padding
+	widthFlagShort      = 10 // "-h, --help"
+	widthArgPlaceholder = 12 // "[services]"
+	widthFlagWithValue  = 14 // "--type=<type>"
+	widthSubcommand     = 6  // "sync"
 )
 
 // applyVerbosityToOutput configures the output writer based on verbosity settings.
@@ -600,16 +600,16 @@ func printUnifiedUsage(cmd string) {
 	out.Println("  Without a target, runs %s on all targets that have it defined.", cmd)
 
 	out.HelpSection("Arguments:")
-	out.HelpFlag("[target]", "Target name to run command on (optional)", helpFlagWidthShort)
+	out.HelpFlag("[target]", "Target name to run command on (optional)", widthFlagShort)
 
 	out.HelpSection("Global Options:")
-	out.HelpFlag("-q, --quiet", "Minimal output (errors only)", helpFlagWidthGlobal)
-	out.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
-	out.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
-	out.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
+	out.HelpFlag("-q, --quiet", "Minimal output (errors only)", widthFlagWithValue)
+	out.HelpFlag("-v, --verbose", "Maximum detail", widthFlagWithValue)
+	out.HelpFlag("--docker", "Run in Docker container", widthFlagWithValue)
+	out.HelpFlag("--no-docker", "Disable Docker mode", widthFlagWithValue)
 	out.Println("                  (precedence: --no-docker > --docker > STRUCTYL_DOCKER > default)")
-	out.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
-	out.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
+	out.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", widthFlagWithValue)
+	out.HelpFlag("-h, --help", "Show this help", widthFlagWithValue)
 
 	out.HelpSection("Examples:")
 	titleCase := cases.Title(language.English)
@@ -631,13 +631,13 @@ func printReleaseUsage() {
 	out.Println("  committing the changes, and optionally pushing to the remote.")
 
 	out.HelpSection("Arguments:")
-	out.HelpFlag("<version>", "Version number (e.g., 1.2.3)", helpFlagWidthShort)
+	out.HelpFlag("<version>", "Version number (e.g., 1.2.3)", widthFlagShort)
 
 	out.HelpSection("Options:")
-	out.HelpFlag("--push", "Push to remote with tags after commit", helpFlagWidthShort)
-	out.HelpFlag("--dry-run", "Print what would be done without making changes", helpFlagWidthShort)
-	out.HelpFlag("--force", "Force release with uncommitted changes", helpFlagWidthShort)
-	out.HelpFlag("-h, --help", "Show this help", helpFlagWidthShort)
+	out.HelpFlag("--push", "Push to remote with tags after commit", widthFlagShort)
+	out.HelpFlag("--dry-run", "Print what would be done without making changes", widthFlagShort)
+	out.HelpFlag("--force", "Force release with uncommitted changes", widthFlagShort)
+	out.HelpFlag("-h, --help", "Show this help", widthFlagShort)
 
 	out.HelpSection("Examples:")
 	out.HelpExample("structyl release 1.2.3", "Create release 1.2.3")
@@ -668,16 +668,16 @@ func printCIUsage(cmd string) {
 	}
 
 	out.HelpSection("Arguments:")
-	out.HelpFlag("[target]", "Target name to run CI on (optional)", helpFlagWidthShort)
+	out.HelpFlag("[target]", "Target name to run CI on (optional)", widthFlagShort)
 
 	out.HelpSection("Global Options:")
-	out.HelpFlag("-q, --quiet", "Minimal output (errors only)", helpFlagWidthGlobal)
-	out.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
-	out.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
-	out.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
+	out.HelpFlag("-q, --quiet", "Minimal output (errors only)", widthFlagWithValue)
+	out.HelpFlag("-v, --verbose", "Maximum detail", widthFlagWithValue)
+	out.HelpFlag("--docker", "Run in Docker container", widthFlagWithValue)
+	out.HelpFlag("--no-docker", "Disable Docker mode", widthFlagWithValue)
 	out.Println("                  (precedence: --no-docker > --docker > STRUCTYL_DOCKER > default)")
-	out.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
-	out.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
+	out.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", widthFlagWithValue)
+	out.HelpFlag("-h, --help", "Show this help", widthFlagWithValue)
 
 	out.HelpSection("Examples:")
 	out.HelpExample(fmt.Sprintf("structyl %s", cmd), "Run CI on all targets")
@@ -694,10 +694,10 @@ func printConfigUsage() {
 	out.HelpUsage("structyl config <subcommand>")
 
 	out.HelpSection("Subcommands:")
-	out.HelpCommand("validate", "Validate the project configuration", helpFlagWidthShort)
+	out.HelpCommand("validate", "Validate the project configuration", widthFlagShort)
 
 	out.HelpSection("Options:")
-	out.HelpFlag("-h, --help", "Show this help", helpFlagWidthShort)
+	out.HelpFlag("-h, --help", "Show this help", widthFlagShort)
 
 	out.HelpSection("Examples:")
 	out.HelpExample("structyl config validate", "Validate project configuration")
@@ -712,10 +712,10 @@ func printMiseUsage() {
 	out.HelpUsage("structyl mise <subcommand>")
 
 	out.HelpSection("Subcommands:")
-	out.HelpCommand("sync", "Regenerate mise.toml from project configuration", helpSubcommandWidthSync)
+	out.HelpCommand("sync", "Regenerate mise.toml from project configuration", widthSubcommand)
 
 	out.HelpSection("Options:")
-	out.HelpFlag("-h, --help", "Show this help", helpFlagWidthShort)
+	out.HelpFlag("-h, --help", "Show this help", widthFlagShort)
 
 	out.HelpSection("Examples:")
 	out.HelpExample("structyl mise sync", "Regenerate mise.toml")
@@ -735,7 +735,7 @@ func printMiseSyncUsage() {
 	out.Println("  Always regenerates the file (implicit force mode).")
 
 	out.HelpSection("Options:")
-	out.HelpFlag("-h, --help", "Show this help", helpFlagWidthShort)
+	out.HelpFlag("-h, --help", "Show this help", widthFlagShort)
 
 	out.HelpSection("Examples:")
 	out.HelpExample("structyl mise sync", "Regenerate mise.toml")
@@ -754,10 +754,10 @@ func printDockerBuildUsage() {
 	out.Println("  if none specified). Uses docker compose build under the hood.")
 
 	out.HelpSection("Arguments:")
-	out.HelpFlag("[services]", "Service names to build (optional, builds all if omitted)", helpFlagWidthLong)
+	out.HelpFlag("[services]", "Service names to build (optional, builds all if omitted)", widthArgPlaceholder)
 
 	out.HelpSection("Options:")
-	out.HelpFlag("-h, --help", "Show this help", helpFlagWidthShort)
+	out.HelpFlag("-h, --help", "Show this help", widthFlagShort)
 
 	out.HelpSection("Examples:")
 	out.HelpExample("structyl docker-build", "Build all Docker images")
@@ -777,7 +777,7 @@ func printDockerCleanUsage() {
 	out.Println("  Uses docker compose down --rmi all under the hood.")
 
 	out.HelpSection("Options:")
-	out.HelpFlag("-h, --help", "Show this help", helpFlagWidthShort)
+	out.HelpFlag("-h, --help", "Show this help", widthFlagShort)
 
 	out.HelpSection("Examples:")
 	out.HelpExample("structyl docker-clean", "Remove all Docker containers and images")
@@ -796,8 +796,8 @@ func printTargetsUsage() {
 	out.Println("  title, available commands, and dependencies.")
 
 	out.HelpSection("Options:")
-	out.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
-	out.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
+	out.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", widthFlagWithValue)
+	out.HelpFlag("-h, --help", "Show this help", widthFlagWithValue)
 
 	out.HelpSection("Examples:")
 	out.HelpExample("structyl targets", "List all targets")

@@ -358,13 +358,13 @@ func printGenericHelp(w *output.Writer) {
 
 func printGlobalFlags(w *output.Writer) {
 	w.HelpSection("Global Flags:")
-	w.HelpFlag("-q, --quiet", "Minimal output (errors only)", helpFlagWidthGlobal)
-	w.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
-	w.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
-	w.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
-	w.HelpFlag("--type=<type>", "Filter targets by type: 'language' or 'auxiliary'", helpFlagWidthGlobal)
-	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
-	w.HelpFlag("--version", "Show version", helpFlagWidthGlobal)
+	w.HelpFlag("-q, --quiet", "Minimal output (errors only)", widthFlagWithValue)
+	w.HelpFlag("-v, --verbose", "Maximum detail", widthFlagWithValue)
+	w.HelpFlag("--docker", "Run in Docker container", widthFlagWithValue)
+	w.HelpFlag("--no-docker", "Disable Docker mode", widthFlagWithValue)
+	w.HelpFlag("--type=<type>", "Filter targets by type: 'language' or 'auxiliary'", widthFlagWithValue)
+	w.HelpFlag("-h, --help", "Show this help", widthFlagWithValue)
+	w.HelpFlag("--version", "Show version", widthFlagWithValue)
 
 	w.HelpSection("Environment:")
 	w.HelpEnvVar("STRUCTYL_DOCKER=1", "Auto-enable Docker mode", 18)

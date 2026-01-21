@@ -50,6 +50,8 @@ func applyTestsDefaults(cfg *Config) {
 }
 
 func applyTargetDefaults(cfg *Config) {
+	// Note: target is a copy (value semantics), so we must reassign to the map
+	// after modification. This is intentional Go map iteration behavior.
 	for name, target := range cfg.Targets {
 		// Default directory is the target name
 		if target.Directory == "" {

@@ -24,7 +24,6 @@ func Compare(expected, actual interface{}, cfg ComparisonConfig) (bool, string) 
 }
 
 func compareValues(expected, actual interface{}, cfg ComparisonConfig, path string) (bool, string) {
-	// Handle nil cases
 	if expected == nil && actual == nil {
 		return true, ""
 	}

@@ -39,7 +39,6 @@ func Run(args []string) int {
 
 	cmd := args[0]
 
-	// Handle help and version first (no update check for meta commands)
 	switch cmd {
 	case "-h", "--help", "help":
 		printUsage()

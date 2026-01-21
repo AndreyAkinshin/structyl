@@ -177,6 +177,68 @@ func TestValidate_MissingTargetTitle(t *testing.T) {
 	}
 }
 
+func TestValidate_TargetTitleTooLong(t *testing.T) {
+	t.Parallel()
+	// Title must be 64 characters or less per specification
+	longTitle := strings.Repeat("a", 65)
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Targets: map[string]TargetConfig{
+			"cs": {
+				Type:  "language",
+				Title: longTitle,
+			},
+		},
+	}
+	_, err := Validate(cfg)
+	if err == nil {
+		t.Fatal("Validate() expected error for title exceeding 64 characters")
+	}
+	valErr, ok := err.(*ValidationError)
+	if !ok {
+		t.Fatalf("expected ValidationError, got %T", err)
+	}
+	if valErr.Field != "targets.cs.title" {
+		t.Errorf("ValidationError.Field = %q, want %q", valErr.Field, "targets.cs.title")
+	}
+}
+
+func TestValidate_TargetTitleBoundaries(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		length  int
+		wantErr bool
+		desc    string
+	}{
+		{63, false, "one below max"},
+		{64, false, "exactly max"},
+		{65, true, "one above max"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+			title := strings.Repeat("a", tt.length)
+			cfg := &Config{
+				Project: ProjectConfig{Name: "myproject"},
+				Targets: map[string]TargetConfig{
+					"cs": {
+						Type:  "language",
+						Title: title,
+					},
+				},
+			}
+			_, err := Validate(cfg)
+			if tt.wantErr && err == nil {
+				t.Errorf("Validate() with %d char title = nil, want error", tt.length)
+			}
+			if !tt.wantErr && err != nil {
+				t.Errorf("Validate() with %d char title = %v, want nil", tt.length, err)
+			}
+		})
+	}
+}
+
 func TestValidate_ValidConfig(t *testing.T) {
 	t.Parallel()
 	cfg := &Config{

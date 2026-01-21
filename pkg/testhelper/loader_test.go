@@ -554,6 +554,31 @@ func TestLoadTestCase_InvalidJSON_ReturnsError(t *testing.T) {
 	if err == nil {
 		t.Error("LoadTestCase() expected error for invalid JSON")
 	}
+
+	// Verify error includes filename for debugging context
+	if err != nil && !strings.Contains(err.Error(), "invalid.json") {
+		t.Errorf("error should contain filename, got: %v", err)
+	}
+}
+
+func TestLoadTestCase_EmptyFilename_ReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	// Create a file named ".json" which results in empty name after suffix trim
+	testFile := filepath.Join(tmpDir, ".json")
+
+	validJSON := `{"input": {}, "output": {}}`
+	if err := os.WriteFile(testFile, []byte(validJSON), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadTestCase(testFile)
+	if err == nil {
+		t.Error("LoadTestCase() expected error for empty filename")
+	}
+
+	if err != nil && !strings.Contains(err.Error(), "name cannot be empty") {
+		t.Errorf("error should mention empty name, got: %v", err)
+	}
 }
 
 func TestLoadTestCase_FileNotFound_ReturnsTestCaseNotFoundError(t *testing.T) {

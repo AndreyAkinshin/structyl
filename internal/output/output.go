@@ -628,32 +628,45 @@ func (w *Writer) printTaskResultLine(t TaskResult) {
 	duration := FormatDuration(t.Duration)
 	testCountsStr := FormatTestCounts(t.TestCounts)
 
+	w.printTaskStatus(t.Name, t.Success, duration)
+	w.printTaskSuffix(testCountsStr, t.Error)
+	w.Print("\n")
+}
+
+// printTaskStatus prints the status indicator, name, and duration for a task.
+func (w *Writer) printTaskStatus(name string, success bool, duration string) {
 	if w.color {
-		if t.Success {
-			w.Print("    %s✓%s %-12s %s%s%s", green, reset, t.Name, dim, duration, reset)
-		} else {
-			w.Print("    %s✗%s %-12s %s%s%s", red, reset, t.Name, dim, duration, reset)
+		indicator := green + "✓" + reset
+		if !success {
+			indicator = red + "✗" + reset
 		}
-
-		if testCountsStr != "" {
-			w.Print("    %s(%s)%s", dim, testCountsStr, reset)
-		} else if t.Error != nil {
-			w.Print("  %s(%s)%s", dim, t.Error.Error(), reset)
-		}
+		w.Print("    %s %-12s %s%s%s", indicator, name, dim, duration, reset)
 	} else {
-		if t.Success {
-			w.Print("    + %-12s %s", t.Name, duration)
-		} else {
-			w.Print("    x %-12s %s", t.Name, duration)
+		indicator := "+"
+		if !success {
+			indicator = "x"
 		}
+		w.Print("    %s %-12s %s", indicator, name, duration)
+	}
+}
 
-		if testCountsStr != "" {
+// printTaskSuffix prints the test counts or error suffix for a task.
+func (w *Writer) printTaskSuffix(testCountsStr string, err error) {
+	if testCountsStr != "" {
+		if w.color {
+			w.Print("    %s(%s)%s", dim, testCountsStr, reset)
+		} else {
 			w.Print("    (%s)", testCountsStr)
-		} else if t.Error != nil {
-			w.Print("  (%s)", t.Error.Error())
+		}
+		return
+	}
+	if err != nil {
+		if w.color {
+			w.Print("  %s(%s)%s", dim, err.Error(), reset)
+		} else {
+			w.Print("  (%s)", err.Error())
 		}
 	}
-	w.Print("\n")
 }
 
 // printTestCountsSummary prints the aggregated test counts summary line.

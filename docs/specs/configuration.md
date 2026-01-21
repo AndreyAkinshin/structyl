@@ -322,6 +322,8 @@ Mise build tool integration configuration.
   - Docker commands: `docker-build`, `docker-clean`
   - Test utilities: `test-summary`
 
+  > **Note:** These lists reflect the current command vocabulary. If new commands are added in future versions, this documentation will be updated accordingly.
+
 - When `auto_generate: false` is explicitly set, Structyl does not auto-regenerate `mise.toml`. Use `structyl mise sync` to manually regenerate when needed.
 - `extra_tools` entries are merged with toolchain-detected tools and written to `.mise.toml`. Keys are tool names, values are version specifiers (e.g., `"latest"`, `"1.54.0"`, `">=1.50"`).
 

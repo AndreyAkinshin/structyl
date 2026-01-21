@@ -93,8 +93,9 @@ const (
 // - mise.auto_generate is nil (not specified)
 // - mise.auto_generate is explicitly true
 func isMiseAutoGenerateEnabled(cfg *config.Config) bool {
+	const defaultAutoGenerate = true
 	if cfg.Mise == nil || cfg.Mise.AutoGenerate == nil {
-		return true
+		return defaultAutoGenerate
 	}
 	return *cfg.Mise.AutoGenerate
 }

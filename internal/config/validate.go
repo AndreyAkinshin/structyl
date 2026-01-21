@@ -57,6 +57,8 @@ func Validate(cfg *Config) (warnings []string, err error) {
 	return nil, nil
 }
 
+// validateCI validates CI configuration steps.
+// Both nil CI config and empty steps array are valid (no CI pipeline configured).
 func validateCI(cfg *Config) error {
 	if cfg.CI == nil || len(cfg.CI.Steps) == 0 {
 		return nil

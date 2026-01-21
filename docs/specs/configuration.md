@@ -63,6 +63,8 @@ Project metadata used in documentation and package generation.
 - Hyphens MUST NOT be trailing (`my-project-` is invalid)
 - Pattern: `^[a-z][a-z0-9]*(-[a-z0-9]+)*$`
 
+**Validation Error:** Invalid project names cause exit code 2 with message: `project.name: must match pattern ^[a-z][a-z0-9]*(-[a-z0-9]+)*$`
+
 ### `version`
 
 Version management configuration. See [version-management.md](version-management.md) for details.
@@ -273,7 +275,8 @@ Mise build tool integration configuration.
 
 **Semantics:**
 
-- When `auto_generate: true`, Structyl regenerates `.mise.toml` before executing any target command (build, test, check, etc.). This ensures mise tool versions stay synchronized with toolchain requirements.
+- When `auto_generate: true` (or absent/omitted), Structyl regenerates `.mise.toml` before executing any target command (build, test, check, etc.). This ensures mise tool versions stay synchronized with toolchain requirements.
+- When `auto_generate: false` is explicitly set, Structyl does not auto-regenerate `mise.toml`. Use `structyl mise sync` to manually regenerate when needed.
 - `extra_tools` entries are merged with toolchain-detected tools and written to `.mise.toml`. Keys are tool names, values are version specifiers (e.g., `"latest"`, `"1.54.0"`, `">=1.50"`).
 
 ### `release`
@@ -297,8 +300,10 @@ Release workflow configuration.
 | `tag_format`   | string   | `v{version}`   | Git tag format (`{version}` replaced) |
 | `extra_tags`   | string[] | `[]`           | Additional tags to create             |
 | `pre_commands` | string[] | `[]`           | Commands to run before release        |
-| `remote`       | string   | `origin`       | Git remote for push                   |
+| `remote`       | string   | `origin`       | Git remote for `--push` flag          |
 | `branch`       | string   | `main`         | Branch to release from                |
+
+> **Note:** The `remote` field specifies the git remote used by `structyl release --push`. If omitted, defaults to `origin`.
 
 ### `ci`
 
@@ -558,7 +563,7 @@ Or use the local schema file (relative to project root):
 }
 ```
 
-> **Note:** The local schema file is named `config.schema.json` following the `.schema.json` naming convention, but the published URL uses `config.json` for brevity. Both refer to the same schema.
+> **Note:** The local schema file is named `config.schema.json` following the `.schema.json` naming convention. The published URL (`config.json`) redirects to this same file on the documentation server. Use the published URL for external references and the local path when the schema is bundled with your project.
 
 ### Schema vs Runtime Validation
 

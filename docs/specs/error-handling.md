@@ -254,22 +254,24 @@ Exit code: `3`
 
 ## Partial Failure Summary
 
-For multi-target operations, Structyl prints a summary:
+For multi-target operations, Structyl prints a summary at the point of failure (due to fail-fast behavior):
 
 ```
 ════════════════════════════════════════
 Summary: test
 ════════════════════════════════════════
-Total time: 45s
-Succeeded: 5 (cs, go, kt, py, ts)
-Failed: 2 (r, rs)
+Total time: 12s
+Succeeded: 3 (cs, go, kt)
+Failed: 1 (py)
 Skipped: 0
+Not started: 3 (r, rs, ts)
 
 Failed targets:
-  r:  Test failed: test_center.R:42
-  rs: Test failed: 2 tests failed
+  py: Test failed: test_center.py:42
 ════════════════════════════════════════
 ```
+
+Note: Due to fail-fast behavior, exactly one target can fail before execution stops. Any targets that were not yet started when the failure occurred are listed as "Not started".
 
 ## Logging
 

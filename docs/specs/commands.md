@@ -21,7 +21,7 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 | `clean`        | Clean build artifacts                          |
 | `restore`      | Restore/install dependencies                   |
 | `build`        | Build targets                                  |
-| `build:release`| Build targets (release mode)                   |
+| `build:release`| Build targets (release mode)†                  |
 | `test`         | Run tests                                      |
 | `test:coverage`| Run tests with coverage                        |
 | `check`        | Run static analysis (lint, typecheck, format-check) |
@@ -32,6 +32,8 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 | `pack`         | Create package                                 |
 | `publish`      | Publish package to registry                    |
 | `publish:dry`  | Dry-run publish (validate without uploading)   |
+
+† `build:release` is only provided by toolchains with distinct release/optimized build modes (e.g., `cargo`, `dotnet`, `swift`, `make`, `zig`). Toolchains without a native release mode do not define this variant. See [toolchains.md](toolchains.md) for per-toolchain availability.
 
 <!-- VitePress component: Renders full standard command reference table in docs site (non-normative) -->
 <StandardCommands />
@@ -417,7 +419,7 @@ structyl mise sync  # Regenerate mise.toml
 | --------------- | ---------------------------------------------------------- |
 | `--docker`      | Run command in Docker container                            |
 | `--no-docker`   | Disable Docker mode (overrides `STRUCTYL_DOCKER` env var)  |
-| `--type=<type>` | Filter targets by type (`language` or `auxiliary`)         |
+| `--type=<type>` | Filter targets by type: `language` or `auxiliary` (invalid values cause exit code 2) |
 | `-q, --quiet`   | Minimal output (errors only)                               |
 | `-v, --verbose` | Maximum detail                                             |
 | `-h, --help`    | Show help message                                          |
@@ -799,12 +801,17 @@ structyl test cs --filter=Unit
 # Executes: dotnet run --project Pragmastat.Tests --filter=Unit
 ```
 
-Use `--` to separate Structyl flags from command arguments:
+Use `--` to separate Structyl flags from command arguments. All arguments after `--` are passed directly to the underlying command without any processing by Structyl:
 
 ```bash
 structyl build cs -- --help
 # Executes: dotnet build --help
+
+structyl --docker build cs -- --verbose --debug
+# Structyl processes --docker, passes --verbose --debug to the build command
 ```
+
+This is useful when command arguments might be interpreted as Structyl flags.
 
 ## Exit Codes
 

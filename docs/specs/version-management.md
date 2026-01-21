@@ -342,11 +342,11 @@ This command:
 
 | Flag       | Description                                              |
 | ---------- | -------------------------------------------------------- |
-| `--push`   | Push commit and tags to `origin` remote                  |
+| `--push`   | Push commit and tags to configured remote                |
 | `--dry-run`| Print what would be done without making changes          |
 | `--force`  | Allow release with uncommitted changes (use with care)   |
 
-The `--push` flag always pushes to the `origin` remote. To push to a different remote, use manual git commands after `structyl release`.
+The `--push` flag pushes to the remote specified by `release.remote` in config (defaults to `origin`).
 
 ### Go Module Tag
 

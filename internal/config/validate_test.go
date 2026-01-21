@@ -938,3 +938,82 @@ func TestValidate_NonULPTolerance_Fractional_Valid(t *testing.T) {
 		})
 	}
 }
+
+func TestValidate_CIStepCyclicDependency_ReturnsError(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name  string
+		steps []CIStep
+	}{
+		{
+			name: "simple_cycle_A_B_A",
+			steps: []CIStep{
+				{Name: "a", Target: "rs", Command: "build", DependsOn: []string{"b"}},
+				{Name: "b", Target: "rs", Command: "test", DependsOn: []string{"a"}},
+			},
+		},
+		{
+			name: "self_reference",
+			steps: []CIStep{
+				{Name: "a", Target: "rs", Command: "build", DependsOn: []string{"a"}},
+			},
+		},
+		{
+			name: "multi_node_cycle_A_B_C_A",
+			steps: []CIStep{
+				{Name: "a", Target: "rs", Command: "build", DependsOn: []string{"c"}},
+				{Name: "b", Target: "rs", Command: "test", DependsOn: []string{"a"}},
+				{Name: "c", Target: "rs", Command: "check", DependsOn: []string{"b"}},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			cfg := &Config{
+				Project: ProjectConfig{Name: "myproject"},
+				Targets: map[string]TargetConfig{
+					"rs": {Type: "language", Title: "Rust"},
+				},
+				CI: &CIConfig{Steps: tt.steps},
+			}
+
+			_, err := Validate(cfg)
+			if err == nil {
+				t.Fatal("Validate() expected error for cyclic CI step dependency")
+			}
+
+			valErr, ok := err.(*ValidationError)
+			if !ok {
+				t.Fatalf("expected ValidationError, got %T", err)
+			}
+			if valErr.Field != "ci.steps" {
+				t.Errorf("ValidationError.Field = %q, want %q", valErr.Field, "ci.steps")
+			}
+		})
+	}
+}
+
+func TestValidate_CIStepDAG_Succeeds(t *testing.T) {
+	t.Parallel()
+	// Valid DAG: a -> b -> c (no cycle)
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Targets: map[string]TargetConfig{
+			"rs": {Type: "language", Title: "Rust"},
+		},
+		CI: &CIConfig{
+			Steps: []CIStep{
+				{Name: "a", Target: "rs", Command: "build"},
+				{Name: "b", Target: "rs", Command: "test", DependsOn: []string{"a"}},
+				{Name: "c", Target: "rs", Command: "check", DependsOn: []string{"b"}},
+			},
+		},
+	}
+
+	_, err := Validate(cfg)
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil for valid DAG", err)
+	}
+}

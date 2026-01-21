@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"regexp"
+
+	"github.com/AndreyAkinshin/structyl/internal/topsort"
 )
 
 // Validation limits.
@@ -120,6 +122,18 @@ func validateCI(cfg *Config) error {
 					Message: fmt.Sprintf("references undefined step %q", dep),
 				}
 			}
+		}
+	}
+
+	// Check for cycles in depends_on using topological sort
+	graph := make(topsort.Graph)
+	for _, step := range cfg.CI.Steps {
+		graph[step.Name] = step.DependsOn
+	}
+	if err := topsort.Validate(graph); err != nil {
+		return &ValidationError{
+			Field:   "ci.steps",
+			Message: fmt.Sprintf("circular dependency: %v", err),
 		}
 	}
 

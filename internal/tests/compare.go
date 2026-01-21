@@ -32,7 +32,6 @@ func compareValues(expected, actual interface{}, cfg ComparisonConfig, path stri
 		return false, fmt.Sprintf("%s: expected %v, got %v", pathStr(path), expected, actual)
 	}
 
-	// After nil guards above, both values are non-nil.
 	// Handle special float values represented as strings
 	if str, ok := expected.(string); ok {
 		if isSpecialFloat(str) {

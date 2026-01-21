@@ -148,14 +148,15 @@ func findMatches(dir, pattern string) ([]string, error) {
 			return err
 		}
 
-		// For simple patterns like "*.json", also check full pattern
-		if !matched && strings.Contains(pattern, "**") {
-			// Simple double-star support: match any .json file
-			if strings.HasSuffix(pattern, "*.json") && strings.HasSuffix(path, ".json") {
+		// Fallback matching for patterns not handled by filepath.Match
+		if !matched && strings.HasSuffix(path, ".json") {
+			if strings.Contains(pattern, "**") && strings.HasSuffix(pattern, "*.json") {
+				// Simplified double-star: match any .json file recursively
+				matched = true
+			} else if strings.HasSuffix(pattern, ".json") {
+				// Direct .json suffix match
 				matched = true
 			}
-		} else if !matched && strings.HasSuffix(pattern, ".json") && strings.HasSuffix(path, ".json") {
-			matched = true
 		}
 
 		if matched {

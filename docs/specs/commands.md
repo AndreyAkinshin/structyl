@@ -35,10 +35,10 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 
 † `build:release` is only provided by toolchains with distinct release/optimized build modes. Toolchains providing `build:release`: `cargo`, `dotnet`, `make`, `swift`, `zig`. Toolchains without a native release mode do not define this variant. See [toolchains.md](toolchains.md) for per-toolchain details.
 
-<!-- VitePress component: Renders full standard command reference table in docs site (non-normative) -->
+<!-- VitePress component: Renders standard command reference table in docs site (non-normative) -->
 <StandardCommands />
 
-<!-- Fallback: If the component above does not render, see [toolchains.md](toolchains.md) for standard command definitions per toolchain. -->
+For standard command definitions per toolchain, see [toolchains.md](toolchains.md).
 
 > **Note:** The `test:coverage` command is part of the standard vocabulary but **no built-in toolchain provides a default implementation**. Projects requiring coverage MUST define a custom `test:coverage` command in target configuration. This command is OPTIONAL and not required for toolchain conformance.
 >
@@ -233,6 +233,9 @@ Initializes a new Structyl project in the current directory. This command is ide
 4. Creates `.structyl/setup.sh` and `.structyl/setup.ps1` bootstrap scripts
 5. Creates `.structyl/AGENTS.md` for LLM assistance (see below)
 6. Creates `.structyl/toolchains.json` with toolchain definitions
+7. Creates `.structyl/PROJECT_VERSION` file with initial version `0.1.0`
+8. Creates `tests/` directory
+9. Updates `.gitignore` with Structyl entries
 
 **`.structyl/AGENTS.md`** contains project-specific instructions for LLM agents, including:
 - Directory structure and target layout
@@ -241,9 +244,6 @@ Initializes a new Structyl project in the current directory. This command is ide
 - Common workflows and debugging tips
 
 This file complements the root `AGENTS.md` with project-specific context.
-7. Creates `.structyl/PROJECT_VERSION` file with initial version `0.1.0`
-8. Creates `tests/` directory
-9. Updates `.gitignore` with Structyl entries
 
 **Auto-detection:** The command auto-detects existing language directories (`rs/`, `go/`, `cs/`, `py/`, `ts/`, `kt/`, `java/`) and configures appropriate targets with toolchains.
 

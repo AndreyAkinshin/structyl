@@ -92,8 +92,7 @@ func (e *Executor) RunTaskWithCapture(ctx context.Context, task string, args []s
 
 // RunTaskOutput executes a mise task and returns the output.
 func (e *Executor) RunTaskOutput(ctx context.Context, task string, args []string) (string, error) {
-	cmdArgs := []string{"run", task}
-	cmdArgs = append(cmdArgs, args...)
+	cmdArgs := buildRunArgs(task, args)
 
 	cmd := exec.CommandContext(ctx, "mise", cmdArgs...)
 	cmd.Dir = e.projectRoot

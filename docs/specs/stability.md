@@ -93,13 +93,16 @@ Structyl logs warnings when deprecated features are used.
 - CLI commands and flags documented in [commands.md](commands.md)
 - Configuration schema documented in [configuration.md](configuration.md)
 - Exit codes documented in [error-handling.md](error-handling.md)
+- Skip error reason identifiers: `disabled`, `command_not_found`, `script_not_found` (see [error-handling.md](error-handling.md#skip-errors))
 
 ### Unstable (May Change)
 
 - `internal/*`: All internal packages
 - Undocumented CLI behavior
 - Debug output format
-- `CompareOptions.String()` output format (explicitly unstable)
+- `TestCase.String()` output format (explicitly unstable, see code comment)
+- `CompareOptions.String()` output format (explicitly unstable, see code comment)
+- `structyl targets` output format (intended for human consumption, not machine parsing)
 - Log message wording (structure is stable, wording is not)
 
 ## Breaking Change Process

@@ -28,7 +28,7 @@ jobs:
         run: mise run restore
 
       - name: Run linter
-        run: mise run lint
+        run: mise run check:lint
 
       - name: Validate schemas
         run: mise run check:schema

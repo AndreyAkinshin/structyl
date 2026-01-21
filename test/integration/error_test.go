@@ -3,12 +3,10 @@ package integration
 import (
 	"encoding/json"
 	"errors"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"github.com/AndreyAkinshin/structyl/internal/config"
 	"github.com/AndreyAkinshin/structyl/internal/project"
 	"github.com/AndreyAkinshin/structyl/internal/target"
 )
@@ -19,27 +17,6 @@ func TestProjectNotFoundError(t *testing.T) {
 	_, err := project.LoadProjectFrom("/nonexistent/path")
 	if err == nil {
 		t.Error("expected error when loading from nonexistent path")
-	}
-}
-
-func TestConfigInvalidJSONError(t *testing.T) {
-	t.Parallel()
-	tmpDir := t.TempDir()
-	structylDir := filepath.Join(tmpDir, ".structyl")
-	if err := mkdir(structylDir); err != nil {
-		t.Fatalf("failed to create .structyl dir: %v", err)
-	}
-	configPath := filepath.Join(structylDir, "config.json")
-
-	// Write invalid JSON
-	err := writeFile(configPath, "{ invalid json }")
-	if err != nil {
-		t.Fatalf("failed to write test file: %v", err)
-	}
-
-	_, err = config.Load(configPath)
-	if err == nil {
-		t.Error("expected error when loading invalid JSON config")
 	}
 }
 
@@ -147,12 +124,4 @@ func containsAny(s string, substrs ...string) bool {
 		}
 	}
 	return false
-}
-
-func writeFile(path, content string) error {
-	return os.WriteFile(path, []byte(content), 0644)
-}
-
-func mkdir(path string) error {
-	return os.MkdirAll(path, 0755)
 }

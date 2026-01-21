@@ -192,42 +192,17 @@ func TestValidate_MissingTargetTitle(t *testing.T) {
 	}
 }
 
-func TestValidate_TargetTitleTooLong(t *testing.T) {
-	t.Parallel()
-	// Title must be 64 characters or less per specification
-	longTitle := strings.Repeat("a", 65)
-	cfg := &Config{
-		Project: ProjectConfig{Name: "myproject"},
-		Targets: map[string]TargetConfig{
-			"cs": {
-				Type:  "language",
-				Title: longTitle,
-			},
-		},
-	}
-	_, err := Validate(cfg)
-	if err == nil {
-		t.Fatal("Validate() expected error for title exceeding 64 characters")
-	}
-	valErr, ok := err.(*ValidationError)
-	if !ok {
-		t.Fatalf("expected ValidationError, got %T", err)
-	}
-	if valErr.Field != "targets.cs.title" {
-		t.Errorf("ValidationError.Field = %q, want %q", valErr.Field, "targets.cs.title")
-	}
-}
-
 func TestValidate_TargetTitleBoundaries(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
-		length  int
-		wantErr bool
-		desc    string
+		length    int
+		wantErr   bool
+		wantField string // expected ValidationError.Field when wantErr is true
+		desc      string
 	}{
-		{63, false, "one below max"},
-		{64, false, "exactly max"},
-		{65, true, "one above max"},
+		{63, false, "", "one below max"},
+		{64, false, "", "exactly max"},
+		{65, true, "targets.cs.title", "one above max"},
 	}
 
 	for _, tt := range tests {
@@ -244,10 +219,20 @@ func TestValidate_TargetTitleBoundaries(t *testing.T) {
 				},
 			}
 			_, err := Validate(cfg)
-			if tt.wantErr && err == nil {
-				t.Errorf("Validate() with %d char title = nil, want error", tt.length)
-			}
-			if !tt.wantErr && err != nil {
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("Validate() with %d char title = nil, want error", tt.length)
+					return
+				}
+				var ve *ValidationError
+				if !errors.As(err, &ve) {
+					t.Errorf("Validate() error type = %T, want *ValidationError", err)
+					return
+				}
+				if ve.Field != tt.wantField {
+					t.Errorf("ValidationError.Field = %q, want %q", ve.Field, tt.wantField)
+				}
+			} else if err != nil {
 				t.Errorf("Validate() with %d char title = %v, want nil", tt.length, err)
 			}
 		})

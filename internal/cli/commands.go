@@ -150,18 +150,23 @@ func runViaMise(proj *project.Project, cmd string, targetName string, args []str
 	executor := mise.NewExecutor(proj.Root)
 	executor.SetVerbose(opts.Verbose)
 
-	// Error details are output by mise directly to stderr; we only need the exit code.
 	if err := executor.RunTask(ctx, task, args); err != nil {
-		// If no target was specified and cmd matches a known target name,
-		// the user likely typed "structyl cs" instead of "structyl build cs"
-		if registry != nil && targetName == "" {
-			if _, exists := registry.Get(cmd); exists {
-				out.Hint("Did you mean 'structyl build %s'?", cmd)
-			}
-		}
+		maybeHintTypoCorrection(cmd, targetName, registry)
 		return internalerrors.ExitRuntimeError
 	}
 	return 0
+}
+
+// maybeHintTypoCorrection suggests a correction when the user may have typed
+// a target name instead of a command name (e.g., "structyl cs" instead of
+// "structyl build cs").
+func maybeHintTypoCorrection(cmd, targetName string, registry *target.Registry) {
+	if registry == nil || targetName != "" {
+		return
+	}
+	if _, exists := registry.Get(cmd); exists {
+		out.Hint("Did you mean 'structyl build %s'?", cmd)
+	}
 }
 
 // cmdUnified handles both target-specific and cross-target commands.

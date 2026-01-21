@@ -93,7 +93,7 @@ func (r *Resolver) resolveBase(name string) (*Toolchain, error) {
 		return tc, nil
 	}
 
-	return nil, fmt.Errorf("base toolchain %q not found", name)
+	return nil, fmt.Errorf("unknown base toolchain: %q", name)
 }
 
 // ValidateTargetToolchains validates all target toolchain references.

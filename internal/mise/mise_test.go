@@ -455,6 +455,96 @@ func TestWriteTasks_SequenceWithParallelSubtasks(t *testing.T) {
 	}
 }
 
+func TestGetCommandsToGenerate_NilToolchains_ReturnsFallback(t *testing.T) {
+	t.Parallel()
+	// When loaded toolchains is nil, getCommandsToGenerate should return fallback defaults
+	commands := getCommandsToGenerate(nil)
+
+	if len(commands) == 0 {
+		t.Fatal("getCommandsToGenerate(nil) returned empty slice, want fallback defaults")
+	}
+
+	// Verify fallback includes expected standard commands
+	expected := map[string]bool{
+		"clean":         true,
+		"restore":       true,
+		"build":         true,
+		"build:release": true,
+		"test":          true,
+		"check":         true,
+		"check:fix":     true,
+		"bench":         true,
+		"demo":          true,
+		"doc":           true,
+		"pack":          true,
+	}
+
+	for _, cmd := range commands {
+		if expected[cmd] {
+			delete(expected, cmd)
+		}
+	}
+
+	if len(expected) > 0 {
+		t.Errorf("missing expected commands in fallback: %v", expected)
+	}
+}
+
+func TestGetAggregateCommands_NilToolchains_ReturnsFallback(t *testing.T) {
+	t.Parallel()
+	// When loaded toolchains is nil, getAggregateCommands should return fallback defaults
+	commands := getAggregateCommands(nil)
+
+	if len(commands) == 0 {
+		t.Fatal("getAggregateCommands(nil) returned empty slice, want fallback defaults")
+	}
+
+	// Verify fallback includes expected aggregate commands
+	expected := map[string]bool{
+		"clean":         true,
+		"restore":       true,
+		"build":         true,
+		"build:release": true,
+		"test":          true,
+		"check":         true,
+		"check:fix":     true,
+	}
+
+	for _, cmd := range commands {
+		if expected[cmd] {
+			delete(expected, cmd)
+		}
+	}
+
+	if len(expected) > 0 {
+		t.Errorf("missing expected commands in fallback: %v", expected)
+	}
+}
+
+func TestGetCIPipeline_NilToolchains_ReturnsFallback(t *testing.T) {
+	t.Parallel()
+	// When loaded toolchains is nil, getCIPipeline should return fallback defaults
+	pipeline := getCIPipeline(nil)
+
+	if len(pipeline) == 0 {
+		t.Fatal("getCIPipeline(nil) returned empty slice, want fallback defaults")
+	}
+
+	// Verify fallback includes expected CI pipeline commands
+	expected := []string{"clean", "restore", "check", "build", "test"}
+
+	if len(pipeline) != len(expected) {
+		t.Errorf("getCIPipeline(nil) length = %d, want %d", len(pipeline), len(expected))
+	}
+
+	for i, cmd := range expected {
+		if i >= len(pipeline) || pipeline[i] != cmd {
+			t.Errorf("getCIPipeline(nil)[%d] = %v, want %q", i, pipeline, cmd)
+			break
+		}
+	}
+}
+
 func TestGetResolvedCommands_WithExtends(t *testing.T) {
 	t.Parallel()
 

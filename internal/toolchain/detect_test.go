@@ -7,6 +7,8 @@ import (
 )
 
 func TestDetect(t *testing.T) {
+	// Note: Lockfile precedence tests (pnpm/yarn/bun over npm, uv/poetry over python)
+	// are covered in TestDetect_Priority with explicit descriptions.
 	tests := []struct {
 		name     string
 		files    []string
@@ -16,12 +18,7 @@ func TestDetect(t *testing.T) {
 		{"cargo", []string{"Cargo.toml"}, "cargo", true},
 		{"go", []string{"go.mod"}, "go", true},
 		{"npm", []string{"package.json"}, "npm", true},
-		{"pnpm", []string{"pnpm-lock.yaml", "package.json"}, "pnpm", true}, // pnpm takes precedence
-		{"yarn", []string{"yarn.lock", "package.json"}, "yarn", true},
-		{"bun", []string{"bun.lockb", "package.json"}, "bun", true},
 		{"python pyproject", []string{"pyproject.toml"}, "python", true},
-		{"uv", []string{"uv.lock", "pyproject.toml"}, "uv", true}, // uv takes precedence
-		{"poetry", []string{"poetry.lock", "pyproject.toml"}, "poetry", true},
 		{"dotnet csproj", []string{"MyProject.csproj"}, "dotnet", true},
 		{"dotnet fsproj", []string{"MyProject.fsproj"}, "dotnet", true},
 		{"gradle kotlin", []string{"build.gradle.kts"}, "gradle", true},

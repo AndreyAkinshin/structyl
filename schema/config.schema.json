@@ -94,7 +94,7 @@
       },
       "additionalProperties": {
         "type": "object",
-        "required": ["title"],
+        "required": ["type", "title"],
         "properties": {
           "type": {
             "type": "string",

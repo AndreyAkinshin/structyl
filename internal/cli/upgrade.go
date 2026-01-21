@@ -162,8 +162,17 @@ func handleCheckMode(w *output.Writer, pinnedVersion string) int {
 }
 
 // performUpgrade updates the pinned version and installs it.
+//
+// Execution order is critical:
+//  1. Resolve nightly → actual version (must happen first)
+//  2. Validate version format (must happen after resolution)
+//  3. Install version (must succeed before writing version file)
+//  4. Write pinned version (only after successful install)
+//  5. Update project files (only after version is pinned)
+//
+// This ordering ensures .structyl/version never points to a missing version.
 func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string) int {
-	// Resolve "nightly" to actual nightly version
+	// Step 1: Resolve "nightly" to actual nightly version
 	if targetVersion == "nightly" {
 		w.Println("Fetching nightly version...")
 		nightlyVer, err := fetchNightlyVersion()
@@ -174,7 +183,7 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 		targetVersion = nightlyVer
 	}
 
-	// Validate target version (unless nightly)
+	// Step 2: Validate target version (unless nightly)
 	if !isNightlyVersion(targetVersion) {
 		if err := version.Validate(targetVersion); err != nil {
 			w.ErrorPrefix("invalid version format: %v", err)
@@ -188,11 +197,8 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 		return 0
 	}
 
-	// Check if version is installed
+	// Step 3: Install the version (must succeed before writing version file)
 	alreadyInstalled := isVersionInstalledFunc(targetVersion)
-
-	// Install the version BEFORE updating version marker
-	// This ensures the version file only points to actually installed versions
 	if !alreadyInstalled {
 		w.Println("Installing version %s...", targetVersion)
 		if err := installVersionFunc(targetVersion); err != nil {
@@ -220,13 +226,13 @@ func performUpgrade(w *output.Writer, root, currentVersion, targetVersion string
 		w.Println("")
 	}
 
-	// Write new pinned version (only after successful installation)
+	// Step 4: Write new pinned version (only after successful installation)
 	if err := writePinnedVersion(root, targetVersion); err != nil {
 		w.ErrorPrefix("%v", err)
 		return 1
 	}
 
-	// Regenerate install scripts and AGENTS.md
+	// Step 5: Regenerate install scripts and AGENTS.md
 	structylDir := filepath.Join(root, project.ConfigDirName)
 	updateProjectFiles(structylDir)
 

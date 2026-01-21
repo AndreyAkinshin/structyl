@@ -1,6 +1,10 @@
 package config
 
-import "testing"
+import (
+	"fmt"
+	"strings"
+	"testing"
+)
 
 func TestValidateProjectName_Valid(t *testing.T) {
 	t.Parallel()
@@ -66,13 +70,7 @@ func TestValidateProjectName_LengthBoundaries(t *testing.T) {
 		t.Run(tt.desc, func(t *testing.T) {
 			t.Parallel()
 
-			name := ""
-			for i := 0; i < tt.length; i++ {
-				name += "a"
-			}
-			if len(name) != tt.length {
-				t.Fatalf("test setup error: name length = %d, want %d", len(name), tt.length)
-			}
+			name := strings.Repeat("a", tt.length)
 
 			err := ValidateProjectName(name)
 			if tt.wantErr && err == nil {
@@ -763,6 +761,176 @@ func TestValidate_TargetNames_CaseSensitive(t *testing.T) {
 			}
 			if !tt.wantErr && err != nil {
 				t.Errorf("Validate() unexpected error = %v", err)
+			}
+		})
+	}
+}
+
+func TestValidate_VersionPattern_Valid(t *testing.T) {
+	t.Parallel()
+	validPatterns := []string{
+		`version\s*=\s*"([^"]+)"`, // Standard version pattern
+		`^(\d+\.\d+\.\d+)$`,       // Semver pattern
+		`v(\d+)`,                  // Simple version prefix
+		`"version":\s*"([^"]+)"`,  // JSON-style
+	}
+	for _, pattern := range validPatterns {
+		t.Run(pattern, func(t *testing.T) {
+			t.Parallel()
+			cfg := &Config{
+				Project: ProjectConfig{Name: "myproject"},
+				Version: &VersionConfig{
+					Files: []VersionFileConfig{
+						{Path: "Cargo.toml", Pattern: pattern, Replace: "${1}"},
+					},
+				},
+			}
+			_, err := Validate(cfg)
+			if err != nil {
+				t.Errorf("Validate() with pattern %q error = %v, want nil", pattern, err)
+			}
+		})
+	}
+}
+
+func TestValidate_VersionPattern_Invalid(t *testing.T) {
+	t.Parallel()
+	invalidPatterns := []struct {
+		pattern string
+		desc    string
+	}{
+		{`[invalid`, "unclosed bracket"},
+		{`(unclosed`, "unclosed paren"},
+		{`*invalid`, "invalid quantifier"},
+		{`(?P<invalid`, "unclosed named group"},
+	}
+	for _, tt := range invalidPatterns {
+		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+			cfg := &Config{
+				Project: ProjectConfig{Name: "myproject"},
+				Version: &VersionConfig{
+					Files: []VersionFileConfig{
+						{Path: "Cargo.toml", Pattern: tt.pattern, Replace: "${1}"},
+					},
+				},
+			}
+			_, err := Validate(cfg)
+			if err == nil {
+				t.Errorf("Validate() with pattern %q expected error, got nil", tt.pattern)
+				return
+			}
+			valErr, ok := err.(*ValidationError)
+			if !ok {
+				t.Errorf("expected ValidationError, got %T", err)
+				return
+			}
+			if valErr.Field != "version.files[0].pattern" {
+				t.Errorf("ValidationError.Field = %q, want %q", valErr.Field, "version.files[0].pattern")
+			}
+		})
+	}
+}
+
+func TestValidate_VersionPattern_MultipleFiles(t *testing.T) {
+	t.Parallel()
+	// Second file has invalid pattern
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Version: &VersionConfig{
+			Files: []VersionFileConfig{
+				{Path: "Cargo.toml", Pattern: `version = "([^"]+)"`, Replace: "${1}"},
+				{Path: "package.json", Pattern: `[invalid`, Replace: "${1}"},
+			},
+		},
+	}
+	_, err := Validate(cfg)
+	if err == nil {
+		t.Fatal("Validate() expected error for invalid pattern in second file")
+	}
+	valErr, ok := err.(*ValidationError)
+	if !ok {
+		t.Fatalf("expected ValidationError, got %T", err)
+	}
+	if valErr.Field != "version.files[1].pattern" {
+		t.Errorf("ValidationError.Field = %q, want %q", valErr.Field, "version.files[1].pattern")
+	}
+}
+
+func TestValidate_ULPTolerance_Integer_Valid(t *testing.T) {
+	t.Parallel()
+	integerValues := []float64{0, 1, 5, 10, 100}
+	for _, val := range integerValues {
+		t.Run(fmt.Sprintf("%.0f", val), func(t *testing.T) {
+			t.Parallel()
+			cfg := &Config{
+				Project: ProjectConfig{Name: "myproject"},
+				Tests: &TestsConfig{
+					Comparison: &ComparisonConfig{
+						ToleranceMode:  "ulp",
+						FloatTolerance: val,
+					},
+				},
+			}
+			_, err := Validate(cfg)
+			if err != nil {
+				t.Errorf("Validate() with ulp tolerance %.0f error = %v, want nil", val, err)
+			}
+		})
+	}
+}
+
+func TestValidate_ULPTolerance_Fractional_Invalid(t *testing.T) {
+	t.Parallel()
+	fractionalValues := []float64{0.5, 1.1, 2.5, 10.3}
+	for _, val := range fractionalValues {
+		t.Run(fmt.Sprintf("%g", val), func(t *testing.T) {
+			t.Parallel()
+			cfg := &Config{
+				Project: ProjectConfig{Name: "myproject"},
+				Tests: &TestsConfig{
+					Comparison: &ComparisonConfig{
+						ToleranceMode:  "ulp",
+						FloatTolerance: val,
+					},
+				},
+			}
+			_, err := Validate(cfg)
+			if err == nil {
+				t.Errorf("Validate() with ulp tolerance %g expected error, got nil", val)
+				return
+			}
+			valErr, ok := err.(*ValidationError)
+			if !ok {
+				t.Errorf("expected ValidationError, got %T", err)
+				return
+			}
+			if valErr.Field != "tests.comparison.float_tolerance" {
+				t.Errorf("ValidationError.Field = %q, want %q", valErr.Field, "tests.comparison.float_tolerance")
+			}
+		})
+	}
+}
+
+func TestValidate_NonULPTolerance_Fractional_Valid(t *testing.T) {
+	t.Parallel()
+	// Non-ULP modes should accept fractional values
+	modes := []string{"", "relative", "absolute"}
+	for _, mode := range modes {
+		t.Run(mode, func(t *testing.T) {
+			t.Parallel()
+			cfg := &Config{
+				Project: ProjectConfig{Name: "myproject"},
+				Tests: &TestsConfig{
+					Comparison: &ComparisonConfig{
+						ToleranceMode:  mode,
+						FloatTolerance: 0.001, // Fractional value
+					},
+				},
+			}
+			_, err := Validate(cfg)
+			if err != nil {
+				t.Errorf("Validate() with %q tolerance mode and fractional value error = %v, want nil", mode, err)
 			}
 		})
 	}

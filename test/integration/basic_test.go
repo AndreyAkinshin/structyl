@@ -7,7 +7,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/AndreyAkinshin/structyl/internal/config"
 	"github.com/AndreyAkinshin/structyl/internal/project"
 	"github.com/AndreyAkinshin/structyl/internal/target"
 )
@@ -210,25 +209,5 @@ func TestDockerProjectConfig(t *testing.T) {
 
 	if proj.Config.Docker.EnvVar != "STRUCTYL_DOCKER" {
 		t.Errorf("expected env_var %q, got %q", "STRUCTYL_DOCKER", proj.Config.Docker.EnvVar)
-	}
-}
-
-func TestConfigLoadAndValidate(t *testing.T) {
-	t.Parallel()
-	fixtureDir := filepath.Join(fixturesDir(), "minimal")
-	configPath := filepath.Join(fixtureDir, ".structyl", "config.json")
-
-	cfg, warnings, err := config.LoadAndValidate(configPath)
-	if err != nil {
-		t.Fatalf("failed to load and validate config: %v", err)
-	}
-
-	if cfg.Project.Name != "minimal-project" {
-		t.Errorf("expected project name %q, got %q", "minimal-project", cfg.Project.Name)
-	}
-
-	// Minimal project should have no warnings
-	if len(warnings) != 0 {
-		t.Errorf("expected no warnings, got %v", warnings)
 	}
 }

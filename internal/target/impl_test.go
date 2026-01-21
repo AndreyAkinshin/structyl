@@ -1302,20 +1302,9 @@ func TestExecute_MissingNpmScript_ReturnsSkipError(t *testing.T) {
 	}
 }
 
-func TestExecute_ExistingNpmScript_Executes(t *testing.T) {
-	// Clear cache before test
-	clearPackageJSONCache()
-	defer clearPackageJSONCache()
-
+func TestExecute_BasicCommand_WritesOutput(t *testing.T) {
 	tmpDir := t.TempDir()
 	outputFile := filepath.Join(tmpDir, "output.txt")
-
-	// Create package.json with echo script
-	packageJSON := fmt.Sprintf(`{"name": "test", "scripts": {"echo": "echo script-ran > %s"}}`, outputFile)
-	err := os.WriteFile(filepath.Join(tmpDir, "package.json"), []byte(packageJSON), 0644)
-	if err != nil {
-		t.Fatalf("failed to write package.json: %v", err)
-	}
 
 	cfg := config.TargetConfig{
 		Type:      "language",
@@ -1323,7 +1312,6 @@ func TestExecute_ExistingNpmScript_Executes(t *testing.T) {
 		Directory: ".",
 		Cwd:       ".",
 		Commands: map[string]interface{}{
-			// Use echo builtin directly since npm might not be available in test env
 			"echo": fmt.Sprintf("echo script-ran > %s", outputFile),
 		},
 	}
@@ -1332,13 +1320,12 @@ func TestExecute_ExistingNpmScript_Executes(t *testing.T) {
 	target, _ := NewTarget("ts", cfg, tmpDir, "", resolver)
 
 	ctx := context.Background()
-	err = target.Execute(ctx, "echo", ExecOptions{})
+	err := target.Execute(ctx, "echo", ExecOptions{})
 
 	if err != nil {
 		t.Errorf("Execute() error = %v", err)
 	}
 
-	// Verify the command ran
 	content, readErr := readTestOutput(outputFile)
 	if readErr != nil {
 		t.Errorf("failed to read output file: %v", readErr)

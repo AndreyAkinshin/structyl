@@ -443,6 +443,14 @@ func LoadTestSuite(projectRoot, suite string) ([]TestCase, error) {
 // Returns an error if the file cannot be read, contains invalid JSON,
 // or is missing required fields (input and output).
 //
+// Note: This function returns *TestCase (pointer), while [LoadTestSuite] returns
+// []TestCase (slice of values). The pointer return allows nil on error. When
+// combining results from both functions, dereference the pointer:
+//
+//	tc, _ := LoadTestCase(path)
+//	suite, _ := LoadTestSuite(root, name)
+//	all := append(suite, *tc)  // dereference tc
+//
 // WARNING: This function does NOT set TestCase.Suite. The Suite field will be
 // empty ("") after loading. If your code requires suite information, use
 // [LoadTestCaseWithSuite] to explicitly set the suite, or [LoadTestSuite] to

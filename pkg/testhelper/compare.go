@@ -648,6 +648,10 @@ func compareArray(expected []interface{}, actual interface{}, opts CompareOption
 	return true, ""
 }
 
+// compareUnorderedArray performs O(n²) comparison by checking each expected element
+// against unmatched actual elements. This is acceptable for typical test output sizes
+// (<1000 elements). For larger arrays, a set-based comparison with hashing would be
+// more efficient but requires hashable/comparable values.
 func compareUnorderedArray(expected, actual []interface{}, opts CompareOptions, path string) (bool, string) {
 	// Track which actual elements have been matched
 	matched := make([]bool, len(actual))

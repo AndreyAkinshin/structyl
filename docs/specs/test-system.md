@@ -183,6 +183,8 @@ Parent directory references (`../`) and absolute paths (starting with `/` on Uni
 
 **Symlink handling:** Symlinks are followed during resolution. However, if the resolved target path is outside the suite directory, the reference MUST be rejected.
 
+**Path separator normalization:** Use forward slashes (`/`) in `$file` references for cross-platform portability. Implementations SHOULD normalize path separators internally.
+
 Binary files are stored alongside the JSON file:
 
 ```
@@ -422,7 +424,7 @@ func LoadTestSuite(projectRoot, suite string) ([]TestCase, error) {
     return cases, nil
 }
 
-func CompareOutput(expected, actual interface{}, tolerance float64) bool {
+func Equal(expected, actual interface{}, opts CompareOptions) bool {
     // Implementation with tolerance handling
 }
 ```

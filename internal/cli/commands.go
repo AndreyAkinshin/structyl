@@ -50,6 +50,23 @@ func loadProject() (*project.Project, int) {
 	return proj, 0
 }
 
+// loadProjectWithRegistry loads project and creates target registry in one step.
+// Returns (nil, nil, exitCode) on failure. On success, returns (proj, registry, 0).
+// This consolidates the common pattern of loading project then creating registry.
+func loadProjectWithRegistry() (*project.Project, *target.Registry, int) {
+	proj, exitCode := loadProject()
+	if proj == nil {
+		return nil, nil, exitCode
+	}
+
+	registry, err := target.NewRegistry(proj.Config, proj.Root)
+	if err != nil {
+		out.ErrorPrefix("%v", err)
+		return nil, nil, internalerrors.ExitConfigError
+	}
+	return proj, registry, 0
+}
+
 // printProjectWarnings outputs any warnings accumulated during project loading.
 func printProjectWarnings(proj *project.Project) {
 	for _, w := range proj.Warnings {
@@ -206,15 +223,9 @@ func cmdTargets(args []string, opts *GlobalOptions) int {
 		return 0
 	}
 
-	proj, exitCode := loadProject()
-	if proj == nil {
+	_, registry, exitCode := loadProjectWithRegistry()
+	if registry == nil {
 		return exitCode
-	}
-
-	registry, err := target.NewRegistry(proj.Config, proj.Root)
-	if err != nil {
-		out.ErrorPrefix("%v", err)
-		return internalerrors.ExitConfigError
 	}
 
 	targets := registry.All()

@@ -152,7 +152,7 @@ func compareArrays(expected []interface{}, actual interface{}, cfg ComparisonCon
 		return false, fmt.Sprintf("%s: expected %d elements, got %d", pathStr(path), len(expected), len(actArr))
 	}
 
-	if cfg.ArrayOrder == "unordered" {
+	if config.ArrayOrder(cfg.ArrayOrder) == config.ArrayOrderUnordered {
 		return compareArraysUnordered(expected, actArr, cfg, path)
 	}
 

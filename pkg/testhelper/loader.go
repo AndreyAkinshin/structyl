@@ -375,8 +375,18 @@ func loadTestCaseInternal(path, suite string) (*TestCase, error) {
 //
 // Iteration order: The returned map has no guaranteed iteration order (Go maps
 // are unordered). Within each suite's []TestCase slice, test cases are sorted
-// alphabetically by filename for deterministic ordering. If you need to iterate
-// over suites in a deterministic order, sort the map keys explicitly.
+// alphabetically by filename for deterministic ordering. For deterministic
+// iteration over suites, sort the map keys:
+//
+//	suites, _ := LoadAllSuites(root)
+//	keys := make([]string, 0, len(suites))
+//	for k := range suites {
+//	    keys = append(keys, k)
+//	}
+//	sort.Strings(keys)
+//	for _, suite := range keys {
+//	    // process suites[suite] in alphabetical order
+//	}
 func LoadAllSuites(projectRoot string) (map[string][]TestCase, error) {
 	testsDir := filepath.Join(projectRoot, "tests")
 	entries, err := os.ReadDir(testsDir)

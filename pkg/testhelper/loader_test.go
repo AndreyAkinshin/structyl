@@ -483,6 +483,9 @@ func TestTestCase_String(t *testing.T) {
 
 // withWorkingDir changes to the specified directory for the duration of the
 // function call, then restores the original working directory.
+//
+// NOTE: Tests using this helper MUST NOT call t.Parallel() because os.Chdir
+// affects the entire process. Parallel tests would race on the working directory.
 func withWorkingDir(t *testing.T, dir string, fn func()) {
 	t.Helper()
 	original, err := os.Getwd()

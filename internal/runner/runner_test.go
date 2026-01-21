@@ -873,3 +873,143 @@ func TestRunSequential_MixedErrors_SkipErrorNotInCombined(t *testing.T) {
 		t.Errorf("target3.ExecCount() = %d, want 1", target3.ExecCount())
 	}
 }
+
+// =============================================================================
+// filterByCommand Tests
+// =============================================================================
+
+func TestFilterByCommand_FiltersTargetsWithCommand(t *testing.T) {
+	t.Parallel()
+
+	// Create targets with different command sets
+	target1 := mocks.NewTarget("t1").
+		WithType(target.TypeLanguage).
+		WithCommand("build", "cargo build").
+		WithCommand("test", "cargo test")
+	target2 := mocks.NewTarget("t2").
+		WithType(target.TypeLanguage).
+		WithCommand("build", "go build").
+		WithCommand("lint", "golangci-lint run")
+	target3 := mocks.NewTarget("t3").
+		WithType(target.TypeAuxiliary) // No commands
+
+	targets := []target.Target{target1, target2, target3}
+
+	// Filter for "build" - should include t1 and t2
+	filtered := filterByCommand(targets, "build")
+	if len(filtered) != 2 {
+		t.Errorf("filterByCommand(build) = %d targets, want 2", len(filtered))
+	}
+	for _, f := range filtered {
+		if f.Name() == "t3" {
+			t.Error("filterByCommand(build) should not include t3 (no build command)")
+		}
+	}
+}
+
+func TestFilterByCommand_EmptyResult(t *testing.T) {
+	t.Parallel()
+
+	target1 := mocks.NewTarget("t1").
+		WithType(target.TypeLanguage).
+		WithCommand("build", "cargo build")
+	target2 := mocks.NewTarget("t2").
+		WithType(target.TypeLanguage).
+		WithCommand("test", "cargo test")
+
+	targets := []target.Target{target1, target2}
+
+	// Filter for "lint" - no targets have this command
+	filtered := filterByCommand(targets, "lint")
+	if len(filtered) != 0 {
+		t.Errorf("filterByCommand(lint) = %d targets, want 0", len(filtered))
+	}
+}
+
+func TestFilterByCommand_EmptyInput(t *testing.T) {
+	t.Parallel()
+
+	filtered := filterByCommand(nil, "build")
+	if filtered != nil {
+		t.Errorf("filterByCommand(nil) = %v, want nil", filtered)
+	}
+
+	filtered = filterByCommand([]target.Target{}, "build")
+	if filtered != nil {
+		t.Errorf("filterByCommand([]) = %v, want nil", filtered)
+	}
+}
+
+func TestFilterByCommand_AllMatch(t *testing.T) {
+	t.Parallel()
+
+	target1 := mocks.NewTarget("t1").
+		WithType(target.TypeLanguage).
+		WithCommand("ci", "cargo build && cargo test")
+	target2 := mocks.NewTarget("t2").
+		WithType(target.TypeLanguage).
+		WithCommand("ci", "go build && go test")
+
+	targets := []target.Target{target1, target2}
+
+	filtered := filterByCommand(targets, "ci")
+	if len(filtered) != 2 {
+		t.Errorf("filterByCommand(ci) = %d targets, want 2", len(filtered))
+	}
+}
+
+// =============================================================================
+// shouldContinueAfterError Tests
+// =============================================================================
+
+func TestShouldContinueAfterError_SkipError_ReturnsTrue(t *testing.T) {
+	t.Parallel()
+
+	skipErr := &target.SkipError{
+		Target:  "test-target",
+		Command: "lint",
+		Reason:  target.SkipReasonCommandNotFound,
+		Detail:  "golangci-lint",
+	}
+
+	if !shouldContinueAfterError(skipErr) {
+		t.Error("shouldContinueAfterError(SkipError) = false, want true")
+	}
+}
+
+func TestShouldContinueAfterError_RegularError_ReturnsFalse(t *testing.T) {
+	t.Parallel()
+
+	regularErr := errors.New("build failed")
+
+	if shouldContinueAfterError(regularErr) {
+		t.Error("shouldContinueAfterError(regularError) = true, want false")
+	}
+}
+
+func TestShouldContinueAfterError_WrappedSkipError_ReturnsTrue(t *testing.T) {
+	t.Parallel()
+
+	skipErr := &target.SkipError{
+		Target:  "test-target",
+		Command: "build",
+		Reason:  target.SkipReasonDisabled,
+	}
+	// Wrap the SkipError
+	wrappedErr := errors.Join(skipErr, errors.New("additional context"))
+
+	// The inner SkipError should still be detected
+	if !shouldContinueAfterError(wrappedErr) {
+		t.Error("shouldContinueAfterError(wrappedSkipError) = false, want true")
+	}
+}
+
+func TestShouldContinueAfterError_Nil_ReturnsFalse(t *testing.T) {
+	t.Parallel()
+
+	// Passing nil should not panic and should return false
+	// (nil is not a SkipError)
+	if shouldContinueAfterError(nil) {
+		t.Error("shouldContinueAfterError(nil) = true, want false")
+	}
+}

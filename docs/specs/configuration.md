@@ -264,8 +264,26 @@ Docker configuration. See [docker.md](docker.md) for details.
 | -------------- | ------ | -------------------- | ------------------------------------------------------ |
 | `compose_file` | string | `docker-compose.yml` | Path to compose file                                   |
 | `env_var`      | string | `STRUCTYL_DOCKER`    | Env var to enable Docker mode                          |
-| `services`     | object | `{}`                 | Per-target Docker service overrides (base_image, dockerfile, platform, volumes) |
+| `services`     | object | `{}`                 | Per-target Docker service overrides for image building |
 | `targets`      | object | `{}`                 | Per-target Docker runtime configuration                |
+
+**`docker.services` fields** (per-target image building configuration):
+
+| Field                         | Type     | Default | Description                    |
+| ----------------------------- | -------- | ------- | ------------------------------ |
+| `services[target].base_image` | string   | None    | Base Docker image              |
+| `services[target].dockerfile` | string   | None    | Custom Dockerfile path         |
+| `services[target].platform`   | string   | None    | Target platform (e.g., `linux/amd64`) |
+| `services[target].volumes`    | string[] | `[]`    | Additional volume mounts       |
+
+**`docker.targets` fields** (per-target runtime configuration):
+
+| Field                          | Type   | Default | Description                            |
+| ------------------------------ | ------ | ------- | -------------------------------------- |
+| `targets[target].platform`     | string | None    | Target platform (e.g., `linux/amd64`)  |
+| `targets[target].cache_volume` | string | None    | Volume path for build cache            |
+| `targets[target].entrypoint`   | string | None    | Container entrypoint override          |
+| `targets[target].environment`  | object | `{}`    | Additional environment variables       |
 
 ### `mise`
 

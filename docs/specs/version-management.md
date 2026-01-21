@@ -451,6 +451,8 @@ Usage: structyl upgrade [version] [--check]
 | Stable (e.g., `1.2.3`) | Semver validation | Check `~/.structyl/versions/` | Only if not installed |
 | Nightly                | Skip validation   | Skip                          | Always prompt         |
 
+**Cache Location:** Downloaded CLI versions are stored in `~/.structyl/versions/` on Unix/macOS and `%USERPROFILE%\.structyl\versions\` on Windows.
+
 ### GitHub API Integration
 
 The `upgrade` command fetches the latest version from:

@@ -2,11 +2,13 @@ package target
 
 import (
 	"fmt"
+	"path/filepath"
 	"sort"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
 	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 	"github.com/AndreyAkinshin/structyl/internal/topsort"
+	"github.com/AndreyAkinshin/structyl/internal/version"
 )
 
 // Registry manages a collection of targets.
@@ -25,12 +27,22 @@ func NewRegistry(cfg *config.Config, rootDir string) (*Registry, error) {
 		return nil, fmt.Errorf("failed to create toolchain resolver: %w", err)
 	}
 
+	// Read project version for ${version} interpolation (optional, empty if not available)
+	projectVersion := ""
+	if cfg.Version != nil && cfg.Version.Source != "" {
+		versionPath := filepath.Join(rootDir, cfg.Version.Source)
+		if v, err := version.Read(versionPath); err == nil {
+			projectVersion = v
+		}
+		// Ignore errors: version file is optional for interpolation purposes
+	}
+
 	r := &Registry{
 		targets: make(map[string]Target),
 	}
 
 	for name, targetCfg := range cfg.Targets {
-		target, err := NewTarget(name, targetCfg, rootDir, resolver)
+		target, err := NewTarget(name, targetCfg, rootDir, projectVersion, resolver)
 		if err != nil {
 			return nil, fmt.Errorf("target %q: %w", name, err)
 		}

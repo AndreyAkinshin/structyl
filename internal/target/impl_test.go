@@ -161,7 +161,7 @@ func TestNewTarget(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, err := NewTarget("cs", cfg, "/project", resolver)
+	target, err := NewTarget("cs", cfg, "/project", "", resolver)
 	if err != nil {
 		t.Fatalf("NewTarget() error = %v", err)
 	}
@@ -184,7 +184,7 @@ func TestNewTarget_DefaultDirectory(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("cs", cfg, "/project", resolver)
+	target, _ := NewTarget("cs", cfg, "/project", "", resolver)
 
 	if target.Directory() != "cs" {
 		t.Errorf("Directory() = %q, want %q (default)", target.Directory(), "cs")
@@ -203,7 +203,7 @@ func TestNewTarget_CustomDirectory(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("cs", cfg, "/project", resolver)
+	target, _ := NewTarget("cs", cfg, "/project", "", resolver)
 
 	if target.Directory() != "src/csharp" {
 		t.Errorf("Directory() = %q, want %q", target.Directory(), "src/csharp")
@@ -220,7 +220,7 @@ func TestNewTarget_InvalidType(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	_, err := NewTarget("test", cfg, "/project", resolver)
+	_, err := NewTarget("test", cfg, "/project", "", resolver)
 	if err == nil {
 		t.Fatal("NewTarget() expected error for invalid type")
 	}
@@ -238,7 +238,7 @@ func TestTarget_Commands(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("rs", cfg, "/project", resolver)
+	target, _ := NewTarget("rs", cfg, "/project", "", resolver)
 
 	commands := target.Commands()
 	if len(commands) == 0 {
@@ -267,7 +267,7 @@ func TestTarget_GetCommand(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("rs", cfg, "/project", resolver)
+	target, _ := NewTarget("rs", cfg, "/project", "", resolver)
 
 	cmd, ok := target.GetCommand("build")
 	if !ok {
@@ -295,7 +295,7 @@ func TestTarget_CommandOverrides(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("rs", cfg, "/project", resolver)
+	target, _ := NewTarget("rs", cfg, "/project", "", resolver)
 
 	// Overridden command
 	cmd, _ := target.GetCommand("build")
@@ -324,7 +324,7 @@ func TestTarget_DependsOn(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("app", cfg, "/project", resolver)
+	target, _ := NewTarget("app", cfg, "/project", "", resolver)
 
 	deps := target.DependsOn()
 	if len(deps) != 2 {
@@ -339,7 +339,7 @@ func TestTarget_DependsOn_Empty(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("lib", cfg, "/project", resolver)
+	target, _ := NewTarget("lib", cfg, "/project", "", resolver)
 
 	deps := target.DependsOn()
 	if deps == nil {
@@ -358,7 +358,7 @@ func TestTarget_DependsOn_Immutable(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("app", cfg, "/project", resolver)
+	target, _ := NewTarget("app", cfg, "/project", "", resolver)
 
 	// Get dependencies and modify the returned slice
 	deps := target.DependsOn()
@@ -381,7 +381,7 @@ func TestTarget_Env(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("py", cfg, "/project", resolver)
+	target, _ := NewTarget("py", cfg, "/project", "", resolver)
 
 	env := target.Env()
 	if env["PYTHONPATH"] != "src" {
@@ -399,7 +399,7 @@ func TestTarget_Vars(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("cs", cfg, "/project", resolver)
+	target, _ := NewTarget("cs", cfg, "/project", "", resolver)
 
 	vars := target.Vars()
 	if vars["test_project"] != "MyProject.Tests" {
@@ -417,7 +417,7 @@ func TestTarget_Env_ReturnsCopy(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("py", cfg, "/project", resolver)
+	target, _ := NewTarget("py", cfg, "/project", "", resolver)
 
 	// Get env and mutate it
 	env := target.Env()
@@ -444,7 +444,7 @@ func TestTarget_Vars_ReturnsCopy(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("cs", cfg, "/project", resolver)
+	target, _ := NewTarget("cs", cfg, "/project", "", resolver)
 
 	// Get vars and mutate it
 	vars := target.Vars()
@@ -469,7 +469,7 @@ func TestTarget_DemoPath(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("rs", cfg, "/project", resolver)
+	target, _ := NewTarget("rs", cfg, "/project", "", resolver)
 
 	if target.DemoPath() != "examples/demo.rs" {
 		t.Errorf("DemoPath() = %q, want %q", target.DemoPath(), "examples/demo.rs")
@@ -483,7 +483,7 @@ func TestTarget_DemoPath_Empty(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("rs", cfg, "/project", resolver)
+	target, _ := NewTarget("rs", cfg, "/project", "", resolver)
 
 	if target.DemoPath() != "" {
 		t.Errorf("DemoPath() = %q, want empty", target.DemoPath())
@@ -498,7 +498,7 @@ func TestInterpolateVars_BuiltinVariables(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("rs", cfg, "/project", resolver)
+	target, _ := NewTarget("rs", cfg, "/project", "1.2.3", resolver)
 	impl := target.(*targetImpl)
 
 	// Test ${target} builtin
@@ -511,6 +511,35 @@ func TestInterpolateVars_BuiltinVariables(t *testing.T) {
 	result = impl.interpolateVars("cd ${target_dir}")
 	if result != "cd src/rust" {
 		t.Errorf("interpolateVars(${target_dir}) = %q, want %q", result, "cd src/rust")
+	}
+
+	// Test ${root} builtin
+	result = impl.interpolateVars("cd ${root}")
+	if result != "cd /project" {
+		t.Errorf("interpolateVars(${root}) = %q, want %q", result, "cd /project")
+	}
+
+	// Test ${version} builtin
+	result = impl.interpolateVars("echo v${version}")
+	if result != "echo v1.2.3" {
+		t.Errorf("interpolateVars(${version}) = %q, want %q", result, "echo v1.2.3")
+	}
+}
+
+func TestInterpolateVars_EmptyVersion(t *testing.T) {
+	cfg := config.TargetConfig{
+		Type:  "language",
+		Title: "Test",
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("test", cfg, "/project", "", resolver)
+	impl := target.(*targetImpl)
+
+	// Empty version should interpolate to empty string (preserves ${version} pattern would be confusing)
+	result := impl.interpolateVars("echo version=${version}")
+	if result != "echo version=" {
+		t.Errorf("interpolateVars(${version}) with empty version = %q, want %q", result, "echo version=")
 	}
 }
 
@@ -525,7 +554,7 @@ func TestInterpolateVars_CustomVariables(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("cs", cfg, "/project", resolver)
+	target, _ := NewTarget("cs", cfg, "/project", "", resolver)
 	impl := target.(*targetImpl)
 
 	result := impl.interpolateVars("dotnet test ${test_project} -c ${config}")
@@ -542,7 +571,7 @@ func TestInterpolateVars_EscapedVariables(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("sh", cfg, "/project", resolver)
+	target, _ := NewTarget("sh", cfg, "/project", "", resolver)
 	impl := target.(*targetImpl)
 
 	// $${var} should become ${var} (literal)
@@ -559,7 +588,7 @@ func TestInterpolateVars_UnmatchedVariables(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, "/project", resolver)
+	target, _ := NewTarget("test", cfg, "/project", "", resolver)
 	impl := target.(*targetImpl)
 
 	// Unmatched variables should be preserved as-is
@@ -580,7 +609,7 @@ func TestInterpolateVars_MixedVariables(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, "/project", resolver)
+	target, _ := NewTarget("test", cfg, "/project", "", resolver)
 	impl := target.(*targetImpl)
 
 	// Mix of builtin, custom, escaped, and unmatched
@@ -598,7 +627,7 @@ func TestInterpolateVars_NestedEscapeSequence(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, "/project", resolver)
+	target, _ := NewTarget("test", cfg, "/project", "", resolver)
 	impl := target.(*targetImpl)
 
 	// $$${target} - the implementation replaces "$${" as a unit.
@@ -629,7 +658,7 @@ func TestInterpolateVars_MultipleEscapeSequences(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, "/project", resolver)
+	target, _ := NewTarget("test", cfg, "/project", "", resolver)
 	impl := target.(*targetImpl)
 
 	// Multiple escaped variables in one string
@@ -647,7 +676,7 @@ func TestInterpolateVars_EscapeAtBoundary(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, "/project", resolver)
+	target, _ := NewTarget("test", cfg, "/project", "", resolver)
 	impl := target.(*targetImpl)
 
 	// Escaped at start of string
@@ -676,7 +705,7 @@ func TestResolveCommandVariant(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, "/project", resolver)
+	target, _ := NewTarget("test", cfg, "/project", "", resolver)
 	impl := target.(*targetImpl)
 
 	tests := []struct {
@@ -712,7 +741,7 @@ func TestResolveCommandVariant_WithQuietVariant(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, "/project", resolver)
+	target, _ := NewTarget("test", cfg, "/project", "", resolver)
 	impl := target.(*targetImpl)
 
 	// Should resolve to quiet variant when it exists
@@ -744,7 +773,7 @@ func TestExecute_WithVerbosity_ResolvesVariant(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, tmpDir, resolver)
+	target, _ := NewTarget("test", cfg, tmpDir, "", resolver)
 
 	ctx := context.Background()
 
@@ -771,7 +800,7 @@ func TestExecute_UndefinedCommand_ReturnsError(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, "/project", resolver)
+	target, _ := NewTarget("test", cfg, "/project", "", resolver)
 
 	ctx := context.Background()
 	err := target.Execute(ctx, "undefined", ExecOptions{})
@@ -794,7 +823,7 @@ func TestExecute_NilCommand_ReturnsSkipError(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, "/project", resolver)
+	target, _ := NewTarget("test", cfg, "/project", "", resolver)
 
 	ctx := context.Background()
 	err := target.Execute(ctx, "skip", ExecOptions{})
@@ -822,7 +851,7 @@ func TestExecute_StringCommand_Success(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, tmpDir, resolver)
+	target, _ := NewTarget("test", cfg, tmpDir, "", resolver)
 
 	ctx := context.Background()
 	err := target.Execute(ctx, "echo", ExecOptions{})
@@ -846,7 +875,7 @@ func TestExecute_StringCommand_Failure(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, tmpDir, resolver)
+	target, _ := NewTarget("test", cfg, tmpDir, "", resolver)
 
 	ctx := context.Background()
 	err := target.Execute(ctx, "fail", ExecOptions{})
@@ -873,7 +902,7 @@ func TestExecute_WithArgs_ExecutesSuccessfully(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, tmpDir, resolver)
+	target, _ := NewTarget("test", cfg, tmpDir, "", resolver)
 
 	ctx := context.Background()
 	// Execute with args - verifies execution completes without error
@@ -918,7 +947,7 @@ func TestExecute_WithEnv_SetsEnvironment(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, tmpDir, resolver)
+	target, _ := NewTarget("test", cfg, tmpDir, "", resolver)
 
 	ctx := context.Background()
 	err := target.Execute(ctx, "env", ExecOptions{
@@ -975,7 +1004,7 @@ func TestExecute_CompositeCommand_ExecutesInOrder(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, tmpDir, resolver)
+	target, _ := NewTarget("test", cfg, tmpDir, "", resolver)
 
 	ctx := context.Background()
 	err := target.Execute(ctx, "both", ExecOptions{})
@@ -1015,7 +1044,7 @@ func TestExecute_InvalidCommandType_ReturnsError(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, "/project", resolver)
+	target, _ := NewTarget("test", cfg, "/project", "", resolver)
 
 	ctx := context.Background()
 	err := target.Execute(ctx, "invalid", ExecOptions{})
@@ -1042,7 +1071,7 @@ func TestExecute_ContextCancellation(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, tmpDir, resolver)
+	target, _ := NewTarget("test", cfg, tmpDir, "", resolver)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // Cancel immediately
@@ -1068,7 +1097,7 @@ func TestExecute_ContextTimeout(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, tmpDir, resolver)
+	target, _ := NewTarget("test", cfg, tmpDir, "", resolver)
 
 	// Context with very short timeout
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
@@ -1099,7 +1128,7 @@ func TestExecute_CompositeCommandWithInvalidItem_ReturnsError(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, "/project", resolver)
+	target, _ := NewTarget("test", cfg, "/project", "", resolver)
 
 	ctx := context.Background()
 	err := target.Execute(ctx, "bad", ExecOptions{})
@@ -1177,7 +1206,7 @@ func TestExecute_UnavailableCommand_ReturnsSkipError(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, tmpDir, resolver)
+	target, _ := NewTarget("test", cfg, tmpDir, "", resolver)
 
 	ctx := context.Background()
 	err := target.Execute(ctx, "lint", ExecOptions{})
@@ -1211,7 +1240,7 @@ func TestExecute_CompositeWithUnavailableCommand_ReturnsSkipError(t *testing.T) 
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, tmpDir, resolver)
+	target, _ := NewTarget("test", cfg, tmpDir, "", resolver)
 
 	ctx := context.Background()
 	err := target.Execute(ctx, "check", ExecOptions{})
@@ -1248,7 +1277,7 @@ func TestExecute_MissingNpmScript_ReturnsSkipError(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("ts", cfg, tmpDir, resolver)
+	target, _ := NewTarget("ts", cfg, tmpDir, "", resolver)
 
 	ctx := context.Background()
 	err = target.Execute(ctx, "lint", ExecOptions{})
@@ -1293,7 +1322,7 @@ func TestExecute_ExistingNpmScript_Executes(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("ts", cfg, tmpDir, resolver)
+	target, _ := NewTarget("ts", cfg, tmpDir, "", resolver)
 
 	ctx := context.Background()
 	err = target.Execute(ctx, "echo", ExecOptions{})
@@ -1341,7 +1370,7 @@ func TestExecute_CompositeWithMissingNpmScript_ReturnsSkipError(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("ts", cfg, tmpDir, resolver)
+	target, _ := NewTarget("ts", cfg, tmpDir, "", resolver)
 
 	ctx := context.Background()
 	err = target.Execute(ctx, "check", ExecOptions{})
@@ -1380,7 +1409,7 @@ func TestExecute_NpmBuiltinCommand_AlwaysAvailable(t *testing.T) {
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("ts", cfg, tmpDir, resolver)
+	target, _ := NewTarget("ts", cfg, tmpDir, "", resolver)
 
 	ctx := context.Background()
 	err = target.Execute(ctx, "install", ExecOptions{})
@@ -1417,7 +1446,7 @@ func TestExecute_CompositeCommand_FirstSubCommandDisabled_StopsExecution(t *test
 	}
 
 	resolver, _ := toolchain.NewResolver(&config.Config{})
-	target, _ := NewTarget("test", cfg, tmpDir, resolver)
+	target, _ := NewTarget("test", cfg, tmpDir, "", resolver)
 
 	ctx := context.Background()
 	err := target.Execute(ctx, "both", ExecOptions{})

@@ -93,10 +93,13 @@ type targetImpl struct {
 	dependsOn  []string
 	demoPath   string
 	rootDir    string // Absolute path to project root
+	version    string // Project version from VERSION file (empty if not available)
 }
 
 // NewTarget creates a new target from configuration.
-func NewTarget(name string, cfg config.TargetConfig, rootDir string, resolver *toolchain.Resolver) (Target, error) {
+// The version parameter is the project version (from VERSION file) used for ${version} interpolation.
+// Pass empty string if version is not available.
+func NewTarget(name string, cfg config.TargetConfig, rootDir string, version string, resolver *toolchain.Resolver) (Target, error) {
 	commands, err := resolver.GetResolvedCommands(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to resolve commands: %w", err)
@@ -129,6 +132,7 @@ func NewTarget(name string, cfg config.TargetConfig, rootDir string, resolver *t
 		dependsOn:  cfg.DependsOn,
 		demoPath:   cfg.DemoPath,
 		rootDir:    rootDir,
+		version:    version,
 	}, nil
 }
 
@@ -271,6 +275,12 @@ func (t *targetImpl) resolveCommandVariant(cmd string, v Verbosity) string {
 
 // interpolateVars replaces ${var} with variable values.
 // Escaping: $${var} becomes ${var} (literal).
+//
+// Built-in variables:
+//   - ${target}: target name (e.g., "rs", "go")
+//   - ${target_dir}: target directory path
+//   - ${root}: project root directory (absolute path)
+//   - ${version}: project version from VERSION file (empty if not available)
 func (t *targetImpl) interpolateVars(cmd string) string {
 	// First, handle escaped variables: $${var} -> placeholder
 	result := strings.ReplaceAll(cmd, "$${", escapePlaceholder)
@@ -279,6 +289,8 @@ func (t *targetImpl) interpolateVars(cmd string) string {
 	vars := map[string]string{
 		"target":     t.name,
 		"target_dir": t.directory,
+		"root":       t.rootDir,
+		"version":    t.version,
 	}
 	for k, v := range t.vars {
 		vars[k] = v

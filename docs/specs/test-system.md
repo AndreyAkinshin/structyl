@@ -47,8 +47,18 @@ Every test file has `input` and `output`:
 - Any additional fields beyond `input` and `output` are silently ignored (forward-compatibility)
 - Empty `input` object (`{}`) is valid
 
+### Optional Fields
+
+| Field         | Type     | Description                                        |
+| ------------- | -------- | -------------------------------------------------- |
+| `description` | string   | Optional documentation for the test case           |
+| `skip`        | boolean  | When `true`, marks the test as skipped             |
+| `tags`        | string[] | Optional categorization for filtering or grouping  |
+
+**Tag usage:** Tags have no built-in semantics in Structyl. Language implementations MAY use tags to filter test execution, group tests in output, or skip tests based on environment capabilities. Tag values are free-form strings; establish conventions per-project.
+
 ::: info Reserved Field Names
-The following field names are reserved for potential future use and SHOULD NOT be used for custom metadata: `description`, `skip`, `tags`, `timeout`, `setup`, `teardown`. These are currently ignored but may gain semantics in future versions.
+The following field names are reserved for potential future use and SHOULD NOT be used for custom metadata: `timeout`, `setup`, `teardown`. These are currently ignored but may gain semantics in future versions.
 :::
 
 ### Loading Failure Behavior

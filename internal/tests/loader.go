@@ -155,13 +155,15 @@ func findMatches(dir, pattern string) ([]string, error) {
 			return nil
 		}
 
-		// Get path relative to dir
+		// Get path relative to dir. We compute rel for potential future support
+		// of recursive glob patterns (e.g., "**/*.json") where full relative path
+		// matching would be needed. Currently only the base name is matched.
 		rel, err := filepath.Rel(dir, path)
 		if err != nil {
 			return err
 		}
 
-		// Check if it matches the pattern
+		// Check if it matches the pattern (currently base name only)
 		matched := matchesPattern(filepath.Base(rel), pattern)
 
 		if matched {

@@ -339,8 +339,21 @@ func TestSanitizeProjectName_SpecialCharacters(t *testing.T) {
 	}
 }
 
-// createTestProject creates a temporary project for testing CLI commands
+// testProjectOptions configures test project creation.
+type testProjectOptions struct {
+	// IncludeDocker adds docker configuration to the project.
+	IncludeDocker bool
+	// IncludeAuxiliaryTarget adds an auxiliary target (img) to the project.
+	IncludeAuxiliaryTarget bool
+}
+
+// createTestProject creates a temporary project for testing CLI commands.
 func createTestProject(t *testing.T) string {
+	return createTestProjectWithOptions(t, testProjectOptions{IncludeAuxiliaryTarget: true})
+}
+
+// createTestProjectWithOptions creates a temporary project with the specified options.
+func createTestProjectWithOptions(t *testing.T, opts testProjectOptions) string {
 	t.Helper()
 	tmpDir := t.TempDir()
 
@@ -355,9 +368,12 @@ func createTestProject(t *testing.T) string {
 	if err := os.MkdirAll(csDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	imgDir := filepath.Join(root, "img")
-	if err := os.MkdirAll(imgDir, 0755); err != nil {
-		t.Fatal(err)
+
+	if opts.IncludeAuxiliaryTarget {
+		imgDir := filepath.Join(root, "img")
+		if err := os.MkdirAll(imgDir, 0755); err != nil {
+			t.Fatal(err)
+		}
 	}
 
 	// Create minimal .csproj file for C# target (required on Windows where dotnet is installed)
@@ -384,29 +400,63 @@ func createTestProject(t *testing.T) string {
 		t.Fatal(err)
 	}
 
-	// Create .structyl/config.json
-	// Disable mise to prevent actual mise calls during unit tests
-	config := `{
+	// Build config JSON
+	configJSON := buildTestProjectConfig(opts)
+	configPath := filepath.Join(structylDir, "config.json")
+	if err := os.WriteFile(configPath, []byte(configJSON), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create docker-compose.yml if docker is enabled
+	if opts.IncludeDocker {
+		composeFile := `version: "3.8"
+services:
+  cs:
+    image: mcr.microsoft.com/dotnet/sdk:8.0
+    working_dir: /app
+    volumes:
+      - .:/app
+`
+		composePath := filepath.Join(root, "docker-compose.yml")
+		if err := os.WriteFile(composePath, []byte(composeFile), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	return root
+}
+
+// buildTestProjectConfig generates the config.json content based on options.
+func buildTestProjectConfig(opts testProjectOptions) string {
+	var dockerSection string
+	if opts.IncludeDocker {
+		dockerSection = `
+		"docker": {
+			"compose_file": "docker-compose.yml",
+			"env_var": "TEST_DOCKER"
+		},`
+	}
+
+	var imgTarget string
+	if opts.IncludeAuxiliaryTarget {
+		imgTarget = `,
+			"img": {
+				"type": "auxiliary",
+				"title": "Images"
+			}`
+	}
+
+	return `{
 		"project": {"name": "test-project"},
-		"mise": {"enabled": false},
+		"mise": {"enabled": false},` + dockerSection + `
 		"targets": {
 			"cs": {
 				"type": "language",
 				"title": "C#",
 				"toolchain": "dotnet"
-			},
-			"img": {
-				"type": "auxiliary",
-				"title": "Images"
-			}
+			}` + imgTarget + `
 		}
 	}`
-	configPath := filepath.Join(structylDir, "config.json")
-	if err := os.WriteFile(configPath, []byte(config), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	return root
 }
 
 // withWorkingDir changes to dir, runs fn, then restores original directory
@@ -1217,83 +1267,9 @@ func TestCmdCI_ReleaseMode_UsesBuildRelease(t *testing.T) {
 // Work Item 3: Docker Command Tests
 // =============================================================================
 
-// createTestProjectWithDocker creates a test project with docker configuration
+// createTestProjectWithDocker creates a test project with docker configuration.
 func createTestProjectWithDocker(t *testing.T) string {
-	t.Helper()
-	tmpDir := t.TempDir()
-
-	root, err := filepath.EvalSymlinks(tmpDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Create target directory
-	csDir := filepath.Join(root, "cs")
-	if err := os.MkdirAll(csDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	// Create minimal .csproj file for C# target (required on Windows where dotnet is installed)
-	csproj := `<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-  </PropertyGroup>
-</Project>`
-	csprojPath := filepath.Join(csDir, "test.csproj")
-	if err := os.WriteFile(csprojPath, []byte(csproj), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	// Create minimal C# source file
-	csFile := "namespace Test;\n\npublic class Class1 { }\n"
-	csFilePath := filepath.Join(csDir, "Class1.cs")
-	if err := os.WriteFile(csFilePath, []byte(csFile), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	// Create .structyl directory
-	structylDir := filepath.Join(root, ".structyl")
-	if err := os.MkdirAll(structylDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	// Create .structyl/config.json with docker config
-	// Disable mise to prevent actual mise calls during unit tests
-	config := `{
-		"project": {"name": "test-project"},
-		"mise": {"enabled": false},
-		"docker": {
-			"compose_file": "docker-compose.yml",
-			"env_var": "TEST_DOCKER"
-		},
-		"targets": {
-			"cs": {
-				"type": "language",
-				"title": "C#",
-				"toolchain": "dotnet"
-			}
-		}
-	}`
-	configPath := filepath.Join(structylDir, "config.json")
-	if err := os.WriteFile(configPath, []byte(config), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	// Create docker-compose.yml
-	composeFile := `version: "3.8"
-services:
-  cs:
-    image: mcr.microsoft.com/dotnet/sdk:8.0
-    working_dir: /app
-    volumes:
-      - .:/app
-`
-	composePath := filepath.Join(root, "docker-compose.yml")
-	if err := os.WriteFile(composePath, []byte(composeFile), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	return root
+	return createTestProjectWithOptions(t, testProjectOptions{IncludeDocker: true})
 }
 
 func TestCmdDockerBuild_ValidProject_LoadsProject(t *testing.T) {

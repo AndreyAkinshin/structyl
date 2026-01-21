@@ -196,6 +196,10 @@ func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) 
 		// Recursively execute each command in the list. Cycles are prevented
 		// by config validation at registry creation time; see registry.go.
 		for _, subCmd := range cmdVal {
+			// Check for cancellation between commands
+			if err := ctx.Err(); err != nil {
+				return err
+			}
 			subCmdStr, ok := subCmd.(string)
 			if !ok {
 				return fmt.Errorf("invalid command list item: %T", subCmd)

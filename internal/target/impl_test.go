@@ -1428,6 +1428,54 @@ func TestExecute_NpmBuiltinCommand_AlwaysAvailable(t *testing.T) {
 	}
 }
 
+func TestExecute_CompositeCommand_ContextCancellationBetweenCommands(t *testing.T) {
+	// Verify that context cancellation is checked between commands in a list
+	tmpDir := t.TempDir()
+	markerFile := filepath.Join(tmpDir, "second_ran.txt")
+
+	// Use platform-specific command syntax
+	var createMarker string
+	if runtime.GOOS == "windows" {
+		createMarker = fmt.Sprintf(`'marker' | Out-File -FilePath '%s' -Encoding utf8`, markerFile)
+	} else {
+		createMarker = "echo marker > " + markerFile
+	}
+
+	cfg := config.TargetConfig{
+		Type:      "language",
+		Title:     "Test",
+		Directory: ".",
+		Cwd:       ".",
+		Commands: map[string]interface{}{
+			"first":  "echo first",
+			"second": createMarker,
+			"both":   []interface{}{"first", "second"},
+		},
+	}
+
+	resolver, _ := toolchain.NewResolver(&config.Config{})
+	target, _ := NewTarget("test", cfg, tmpDir, "", resolver)
+
+	// Cancel context before execution
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel() // Cancel immediately
+
+	err := target.Execute(ctx, "both", ExecOptions{})
+
+	// Should return context.Canceled
+	if err == nil {
+		t.Error("Execute() expected error for canceled context")
+	}
+	if err != context.Canceled {
+		t.Errorf("Execute() error = %v, want context.Canceled", err)
+	}
+
+	// Verify "second" command did NOT run
+	if _, statErr := os.Stat(markerFile); statErr == nil {
+		t.Error("second command ran but should have been skipped due to context cancellation")
+	}
+}
+
 func TestExecute_CompositeCommand_FirstSubCommandDisabled_StopsExecution(t *testing.T) {
 	tmpDir := t.TempDir()
 	markerFile := filepath.Join(tmpDir, "second_ran.txt")

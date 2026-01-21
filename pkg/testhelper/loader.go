@@ -4,6 +4,17 @@
 // This package is designed to be used by individual language implementations
 // to load test cases and compare their outputs against expected values.
 //
+// # Thread Safety
+//
+// All functions in this package are safe for concurrent use:
+//
+//   - Loader functions ([LoadTestSuite], [LoadTestCase], etc.) perform read-only
+//     filesystem operations and can be called concurrently.
+//   - Comparison functions ([Equal], [Compare], [FormatComparisonResult]) are
+//     pure functions with no shared state.
+//   - The [TestCase] type is safe to read concurrently, but callers must not
+//     modify a TestCase while other goroutines are reading it.
+//
 // # Filesystem Conventions
 //
 // All path parameters use the host operating system's path separator.

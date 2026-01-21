@@ -53,7 +53,7 @@ The Structyl configuration is invalid. Fix `.structyl/config.json` before procee
 - Invalid version format
 
 ```
-structyl: invalid configuration: project.name is required
+structyl: failed to load configuration: project.name: required
 ```
 
 ### Code 3 - Environment Error
@@ -143,7 +143,7 @@ structyl: configuration file not found
 **Example - Configuration error:**
 
 ```
-structyl: project.name: required
+structyl: failed to load configuration: project.name: required
 ```
 
 Note: Structyl reports validation errors one at a time. Fix and re-run to see subsequent errors.

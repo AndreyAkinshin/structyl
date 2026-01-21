@@ -222,7 +222,7 @@ The original target exit code is logged for debugging but not propagated directl
 On startup, Structyl validates `.structyl/config.json`:
 
 ```
-structyl: invalid configuration: project.name is required
+structyl: failed to load configuration: project.name: required
 ```
 
 Exit code: `2`

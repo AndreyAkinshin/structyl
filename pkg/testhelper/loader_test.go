@@ -162,19 +162,36 @@ func TestLoadTestSuite_InvalidSuiteName(t *testing.T) {
 }
 
 func TestSuiteNotFoundError(t *testing.T) {
-	err := &SuiteNotFoundError{Suite: "mysuite"}
+	t.Run("suite_only", func(t *testing.T) {
+		err := &SuiteNotFoundError{Suite: "mysuite"}
 
-	if err.Error() == "" {
-		t.Error("Error() should return message")
-	}
+		if err.Error() == "" {
+			t.Error("Error() should return message")
+		}
 
-	if !strings.Contains(err.Error(), "mysuite") {
-		t.Error("Error() should contain suite name")
-	}
+		if !strings.Contains(err.Error(), "mysuite") {
+			t.Error("Error() should contain suite name")
+		}
 
-	if !errors.Is(err, ErrSuiteNotFound) {
-		t.Error("errors.Is(SuiteNotFoundError, ErrSuiteNotFound) should return true")
-	}
+		if !errors.Is(err, ErrSuiteNotFound) {
+			t.Error("errors.Is(SuiteNotFoundError, ErrSuiteNotFound) should return true")
+		}
+	})
+
+	t.Run("with_root", func(t *testing.T) {
+		err := &SuiteNotFoundError{Root: "/project/root", Suite: "mysuite"}
+
+		msg := err.Error()
+		if !strings.Contains(msg, "mysuite") {
+			t.Error("Error() should contain suite name")
+		}
+		if !strings.Contains(msg, "/project/root") {
+			t.Error("Error() should contain root path when set")
+		}
+		if !strings.Contains(msg, "searched in") {
+			t.Error("Error() should indicate search location")
+		}
+	})
 }
 
 func TestLoadAllSuites(t *testing.T) {
@@ -292,7 +309,7 @@ func TestErrorChains_WorkThroughWrapping(t *testing.T) {
 
 	t.Run("SuiteNotFoundError_through_wrap", func(t *testing.T) {
 		t.Parallel()
-		original := &SuiteNotFoundError{Suite: "my-suite"}
+		original := &SuiteNotFoundError{Root: "/some/root", Suite: "my-suite"}
 		wrapped := fmt.Errorf("outer context: %w", original)
 
 		if !errors.Is(wrapped, ErrSuiteNotFound) {
@@ -305,6 +322,9 @@ func TestErrorChains_WorkThroughWrapping(t *testing.T) {
 		}
 		if target.Suite != "my-suite" {
 			t.Errorf("Suite: got %q, want %q", target.Suite, "my-suite")
+		}
+		if target.Root != "/some/root" {
+			t.Errorf("Root: got %q, want %q", target.Root, "/some/root")
 		}
 	})
 

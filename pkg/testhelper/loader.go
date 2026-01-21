@@ -245,7 +245,8 @@ func (tc TestCase) String() string {
 	return fmt.Sprintf("TestCase{%s%s}", tc.Name, skip)
 }
 
-// Clone returns a partial deep copy of TestCase suitable for test isolation.
+// Clone returns a copy of TestCase with independent Input and Tags.
+// WARNING: Output is NOT copied; both original and clone share the same reference.
 //
 // # Copy Semantics Summary
 //
@@ -412,7 +413,7 @@ func LoadTestSuite(projectRoot, suite string) ([]TestCase, error) {
 	}
 	suiteDir := filepath.Join(projectRoot, "tests", suite)
 	if _, err := os.Stat(suiteDir); os.IsNotExist(err) {
-		return nil, &SuiteNotFoundError{Suite: suite}
+		return nil, &SuiteNotFoundError{Root: projectRoot, Suite: suite}
 	}
 
 	pattern := filepath.Join(suiteDir, "*.json")
@@ -667,10 +668,14 @@ var ErrSuiteNotFound = errors.New("suite not found")
 
 // SuiteNotFoundError indicates a test suite directory does not exist.
 type SuiteNotFoundError struct {
-	Suite string
+	Root  string // Project root that was searched
+	Suite string // Suite name that wasn't found
 }
 
 func (e *SuiteNotFoundError) Error() string {
+	if e.Root != "" {
+		return fmt.Sprintf("test suite not found: %s (searched in %s)", e.Suite, e.Root)
+	}
 	return "test suite not found: " + e.Suite
 }
 

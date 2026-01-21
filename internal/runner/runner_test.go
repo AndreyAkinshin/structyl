@@ -13,6 +13,8 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/testing/mocks"
 )
 
+// Note: getParallelWorkers tests use t.Setenv which modifies process-wide state.
+// These tests cannot use t.Parallel() - they must run sequentially.
 func TestGetParallelWorkers_Default(t *testing.T) {
 	t.Setenv("STRUCTYL_PARALLEL", "")
 
@@ -32,11 +34,15 @@ func TestGetParallelWorkers_FromEnv(t *testing.T) {
 }
 
 func TestGetParallelWorkers_InvalidEnv(t *testing.T) {
+	// Note: t.Setenv modifies process state, so these tests cannot use t.Parallel()
 	tests := []string{
 		"invalid",
 		"0",
 		"-1",
 		"257",
+		" 4",  // leading whitespace - strconv.Atoi fails
+		"4 ",  // trailing whitespace - strconv.Atoi fails
+		"4.0", // float - strconv.Atoi fails
 	}
 
 	for _, val := range tests {
@@ -49,6 +55,16 @@ func TestGetParallelWorkers_InvalidEnv(t *testing.T) {
 				t.Errorf("getParallelWorkers() = %d, want >= 1", workers)
 			}
 		})
+	}
+}
+
+func TestGetParallelWorkers_LeadingZeros(t *testing.T) {
+	// Leading zeros are valid for strconv.Atoi
+	t.Setenv("STRUCTYL_PARALLEL", "007")
+
+	workers := getParallelWorkers()
+	if workers != 7 {
+		t.Errorf("getParallelWorkers() = %d, want 7 (leading zeros accepted)", workers)
 	}
 }
 
@@ -105,6 +121,22 @@ func TestCombineErrors_Multiple(t *testing.T) {
 	}
 	if !strings.Contains(msg, "permission denied") {
 		t.Errorf("error message = %q, want to contain second error", msg)
+	}
+}
+
+func TestCombineErrors_ErrorsAs(t *testing.T) {
+	t.Parallel()
+	// Create a custom error type to test errors.As extraction
+	pathErr := &os.PathError{Op: "open", Path: "/test", Err: os.ErrNotExist}
+	combined := combineErrors([]error{pathErr, os.ErrPermission})
+
+	// errors.As should be able to extract the PathError type
+	var extracted *os.PathError
+	if !errors.As(combined, &extracted) {
+		t.Error("errors.As(combined, *os.PathError) = false, want true")
+	}
+	if extracted.Path != "/test" {
+		t.Errorf("extracted.Path = %q, want %q", extracted.Path, "/test")
 	}
 }
 

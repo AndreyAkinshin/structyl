@@ -716,3 +716,49 @@ func TestLoadTestCase_FileReference_ReturnsError(t *testing.T) {
 		t.Errorf("error should be ErrFileReferenceNotSupported, got: %v", err)
 	}
 }
+
+func TestValidateSuiteName(t *testing.T) {
+	tests := []struct {
+		name    string
+		suite   string
+		wantErr error
+	}{
+		{"valid_name", "math", nil},
+		{"valid_with_hyphen", "math-advanced", nil},
+		{"valid_with_underscore", "math_basic", nil},
+		{"empty_string", "", ErrEmptySuiteName},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateSuiteName(tt.suite)
+			if tt.wantErr == nil {
+				if err != nil {
+					t.Errorf("ValidateSuiteName(%q) = %v, want nil", tt.suite, err)
+				}
+			} else {
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("ValidateSuiteName(%q) = %v, want %v", tt.suite, err, tt.wantErr)
+				}
+			}
+		})
+	}
+}
+
+func TestLoadTestCaseWithSuite_EmptySuite_ReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "test1.json")
+	content := `{"input": {"a": 1}, "output": 1}`
+	if err := os.WriteFile(testFile, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadTestCaseWithSuite(testFile, "")
+	if err == nil {
+		t.Fatal("LoadTestCaseWithSuite() expected error for empty suite")
+	}
+
+	if !errors.Is(err, ErrEmptySuiteName) {
+		t.Errorf("error should be ErrEmptySuiteName, got: %v", err)
+	}
+}

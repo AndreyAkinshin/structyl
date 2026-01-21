@@ -36,7 +36,9 @@ type RunStep struct {
 }
 
 // GenerateMiseToml generates the content of a mise.toml file.
+//
 // Deprecated: Use GenerateMiseTomlWithToolchains for loaded toolchains configuration.
+// This function will be removed in v2.0.0.
 func GenerateMiseToml(cfg *config.Config) (string, error) {
 	return GenerateMiseTomlWithToolchains(cfg, nil)
 }

@@ -1369,6 +1369,125 @@ func TestCmdUpgrade_NightlyWithPlusFormat_InstallerReceivesResolvedVersion(t *te
 	})
 }
 
+// =============================================================================
+// Fallback to Nightly Tests
+// =============================================================================
+
+func TestCmdUpgrade_NoStableRelease_FallsBackToNightly(t *testing.T) {
+	requestCount := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCount++
+		w.Header().Set("Content-Type", "application/json")
+		if requestCount == 1 {
+			// First request (stable) returns 404
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			// Second request (nightly) returns success
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"tag_name": "nightly", "body": "**Version:** ` + "`" + `0.1.0-nightly+abc1234` + "`" + `"}`))
+		}
+	}))
+	defer server.Close()
+
+	originalURL := githubAPIURL
+	githubAPIURL = server.URL
+	defer func() { githubAPIURL = originalURL }()
+
+	originalNightlyURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalNightlyURL }()
+
+	// Mock the installer to succeed
+	originalInstaller := installVersionFunc
+	installVersionFunc = mockInstaller(false)
+	defer func() { installVersionFunc = originalInstaller }()
+
+	// Mock isVersionInstalled: first call returns false (triggers install),
+	// second call returns true (version is now installed)
+	originalIsInstalled := isVersionInstalledFunc
+	callCount := 0
+	isVersionInstalledFunc = func(ver string) bool {
+		callCount++
+		return callCount > 1
+	}
+	defer func() { isVersionInstalledFunc = originalIsInstalled }()
+
+	root := createTestProjectWithoutVersion(t)
+	withWorkingDir(t, root, func() {
+		// Run upgrade without specifying version - should fall back to nightly
+		exitCode := cmdUpgrade([]string{})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([]) = %d, want 0 (should fall back to nightly)", exitCode)
+		}
+
+		// Verify version was set to nightly
+		ver, err := readPinnedVersion(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if ver != "0.1.0-nightly+abc1234" {
+			t.Errorf("pinned version = %q, want %q", ver, "0.1.0-nightly+abc1234")
+		}
+	})
+}
+
+func TestCmdUpgrade_CheckMode_NoStableRelease_ShowsNightly(t *testing.T) {
+	requestCount := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestCount++
+		w.Header().Set("Content-Type", "application/json")
+		if requestCount == 1 {
+			// First request (stable) returns 404
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			// Second request (nightly) returns success
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"tag_name": "nightly", "body": "**Version:** ` + "`" + `0.1.0-nightly+abc1234` + "`" + `"}`))
+		}
+	}))
+	defer server.Close()
+
+	originalURL := githubAPIURL
+	githubAPIURL = server.URL
+	defer func() { githubAPIURL = originalURL }()
+
+	originalNightlyURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalNightlyURL }()
+
+	root := createTestProjectWithoutVersion(t)
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{"--check"})
+		if exitCode != 0 {
+			t.Errorf("cmdUpgrade([--check]) = %d, want 0", exitCode)
+		}
+	})
+}
+
+func TestCmdUpgrade_NoStableAndNoNightly_ReturnsError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Both stable and nightly return 404
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	originalURL := githubAPIURL
+	githubAPIURL = server.URL
+	defer func() { githubAPIURL = originalURL }()
+
+	originalNightlyURL := githubNightlyAPIURL
+	githubNightlyAPIURL = server.URL
+	defer func() { githubNightlyAPIURL = originalNightlyURL }()
+
+	root := createTestProjectWithoutVersion(t)
+	withWorkingDir(t, root, func() {
+		exitCode := cmdUpgrade([]string{})
+		if exitCode == 0 {
+			t.Error("cmdUpgrade([]) = 0, want non-zero when both stable and nightly unavailable")
+		}
+	})
+}
+
 func TestCmdUpgrade_InstallationFailure_ProjectFilesNotRegenerated(t *testing.T) {
 	// Mock the installer to fail
 	originalInstaller := installVersionFunc

@@ -83,11 +83,16 @@ func cmdUpgrade(args []string) int {
 
 	targetVersion := opts.version
 	if targetVersion == "" {
-		// Fetch latest stable version
+		// Fetch latest stable version, fall back to nightly if none exists
 		latest, err := fetchLatestVersion()
 		if err != nil {
-			w.ErrorPrefix("failed to fetch latest version: %v", err)
-			return 1
+			// No stable release available, fall back to nightly
+			w.Println("No stable release available, fetching nightly...")
+			latest, err = fetchNightlyVersion()
+			if err != nil {
+				w.ErrorPrefix("failed to fetch version: %v", err)
+				return 1
+			}
 		}
 		targetVersion = latest
 	}
@@ -127,10 +132,16 @@ func parseUpgradeArgs(args []string) (*upgradeOptions, bool, error) {
 
 // handleCheckMode displays version information without making changes.
 func handleCheckMode(w *output.Writer, pinnedVersion string) int {
+	// Try stable first, fall back to nightly
 	latest, err := fetchLatestVersion()
+	isNightly := false
 	if err != nil {
-		w.ErrorPrefix("failed to fetch latest version: %v", err)
-		return 1
+		latest, err = fetchNightlyVersion()
+		if err != nil {
+			w.ErrorPrefix("failed to fetch version: %v", err)
+			return 1
+		}
+		isNightly = true
 	}
 
 	w.Println("  Current CLI version:  %s", Version)
@@ -139,12 +150,23 @@ func handleCheckMode(w *output.Writer, pinnedVersion string) int {
 	} else {
 		w.Println("  Pinned version:       %s", pinnedVersion)
 	}
-	w.Println("  Latest stable:        %s", latest)
+	if isNightly {
+		w.Println("  Latest available:     %s (nightly)", latest)
+	} else {
+		w.Println("  Latest stable:        %s", latest)
+	}
 	w.Println("")
 
 	// Compare pinned version with latest
 	if pinnedVersion == "" {
 		w.Println("No version pinned. Run 'structyl upgrade' to set version.")
+	} else if isNightly {
+		// Only nightly available
+		if isNightlyVersion(pinnedVersion) {
+			w.Println("You are on a nightly version. Run 'structyl upgrade' to get the latest nightly.")
+		} else {
+			w.Println("No stable releases available yet. Run 'structyl upgrade' to switch to nightly.")
+		}
 	} else if !isNightlyVersion(pinnedVersion) {
 		cmp, err := version.Compare(pinnedVersion, latest)
 		if err == nil && cmp < 0 {
@@ -468,7 +490,7 @@ func printUpgradeUsage() {
 	w.HelpTitle("structyl upgrade - manage pinned CLI version")
 
 	w.HelpSection("Usage:")
-	w.HelpUsage("structyl upgrade              Upgrade to latest stable version")
+	w.HelpUsage("structyl upgrade              Upgrade to latest version (stable or nightly)")
 	w.HelpUsage("structyl upgrade <version>    Upgrade to specific version (e.g., 1.2.3, nightly)")
 	w.HelpUsage("structyl upgrade --check      Show current vs latest version without changing")
 
@@ -477,7 +499,7 @@ func printUpgradeUsage() {
 	w.HelpFlag("-h, --help", "Show this help", 10)
 
 	w.HelpSection("Examples:")
-	w.HelpExample("structyl upgrade", "Upgrade to latest stable version")
+	w.HelpExample("structyl upgrade", "Upgrade to latest version (stable preferred, nightly fallback)")
 	w.HelpExample("structyl upgrade 1.2.3", "Upgrade to version 1.2.3")
 	w.HelpExample("structyl upgrade nightly", "Upgrade to nightly build")
 	w.HelpExample("structyl upgrade --check", "Check for available updates")

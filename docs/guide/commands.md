@@ -136,6 +136,7 @@ See [CI Integration](./ci-integration) for details.
 | --------------------- | ------------------------------------ |
 | `structyl dockerfile` | Generate Dockerfiles for targets     |
 | `structyl github`     | Generate GitHub Actions CI workflow  |
+| `structyl mise sync`  | Regenerate mise.toml from config     |
 
 ## Docker Commands
 
@@ -143,12 +144,6 @@ See [CI Integration](./ci-integration) for details.
 | ----------------------------- | ---------------------------------------- |
 | `structyl docker-build [svc]` | Build Docker images for services         |
 | `structyl docker-clean`       | Remove Docker containers and images      |
-
-## Mise Commands
-
-| Command              | Description                           |
-| -------------------- | ------------------------------------- |
-| `structyl mise sync` | Regenerate mise.toml from config      |
 
 ## Defining Commands
 

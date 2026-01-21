@@ -96,8 +96,9 @@ func ensureMiseConfig(proj *project.Project, mode MiseRegenerateMode) error {
 
 	miseTomlExists := mise.MiseTomlExists(proj.Root)
 	forceRegenerate := mode == MiseForceRegenerate
+	fileNeedsCreation := !miseTomlExists
 	// Regenerate if: explicitly forced, auto-generation enabled, or file is missing
-	shouldRegenerate := forceRegenerate || autoGen || !miseTomlExists
+	shouldRegenerate := forceRegenerate || autoGen || fileNeedsCreation
 	if shouldRegenerate {
 		_, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, true)
 		if err != nil {
@@ -198,8 +199,7 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 
 	// If --type is specified and no specific target given, filter targets by type
 	if opts.TargetType != "" && targetName == "" {
-		targets := registry.All()
-		targets = filterTargetsByType(targets, target.TargetType(opts.TargetType))
+		targets := registry.ByType(target.TargetType(opts.TargetType))
 		if len(targets) == 0 {
 			out.WarningSimple("no targets of type %q found", opts.TargetType)
 			return 0
@@ -228,13 +228,15 @@ func cmdTargets(args []string, opts *GlobalOptions) int {
 		return exitCode
 	}
 
-	targets := registry.All()
+	var targets []target.Target
 	if opts.TargetType != "" {
-		targets = filterTargetsByType(targets, target.TargetType(opts.TargetType))
+		targets = registry.ByType(target.TargetType(opts.TargetType))
 		if len(targets) == 0 {
 			out.WarningSimple("no targets of type %q found", opts.TargetType)
 			return 0
 		}
+	} else {
+		targets = registry.All()
 	}
 
 	for _, t := range targets {
@@ -372,17 +374,6 @@ func extractTargetArg(args []string, registry *target.Registry) (string, []strin
 		return args[0], args[1:]
 	}
 	return "", args
-}
-
-// filterTargetsByType returns only targets of the specified type.
-func filterTargetsByType(targets []target.Target, targetType target.TargetType) []target.Target {
-	var filtered []target.Target
-	for _, t := range targets {
-		if t.Type() == targetType {
-			filtered = append(filtered, t)
-		}
-	}
-	return filtered
 }
 
 // cmdMise handles mise-related subcommands.

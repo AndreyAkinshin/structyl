@@ -119,6 +119,18 @@ A buildable unit in a Structyl project. Targets are either language implementati
 
 A preset that provides default command implementations for a specific build ecosystem. Examples: `cargo` (Rust), `dotnet` (C#), `npm` (Node.js). Toolchains map Structyl's standard commands to ecosystem-specific invocations.
 
+### Toolchain Version
+
+The version of the underlying tool managed by a toolchain. Used by mise to determine which tool version to install.
+
+**Resolution order** (highest to lowest priority):
+1. Target's `toolchain_version` field (per-target override)
+2. Custom toolchain's `version` field
+3. Built-in toolchain default
+4. `"latest"` as final fallback
+
+See [toolchains.md](toolchains.md) for toolchain configuration details.
+
 ### Variant
 
 A command that extends another command's name using colon notation. Example: `build:release` is a variant of `build`. Variants are independent commands—`build` and `build:release` are two separate commands, not a flag system. See [commands.md](commands.md#command-variants).

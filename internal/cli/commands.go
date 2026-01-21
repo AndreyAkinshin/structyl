@@ -24,9 +24,12 @@ import (
 var out = output.New()
 
 // Help text alignment widths for consistent formatting.
+// These values align the flag/command names with their descriptions.
 const (
-	helpFlagWidthShort  = 10 // Width for short flags like "-h, --help"
-	helpFlagWidthGlobal = 14 // Width for global flags like "--type=<type>"
+	helpFlagWidthShort      = 10 // Width for short flags like "-h, --help"
+	helpFlagWidthLong       = 12 // Width for longer flags like "[services]"
+	helpFlagWidthGlobal     = 14 // Width for global flags like "--type=<type>"
+	helpSubcommandWidthSync = 6  // Width for "sync" subcommand in mise help
 )
 
 // applyVerbosityToOutput configures the output writer based on verbosity settings.
@@ -47,27 +50,39 @@ func loadProject() (*project.Project, int) {
 	return proj, 0
 }
 
-// miseConfigForce constants document the boolean parameter for ensureMiseConfig.
+// printProjectWarnings outputs any warnings accumulated during project loading.
+func printProjectWarnings(proj *project.Project) {
+	for _, w := range proj.Warnings {
+		out.WarningSimple("%s", w)
+	}
+}
+
+// MiseRegenerateMode specifies when mise.toml should be regenerated.
+type MiseRegenerateMode int
+
 const (
-	miseConfigForceRegenerate = true  // Always regenerate mise.toml
-	miseConfigAutoRegenerate  = false // Regenerate only if auto_generate is enabled or file is missing
+	// MiseAutoRegenerate regenerates only if auto_generate is enabled or file is missing.
+	MiseAutoRegenerate MiseRegenerateMode = iota
+	// MiseForceRegenerate always regenerates mise.toml regardless of settings.
+	MiseForceRegenerate
 )
 
 // ensureMiseConfig ensures mise.toml is up-to-date.
 // If auto_generate is enabled, regenerates the file.
-// If force is true, always regenerates.
-func ensureMiseConfig(proj *project.Project, force bool) error {
+// If mode is MiseForceRegenerate, always regenerates.
+func ensureMiseConfig(proj *project.Project, mode MiseRegenerateMode) error {
 	autoGen := true // default to auto-generation so mise.toml stays in sync
 
 	if proj.Config.Mise != nil && proj.Config.Mise.AutoGenerate != nil {
 		autoGen = *proj.Config.Mise.AutoGenerate
 	}
 
-	miseTomlMissing := !mise.MiseTomlExists(proj.Root)
+	miseTomlExists := mise.MiseTomlExists(proj.Root)
+	forceRegenerate := mode == MiseForceRegenerate
 	// Regenerate if: explicitly forced, auto-generation enabled, or file is missing
-	needsRegeneration := force || autoGen || miseTomlMissing
-	if needsRegeneration {
-		_, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, miseConfigForceRegenerate)
+	shouldRegenerate := forceRegenerate || autoGen || !miseTomlExists
+	if shouldRegenerate {
+		_, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, true)
 		if err != nil {
 			return fmt.Errorf("failed to generate mise.toml: %w", err)
 		}
@@ -128,10 +143,7 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 		return exitCode
 	}
 
-	// Print warnings
-	for _, w := range proj.Warnings {
-		out.WarningSimple("%s", w)
-	}
+	printProjectWarnings(proj)
 
 	registry, err := target.NewRegistry(proj.Config, proj.Root)
 	if err != nil {
@@ -153,7 +165,7 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 	}
 
 	// Ensure mise.toml is up-to-date
-	if err := ensureMiseConfig(proj, miseConfigAutoRegenerate); err != nil {
+	if err := ensureMiseConfig(proj, MiseAutoRegenerate); err != nil {
 		out.ErrorPrefix("%v", err)
 		return internalerrors.ExitRuntimeError
 	}
@@ -258,10 +270,7 @@ func cmdConfigValidate() int {
 		return internalerrors.ExitConfigError
 	}
 
-	// Print warnings
-	for _, w := range proj.Warnings {
-		out.WarningSimple("%s", w)
-	}
+	printProjectWarnings(proj)
 
 	// Validate registry creation
 	registry, err := target.NewRegistry(proj.Config, proj.Root)
@@ -324,7 +333,7 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 	}
 
 	// Ensure mise.toml is up-to-date
-	if err := ensureMiseConfig(proj, miseConfigAutoRegenerate); err != nil {
+	if err := ensureMiseConfig(proj, MiseAutoRegenerate); err != nil {
 		out.ErrorPrefix("%v", err)
 		return internalerrors.ExitRuntimeError
 	}
@@ -404,7 +413,7 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 	}
 
 	// Generate mise.toml using loaded toolchains (always regenerates)
-	created, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, miseConfigForceRegenerate)
+	created, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, true)
 	if err != nil {
 		out.ErrorPrefix("mise sync: %v", err)
 		return internalerrors.ExitRuntimeError
@@ -578,6 +587,7 @@ func printUnifiedUsage(cmd string) {
 	w.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
 	w.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
 	w.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
+	w.Println("                  (precedence: --no-docker > --docker > STRUCTYL_DOCKER > default)")
 	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
 	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
 
@@ -649,6 +659,7 @@ func printCIUsage(cmd string) {
 	w.HelpFlag("-v, --verbose", "Maximum detail", helpFlagWidthGlobal)
 	w.HelpFlag("--docker", "Run in Docker container", helpFlagWidthGlobal)
 	w.HelpFlag("--no-docker", "Disable Docker mode", helpFlagWidthGlobal)
+	w.Println("                  (precedence: --no-docker > --docker > STRUCTYL_DOCKER > default)")
 	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", helpFlagWidthGlobal)
 	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthGlobal)
 
@@ -689,7 +700,7 @@ func printMiseUsage() {
 	w.HelpUsage("structyl mise <subcommand>")
 
 	w.HelpSection("Subcommands:")
-	w.HelpCommand("sync", "Regenerate mise.toml from project configuration", 6)
+	w.HelpCommand("sync", "Regenerate mise.toml from project configuration", helpSubcommandWidthSync)
 
 	w.HelpSection("Options:")
 	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthShort)
@@ -735,7 +746,7 @@ func printDockerBuildUsage() {
 	w.Println("  if none specified). Uses docker compose build under the hood.")
 
 	w.HelpSection("Arguments:")
-	w.HelpFlag("[services]", "Service names to build (optional, builds all if omitted)", helpFlagWidthShort+2)
+	w.HelpFlag("[services]", "Service names to build (optional, builds all if omitted)", helpFlagWidthLong)
 
 	w.HelpSection("Options:")
 	w.HelpFlag("-h, --help", "Show this help", helpFlagWidthShort)

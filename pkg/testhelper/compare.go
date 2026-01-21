@@ -213,6 +213,9 @@ func DefaultOptions() CompareOptions {
 //   - tolerance: Must be >= 0; for ULP mode, must fit in int64
 //   - nanEqualsNaN: Whether NaN values should be considered equal
 //
+// Note: Parameter order differs from [CompareOptions] struct field order for
+// historical reasons. This may be addressed in v2.0.0.
+//
 // Example:
 //
 //	opts, err := testhelper.NewCompareOptions(

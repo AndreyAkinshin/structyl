@@ -313,9 +313,12 @@ Note: `platform` in `services` affects the built image architecture; `platform` 
 
 ### services.\<target\>
 
-| Field        | Description       | Default           |
-| ------------ | ----------------- | ----------------- |
-| `base_image` | Base Docker image | Language-specific |
+| Field        | Description                    | Default           |
+| ------------ | ------------------------------ | ----------------- |
+| `base_image` | Base Docker image              | Language-specific |
+| `dockerfile` | Custom Dockerfile path         | None              |
+| `platform`   | Target platform for build      | Host platform     |
+| `volumes`    | Additional volume mounts       | `[]`              |
 
 ### targets.\<target\>
 

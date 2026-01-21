@@ -6,12 +6,12 @@ This document defines error handling semantics for Structyl.
 
 ## Exit Codes
 
-| Code | Name                | Description                                                             | Examples                                                                                               |
-| ---- | ------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `0`  | Success             | Command completed successfully                                          | Build passed, tests passed                                                                             |
-| `1`  | Failure             | Build, test, or command failure (expected runtime failure)              | Compilation error, test assertion failed, build script returned non-zero                               |
-| `2`  | Configuration Error | Invalid configuration, schema violation, or semantic validation error   | Malformed JSON, missing required field, circular dependency, invalid version format, pattern not found |
-| `3`  | Environment Error   | External system unavailable, I/O failure, or missing runtime dependency | Docker not running, file permission denied, network timeout, cannot read file                          |
+| Code | Name                | Description                                                             | Common Causes                          |
+| ---- | ------------------- | ----------------------------------------------------------------------- | -------------------------------------- |
+| `0`  | Success             | Command completed successfully                                          | Build passed, tests passed             |
+| `1`  | Failure             | Build, test, or command failure (expected runtime failure)              | Compilation error, test failure        |
+| `2`  | Configuration Error | Invalid configuration, schema violation, or semantic validation error   | Malformed JSON, missing field, cycle   |
+| `3`  | Environment Error   | External system unavailable, I/O failure, or missing runtime dependency | Docker unavailable, permission denied  |
 
 ### Exit Code Categories
 

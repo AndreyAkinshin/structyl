@@ -290,6 +290,36 @@ Configure tolerance in `.structyl/config.json`:
 
 ### Special Floating Point Values
 
+JSON cannot represent NaN or Infinity directly. Structyl uses special string values as placeholders.
+
+::: warning Case Sensitivity
+Special float strings are matched **exactly**. Only these exact strings trigger special handling:
+- `"NaN"` — not `"nan"`, `"NAN"`, or `"Nan"`
+- `"Infinity"` or `"+Infinity"` — not `"infinity"` or `"INFINITY"`
+- `"-Infinity"` — not `"-infinity"`
+
+Lowercase or other variants are treated as regular strings, not special float values.
+:::
+
+**JSON representation:**
+
+| Value             | JSON String        |
+| ----------------- | ------------------ |
+| Positive infinity | `"Infinity"` or `"+Infinity"` |
+| Negative infinity | `"-Infinity"`      |
+| Not a Number      | `"NaN"`            |
+
+**Example:**
+
+```json
+{
+  "input": { "x": [1.0, "Infinity", "-Infinity"] },
+  "output": "NaN"
+}
+```
+
+**Configuration:**
+
 ```json
 {
   "tests": {
@@ -300,7 +330,7 @@ Configure tolerance in `.structyl/config.json`:
 }
 ```
 
-Comparison behavior for IEEE 754 special values:
+**Comparison behavior for IEEE 754 special values:**
 
 | Comparison               | Result                                            |
 | ------------------------ | ------------------------------------------------- |
@@ -309,25 +339,6 @@ Comparison behavior for IEEE 754 special values:
 | `-Infinity == -Infinity` | `true`                                            |
 | `+Infinity == -Infinity` | `false`                                           |
 | `-0.0 == +0.0`           | `true`                                            |
-
-JSON representation of special values (CASE-SENSITIVE):
-
-- Infinity: Use string `"Infinity"` or `"+Infinity"` (not `"infinity"` or `"INFINITY"`)
-- Negative infinity: Use string `"-Infinity"` (not `"-infinity"`)
-- NaN: Use string `"NaN"` (not `"nan"` or `"NAN"`)
-
-::: warning Case Sensitivity
-These strings are matched exactly. Lowercase variants like `"nan"` or `"infinity"` are treated as regular strings, not special float values.
-:::
-
-Example:
-
-```json
-{
-  "input": { "x": [1.0, "Infinity", "-Infinity"] },
-  "output": "NaN"
-}
-```
 
 ## Test Loader Implementation
 

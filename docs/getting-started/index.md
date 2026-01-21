@@ -55,7 +55,7 @@ Structyl provides 14 standard commands that work across all toolchains:
 - `build` - Compile/package
 - `build:release` - Build with release optimizations *(toolchain support varies)*
 - `test` - Run tests
-- `test:coverage` - Run tests with coverage *(toolchain support varies)*
+- `test:coverage` - Run tests with coverage *(requires custom definition)*
 - `check` - Run static analysis (lint, typecheck, format-check)
 - `check:fix` - Auto-fix static analysis issues
 - `bench` - Run benchmarks

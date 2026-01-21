@@ -171,7 +171,6 @@ jobs:
 | ------------------- | --------------------------------------------- |
 | `STRUCTYL_DOCKER`   | Set to `1` to enable Docker mode              |
 | `CI`                | Standard CI variable (affects some behaviors) |
-| `STRUCTYL_PARALLEL` | Number of parallel workers                    |
 
 ## Best Practices
 

@@ -270,17 +270,7 @@ Running a null command succeeds with a warning.
 | Variable            | Description                                      | Default            |
 | ------------------- | ------------------------------------------------ | ------------------ |
 | `STRUCTYL_DOCKER`   | Enable Docker mode (`1`, `true`, or `yes`)       | (unset)            |
-| `STRUCTYL_PARALLEL` | Number of parallel workers for internal execution | `runtime.NumCPU()` |
 | `NO_COLOR`          | Disable colored output (any non-empty value)     | (unset)            |
-
-::: warning STRUCTYL_PARALLEL has limited effect
-`STRUCTYL_PARALLEL` only affects internal parallelism when Structyl runs targets directly. Since mise-based execution is now the default backend, this variable has **no effect** in most workflows. Mise handles its own parallelism independently.
-:::
-
-**`STRUCTYL_PARALLEL` behavior (when applicable):**
-- Value `0` or negative: Uses `runtime.NumCPU()`
-- Value `> 256`: Capped to 256 (safety limit)
-- Invalid (non-numeric): Falls back to `runtime.NumCPU()`
 
 ## Exit Codes
 

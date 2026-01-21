@@ -755,6 +755,10 @@ Commands are executed via the system shell:
 
 Shell selection is automatic based on the operating system. There is no configuration option to override the shell.
 
+::: info POSIX Compatibility
+On Unix systems, `/bin/sh` is used directly without assuming bash-specific features. Commands SHOULD be written using POSIX shell syntax for maximum portability. Bash-specific syntax (arrays, `[[`, process substitution) may fail on systems where `/bin/sh` is not bash (e.g., Debian/Ubuntu where `/bin/sh` is dash).
+:::
+
 ### Working Directory
 
 Commands execute in the target directory by default. Override with `cwd`:

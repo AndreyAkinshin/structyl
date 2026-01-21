@@ -303,16 +303,13 @@ type TargetJSON struct {
 func printTargetsJSON(targets []target.Target) int {
 	result := make([]TargetJSON, 0, len(targets))
 	for _, t := range targets {
-		deps := t.DependsOn()
-		if deps == nil {
-			deps = []string{}
-		}
+		// DependsOn() always returns non-nil slice per API contract (see target.go)
 		tj := TargetJSON{
 			Name:      t.Name(),
 			Type:      string(t.Type()),
 			Title:     t.Title(),
 			Commands:  t.Commands(),
-			DependsOn: deps,
+			DependsOn: t.DependsOn(),
 		}
 		result = append(result, tj)
 	}

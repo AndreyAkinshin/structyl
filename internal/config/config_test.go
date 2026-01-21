@@ -70,6 +70,11 @@ func TestLoad_FileNotFound(t *testing.T) {
 	if err == nil {
 		t.Fatal("Load() expected error for missing file")
 	}
+	// Verify error message contains useful information
+	errMsg := err.Error()
+	if !strings.Contains(errMsg, "nonexistent") && !strings.Contains(errMsg, "no such file") {
+		t.Errorf("error = %q, want to contain file path or 'no such file'", errMsg)
+	}
 }
 
 func TestLoad_InvalidJSON(t *testing.T) {

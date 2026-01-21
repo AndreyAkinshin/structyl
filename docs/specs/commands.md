@@ -38,6 +38,8 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 <!-- VitePress component: Renders full standard command reference table in docs site (non-normative) -->
 <StandardCommands />
 
+<!-- Fallback: If the component above does not render, see [toolchains.md](toolchains.md) for standard command definitions per toolchain. -->
+
 > **Note:** The `test:coverage` command is part of the standard vocabulary but **no built-in toolchain provides a default implementation**. Projects requiring coverage MUST define a custom `test:coverage` command in target configuration. This command is OPTIONAL and not required for toolchain conformance.
 >
 > **Semantics (when defined):**

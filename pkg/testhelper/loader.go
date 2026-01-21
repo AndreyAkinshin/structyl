@@ -292,6 +292,10 @@ func (tc TestCase) Clone() TestCase {
 // stronger type guarantees because they unmarshal from JSON; use Validate()
 // for programmatically-constructed test cases where structural checks suffice.
 //
+// WARNING: Comparison functions ([Equal], [Compare]) may produce undefined results
+// or panic if Output contains types other than the five JSON-compatible types.
+// If creating TestCase programmatically, ensure Output types match JSON semantics.
+//
 // Note: This method does NOT check for $file references. Programmatically
 // constructed TestCase instances may contain $file syntax in Input or Output,
 // which will cause errors when used with the internal test runner. The loader
@@ -312,9 +316,13 @@ func (tc TestCase) Validate() error {
 
 // LoadTestSuite loads all test cases from a suite directory.
 // It looks for JSON files in <projectRoot>/tests/<suite>/*.json.
+// Returns ErrEmptySuiteName or ErrInvalidSuiteName if the suite name is invalid.
 // Returns SuiteNotFoundError if the suite directory does not exist.
 // Returns an empty slice (not nil) if the suite exists but contains no JSON files.
 func LoadTestSuite(projectRoot, suite string) ([]TestCase, error) {
+	if err := ValidateSuiteName(suite); err != nil {
+		return nil, err
+	}
 	suiteDir := filepath.Join(projectRoot, "tests", suite)
 	if _, err := os.Stat(suiteDir); os.IsNotExist(err) {
 		return nil, &SuiteNotFoundError{Suite: suite}
@@ -334,7 +342,7 @@ func LoadTestSuite(projectRoot, suite string) ([]TestCase, error) {
 	for _, f := range files {
 		tc, err := LoadTestCase(f)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("suite %q: %w", suite, err)
 		}
 		tc.Suite = suite
 		cases = append(cases, *tc)
@@ -696,6 +704,11 @@ func ListSuites(projectRoot string) ([]string, error) {
 // Returns false for any error (including permission errors), not just "not found".
 // Use [LoadTestSuite] for detailed error information, or [SuiteExistsErr] to
 // distinguish "not found" from "permission denied" or other errors.
+//
+// Note: This function does NOT validate the suite name. Invalid names (containing
+// path separators or traversal sequences like "..") will check unintended paths
+// and return false without error. Use [ValidateSuiteName] first if the suite name
+// comes from untrusted input.
 func SuiteExists(projectRoot, suite string) bool {
 	suiteDir := filepath.Join(projectRoot, "tests", suite)
 	info, err := os.Stat(suiteDir)

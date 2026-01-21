@@ -135,6 +135,31 @@ func TestLoadTestSuite_NonexistentSuite_ReturnsSuiteNotFoundError(t *testing.T) 
 	}
 }
 
+func TestLoadTestSuite_InvalidSuiteName(t *testing.T) {
+	tmpDir := t.TempDir()
+	// Create tests directory
+	os.MkdirAll(filepath.Join(tmpDir, "tests"), 0755)
+
+	tests := []struct {
+		name    string
+		suite   string
+		wantErr error
+	}{
+		{"empty", "", ErrEmptySuiteName},
+		{"path_traversal", "../etc", ErrInvalidSuiteName},
+		{"path_separator", "foo/bar", ErrInvalidSuiteName},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := LoadTestSuite(tmpDir, tt.suite)
+			if !errors.Is(err, tt.wantErr) {
+				t.Errorf("LoadTestSuite(%q) error = %v, want %v", tt.suite, err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestSuiteNotFoundError(t *testing.T) {
 	err := &SuiteNotFoundError{Suite: "mysuite"}
 
@@ -834,6 +859,11 @@ func TestLoadTestSuite_InvalidJSON_ReturnsError(t *testing.T) {
 	_, err := LoadTestSuite(tmpDir, "broken")
 	if err == nil {
 		t.Error("LoadTestSuite() expected error when a test case has invalid JSON")
+	}
+
+	// Verify error message contains suite context for debugging
+	if !strings.Contains(err.Error(), `suite "broken"`) {
+		t.Errorf("error = %q, want to contain suite name for debugging", err)
 	}
 }
 

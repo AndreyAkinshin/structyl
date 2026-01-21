@@ -463,6 +463,11 @@ func buildShellCommand(ctx context.Context, cmdStr string) *exec.Cmd {
 // buildWindowsShellCommand creates a PowerShell command using the full path.
 // This prevents command interception that can cause infinite loops
 // when mise shims call structyl which calls mise shims again.
+//
+// Testing: This function is tested in impl_windows_test.go with build tag
+// //go:build windows. On non-Windows CI, it shows 0% coverage because the
+// runtime.GOOS check in buildShellCommand prevents execution. The tests
+// verify correct PowerShell path construction and flag handling.
 func buildWindowsShellCommand(ctx context.Context, cmdStr string) *exec.Cmd {
 	systemRoot := os.Getenv("SYSTEMROOT")
 	if systemRoot == "" {

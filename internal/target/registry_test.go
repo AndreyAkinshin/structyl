@@ -1,6 +1,9 @@
 package target
 
 import (
+	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -297,4 +300,107 @@ func TestRegistry_Names(t *testing.T) {
 			t.Errorf("names[%d] = %q, want %q", i, names[i], name)
 		}
 	}
+}
+
+func TestNewRegistry_VersionFileNotFound_Succeeds(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	cfg := &config.Config{
+		Project: config.ProjectConfig{Name: "test"},
+		Version: &config.VersionConfig{
+			Source: "nonexistent/VERSION", // File doesn't exist
+		},
+		Targets: map[string]config.TargetConfig{
+			"cs": {Type: "language", Title: "C#"},
+		},
+	}
+
+	// Should succeed even if version file doesn't exist
+	r, err := NewRegistry(cfg, tmpDir)
+	if err != nil {
+		t.Fatalf("NewRegistry() error = %v, want nil (missing version file is acceptable)", err)
+	}
+	if r == nil {
+		t.Fatal("NewRegistry() returned nil registry")
+	}
+}
+
+func TestNewRegistry_VersionFilePermissionError_ReturnsError(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows does not enforce file permissions the same way")
+	}
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	// Create version file
+	versionDir := filepath.Join(tmpDir, ".structyl")
+	if err := os.MkdirAll(versionDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	versionFile := filepath.Join(versionDir, "VERSION")
+	if err := os.WriteFile(versionFile, []byte("1.0.0\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Remove read permission
+	if err := os.Chmod(versionFile, 0000); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		os.Chmod(versionFile, 0644) // Restore for cleanup
+	})
+
+	cfg := &config.Config{
+		Project: config.ProjectConfig{Name: "test"},
+		Version: &config.VersionConfig{
+			Source: ".structyl/VERSION",
+		},
+		Targets: map[string]config.TargetConfig{
+			"cs": {Type: "language", Title: "C#"},
+		},
+	}
+
+	// Should return error for permission denied
+	_, err := NewRegistry(cfg, tmpDir)
+	if err == nil {
+		t.Fatal("NewRegistry() expected error for unreadable version file")
+	}
+	if !strings.Contains(err.Error(), "version file") {
+		t.Errorf("error = %q, want to mention 'version file'", err.Error())
+	}
+}
+
+func TestNewRegistry_VersionFileValid_InterpolatesVersion(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	// Create version file
+	versionDir := filepath.Join(tmpDir, ".structyl")
+	if err := os.MkdirAll(versionDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	versionFile := filepath.Join(versionDir, "VERSION")
+	if err := os.WriteFile(versionFile, []byte("2.1.0\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg := &config.Config{
+		Project: config.ProjectConfig{Name: "test"},
+		Version: &config.VersionConfig{
+			Source: ".structyl/VERSION",
+		},
+		Targets: map[string]config.TargetConfig{
+			"cs": {Type: "language", Title: "C#"},
+		},
+	}
+
+	r, err := NewRegistry(cfg, tmpDir)
+	if err != nil {
+		t.Fatalf("NewRegistry() error = %v", err)
+	}
+	if r == nil {
+		t.Fatal("NewRegistry() returned nil registry")
+	}
+	// Registry created successfully with version available for interpolation
 }

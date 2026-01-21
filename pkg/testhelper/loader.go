@@ -151,6 +151,12 @@ type TestCase struct {
 	// configuration. Objects provide named access to individual values and
 	// align with how most test frameworks expect structured input.
 	// Arrays and scalar values as top-level input are not supported.
+	//
+	// IMMUTABILITY: Input SHOULD be treated as immutable after loading.
+	// Modifying Input values may affect other code sharing the same TestCase
+	// (especially when using [Clone], which performs a shallow copy of top-level
+	// keys but shares nested values). For safe mutation, use [DeepClone] to
+	// create a fully independent copy.
 	Input map[string]interface{} `json:"input"`
 
 	// Output contains the expected output.

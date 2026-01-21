@@ -66,6 +66,34 @@ ok  	example.com/pkg	0.012s`,
 			expected: TestCounts{Parsed: false},
 		},
 		{
+			// Edge case: "PASS" summary without individual test results.
+			// This happens when tests pass but no --- PASS lines appear in output
+			// (e.g., truncated output or special test configurations).
+			// Parser returns Parsed=false because it cannot determine counts.
+			name:     "pass_summary_only",
+			output:   "PASS\nok\texample.com/pkg\t0.001s",
+			expected: TestCounts{Parsed: false},
+		},
+		{
+			// Edge case: "FAIL" summary without individual test results.
+			// Similar to pass_summary_only but for failures.
+			name:     "fail_summary_only",
+			output:   "FAIL\nexit status 1",
+			expected: TestCounts{Parsed: false},
+		},
+		{
+			// Edge case: newline-delimited PASS (as seen in fuzz seeds).
+			name:     "pass_newline",
+			output:   "\nPASS\n",
+			expected: TestCounts{Parsed: false},
+		},
+		{
+			// Edge case: newline-delimited FAIL (as seen in fuzz seeds).
+			name:     "fail_newline",
+			output:   "\nFAIL\n",
+			expected: TestCounts{Parsed: false},
+		},
+		{
 			name: "interleaved parallel output",
 			output: `=== RUN   TestFoo
 === RUN   TestBar

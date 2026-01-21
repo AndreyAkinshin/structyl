@@ -113,8 +113,11 @@ func FuzzCargoParser(f *testing.F) {
 				result.Passed, result.Failed, result.Skipped, result.Total)
 		}
 
-		// Total should equal sum of components when parsed
-		if result.Parsed && result.Total > 0 {
+		// Total should equal sum of components when parsed.
+		// Note: Cargo parser may have Parsed=true with Total=0 if the regex matches
+		// a line like "test result: ok. 0 passed; 0 failed; 0 ignored;". The invariant
+		// Total == sum still holds (0 == 0+0+0).
+		if result.Parsed {
 			sum := result.Passed + result.Failed + result.Skipped
 			if result.Total != sum {
 				t.Errorf("total mismatch: total=%d, sum=%d", result.Total, sum)

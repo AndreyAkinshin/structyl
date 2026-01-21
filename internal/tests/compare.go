@@ -1,3 +1,11 @@
+// Package tests provides the internal test comparison implementation for Structyl.
+//
+// Note: This package intentionally duplicates some comparison logic from pkg/testhelper.
+// The duplication exists because:
+//   - This package uses ComparisonConfig (maps to JSON config structure)
+//   - pkg/testhelper uses CompareOptions (stable public API)
+//   - Error messages differ: this uses "root" path prefix, testhelper uses "$" (JSON Path)
+//   - ULP calculation delegates to testhelper.ULPDiff to avoid duplicating IEEE 754 logic
 package tests
 
 import (
@@ -94,20 +102,9 @@ func compareFloats(expected float64, actual interface{}, cfg ComparisonConfig, p
 	case config.ToleranceModeULP:
 		// ULP comparison using IEEE 754 bit representation
 		withinTolerance = testhelper.ULPDiff(expected, actFloat) <= int64(cfg.FloatTolerance)
-	case config.ToleranceModeRelative, "":
-		// Relative tolerance (explicit or default when empty)
-		if expected == 0 {
-			withinTolerance = math.Abs(actFloat) <= cfg.FloatTolerance
-		} else {
-			withinTolerance = math.Abs((expected-actFloat)/expected) <= cfg.FloatTolerance
-		}
 	default:
-		// Unknown mode: treat as relative for backward compatibility
-		if expected == 0 {
-			withinTolerance = math.Abs(actFloat) <= cfg.FloatTolerance
-		} else {
-			withinTolerance = math.Abs((expected-actFloat)/expected) <= cfg.FloatTolerance
-		}
+		// Relative tolerance: explicit, empty string, or unknown mode (for backward compatibility)
+		withinTolerance = isWithinRelativeTolerance(expected, actFloat, cfg.FloatTolerance)
 	}
 
 	if withinTolerance {
@@ -241,6 +238,15 @@ func toFloat(v interface{}) (float64, bool) {
 	default:
 		return 0, false
 	}
+}
+
+// isWithinRelativeTolerance checks if actual is within relative tolerance of expected.
+// For expected == 0, uses absolute comparison to avoid division by zero.
+func isWithinRelativeTolerance(expected, actual, tolerance float64) bool {
+	if expected == 0 {
+		return math.Abs(actual) <= tolerance
+	}
+	return math.Abs((expected-actual)/expected) <= tolerance
 }
 
 // pathStr formats a path for error messages.

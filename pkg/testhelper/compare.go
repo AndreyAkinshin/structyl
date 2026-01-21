@@ -1,5 +1,9 @@
 package testhelper
 
+// Note: internal/tests/compare.go contains similar comparison logic but uses
+// different types (ComparisonConfig vs CompareOptions) and error message formats.
+// The duplication is intentional to maintain API stability for external consumers.
+
 import (
 	"fmt"
 	"math"

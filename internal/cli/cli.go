@@ -294,11 +294,11 @@ func printProjectHelp(w *output.Writer, proj *project.Project) {
 	w.HelpCommand("mise sync", "Regenerate mise.toml from config", 12)
 
 	w.HelpSection("Utility Commands:")
-	w.HelpCommand("targets", "List all configured targets", 10)
-	w.HelpCommand("config", "Configuration utilities", 10)
-	w.HelpCommand("upgrade", "Manage pinned CLI version", 10)
-	w.HelpCommand("completion", "Generate shell completion (bash, zsh, fish)", 10)
-	w.HelpCommand("version", "Show version information", 10)
+	w.HelpCommand("targets", "List all configured targets", 16)
+	w.HelpCommand("config validate", "Validate project configuration", 16)
+	w.HelpCommand("upgrade", "Manage pinned CLI version", 16)
+	w.HelpCommand("completion", "Generate shell completion (bash, zsh, fish)", 16)
+	w.HelpCommand("version", "Show version information", 16)
 
 	printGlobalFlags(w)
 	printExamplesForProject(w, targets)
@@ -345,11 +345,11 @@ func printGenericHelp(w *output.Writer) {
 	w.HelpCommand("mise sync", "Regenerate mise.toml from config", 12)
 
 	w.HelpSection("Utility Commands:")
-	w.HelpCommand("targets", "List all configured targets", 10)
-	w.HelpCommand("config", "Configuration utilities", 10)
-	w.HelpCommand("upgrade", "Manage pinned CLI version", 10)
-	w.HelpCommand("completion", "Generate shell completion (bash, zsh, fish)", 10)
-	w.HelpCommand("version", "Show version information", 10)
+	w.HelpCommand("targets", "List all configured targets", 16)
+	w.HelpCommand("config validate", "Validate project configuration", 16)
+	w.HelpCommand("upgrade", "Manage pinned CLI version", 16)
+	w.HelpCommand("completion", "Generate shell completion (bash, zsh, fish)", 16)
+	w.HelpCommand("version", "Show version information", 16)
 
 	printGlobalFlags(w)
 

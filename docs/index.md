@@ -31,7 +31,7 @@ features:
   - title: Docker Integration
     details: Run builds in isolated containers with --docker flag. Auto-generates docker-compose configuration.
   - title: Parallel Execution
-    details: Builds run in parallel with configurable worker count. Fail-fast or continue modes available.
+    details: Builds run in parallel with configurable worker count for faster builds.
 ---
 
 <div class="home-quick-install">

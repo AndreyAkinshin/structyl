@@ -336,6 +336,50 @@ Colors are enabled by default for terminal output. Disable with the `NO_COLOR` e
 NO_COLOR=1 structyl build
 ```
 
+## Troubleshooting
+
+### Parallel Execution Race Conditions
+
+When `STRUCTYL_PARALLEL > 1`, dependency ordering is NOT guaranteed. If a target depends on another via `depends_on`, the dependent may start before its dependency completes.
+
+**Symptoms:**
+- Intermittent build failures that pass on retry
+- "File not found" errors for generated artifacts
+- Different results between `STRUCTYL_PARALLEL=1` and higher values
+
+**Solutions:**
+1. Set `STRUCTYL_PARALLEL=1` for targets with strict ordering requirements
+2. Ensure dependencies are declared correctly in `depends_on`
+3. Use explicit synchronization in build scripts if needed
+
+### Command Not Found Skip Errors
+
+When a toolchain command is not found, Structyl skips the target with a warning rather than failing.
+
+**Symptoms:**
+- `warning: [<target>] <command>: <tool> not found, skipping`
+- Target appears to succeed but no work is done
+
+**Solutions:**
+1. Install the missing tool (e.g., `cargo`, `go`, `npm`)
+2. Ensure the tool is in your PATH
+3. If using mise, run `mise install` to install configured tools
+4. Check that the toolchain is correctly configured in `.structyl/config.json`
+
+### Corrupted mise.toml
+
+When `mise.auto_generate: true` is enabled, Structyl regenerates `mise.toml` on certain commands. If the generated file is invalid:
+
+**Symptoms:**
+- `mise` commands fail with parse errors
+- Error messages referencing `mise.toml` syntax
+
+**Solutions:**
+1. Delete `mise.toml` and let Structyl regenerate it: `rm mise.toml && structyl targets`
+2. Run `structyl mise sync --force` to force regeneration
+3. If custom tasks are needed, set `auto_generate: false` and maintain `mise.toml` manually
+4. Check `.structyl/config.json` for invalid target or command definitions
+
 ## Recovery Strategies
 
 ### Clean Build

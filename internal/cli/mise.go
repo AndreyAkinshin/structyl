@@ -11,7 +11,7 @@ import (
 
 // cmdDockerfile generates Dockerfiles for targets using mise.
 func cmdDockerfile(args []string, opts *GlobalOptions) int {
-	_ = opts // Unused: dockerfile command doesn't use global flags like --docker
+	_ = opts
 
 	if wantsHelp(args) {
 		printDockerfileUsage()

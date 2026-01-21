@@ -8,6 +8,7 @@ import (
 // Validation limits.
 const (
 	maxProjectNameLength = 128
+	maxTargetNameLength  = 64
 )
 
 // Validation patterns from the specification.
@@ -128,6 +129,12 @@ func validateTargets(cfg *Config) error {
 }
 
 func validateTargetName(name string) error {
+	if len(name) > maxTargetNameLength {
+		return &ValidationError{
+			Field:   fmt.Sprintf("targets.%s", name),
+			Message: fmt.Sprintf("target name must be %d characters or less", maxTargetNameLength),
+		}
+	}
 	if !targetNamePattern.MatchString(name) {
 		return &ValidationError{
 			Field:   fmt.Sprintf("targets.%s", name),
@@ -235,6 +242,12 @@ func ValidateProjectName(name string) error {
 func ValidateTargetName(name string) error {
 	if name == "" {
 		return &ValidationError{Field: "target name", Message: "required"}
+	}
+	if len(name) > maxTargetNameLength {
+		return &ValidationError{
+			Field:   "target name",
+			Message: fmt.Sprintf("must be %d characters or less", maxTargetNameLength),
+		}
 	}
 	if !targetNamePattern.MatchString(name) {
 		return &ValidationError{

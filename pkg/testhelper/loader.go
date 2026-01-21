@@ -226,6 +226,34 @@ func (tc TestCase) String() string {
 	return fmt.Sprintf("TestCase{%s%s}", tc.Name, skip)
 }
 
+// Clone returns a shallow copy of TestCase with deep copies of Input and Tags.
+// The returned TestCase is independent of the original for these fields:
+//   - Input: a new map with the same top-level keys and values (shallow copy of values)
+//   - Tags: a new slice with the same elements
+//
+// Output is NOT deep-copied; both original and clone reference the same value.
+// This is intentional: Output is typically consumed read-only in test assertions.
+// If you need to modify Output, copy it manually.
+//
+// Nil fields remain nil; empty slices/maps remain empty (not collapsed to nil).
+func (tc TestCase) Clone() TestCase {
+	clone := tc // shallow copy of struct
+
+	if tc.Input != nil {
+		clone.Input = make(map[string]interface{}, len(tc.Input))
+		for k, v := range tc.Input {
+			clone.Input[k] = v
+		}
+	}
+
+	if tc.Tags != nil {
+		clone.Tags = make([]string, len(tc.Tags))
+		copy(clone.Tags, tc.Tags)
+	}
+
+	return clone
+}
+
 // Validate checks that TestCase fields satisfy basic structural requirements.
 // Returns nil if valid, or an error describing the first validation failure.
 //

@@ -40,6 +40,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 | `Package.swift`                    | swift              |
 | `CMakeLists.txt`                   | cmake              |
 | `Makefile`                         | make               |
+| `*.sln`, `Directory.Build.props`, `global.json` | dotnet |
 | `*.csproj`, `*.fsproj`             | dotnet             |
 | `Gemfile`                          | bundler            |
 | `composer.json`                    | composer           |

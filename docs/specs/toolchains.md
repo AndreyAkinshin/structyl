@@ -50,6 +50,7 @@ Structyl checks for marker files in order:
 | `Package.swift`                    | `swift`    |
 | `CMakeLists.txt`                   | `cmake`    |
 | `Makefile`                         | `make`     |
+| `*.sln`, `Directory.Build.props`, `global.json` | `dotnet` |
 | `*.csproj`, `*.fsproj`             | `dotnet`   |
 | `Gemfile`                          | `bundler`  |
 | `composer.json`                    | `composer` |

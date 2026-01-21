@@ -18,11 +18,8 @@ import (
 // out is the shared output writer for runner messages.
 var out = output.New()
 
-// maxParallelWorkers is the upper bound for parallel worker count.
-// This prevents resource exhaustion from misconfigured STRUCTYL_PARALLEL values.
-// The value 256 is chosen as a practical upper limit: beyond this, the overhead
-// of goroutine scheduling and context switching typically outweighs parallelism benefits,
-// and most build systems rarely have more than a few dozen independent targets.
+// maxParallelWorkers caps STRUCTYL_PARALLEL; beyond 256, scheduling overhead
+// typically outweighs parallelism benefits.
 const maxParallelWorkers = 256
 
 // Runner orchestrates command execution across targets.

@@ -118,7 +118,13 @@ type TestCase struct {
 	// Skip marks the test as skipped if true.
 	Skip bool `json:"skip,omitempty"`
 
-	// Tags provides optional categorization.
+	// Tags provides optional categorization for filtering or grouping tests.
+	// Unlike other TestCase fields, Tags has no built-in semantics in structyl.
+	// Language implementations MAY use tags to:
+	//   - Filter test execution (e.g., run only "slow" or "integration" tests)
+	//   - Group tests in output
+	//   - Skip tests based on environment capabilities
+	// Tag values are free-form strings. Establish conventions per-project.
 	Tags []string `json:"tags,omitempty"`
 }
 

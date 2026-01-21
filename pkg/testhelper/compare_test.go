@@ -1214,3 +1214,40 @@ func TestULPDiff_AdjacentValues(t *testing.T) {
 		t.Errorf("ULPDiff(1.0, nextafter(1.0, 0.0)) = %d, want 1", got)
 	}
 }
+
+func TestULPDiff_SpecialValues(t *testing.T) {
+	t.Parallel()
+
+	nan := math.NaN()
+	posInf := math.Inf(1)
+	negInf := math.Inf(-1)
+
+	// Identical special values return 0
+	if got := ULPDiff(nan, nan); got != 0 {
+		t.Errorf("ULPDiff(NaN, NaN) = %d, want 0", got)
+	}
+	if got := ULPDiff(posInf, posInf); got != 0 {
+		t.Errorf("ULPDiff(+Inf, +Inf) = %d, want 0", got)
+	}
+	if got := ULPDiff(negInf, negInf); got != 0 {
+		t.Errorf("ULPDiff(-Inf, -Inf) = %d, want 0", got)
+	}
+
+	// NaN vs finite returns large value (not meaningful, but predictable)
+	if got := ULPDiff(nan, 0); got <= 0 {
+		t.Errorf("ULPDiff(NaN, 0) = %d, expected positive value", got)
+	}
+
+	// +Inf vs -Inf returns large value
+	if got := ULPDiff(posInf, negInf); got <= 0 {
+		t.Errorf("ULPDiff(+Inf, -Inf) = %d, expected positive value", got)
+	}
+
+	// Symmetry still holds for special values
+	if ULPDiff(nan, 0) != ULPDiff(0, nan) {
+		t.Error("ULPDiff symmetry violated for NaN")
+	}
+	if ULPDiff(posInf, negInf) != ULPDiff(negInf, posInf) {
+		t.Error("ULPDiff symmetry violated for infinities")
+	}
+}

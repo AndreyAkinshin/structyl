@@ -35,92 +35,63 @@ type initOptions struct {
 	Mise bool // Generate/regenerate mise.toml
 }
 
-// cmdInit initializes a new structyl project or updates an existing one.
-// This command is idempotent - it only creates files that don't exist.
-func cmdInit(args []string) int {
-	w := output.New()
+// initResult holds the result of initialization operations.
+type initResult struct {
+	created      []string       // Files/directories created
+	updated      []string       // Files updated
+	isNewProject bool           // Whether this is a new project
+	cfg          *config.Config // Loaded or created configuration
+}
 
-	if wantsHelp(args) {
-		printInitUsage()
-		return 0
-	}
-
-	// Parse flags
-	opts := initOptions{}
+// parseInitArgs parses init command arguments.
+func parseInitArgs(args []string) (*initOptions, error) {
+	opts := &initOptions{}
 	for _, arg := range args {
 		switch arg {
 		case "--mise":
 			opts.Mise = true
 		default:
 			if strings.HasPrefix(arg, "-") {
-				w.ErrorPrefix("init: unknown option %q", arg)
-				return errors.ExitConfigError
+				return nil, errors.Configf("init: unknown option %q", arg)
 			}
 		}
 	}
+	return opts, nil
+}
 
-	cwd, err := os.Getwd()
+// initializeNewProject creates config for a new project.
+func initializeNewProject(cwd, configPath string) (*config.Config, error) {
+	projectName := sanitizeProjectName(filepath.Base(cwd))
+
+	cfg := &config.Config{
+		Project: config.ProjectConfig{
+			Name: projectName,
+		},
+		Targets: make(map[string]config.TargetConfig),
+	}
+
+	// Auto-detect existing language directories
+	targets := detectTargetDirectories(cwd)
+	for name, targetCfg := range targets {
+		cfg.Targets[name] = targetCfg
+	}
+
+	// Write .structyl/config.json
+	data, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
-		w.ErrorPrefix("%v", err)
-		return errors.ExitRuntimeError
+		return nil, err
 	}
-	structylDir := filepath.Join(cwd, project.ConfigDirName)
-	configPath := filepath.Join(structylDir, project.ConfigFileName)
+	data = append(data, '\n')
 
-	// Track what we create and update
-	var created []string
-	var updated []string
-	isNewProject := false
-
-	// Create .structyl directory
-	if err := os.MkdirAll(structylDir, 0755); err != nil {
-		w.ErrorPrefix("%v", err)
-		return errors.ExitRuntimeError
+	if err := os.WriteFile(configPath, data, 0644); err != nil {
+		return nil, err
 	}
 
-	// Check if this is a new project or existing
-	var cfg *config.Config
-	if _, err := os.Stat(configPath); os.IsNotExist(err) {
-		isNewProject = true
-		// Use directory name as project name
-		projectName := sanitizeProjectName(filepath.Base(cwd))
+	return cfg, nil
+}
 
-		// Create minimal config
-		cfg = &config.Config{
-			Project: config.ProjectConfig{
-				Name: projectName,
-			},
-			Targets: make(map[string]config.TargetConfig),
-		}
-
-		// Auto-detect existing language directories
-		targets := detectTargetDirectories(cwd)
-		for name, targetCfg := range targets {
-			cfg.Targets[name] = targetCfg
-		}
-
-		// Write .structyl/config.json
-		data, err := json.MarshalIndent(cfg, "", "  ")
-		if err != nil {
-			w.ErrorPrefix("%v", err)
-			return errors.ExitRuntimeError
-		}
-		data = append(data, '\n')
-
-		if err := os.WriteFile(configPath, data, 0644); err != nil {
-			w.ErrorPrefix("%v", err)
-			return errors.ExitRuntimeError
-		}
-		created = append(created, ".structyl/config.json")
-	} else {
-		// Load existing config
-		cfg, _, err = config.LoadAndValidate(configPath)
-		if err != nil {
-			w.ErrorPrefix("error loading config: %v", err)
-			return errors.ExitConfigError
-		}
-	}
-
+// setupStructylFiles creates the standard .structyl directory files.
+func setupStructylFiles(w *output.Writer, structylDir string, isNewProject bool) (created, updated []string) {
 	// Write .structyl/version (pinned CLI version) - only if missing
 	versionFilePath := filepath.Join(structylDir, project.VersionFileName)
 	if _, err := os.Stat(versionFilePath); os.IsNotExist(err) {
@@ -160,7 +131,6 @@ func cmdInit(args []string) int {
 			created = append(created, ".structyl/AGENTS.md")
 		}
 	} else if !isNewProject {
-		// File exists on existing project - ask to update
 		if promptConfirm("Update .structyl/AGENTS.md with latest template?") {
 			if err := os.WriteFile(agentsPath, []byte(AgentsPromptContent), 0644); err != nil {
 				w.WarningSimple("could not update AGENTS.md: %v", err)
@@ -179,7 +149,6 @@ func cmdInit(args []string) int {
 			created = append(created, ".structyl/toolchains.json")
 		}
 	} else if !isNewProject {
-		// File exists on existing project - ask to update
 		if promptConfirm("Update .structyl/toolchains.json with latest template?") {
 			if err := os.WriteFile(toolchainsPath, []byte(ToolchainsTemplate), 0644); err != nil {
 				w.WarningSimple("could not update toolchains.json: %v", err)
@@ -190,7 +159,7 @@ func cmdInit(args []string) int {
 	}
 
 	// Create PROJECT_VERSION file - only if missing
-	versionPath := filepath.Join(cwd, ".structyl", "PROJECT_VERSION")
+	versionPath := filepath.Join(structylDir, "PROJECT_VERSION")
 	if _, err := os.Stat(versionPath); os.IsNotExist(err) {
 		if err := os.WriteFile(versionPath, []byte("0.1.0\n"), 0644); err != nil {
 			w.WarningSimple("could not create PROJECT_VERSION file: %v", err)
@@ -198,6 +167,13 @@ func cmdInit(args []string) int {
 			created = append(created, ".structyl/PROJECT_VERSION")
 		}
 	}
+
+	return created, updated
+}
+
+// setupProjectDirectories creates standard project directories.
+func setupProjectDirectories(w *output.Writer, cwd string) []string {
+	var created []string
 
 	// Create tests/ directory - only if missing
 	testsDir := filepath.Join(cwd, "tests")
@@ -209,53 +185,116 @@ func cmdInit(args []string) int {
 		}
 	}
 
-	// Update or create .gitignore
-	updateGitignore(cwd)
+	return created
+}
 
-	// Handle --mise flag: generate/regenerate mise.toml
-	if opts.Mise {
-		miseCreated, err := mise.WriteMiseToml(cwd, cfg, true) // force=true to regenerate
-		if err != nil {
-			w.WarningSimple("could not create mise.toml: %v", err)
-		} else if miseCreated {
-			created = append(created, "mise.toml")
-		}
-	}
-
-	// Print results
+// printInitResults prints the initialization results.
+func printInitResults(w *output.Writer, result *initResult) {
 	w.Println("")
-	if isNewProject {
-		w.Success("Initialized Structyl project: %s", cfg.Project.Name)
-		if len(cfg.Targets) > 0 {
+	if result.isNewProject {
+		w.Success("Initialized Structyl project: %s", result.cfg.Project.Name)
+		if len(result.cfg.Targets) > 0 {
 			w.HelpSection("Detected targets:")
-			for name, t := range cfg.Targets {
+			for name, t := range result.cfg.Targets {
 				w.Println("  - %s (%s)", name, t.Title)
 			}
 		}
-	} else if len(created) > 0 || len(updated) > 0 {
+	} else if len(result.created) > 0 || len(result.updated) > 0 {
 		w.Success("Updated Structyl project")
 	} else {
 		w.Info("Project already initialized (nothing to do)")
 	}
 
-	if len(created) > 0 {
+	if len(result.created) > 0 {
 		w.HelpSection("Created:")
-		for _, f := range created {
+		for _, f := range result.created {
 			w.Println("  - %s", f)
 		}
 	}
 
-	if len(updated) > 0 {
+	if len(result.updated) > 0 {
 		w.HelpSection("Updated:")
-		for _, f := range updated {
+		for _, f := range result.updated {
 			w.Println("  - %s", f)
 		}
 	}
 
-	if isNewProject {
+	if result.isNewProject {
 		printNextSteps(w)
 	}
+}
 
+// cmdInit initializes a new structyl project or updates an existing one.
+// This command is idempotent - it only creates files that don't exist.
+func cmdInit(args []string) int {
+	w := output.New()
+
+	if wantsHelp(args) {
+		printInitUsage()
+		return 0
+	}
+
+	opts, err := parseInitArgs(args)
+	if err != nil {
+		w.ErrorPrefix("%v", err)
+		return errors.ExitConfigError
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		w.ErrorPrefix("%v", err)
+		return errors.ExitRuntimeError
+	}
+	structylDir := filepath.Join(cwd, project.ConfigDirName)
+	configPath := filepath.Join(structylDir, project.ConfigFileName)
+
+	// Create .structyl directory
+	if err := os.MkdirAll(structylDir, 0755); err != nil {
+		w.ErrorPrefix("%v", err)
+		return errors.ExitRuntimeError
+	}
+
+	result := &initResult{}
+
+	// Initialize or load config
+	if _, err := os.Stat(configPath); os.IsNotExist(err) {
+		result.isNewProject = true
+		result.cfg, err = initializeNewProject(cwd, configPath)
+		if err != nil {
+			w.ErrorPrefix("%v", err)
+			return errors.ExitRuntimeError
+		}
+		result.created = append(result.created, ".structyl/config.json")
+	} else {
+		result.cfg, _, err = config.LoadAndValidate(configPath)
+		if err != nil {
+			w.ErrorPrefix("error loading config: %v", err)
+			return errors.ExitConfigError
+		}
+	}
+
+	// Setup .structyl files
+	created, updated := setupStructylFiles(w, structylDir, result.isNewProject)
+	result.created = append(result.created, created...)
+	result.updated = append(result.updated, updated...)
+
+	// Setup project directories
+	result.created = append(result.created, setupProjectDirectories(w, cwd)...)
+
+	// Update or create .gitignore
+	updateGitignore(cwd)
+
+	// Handle --mise flag: generate/regenerate mise.toml
+	if opts.Mise {
+		miseCreated, err := mise.WriteMiseToml(cwd, result.cfg, true)
+		if err != nil {
+			w.WarningSimple("could not create mise.toml: %v", err)
+		} else if miseCreated {
+			result.created = append(result.created, "mise.toml")
+		}
+	}
+
+	printInitResults(w, result)
 	return 0
 }
 

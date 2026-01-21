@@ -55,6 +55,10 @@ Edit `.structyl/config.json` to define your language implementations:
 }
 ```
 
+::: tip Toolchain Auto-Detection
+The `toolchain` field is optional. Structyl auto-detects toolchains from marker files (e.g., `Cargo.toml` → `cargo`, `go.mod` → `go`). We include it here for clarity.
+:::
+
 ## Set Up Language Directories
 
 Create directories for each target:

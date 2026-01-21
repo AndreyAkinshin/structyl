@@ -89,6 +89,8 @@ For installation and first-project setup, see the [Getting Started Guide](../get
 | [stability.md](stability.md)                                           | Versioning, compatibility, and deprecation policy             |
 | [go-architecture.md](go-architecture.md)                               | Internal package structure and design rationale (informative) |
 
+> **Document Status:** All specification documents are normative except `go-architecture.md` (informative implementation notes).
+
 ## Scope
 
 This specification defines Structyl v1.0. The following are explicitly **in scope**:

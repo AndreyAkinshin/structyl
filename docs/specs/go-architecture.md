@@ -2,7 +2,11 @@
 
 > **Note:** This document is **informative only**. It describes a reference implementation and is not normative for Structyl compliance. Alternative implementations MAY use different internal architectures.
 
-This document describes implementation-specific details of the Go codebase. For the canonical development guide including package structure, interfaces, and common tasks, see [AGENTS.md](../../AGENTS.md) in the repository root.
+This document describes implementation-specific details of the Go codebase.
+
+::: tip Canonical Development Guide
+For the complete development guide including package structure, interfaces, and common tasks, see **AGENTS.md** in the repository root. That document is the authoritative source for contributors and LLM agents.
+:::
 
 ## Command Execution Flow
 

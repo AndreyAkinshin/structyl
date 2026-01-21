@@ -67,6 +67,8 @@ Test loading is **all-or-nothing per suite**:
 
 Loading failures are **configuration errors** (exit code 2), distinct from **test execution failures** (exit code 1). A loading failure prevents any tests in that suite from executing.
 
+> **`pkg/testhelper` limitation:** The public Go package uses `*.json` pattern (immediate directory only), not the recursive `**/*.json` pattern supported by Structyl's internal runner. See the [Test Loader Implementation](#test-loader-implementation) section.
+
 **Error message format:**
 
 ```
@@ -158,8 +160,10 @@ A file reference is a JSON object with exactly one key `$file`:
 | `{"$file": ""}`                  | ✗     | Empty path                   |
 | `{"$file": "../input.bin"}`      | ✗     | Parent reference not allowed |
 | `{"$file": "/etc/passwd"}`       | ✗     | Absolute paths not allowed   |
-| `{"$file": "x.bin", "extra": 1}` | ✗     | Extra keys not allowed       |
+| `{"$file": "x.bin", "extra": 1}` | ✗     | Rejected (contains `$file` reference) |
 | `{"FILE": "input.bin"}`          | ✗     | Wrong key (case-sensitive)   |
+
+> **Implementation note:** The validation table above describes semantics for Structyl's internal runner. The public `pkg/testhelper` package rejects ANY `$file` reference regardless of object structure—see the warning box in [Binary Data References](#binary-data-references-internal-only).
 
 **Path Resolution:** Paths in `$file` references are resolved relative to the directory containing the JSON test file.
 

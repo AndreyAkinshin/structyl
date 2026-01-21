@@ -1809,3 +1809,107 @@ func TestCmdGitHub_UnknownOption_ReturnsError(t *testing.T) {
 		}
 	})
 }
+
+func TestCmdDockerfile_ValidProject_Success(t *testing.T) {
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		exitCode := cmdDockerfile([]string{}, &GlobalOptions{})
+		if exitCode != 0 {
+			t.Errorf("cmdDockerfile() = %d, want 0", exitCode)
+		}
+		// Verify Dockerfile was created for cs target (dotnet toolchain)
+		dockerfilePath := filepath.Join(root, "cs", "Dockerfile")
+		if _, err := os.Stat(dockerfilePath); os.IsNotExist(err) {
+			t.Error("cmdDockerfile() did not create cs/Dockerfile")
+		}
+	})
+}
+
+func TestCmdDockerfile_Force_OverwritesExisting(t *testing.T) {
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		// Create initial Dockerfile
+		exitCode := cmdDockerfile([]string{}, &GlobalOptions{})
+		if exitCode != 0 {
+			t.Fatalf("cmdDockerfile() initial = %d, want 0", exitCode)
+		}
+
+		dockerfilePath := filepath.Join(root, "cs", "Dockerfile")
+
+		// Get initial file info
+		initialInfo, err := os.Stat(dockerfilePath)
+		if err != nil {
+			t.Fatalf("could not stat initial Dockerfile: %v", err)
+		}
+
+		// Run again without force - should skip
+		exitCode = cmdDockerfile([]string{}, &GlobalOptions{})
+		if exitCode != 0 {
+			t.Errorf("cmdDockerfile() without force = %d, want 0", exitCode)
+		}
+
+		// File should be unchanged (mtime same)
+		skipInfo, _ := os.Stat(dockerfilePath)
+		if skipInfo.ModTime() != initialInfo.ModTime() {
+			t.Error("cmdDockerfile() without force modified the file")
+		}
+
+		// Run with --force - should overwrite
+		exitCode = cmdDockerfile([]string{"--force"}, &GlobalOptions{})
+		if exitCode != 0 {
+			t.Errorf("cmdDockerfile(--force) = %d, want 0", exitCode)
+		}
+	})
+}
+
+func TestCmdGitHub_ValidProject_Success(t *testing.T) {
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		exitCode := cmdGitHub([]string{}, &GlobalOptions{})
+		if exitCode != 0 {
+			t.Errorf("cmdGitHub() = %d, want 0", exitCode)
+		}
+		// Verify workflow file was created
+		workflowPath := filepath.Join(root, ".github", "workflows", "ci.yml")
+		if _, err := os.Stat(workflowPath); os.IsNotExist(err) {
+			t.Error("cmdGitHub() did not create .github/workflows/ci.yml")
+		}
+	})
+}
+
+func TestCmdGitHub_FileExists_SkipsWithoutForce(t *testing.T) {
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		// Create initial workflow
+		exitCode := cmdGitHub([]string{}, &GlobalOptions{})
+		if exitCode != 0 {
+			t.Fatalf("cmdGitHub() initial = %d, want 0", exitCode)
+		}
+
+		workflowPath := filepath.Join(root, ".github", "workflows", "ci.yml")
+
+		// Get initial content
+		initialContent, err := os.ReadFile(workflowPath)
+		if err != nil {
+			t.Fatalf("could not read initial workflow: %v", err)
+		}
+
+		// Run again without force - should skip (exit 0, file unchanged)
+		exitCode = cmdGitHub([]string{}, &GlobalOptions{})
+		if exitCode != 0 {
+			t.Errorf("cmdGitHub() without force = %d, want 0", exitCode)
+		}
+
+		// Content should be unchanged
+		skipContent, _ := os.ReadFile(workflowPath)
+		if string(skipContent) != string(initialContent) {
+			t.Error("cmdGitHub() without force modified the file")
+		}
+
+		// Run with --force - should overwrite (exit 0)
+		exitCode = cmdGitHub([]string{"--force"}, &GlobalOptions{})
+		if exitCode != 0 {
+			t.Errorf("cmdGitHub(--force) = %d, want 0", exitCode)
+		}
+	})
+}

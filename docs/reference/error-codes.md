@@ -51,8 +51,7 @@ The Structyl configuration is invalid. Fix `.structyl/config.json` before procee
 - Invalid version format
 
 ```
-structyl: invalid configuration
-  - project.name: required field missing
+structyl: invalid configuration: project.name is required
 ```
 
 ### Code 3 - Environment Error
@@ -68,7 +67,6 @@ An external system or resource is unavailable.
 
 ```
 structyl: Docker is not available
-  Install from: https://docs.docker.com/get-docker/
 ```
 
 ## Scripting with Exit Codes

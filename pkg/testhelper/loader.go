@@ -187,9 +187,13 @@ func LoadTestCase(path string) (*TestCase, error) {
 
 // LoadTestCaseWithSuite loads a single test case from a JSON file and sets the suite name.
 // This is a convenience function that combines LoadTestCase with setting the Suite field.
+// Returns ErrEmptySuiteName if suite is empty.
 // Returns an error if the file cannot be read, contains invalid JSON,
 // or is missing required fields (input and output).
 func LoadTestCaseWithSuite(path, suite string) (*TestCase, error) {
+	if err := ValidateSuiteName(suite); err != nil {
+		return nil, err
+	}
 	return loadTestCaseInternal(path, suite)
 }
 
@@ -349,6 +353,20 @@ func (e *TestCaseNotFoundError) Is(target error) bool {
 // ErrFileReferenceNotSupported is returned when a test case contains $file references.
 // File references are only supported in the internal test runner. Use embedded data instead.
 var ErrFileReferenceNotSupported = errors.New("$file references not supported in pkg/testhelper; use internal/tests or embed data directly")
+
+// ErrEmptySuiteName is returned when an empty suite name is provided.
+// Suite names must be non-empty strings corresponding to directory names.
+var ErrEmptySuiteName = errors.New("suite name cannot be empty")
+
+// ValidateSuiteName checks if a suite name is valid.
+// Returns ErrEmptySuiteName if the name is empty.
+// Suite names must be non-empty strings corresponding to directory names.
+func ValidateSuiteName(name string) error {
+	if name == "" {
+		return ErrEmptySuiteName
+	}
+	return nil
+}
 
 // containsFileReference recursively checks if a value contains a $file reference object.
 func containsFileReference(v interface{}) bool {

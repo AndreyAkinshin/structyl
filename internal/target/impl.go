@@ -129,8 +129,8 @@ func NewTarget(name string, cfg config.TargetConfig, rootDir string, version str
 		directory:  dir,
 		cwd:        cwd,
 		commands:   commands,
-		vars:       copyMap(cfg.Vars),
-		env:        copyMap(cfg.Env),
+		vars:       copyMapOrNil(cfg.Vars),
+		env:        copyMapOrNil(cfg.Env),
 		dependsOn:  cfg.DependsOn,
 		demoPath:   cfg.DemoPath,
 		rootDir:    rootDir,
@@ -152,8 +152,8 @@ func (t *targetImpl) DependsOn() []string {
 	copy(result, t.dependsOn)
 	return result
 }
-func (t *targetImpl) Env() map[string]string  { return copyMap(t.env) }
-func (t *targetImpl) Vars() map[string]string { return copyMap(t.vars) }
+func (t *targetImpl) Env() map[string]string  { return copyMapOrNil(t.env) }
+func (t *targetImpl) Vars() map[string]string { return copyMapOrNil(t.vars) }
 func (t *targetImpl) DemoPath() string        { return t.demoPath }
 
 func (t *targetImpl) Commands() []string {
@@ -365,12 +365,12 @@ func filterMiseEnv(environ []string) []string {
 	return filtered
 }
 
-// copyMap returns a copy of the map, or nil if the map is nil or empty.
+// copyMapOrNil copies the map, returning nil if the map is nil or empty.
 // Returning nil for empty maps is intentional: in JSON unmarshaling, nil signals
 // "not configured" while an empty map signals "explicitly configured as empty".
 // Since configuration rarely distinguishes these cases, we normalize both to nil
 // to simplify downstream nil checks.
-func copyMap(m map[string]string) map[string]string {
+func copyMapOrNil(m map[string]string) map[string]string {
 	if len(m) == 0 {
 		return nil
 	}

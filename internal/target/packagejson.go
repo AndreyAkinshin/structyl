@@ -22,7 +22,12 @@ var packageJSONCache = struct {
 }
 
 // getPackageJSON loads and caches the package.json from the given directory.
-// Returns nil if the file doesn't exist or is malformed.
+// Returns nil if the file doesn't exist, is malformed, or on any error.
+//
+// Errors are intentionally not surfaced to callers. Missing package.json is common
+// (non-Node projects) and invalid package.json will be reported by the package manager
+// when it actually runs. This function's purpose is to provide a hint for skip detection,
+// not to validate package.json files.
 func getPackageJSON(dir string) *PackageJSON {
 	// Normalize path for cache key
 	absDir, err := filepath.Abs(dir)

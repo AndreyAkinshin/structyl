@@ -84,11 +84,17 @@ type Target interface {
 	//
 	// Execute runs the specified command. Returns nil on success.
 	//
-	// Error types:
-	//   - *SkipError: command was skipped (disabled, missing executable, missing npm script).
-	//     Use IsSkipError() to detect. Runner layer decides whether to continue.
-	//   - context.Canceled/context.DeadlineExceeded: context was canceled or timed out.
-	//   - Other errors: command execution failed (non-zero exit, missing command definition).
+	// Error types (exhaustive):
+	//   - *SkipError: command was skipped (not failed). Use IsSkipError() to detect.
+	//     Reasons: SkipReasonDisabled (command is nil), SkipReasonCommandNotFound
+	//     (executable not in PATH), SkipReasonScriptNotFound (npm/pnpm/yarn/bun script missing).
+	//     Runner layer logs these as warnings and continues execution.
+	//   - *exec.ExitError: command executed but exited with non-zero status.
+	//     The exit code is available via err.(*exec.ExitError).ExitCode().
+	//   - context.Canceled: context was canceled before or during execution.
+	//   - context.DeadlineExceeded: context deadline was exceeded.
+	//   - fmt.Errorf (plain error): command definition error, e.g., command not defined
+	//     for target, invalid command list item type, invalid command definition type.
 	//
 	// For composite commands ([]string), sub-commands execute sequentially.
 	// If any sub-command fails, execution stops and the error is returned.
@@ -98,7 +104,6 @@ type Target interface {
 	//     when the context is canceled or times out.
 	//   - Child processes are terminated immediately; no graceful shutdown period.
 	//   - Partial stdout/stderr output may be available depending on buffering.
-	//   - Returns context.Canceled or context.DeadlineExceeded as appropriate.
 	Execute(ctx context.Context, cmd string, opts ExecOptions) error
 }
 

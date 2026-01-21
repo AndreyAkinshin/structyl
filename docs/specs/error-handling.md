@@ -75,42 +75,40 @@ structyl build     # Builds all targets
 structyl test      # Tests all language targets
 ```
 
-Default behavior is **fail-fast**:
+Structyl uses **fail-fast** behavior:
 
 - Stop on first failure
 - Exit with code `1`
 - Report which target failed
 
-### Continue on Failure
+Note: There is no continue-on-error mode. Structyl delegates to mise for task execution, and mise stops on first failure.
 
-Use `--continue` to run all targets regardless of failures:
+## Skip Errors
 
-```bash
-structyl test --continue
+Skip errors indicate a command was skipped (not failed). Skip scenarios include:
+
+| Reason | Description | Example |
+|--------|-------------|---------|
+| `disabled` | Command explicitly set to `null` in configuration | `"pack": null` |
+| `command_not_found` | Executable not found in PATH | `cargo` not installed |
+| `script_not_found` | npm/pnpm/yarn/bun script missing from package.json | `npm run test` with no `test` script |
+
+### Skip Error Behavior
+
+- Skip errors are logged as warnings, not failures
+- Execution continues after a skip
+- Skip errors do NOT affect exit code (exit 0 unless actual failure occurs)
+- Skip errors are excluded from combined error results
+
+### Example Output
+
+```
+warning: [go] build: go not found, skipping
+warning: [ts] test: script 'test' not found in package.json, skipping
+[cs] build completed
 ```
 
-Behavior:
-
-- Run all targets even if some fail
-- Collect all failures
-- Exit with code `1` if any target failed
-- Print summary of all failures
-
-Example output:
-
-```
-[cs] Tests passed
-[go] Tests FAILED
-[py] Tests passed
-[rs] Tests FAILED
-[ts] Tests passed
-
-Summary: 3 passed, 2 failed
-
-Failed targets:
-  - go: exit code 1
-  - rs: exit code 1
-```
+In this example, the overall command succeeds (exit 0) because `cs` built successfully, even though `go` and `ts` were skipped.
 
 ## Error Messages
 

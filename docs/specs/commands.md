@@ -280,6 +280,10 @@ go test -json ./... | structyl test-summary
 
 Parses `go test -json` output and prints a clear summary of test results, highlighting any failed tests with their failure reasons.
 
+::: info Go-only
+This command only supports Go's JSON test output format (`go test -json`). Other test frameworks (cargo, pytest, dotnet, etc.) are not supported.
+:::
+
 **Input:**
 
 - From stdin (piped): `go test -json ./... | structyl test-summary`
@@ -310,7 +314,6 @@ go test -json ./... 2>&1 | tee test.json && structyl test-summary test.json
 | --------------- | ---------------------------------------------------------- |
 | `--docker`      | Run command in Docker container                            |
 | `--no-docker`   | Disable Docker mode (overrides `STRUCTYL_DOCKER` env var)  |
-| `--continue`    | **[DEPRECATED]** Continue on error (no effect with mise backend); see [limitation](#continue-flag-limitation) |
 | `--type=<type>` | Filter targets by type (`language` or `auxiliary`)         |
 | `-q, --quiet`   | Minimal output (errors only)                               |
 | `-v, --verbose` | Maximum detail                                             |
@@ -337,26 +340,6 @@ STRUCTYL_DOCKER=0 structyl --docker build     # Runs in Docker (--docker wins)
 ```
 
 If both `--docker` and `--no-docker` are passed simultaneously, Structyl exits with an error: `--docker and --no-docker are mutually exclusive` (exit code 2).
-
-### `--continue` Flag Limitation
-
-::: warning DEPRECATED
-The `--continue` flag is deprecated and **has no effect** when Structyl executes commands via mise (the default backend). The flag is parsed for backwards compatibility but does not change execution behavior.
-:::
-
-**Current behavior:**
-
-- Structyl parses and accepts the `--continue` flag
-- A warning is printed: `--continue flag has no effect with mise backend (mise stops on first failure)`
-- The flag is NOT propagated to mise task execution
-- Mise stops on first error (mise's default behavior)
-
-**Why this limitation exists:** Mise tasks execute as shell commands, and mise's task runner stops immediately when a task fails. Structyl cannot override this behavior without running tasks outside of mise, which would lose mise's toolchain management benefits.
-
-**Alternatives:**
-
-1. Use `continue_on_error: true` in CI pipeline step definitions (see [CI Integration](ci-integration.md))
-2. Configure individual mise tasks with shell-level error handling (e.g., `|| true`)
 
 ## Null Commands
 

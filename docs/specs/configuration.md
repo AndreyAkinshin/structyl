@@ -129,7 +129,7 @@ Build targets configuration. See [targets.md](targets.md) for details.
 
 | Field              | Type   | Default        | Description                                           |
 | ------------------ | ------ | -------------- | ----------------------------------------------------- |
-| `type`             | string | Required*      | `"language"` or `"auxiliary"`                         |
+| `type`             | string | Required       | `"language"` or `"auxiliary"`                         |
 | `title`            | string | Required       | Display name                                          |
 | `toolchain`        | string | Auto-detect    | Toolchain preset (see [toolchains.md](toolchains.md)) |
 | `toolchain_version`| string | From toolchain | Override mise tool version for this target            |
@@ -140,8 +140,6 @@ Build targets configuration. See [targets.md](targets.md) for details.
 | `env`              | object | `{}`           | Environment variables                                 |
 | `depends_on`       | array  | `[]`           | Targets that must build first                         |
 | `demo_path`        | string | None           | Path to demo source (for doc generation)              |
-
-*\* `type` is required for unknown slugs; inferred as `"language"` for known language slugs (`cs`, `go`, `kt`, `py`, `rs`, `ts`, etc.). See [targets.md](targets.md#type-inference) for details.*
 
 #### Command Definitions
 

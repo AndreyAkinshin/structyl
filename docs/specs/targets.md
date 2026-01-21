@@ -139,24 +139,19 @@ Structyl detects `Cargo.toml` in `rs/` and uses the `cargo` toolchain.
 
 ### Configuration Fields
 
-| Field               | Type   | Default              | Description                                           |
-| ------------------- | ------ | -------------------- | ----------------------------------------------------- |
-| `type`              | string | Inferred (see below) | `"language"` or `"auxiliary"`                         |
-| `title`             | string | Required             | Display name (1-64 characters, non-empty)             |
-| `toolchain`         | string | Auto-detect          | Toolchain preset (see [toolchains.md](toolchains.md)) |
-| `toolchain_version` | string | None                 | Override mise tool version for this target            |
+| Field               | Type   | Default     | Description                                           |
+| ------------------- | ------ | ----------- | ----------------------------------------------------- |
+| `type`              | string | Required    | `"language"` or `"auxiliary"`                         |
+| `title`             | string | Required    | Display name (1-64 characters, non-empty)             |
+| `toolchain`         | string | Auto-detect | Toolchain preset (see [toolchains.md](toolchains.md)) |
+| `toolchain_version` | string | None        | Override mise tool version for this target            |
 
-**Type Inference:**
+**Type Requirement:**
 
-- In **Explicit mode** (targets defined in `.structyl/config.json`): `type` is required unless the slug matches a [default language slug](#default-language-slugs)
+- In **Explicit mode** (targets defined in `.structyl/config.json`): `type` MUST be specified for all targets
 - In **Auto-Discovery mode**: `type` is inferred from the slug—known language slugs become `language`, others become `auxiliary`
 
-When a target slug matches a default language slug (e.g., `cs`, `py`, `rs`), the type defaults to `language`. Unknown slugs in explicit configurations MUST specify `type`.
-
-| Slug                     | type Omitted | Result                  |
-| ------------------------ | ------------ | ----------------------- |
-| `cs`, `py`, `rs` (known) | Allowed      | Inferred as `language`  |
-| `img`, `pdf` (unknown)   | Error        | Must specify explicitly |
+The [Default Language Slugs](#default-language-slugs) table defines which slugs map to which types during auto-discovery.
 
 | Field        | Type   | Default        | Description                                |
 | ------------ | ------ | -------------- | ------------------------------------------ |
@@ -335,8 +330,9 @@ This is a known limitation tracked for future improvement.
 
 **Failure Behavior:**
 
-- **Fail-fast (default):** First failure cancels all pending targets; running targets continue to completion
-- **Continue mode (`--continue`):** All targets run regardless of failures; exit code 1 if any failed
+- **Fail-fast:** First failure cancels all pending targets; running targets continue to completion
+
+Note: There is no continue-on-error mode. Structyl delegates to mise for task execution, and mise stops on first failure.
 
 ### Dependency Validation
 

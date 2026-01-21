@@ -28,7 +28,7 @@ A target that must be built before another target. Specified via the `depends_on
 
 ### Fail-fast
 
-An execution strategy where processing stops on first failure. In fail-fast mode, when one target fails, pending targets are cancelled (though already-running targets complete). Contrast with `--continue` mode, which runs all targets regardless of individual failures.
+An execution strategy where processing stops on first failure. In fail-fast mode, when one target fails, pending targets are cancelled (though already-running targets complete). This is Structyl's default execution behavior.
 
 ### Forward Compatibility
 
@@ -100,6 +100,16 @@ A preset that provides default command implementations for a specific build ecos
 ### Variant
 
 A command that extends another command's name using colon notation. Example: `build:release` is a variant of `build`. Variants are independent commands—`build` and `build:release` are two separate commands, not a flag system. See [commands.md](commands.md#command-variants).
+
+### Verbosity
+
+The level of output detail. Structyl supports three verbosity levels:
+
+1. **Quiet** (`-q, --quiet`): Minimal output, errors only
+2. **Normal** (default): Standard operation messages and results
+3. **Verbose** (`-v, --verbose`): Maximum detail, including debug information
+
+Quiet and verbose modes are mutually exclusive. See [commands.md](commands.md#global-flags) for flag usage.
 
 ### Target Command
 

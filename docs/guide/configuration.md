@@ -179,7 +179,7 @@ Each target supports these options:
 
 | Field               | Type   | Default        | Description                   |
 | ------------------- | ------ | -------------- | ----------------------------- |
-| `type`              | string | Auto-inferred  | `"language"` or `"auxiliary"`. See [Known Language Slugs](/specs/targets#default-language-slugs) for auto-inference |
+| `type`              | string | Required       | `"language"` or `"auxiliary"` |
 | `title`             | string | Required       | Display name                  |
 | `toolchain`         | string | Auto-detect    | Toolchain preset              |
 | `toolchain_version` | string | From toolchain | Override mise tool version    |

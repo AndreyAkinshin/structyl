@@ -252,27 +252,28 @@ Running a null command succeeds with a warning.
 
 ## Global Flags
 
-| Flag            | Description                                                                 |
-| --------------- | --------------------------------------------------------------------------- |
-| `--docker`      | Run in Docker container                                                     |
-| `--no-docker`   | Disable Docker mode                                                         |
-| `--continue`    | **[DEPRECATED]** Continue on errors (no effect with mise backend); see [limitation](/specs/commands#continue-flag-limitation) |
-| `--type=<type>` | Filter by target type                                                       |
-| `-q, --quiet`   | Minimal output (errors only)                                       |
-| `-v, --verbose` | Maximum detail                                                     |
+| Flag            | Description                                    |
+| --------------- | ---------------------------------------------- |
+| `--docker`      | Run in Docker container                        |
+| `--no-docker`   | Disable Docker mode                            |
+| `--type=<type>` | Filter by target type                          |
+| `-q, --quiet`   | Minimal output (errors only)                   |
+| `-v, --verbose` | Maximum detail                                 |
 
 ## Environment Variables
 
 | Variable            | Description                                      | Default            |
 | ------------------- | ------------------------------------------------ | ------------------ |
 | `STRUCTYL_DOCKER`   | Enable Docker mode (`1`, `true`, or `yes`)       | (unset)            |
-| `STRUCTYL_PARALLEL` | Number of parallel workers for `--parallel` flag | `runtime.NumCPU()` |
+| `STRUCTYL_PARALLEL` | Number of parallel workers for internal execution | `runtime.NumCPU()` |
 | `NO_COLOR`          | Disable colored output (any non-empty value)     | (unset)            |
 
 **`STRUCTYL_PARALLEL` behavior:**
 - Value `0` or negative: Uses `runtime.NumCPU()`
 - Value `> 256`: Capped to 256 (safety limit)
 - Invalid (non-numeric): Falls back to `runtime.NumCPU()`
+
+Note: `STRUCTYL_PARALLEL` controls internal parallelism when Structyl runs targets directly. For mise-based execution (the default), mise handles its own parallelism.
 
 ## Exit Codes
 

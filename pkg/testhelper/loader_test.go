@@ -428,6 +428,69 @@ func TestTestCase_HasSuite(t *testing.T) {
 	}
 }
 
+func TestTestCase_TagsContain(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		tc   TestCase
+		tag  string
+		want bool
+	}{
+		{
+			name: "nil_tags",
+			tc:   TestCase{Name: "test1", Tags: nil},
+			tag:  "slow",
+			want: false,
+		},
+		{
+			name: "empty_tags",
+			tc:   TestCase{Name: "test1", Tags: []string{}},
+			tag:  "slow",
+			want: false,
+		},
+		{
+			name: "tag_found",
+			tc:   TestCase{Name: "test1", Tags: []string{"slow", "integration"}},
+			tag:  "slow",
+			want: true,
+		},
+		{
+			name: "tag_not_found",
+			tc:   TestCase{Name: "test1", Tags: []string{"slow", "integration"}},
+			tag:  "fast",
+			want: false,
+		},
+		{
+			name: "case_sensitive",
+			tc:   TestCase{Name: "test1", Tags: []string{"Slow", "integration"}},
+			tag:  "slow",
+			want: false,
+		},
+		{
+			name: "empty_tag_search",
+			tc:   TestCase{Name: "test1", Tags: []string{"slow", ""}},
+			tag:  "",
+			want: true,
+		},
+		{
+			name: "empty_tag_search_not_present",
+			tc:   TestCase{Name: "test1", Tags: []string{"slow"}},
+			tag:  "",
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := tt.tc.TagsContain(tt.tag); got != tt.want {
+				t.Errorf("TagsContain(%q) = %v, want %v", tt.tag, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestTestCase_String(t *testing.T) {
 	t.Parallel()
 

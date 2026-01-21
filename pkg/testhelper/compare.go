@@ -288,6 +288,8 @@ func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
 // should not panic. This fail-fast behavior ensures invalid options are
 // caught immediately rather than silently producing incorrect comparison results.
 //
+// Alternatively, use [CompareE] for an error-returning variant that does not panic.
+//
 // Special string values in expected trigger float comparisons:
 //   - "NaN" matches actual NaN (per NaNEqualsNaN option)
 //   - "Infinity" or "+Infinity" matches actual +Inf
@@ -303,6 +305,45 @@ func Compare(expected, actual interface{}, opts CompareOptions) (bool, string) {
 		panic("testhelper.Compare: " + err.Error())
 	}
 	return compareValues(expected, actual, opts, "")
+}
+
+// CompareE compares expected and actual outputs with detailed diff.
+// Returns true if they match, a diff string if they don't, and an error if
+// opts contains invalid values.
+//
+// This is an error-returning variant of [Compare]. Use CompareE when options
+// come from user input or external configuration where validation errors
+// should be handled gracefully rather than causing a panic.
+//
+// The return values are:
+//   - equal: true if expected and actual match according to opts
+//   - diff: empty string if equal, otherwise a description of the first difference
+//   - err: non-nil if opts is invalid
+//
+// When err is non-nil, equal is false and diff is empty.
+//
+// Special string values in expected trigger float comparisons:
+//   - "NaN" matches actual NaN (per NaNEqualsNaN option)
+//   - "Infinity" or "+Infinity" matches actual +Inf
+//   - "-Infinity" matches actual -Inf
+//
+// Example:
+//
+//	opts := testhelper.CompareOptions{ToleranceMode: userInput}
+//	equal, diff, err := testhelper.CompareE(expected, actual, opts)
+//	if err != nil {
+//	    // Handle invalid options from user input
+//	    return fmt.Errorf("invalid comparison options: %w", err)
+//	}
+//	if !equal {
+//	    fmt.Printf("Values differ: %s\n", diff)
+//	}
+func CompareE(expected, actual interface{}, opts CompareOptions) (bool, string, error) {
+	if err := ValidateOptions(opts); err != nil {
+		return false, "", err
+	}
+	equal, diff := compareValues(expected, actual, opts, "")
+	return equal, diff, nil
 }
 
 func compareValues(expected, actual interface{}, opts CompareOptions, path string) (bool, string) {

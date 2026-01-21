@@ -165,6 +165,18 @@ func (tc TestCase) HasSuite() bool {
 	return tc.Suite != ""
 }
 
+// TagsContain reports whether tc.Tags contains the given tag.
+// Comparison is exact and case-sensitive.
+// Returns false if tc.Tags is nil or empty.
+func (tc TestCase) TagsContain(tag string) bool {
+	for _, t := range tc.Tags {
+		if t == tag {
+			return true
+		}
+	}
+	return false
+}
+
 // String returns a human-readable representation of TestCase for debugging.
 // The format is for debugging only and may change without notice.
 func (tc TestCase) String() string {

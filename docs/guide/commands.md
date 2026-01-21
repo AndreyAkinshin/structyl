@@ -1,5 +1,7 @@
 # Commands
 
+> **Note:** This is a user guide (informative). For normative requirements, see the [Commands Specification](../specs/commands.md).
+
 Structyl provides a unified command interface that works across all programming languages.
 
 ## Standard Commands

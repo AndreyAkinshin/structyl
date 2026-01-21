@@ -1,5 +1,7 @@
 # Configuration
 
+> **Note:** This is a user guide (informative). For normative requirements, see the [Configuration Specification](../specs/configuration.md).
+
 Structyl uses a JSON configuration file to define your project settings, targets, and build options.
 
 ## Configuration File

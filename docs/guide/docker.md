@@ -1,5 +1,7 @@
 # Docker
 
+> **Note:** This is a user guide (informative). For normative requirements, see the [Docker Specification](../specs/docker.md).
+
 Structyl supports running builds inside Docker containers for reproducible, isolated builds.
 
 ## Why Docker?

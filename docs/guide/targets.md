@@ -1,5 +1,7 @@
 # Targets
 
+> **Note:** This is a user guide (informative). For normative requirements, see the [Targets Specification](../specs/targets.md).
+
 A target is a buildable unit in your Structyl project. Targets can be programming language implementations or auxiliary tools.
 
 ## Target Types

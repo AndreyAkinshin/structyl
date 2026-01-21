@@ -1,5 +1,7 @@
 # Mise Integration
 
+> **Note:** This is a user guide (informative). For normative requirements, see the [Configuration Specification](../specs/configuration.md#mise).
+
 Structyl uses [mise](https://mise.jdx.dev/) as its primary build platform. All command execution is delegated to mise tasks, making `mise.toml` the central configuration for toolchain management and task execution.
 
 ## Overview

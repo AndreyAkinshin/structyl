@@ -1,5 +1,7 @@
 # CI Integration
 
+> **Note:** This is a user guide (informative). For normative requirements, see the [CI Integration Specification](../specs/ci-integration.md).
+
 Structyl provides a CI command that runs a complete build pipeline, making it easy to integrate with any CI system.
 
 ## The `ci` Command

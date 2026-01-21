@@ -1,5 +1,7 @@
 # Testing
 
+> **Note:** This is a user guide (informative). For normative requirements, see the [Test System Specification](../specs/test-system.md).
+
 Structyl provides a language-agnostic reference test system. Tests are written in JSON and run against all language implementations.
 
 ## Why Reference Tests?

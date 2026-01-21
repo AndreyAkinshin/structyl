@@ -1,5 +1,7 @@
 # Project Structure
 
+> **Note:** This is a user guide (informative). For normative requirements, see the [Project Structure Specification](../specs/project-structure.md).
+
 Structyl uses a directory-based project organization where each target has its own directory.
 
 ## Standard Layout

@@ -1,5 +1,7 @@
 # Toolchains
 
+> **Note:** This is a user guide (informative). For normative requirements, see the [Toolchains Specification](../specs/toolchains.md).
+
 Toolchains provide default command implementations for different build ecosystems. They map Structyl's standard commands to language-specific tools.
 
 ## Using Toolchains

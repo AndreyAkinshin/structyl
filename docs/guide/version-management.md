@@ -1,5 +1,7 @@
 # Version Management
 
+> **Note:** This is a user guide (informative). For normative requirements, see the [Version Management Specification](../specs/version-management.md).
+
 Structyl maintains a single version for your entire project, automatically updating all language manifests.
 
 ## Version Source

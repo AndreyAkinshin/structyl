@@ -187,7 +187,7 @@ These commands operate across all targets.
 | `new`                    | **Deprecated (v1.0.0):** Alias for `init`. Removed in v2.0.0. Emits warning when used.                      |
 | `targets`                | List all configured targets (see [targets.md](targets.md#target-listing))                                   |
 | `release <version>`      | Set version, commit, and tag (see [version-management.md](version-management.md#automated-release-command)) |
-| `upgrade [version]`      | Manage pinned CLI version (see [version-management.md](version-management.md#cli-version-pinning))          |
+| `upgrade [version] [--check]` | Manage pinned CLI version (see [version-management.md](version-management.md#cli-version-pinning))          |
 | `config validate`        | Validate configuration without running commands                                                             |
 | `docker-build [targets]` | Build Docker images (see [docker.md](docker.md#docker-commands))                                            |
 | `docker-clean`           | Remove Docker containers, images, and volumes                                                               |

@@ -164,9 +164,15 @@ structyl test --docker
 
 ## Environment Variables
 
-| Variable            | Description                        |
-| ------------------- | ---------------------------------- |
-| `STRUCTYL_DOCKER`   | Force Docker mode on all platforms |
-| `STRUCTYL_PARALLEL` | Control parallel execution         |
-| `SHELL`             | Used to determine shell on Unix    |
-| `COMSPEC`           | Used to detect Windows             |
+| Variable            | Description                                                             |
+| ------------------- | ----------------------------------------------------------------------- |
+| `STRUCTYL_DOCKER`   | Force Docker mode on all platforms                                      |
+| `STRUCTYL_PARALLEL` | Control parallel execution                                              |
+| `SYSTEMROOT`        | Windows only: path to Windows directory (defaults to `C:\Windows`)      |
+
+### Shell Selection
+
+Structyl determines the platform using Go's `runtime.GOOS`, not environment variables:
+
+- **Unix (macOS, Linux):** Commands execute via `sh -c`. The user's `SHELL` environment variable is NOT used.
+- **Windows:** Commands execute via PowerShell found at `$SYSTEMROOT\System32\WindowsPowerShell\v1.0\powershell.exe`.

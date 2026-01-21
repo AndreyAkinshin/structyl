@@ -126,8 +126,10 @@ Outputs can be:
 
 ### Binary Data References (Internal Only)
 
+**Internal Use Only:** The `$file` reference syntax is only available in Structyl's internal test runner (`internal/tests` package). The public Go package `pkg/testhelper` does NOT support this syntax. External test implementations MUST either embed binary data directly in JSON or use the internal package.
+
 ::: danger Public API Limitation
-The `$file` syntax is only available in Structyl's internal test runner. The public Go package `pkg/testhelper` does NOT support `$file` references. Test cases using this syntax must either use the internal `internal/tests` package or embed data directly in JSON.
+The `$file` syntax is not part of the public API. Test cases using this syntax must use `internal/tests`.
 :::
 
 For binary data in tests using the internal runner, use the `$file` syntax:

@@ -192,11 +192,11 @@ func extractNpmScriptName(cmdStr string) (packageManager string, scriptName stri
 			return pm, ""
 		}
 		// Extract script name, ignoring flags like --fix
-		scriptName := fields[2]
-		if strings.HasPrefix(scriptName, "-") {
+		name := fields[2]
+		if strings.HasPrefix(name, "-") {
 			return pm, ""
 		}
-		return pm, scriptName
+		return pm, name
 	}
 
 	// Handle "npm test", "npm start" - special npm lifecycle scripts

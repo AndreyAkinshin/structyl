@@ -119,6 +119,11 @@ func TestParseGlobalFlags(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "docker and no-docker mutually exclusive",
+			args:    []string{"--docker", "--no-docker", "build"},
+			wantErr: true,
+		},
+		{
 			name:          "empty args",
 			args:          []string{},
 			wantRemaining: nil,

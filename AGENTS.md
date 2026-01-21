@@ -58,8 +58,8 @@ mise tasks
               ┌──────────────────┼──────────────────┐
               ▼                  ▼                  ▼
 ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-│internal/toolchain│  │  internal/runner │  │  internal/output │
-│ (Presets, Detect)│  │  (Docker, Run)   │  │  (Formatting)    │
+│internal/toolchain│  │   internal/mise  │  │  internal/output │
+│ (Presets, Detect)│  │  (Task Runner)   │  │  (Formatting)    │
 └──────────────────┘  └──────────────────┘  └──────────────────┘
 ```
 
@@ -323,6 +323,7 @@ errors.Validationf(format, args...) *StructylError      // Formatted validation
 errors.Environment(message string) *StructylError       // Environment error
 errors.Environmentf(format, args...) *StructylError     // Formatted environment
 errors.Wrap(err, message) *StructylError                // Wrap with context
+errors.Wrapf(err, format, args...) *StructylError       // Formatted wrap
 errors.TargetError(target, cmd, msg) *StructylError     // Target-specific
 errors.NotFound(what, name) *StructylError              // Not found
 errors.GetExitCode(err) int                             // Get exit code

@@ -14,6 +14,17 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/version"
 )
 
+// stepCounter provides auto-incrementing step numbers for release output.
+// Using a counter avoids manual stepNum++ which is error-prone when steps are reordered.
+type stepCounter struct {
+	n int
+}
+
+func (s *stepCounter) next() int {
+	s.n++
+	return s.n
+}
+
 // Options configures release behavior.
 type Options struct {
 	Version string // Version to release
@@ -68,14 +79,13 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 		return r.dryRun(ctx, verStr, opts)
 	}
 
-	stepNum := 1
+	steps := &stepCounter{}
 
 	// 1. Update VERSION file
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	r.out.Step(stepNum, "Setting version to %s", verStr)
-	stepNum++
+	r.out.Step(steps.next(), "Setting version to %s", verStr)
 	if err := r.setVersion(verStr); err != nil {
 		return fmt.Errorf("failed to set version: %w", err)
 	}
@@ -85,8 +95,7 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		r.out.Step(stepNum, "Propagating version to configured files...")
-		stepNum++
+		r.out.Step(steps.next(), "Propagating version to configured files...")
 		// Resolve paths relative to project root
 		resolvedFiles := make([]config.VersionFileConfig, len(r.config.Version.Files))
 		for i, f := range r.config.Version.Files {
@@ -106,8 +115,7 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		r.out.Step(stepNum, "Running pre-commit commands...")
-		stepNum++
+		r.out.Step(steps.next(), "Running pre-commit commands...")
 		for _, cmdStr := range r.config.Release.PreCommands {
 			if err := ctx.Err(); err != nil {
 				return err
@@ -123,8 +131,7 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	r.out.Step(stepNum, "Creating commit...")
-	stepNum++
+	r.out.Step(steps.next(), "Creating commit...")
 	if err := r.gitAddAll(ctx); err != nil {
 		return fmt.Errorf("git add failed: %w", err)
 	}
@@ -140,8 +147,7 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 	branch := r.getBranch()
 	currentBranch, err := r.getCurrentBranch(ctx)
 	if err == nil && currentBranch != branch {
-		r.out.Step(stepNum, "Moving %s branch to HEAD...", branch)
-		stepNum++
+		r.out.Step(steps.next(), "Moving %s branch to HEAD...", branch)
 		if err := r.gitBranchForce(ctx, branch); err != nil {
 			return fmt.Errorf("failed to move branch: %w", err)
 		}
@@ -153,7 +159,7 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 			return err
 		}
 		remote := r.getRemote()
-		r.out.Step(stepNum, "Pushing to %s...", remote)
+		r.out.Step(steps.next(), "Pushing to %s...", remote)
 
 		// Create tags
 		tags := r.getTags(verStr)

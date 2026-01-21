@@ -135,7 +135,11 @@ type TestCase struct {
 	//   - Filter test execution (e.g., run only "slow" or "integration" tests)
 	//   - Group tests in output
 	//   - Skip tests based on environment capabilities
-	// Tag values are free-form strings. Establish conventions per-project.
+	//
+	// Tag values are free-form strings with no validation: empty strings,
+	// duplicates, and any characters are permitted. Establish conventions
+	// per-project. This permissive design is intentional to avoid constraining
+	// downstream tooling.
 	Tags []string `json:"tags,omitempty"`
 }
 
@@ -150,6 +154,27 @@ func (tc TestCase) String() string {
 		return fmt.Sprintf("TestCase{%s/%s%s}", tc.Suite, tc.Name, skip)
 	}
 	return fmt.Sprintf("TestCase{%s%s}", tc.Name, skip)
+}
+
+// Validate checks that TestCase fields satisfy the spec requirements.
+// Returns nil if valid, or an error describing the first validation failure.
+//
+// This method is useful for callers who create TestCase programmatically
+// (e.g., test case generators) rather than loading from JSON files.
+// Loader functions already validate these requirements, so calling Validate
+// after LoadTestCase or LoadTestSuite is unnecessary.
+//
+// Validation rules:
+//   - Input must not be nil (empty map {} is valid)
+//   - Output must not be nil (use explicit value like "", {}, or [] instead)
+func (tc TestCase) Validate() error {
+	if tc.Input == nil {
+		return errors.New("input must not be nil")
+	}
+	if tc.Output == nil {
+		return errors.New("output must not be nil")
+	}
+	return nil
 }
 
 // LoadTestSuite loads all test cases from a suite directory.
@@ -426,7 +451,8 @@ func ListSuites(projectRoot string) ([]string, error) {
 
 // SuiteExists checks if a test suite exists.
 // Returns false for any error (including permission errors), not just "not found".
-// Use LoadTestSuite for detailed error information.
+// Use [LoadTestSuite] for detailed error information, or [SuiteExistsErr] to
+// distinguish "not found" from "permission denied" or other errors.
 func SuiteExists(projectRoot, suite string) bool {
 	suiteDir := filepath.Join(projectRoot, "tests", suite)
 	info, err := os.Stat(suiteDir)
@@ -435,7 +461,8 @@ func SuiteExists(projectRoot, suite string) bool {
 
 // TestCaseExists checks if a specific test case exists.
 // Returns false for any error (including permission errors), not just "not found".
-// Use LoadTestCase for detailed error information.
+// Use [LoadTestCase] for detailed error information, or [TestCaseExistsErr] to
+// distinguish "not found" from "permission denied" or other errors.
 func TestCaseExists(projectRoot, suite, name string) bool {
 	path := filepath.Join(projectRoot, "tests", suite, name+".json")
 	_, err := os.Stat(path)

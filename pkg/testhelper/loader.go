@@ -557,12 +557,32 @@ var ErrFileReferenceNotSupported = errors.New("$file references not supported; e
 // the error message itself—there's no path or attempted name to include.
 var ErrEmptySuiteName = errors.New("suite name cannot be empty")
 
+// ErrInvalidSuiteName is returned when a suite name contains invalid characters.
+// Invalid characters include path separators (/, \), path traversal sequences (..),
+// and null bytes. These restrictions prevent path injection attacks and ensure
+// suite names map safely to filesystem directories.
+var ErrInvalidSuiteName = errors.New("suite name contains invalid characters")
+
 // ValidateSuiteName checks if a suite name is valid.
 // Returns ErrEmptySuiteName if the name is empty.
+// Returns ErrInvalidSuiteName if the name contains path traversal sequences (..),
+// path separators (/ or \), or null bytes.
 // Suite names must be non-empty strings corresponding to directory names.
 func ValidateSuiteName(name string) error {
 	if name == "" {
 		return ErrEmptySuiteName
+	}
+	// Check for path traversal sequences
+	if strings.Contains(name, "..") {
+		return ErrInvalidSuiteName
+	}
+	// Check for path separators (both Unix and Windows)
+	if strings.ContainsAny(name, "/\\") {
+		return ErrInvalidSuiteName
+	}
+	// Check for null bytes
+	if strings.ContainsRune(name, '\x00') {
+		return ErrInvalidSuiteName
 	}
 	return nil
 }

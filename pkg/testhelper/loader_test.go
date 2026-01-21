@@ -1007,6 +1007,18 @@ func TestValidateSuiteName(t *testing.T) {
 		{"valid_with_hyphen", "math-advanced", nil},
 		{"valid_with_underscore", "math_basic", nil},
 		{"empty_string", "", ErrEmptySuiteName},
+		// Path traversal cases
+		{"path_traversal_parent", "..", ErrInvalidSuiteName},
+		{"path_traversal_prefix", "../foo", ErrInvalidSuiteName},
+		{"path_traversal_suffix", "foo/..", ErrInvalidSuiteName},
+		{"path_traversal_middle", "foo/../bar", ErrInvalidSuiteName},
+		// Path separator cases
+		{"forward_slash", "foo/bar", ErrInvalidSuiteName},
+		{"backslash", "foo\\bar", ErrInvalidSuiteName},
+		{"forward_slash_only", "/", ErrInvalidSuiteName},
+		{"backslash_only", "\\", ErrInvalidSuiteName},
+		// Null byte case
+		{"null_byte", "foo\x00bar", ErrInvalidSuiteName},
 	}
 
 	for _, tt := range tests {

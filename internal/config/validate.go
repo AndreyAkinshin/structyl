@@ -50,6 +50,10 @@ func Validate(cfg *Config) (warnings []string, err error) {
 		return nil, err
 	}
 
+	if err := validateVersion(cfg); err != nil {
+		return nil, err
+	}
+
 	return nil, nil
 }
 
@@ -292,6 +296,36 @@ func validateTests(cfg *Config) error {
 		return &ValidationError{
 			Field:   "tests.comparison.array_order",
 			Message: fmt.Sprintf("must be \"strict\" or \"unordered\", got %q", c.ArrayOrder),
+		}
+	}
+
+	// Validate float_tolerance is integer when tolerance_mode is "ulp"
+	if c.ToleranceMode == "ulp" && c.FloatTolerance != float64(int(c.FloatTolerance)) {
+		return &ValidationError{
+			Field:   "tests.comparison.float_tolerance",
+			Message: "must be an integer when tolerance_mode is \"ulp\"",
+		}
+	}
+
+	return nil
+}
+
+// validateVersion checks version configuration for errors.
+func validateVersion(cfg *Config) error {
+	if cfg.Version == nil {
+		return nil
+	}
+
+	// Validate regex patterns in version files
+	for i, f := range cfg.Version.Files {
+		if f.Pattern == "" {
+			continue
+		}
+		if _, err := regexp.Compile(f.Pattern); err != nil {
+			return &ValidationError{
+				Field:   fmt.Sprintf("version.files[%d].pattern", i),
+				Message: fmt.Sprintf("invalid regex: %v", err),
+			}
 		}
 	}
 

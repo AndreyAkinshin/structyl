@@ -158,6 +158,10 @@ type Target interface {
     DependsOn() []string // Dependency target names
 
     // Configuration
+    // GetCommand returns (string, true) for shell commands,
+    // ([]interface{}, true) for command lists, (nil, true) for
+    // disabled commands (null), (nil, false) for undefined commands.
+    // See internal/target/target.go:48-59 for full semantics.
     GetCommand(name string) (interface{}, bool)
     Env() map[string]string
     Vars() map[string]string

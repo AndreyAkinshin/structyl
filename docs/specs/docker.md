@@ -219,11 +219,29 @@ structyl docker-build        # Build all images
 structyl docker-build cs py  # Build specific images
 ```
 
+**Exit codes:**
+
+| Code | Condition              |
+| ---- | ---------------------- |
+| 0    | Images built           |
+| 1    | Build failed           |
+| 3    | Docker unavailable     |
+
 ### Clean Docker Resources
 
 ```bash
 structyl docker-clean        # Remove containers, images, volumes
 ```
+
+**Exit codes:**
+
+| Code | Condition              |
+| ---- | ---------------------- |
+| 0    | Clean completed        |
+| 1    | Clean failed           |
+| 3    | Docker unavailable     |
+
+**Note:** Exit code 3 indicates Docker daemon is not running or Docker is not installed. See [error-handling.md](error-handling.md#exit-codes) for the complete exit code reference.
 
 ## Example Dockerfiles
 

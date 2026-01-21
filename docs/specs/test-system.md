@@ -35,25 +35,20 @@ Every test file has `input` and `output`:
 
 ### Test Case Schema
 
-| Field    | Required | Type   | Description                                  |
-| -------- | -------- | ------ | -------------------------------------------- |
-| `input`  | Yes      | object | Input parameters for the function under test |
-| `output` | Yes      | any    | Expected output value                        |
+| Field         | Required | Type     | Description                                        |
+| ------------- | -------- | -------- | -------------------------------------------------- |
+| `input`       | Yes      | object   | Input parameters for the function under test       |
+| `output`      | Yes      | any      | Expected output value                              |
+| `description` | No       | string   | Optional documentation for the test case           |
+| `skip`        | No       | boolean  | When `true`, marks the test as skipped             |
+| `tags`        | No       | string[] | Optional categorization for filtering or grouping  |
 
 **Validation Rules:**
 
 - Missing `input` field: Load fails with `test case {suite}/{name}: missing required field "input"`
 - Missing `output` field: Load fails with `test case {suite}/{name}: missing required field "output"`
-- Any additional fields beyond `input` and `output` are silently ignored (forward-compatibility)
+- Any additional fields beyond those listed above are silently ignored (forward-compatibility)
 - Empty `input` object (`{}`) is valid
-
-### Optional Fields
-
-| Field         | Type     | Description                                        |
-| ------------- | -------- | -------------------------------------------------- |
-| `description` | string   | Optional documentation for the test case           |
-| `skip`        | boolean  | When `true`, marks the test as skipped             |
-| `tags`        | string[] | Optional categorization for filtering or grouping  |
 
 **Tag usage:** Tags have no built-in semantics in Structyl. Language implementations MAY use tags to filter test execution, group tests in output, or skip tests based on environment capabilities. Tag values are free-form strings; establish conventions per-project.
 
@@ -75,7 +70,7 @@ Loading failures are **configuration errors** (exit code 2), distinct from **tes
 **Error message format:**
 
 ```
-structyl: error: test suite "{suite}": {reason}
+structyl: test suite "{suite}": {reason}
   file: {path}
 ```
 

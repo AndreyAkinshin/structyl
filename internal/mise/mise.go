@@ -161,7 +161,7 @@ func generateTasksWithToolchains(cfg *config.Config, loaded *toolchain.Toolchain
 			case string:
 				// Direct shell command
 				task := MiseTask{
-					Description: fmt.Sprintf("%s for %s target", capitalize(cmdName), targetName),
+					Description: fmt.Sprintf("%s for %s target", capitalizeASCII(cmdName), targetName),
 					Run:         v,
 				}
 				if dir != "" {
@@ -183,7 +183,7 @@ func generateTasksWithToolchains(cfg *config.Config, loaded *toolchain.Toolchain
 				}
 				if len(steps) > 0 {
 					task := MiseTask{
-						Description: fmt.Sprintf("%s for %s target", capitalize(cmdName), targetName),
+						Description: fmt.Sprintf("%s for %s target", capitalizeASCII(cmdName), targetName),
 						RunSequence: steps,
 					}
 					if dir != "" {
@@ -232,7 +232,7 @@ func generateTasksWithToolchains(cfg *config.Config, loaded *toolchain.Toolchain
 		}
 
 		tasks[cmdName] = MiseTask{
-			Description: fmt.Sprintf("%s all targets", capitalize(cmdName)),
+			Description: fmt.Sprintf("%s all targets", capitalizeASCII(cmdName)),
 			DependsOn:   deps,
 		}
 	}
@@ -296,9 +296,9 @@ func getResolvedCommandsForTargetWithToolchains(targetCfg config.TargetConfig, c
 	return commands
 }
 
-// capitalize returns a string with the first letter capitalized.
-// ASCII-only; sufficient for command names used in this codebase.
-func capitalize(s string) string {
+// capitalizeASCII returns a string with the first ASCII letter capitalized.
+// Only handles ASCII; sufficient for command names used in this codebase.
+func capitalizeASCII(s string) string {
 	if s == "" {
 		return s
 	}

@@ -118,7 +118,7 @@ func ensureMiseConfig(proj *project.Project, mode MiseRegenerateMode) error {
 
 // writeMiseConfig writes the mise.toml file from project configuration.
 func writeMiseConfig(proj *project.Project) error {
-	_, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, true)
+	_, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, mise.WriteAlways)
 	if err != nil {
 		return fmt.Errorf("failed to generate mise.toml: %w", err)
 	}
@@ -501,8 +501,7 @@ func cmdMiseSync(args []string, opts *GlobalOptions) int {
 	}
 
 	// Generate mise.toml using loaded toolchains (always regenerates)
-	const forceWrite = true // Always write; skip content comparison
-	created, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, forceWrite)
+	created, err := mise.WriteMiseTomlWithToolchains(proj.Root, proj.Config, proj.Toolchains, mise.WriteAlways)
 	if err != nil {
 		out.ErrorPrefix("mise sync: %v", err)
 		return internalerrors.ExitRuntimeError

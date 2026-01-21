@@ -11,6 +11,16 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/toolchain"
 )
 
+// WriteMode specifies when to write mise.toml.
+type WriteMode int
+
+const (
+	// WriteIfMissing only writes if the file doesn't exist.
+	WriteIfMissing WriteMode = iota
+	// WriteAlways writes regardless of whether the file exists.
+	WriteAlways
+)
+
 // MiseConfig represents a mise.toml configuration.
 type MiseConfig struct {
 	Tools map[string]string
@@ -126,7 +136,7 @@ func generateTasksWithToolchains(cfg *config.Config, loaded *toolchain.Toolchain
 	}
 
 	// Collect target names sorted for deterministic output
-	var targetNames []string
+	targetNames := make([]string, 0, len(cfg.Targets))
 	for name := range cfg.Targets {
 		targetNames = append(targetNames, name)
 	}
@@ -308,7 +318,7 @@ func capitalizeASCII(s string) string {
 // writeTasks writes the tasks section to the builder.
 func writeTasks(b *strings.Builder, tasks map[string]MiseTask) {
 	// Sort task names for deterministic output
-	var taskNames []string
+	taskNames := make([]string, 0, len(tasks))
 	for name := range tasks {
 		taskNames = append(taskNames, name)
 	}
@@ -374,21 +384,21 @@ func writeTasks(b *strings.Builder, tasks map[string]MiseTask) {
 
 // WriteMiseToml generates and writes a mise.toml file to the project root.
 // Returns true if a new file was created, false if it already exists.
-// Use force=true to overwrite an existing file.
+// Use WriteAlways to overwrite an existing file.
 // Deprecated: Use WriteMiseTomlWithToolchains for loaded toolchains configuration.
-func WriteMiseToml(projectRoot string, cfg *config.Config, force bool) (bool, error) {
-	return WriteMiseTomlWithToolchains(projectRoot, cfg, nil, force)
+func WriteMiseToml(projectRoot string, cfg *config.Config, mode WriteMode) (bool, error) {
+	return WriteMiseTomlWithToolchains(projectRoot, cfg, nil, mode)
 }
 
 // WriteMiseTomlWithToolchains generates and writes a mise.toml file to the project root
 // using the loaded toolchains configuration.
 // Returns true if a new file was created, false if it already exists.
-// Use force=true to overwrite an existing file.
-func WriteMiseTomlWithToolchains(projectRoot string, cfg *config.Config, loaded *toolchain.ToolchainsFile, force bool) (bool, error) {
+// Use WriteAlways to overwrite an existing file.
+func WriteMiseTomlWithToolchains(projectRoot string, cfg *config.Config, loaded *toolchain.ToolchainsFile, mode WriteMode) (bool, error) {
 	outputPath := filepath.Join(projectRoot, "mise.toml")
 
 	// Check if file already exists
-	if !force {
+	if mode == WriteIfMissing {
 		if _, err := os.Stat(outputPath); err == nil {
 			return false, nil
 		}

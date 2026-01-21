@@ -105,7 +105,7 @@ func TestWriteMiseToml(t *testing.T) {
 	}
 
 	// First write should create file
-	created, err := WriteMiseToml(tmpDir, cfg, false)
+	created, err := WriteMiseToml(tmpDir, cfg, WriteIfMissing)
 	if err != nil {
 		t.Fatalf("WriteMiseToml() error = %v", err)
 	}
@@ -113,8 +113,8 @@ func TestWriteMiseToml(t *testing.T) {
 		t.Error("WriteMiseToml() = false, want true (file should be created)")
 	}
 
-	// Second write without force should not overwrite
-	created, err = WriteMiseToml(tmpDir, cfg, false)
+	// Second write with WriteIfMissing should not overwrite
+	created, err = WriteMiseToml(tmpDir, cfg, WriteIfMissing)
 	if err != nil {
 		t.Fatalf("WriteMiseToml() error = %v", err)
 	}
@@ -122,13 +122,13 @@ func TestWriteMiseToml(t *testing.T) {
 		t.Error("WriteMiseToml() = true, want false (file exists)")
 	}
 
-	// Third write with force should overwrite
-	created, err = WriteMiseToml(tmpDir, cfg, true)
+	// Third write with WriteAlways should overwrite
+	created, err = WriteMiseToml(tmpDir, cfg, WriteAlways)
 	if err != nil {
 		t.Fatalf("WriteMiseToml() error = %v", err)
 	}
 	if !created {
-		t.Error("WriteMiseToml(force=true) = false, want true")
+		t.Error("WriteMiseToml(WriteAlways) = false, want true")
 	}
 
 	// Verify file exists and has content
@@ -293,7 +293,7 @@ func TestWriteMiseToml_ReadOnlyDirectory(t *testing.T) {
 		},
 	}
 
-	_, err := WriteMiseToml(readOnlyDir, cfg, true)
+	_, err := WriteMiseToml(readOnlyDir, cfg, WriteAlways)
 	if err == nil {
 		t.Error("WriteMiseToml() expected error for read-only directory, got nil")
 	}

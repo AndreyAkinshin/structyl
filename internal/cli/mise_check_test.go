@@ -102,3 +102,65 @@ func TestPrintMiseInstallInstructions(t *testing.T) {
 	// but the primary goal is ensuring no runtime errors.
 	PrintMiseInstallInstructions()
 }
+
+// TestCheckMise_ReturnsStatus verifies that CheckMise returns a valid status.
+// Note: This test depends on the actual system state - if mise is installed,
+// it will return installed=true; otherwise installed=false.
+func TestCheckMise_ReturnsStatus(t *testing.T) {
+	t.Parallel()
+	status := CheckMise()
+	// We can't assert on specific values since they depend on system state,
+	// but we can verify the function returns without panic and the status
+	// has consistent state (if installed, version/path should be populated).
+	if status.Installed {
+		// If mise reports as installed, Path should be non-empty
+		if status.Path == "" {
+			t.Error("CheckMise() returned Installed=true but Path is empty")
+		}
+	}
+}
+
+// TestEnsureMise_NonInteractive_ReturnsMiseNotInstalled verifies that
+// EnsureMise returns the appropriate error in non-interactive mode when
+// mise is not installed. This test skips if mise IS installed on the system.
+func TestEnsureMise_NonInteractive_ReturnsMiseNotInstalled(t *testing.T) {
+	t.Parallel()
+	// First check if mise is installed
+	status := CheckMise()
+	if status.Installed {
+		t.Skip("mise is installed, cannot test not-installed branch")
+	}
+
+	// In non-interactive mode, should return error immediately
+	err := EnsureMise(false)
+	if err == nil {
+		t.Error("EnsureMise(false) should return error when mise not installed")
+		return
+	}
+
+	expectedMsg := "mise is not installed. Install it from https://mise.jdx.dev"
+	if err.Error() != expectedMsg {
+		t.Errorf("EnsureMise(false) error = %q, want %q", err.Error(), expectedMsg)
+	}
+}
+
+// TestEnsureMise_Interactive_WhenInstalled verifies EnsureMise returns nil
+// when mise is already installed (regardless of interactive mode).
+func TestEnsureMise_Interactive_WhenInstalled(t *testing.T) {
+	t.Parallel()
+	status := CheckMise()
+	if !status.Installed {
+		t.Skip("mise is not installed, cannot test installed branch")
+	}
+
+	// When mise is installed, should return nil regardless of interactive mode
+	err := EnsureMise(false)
+	if err != nil {
+		t.Errorf("EnsureMise(false) with mise installed = %v, want nil", err)
+	}
+
+	err = EnsureMise(true)
+	if err != nil {
+		t.Errorf("EnsureMise(true) with mise installed = %v, want nil", err)
+	}
+}

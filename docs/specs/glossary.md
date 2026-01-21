@@ -170,7 +170,7 @@ A command executed on a single target. Syntax: `structyl <command> <target>`. Ex
 
 ### Target Name
 
-The target key in the `targets` configuration object. Used as the identifier in commands (e.g., `structyl build cs`). The corresponding directory MAY differ via the `directory` field. Examples: `cs`, `py`, `rs`, `img`.
+The target key in the `targets` configuration object. Used as the identifier in commands (e.g., `structyl build cs`). The corresponding directory MAY differ via the `directory` field. Synonymous with [Slug](#slug). Examples: `cs`, `py`, `rs`, `img`.
 
 ### Test Case
 

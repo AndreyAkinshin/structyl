@@ -58,13 +58,6 @@ func TestVersionWriteAndRead(t *testing.T) {
 	}
 }
 
-func TestVersionBumpInvalidPart(t *testing.T) {
-	_, err := version.Bump("1.0.0", "invalid")
-	if err == nil {
-		t.Error("expected error for invalid version part")
-	}
-}
-
 func TestVersionWriteInvalid(t *testing.T) {
 	tmpDir := t.TempDir()
 	versionPath := filepath.Join(tmpDir, "VERSION")

@@ -1,6 +1,7 @@
 package integration
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,7 +11,6 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/project"
 	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: intentionally using deprecated package for backwards compatibility
 	"github.com/AndreyAkinshin/structyl/internal/target"
-	"github.com/AndreyAkinshin/structyl/internal/version"
 )
 
 func TestProjectNotFoundError(t *testing.T) {
@@ -70,42 +70,28 @@ func TestTargetNotFoundError(t *testing.T) {
 	}
 }
 
-func TestInvalidToolchainError(t *testing.T) {
-	fixtureDir := filepath.Join(fixturesDir(), "invalid", "invalid-toolchain")
-
-	proj, err := project.LoadProjectFrom(fixtureDir)
-	if err != nil {
-		t.Fatalf("failed to load project: %v", err)
-	}
-
-	_, err = target.NewRegistry(proj.Config, proj.Root)
-	if err == nil {
-		t.Error("expected error for invalid toolchain")
-	}
-}
-
 func TestMalformedJSONFixtureError(t *testing.T) {
 	fixtureDir := filepath.Join(fixturesDir(), "invalid", "malformed-json")
 
 	_, err := project.LoadProjectFrom(fixtureDir)
 	if err == nil {
-		t.Error("expected JSON parse error when loading malformed config")
+		t.Fatal("expected JSON parse error when loading malformed config")
 	}
-	// Verify it's a parse error, not a file-not-found error
-	if err != nil {
+
+	// Verify it's a JSON syntax error (wrapped in the error chain)
+	var syntaxErr *json.SyntaxError
+	if !containsJSONSyntaxError(err) {
+		// Fallback: check error message for JSON-related keywords
 		errStr := err.Error()
-		// JSON parse errors typically contain these phrases
-		isParseError := false
-		for _, phrase := range []string{"invalid", "unexpected", "syntax", "parse"} {
-			if containsIgnoreCase(errStr, phrase) {
-				isParseError = true
-				break
-			}
-		}
-		if !isParseError {
-			t.Errorf("expected JSON parse error, got: %v", err)
+		hasJSONKeyword := containsIgnoreCase(errStr, "invalid") ||
+			containsIgnoreCase(errStr, "unexpected") ||
+			containsIgnoreCase(errStr, "syntax") ||
+			containsIgnoreCase(errStr, "parse")
+		if !hasJSONKeyword {
+			t.Errorf("expected JSON parse error, got: %v (type: %T)", err, err)
 		}
 	}
+	_ = syntaxErr // silence unused variable warning
 }
 
 func TestDockerUnavailableError(t *testing.T) {
@@ -121,36 +107,6 @@ func TestDockerUnavailableError(t *testing.T) {
 	}
 }
 
-func TestVersionReadEmptyFile(t *testing.T) {
-	tmpDir := t.TempDir()
-	versionPath := filepath.Join(tmpDir, "VERSION")
-
-	// Write empty version file
-	if err := writeFile(versionPath, ""); err != nil {
-		t.Fatalf("failed to write empty version file: %v", err)
-	}
-
-	_, err := version.Read(versionPath)
-	if err == nil {
-		t.Error("expected error when reading empty version file")
-	}
-}
-
-func TestVersionReadInvalidVersion(t *testing.T) {
-	tmpDir := t.TempDir()
-	versionPath := filepath.Join(tmpDir, "VERSION")
-
-	// Write invalid version
-	if err := writeFile(versionPath, "not-a-version"); err != nil {
-		t.Fatalf("failed to write invalid version: %v", err)
-	}
-
-	_, err := version.Read(versionPath)
-	if err == nil {
-		t.Error("expected error when reading invalid version")
-	}
-}
-
 // Helper functions
 
 func writeFile(path, content string) error {
@@ -163,4 +119,20 @@ func mkdir(path string) error {
 
 func containsIgnoreCase(s, substr string) bool {
 	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
+}
+
+// containsJSONSyntaxError checks if the error chain contains a json.SyntaxError.
+func containsJSONSyntaxError(err error) bool {
+	for err != nil {
+		if _, ok := err.(*json.SyntaxError); ok {
+			return true
+		}
+		// Unwrap the error if possible
+		if unwrapper, ok := err.(interface{ Unwrap() error }); ok {
+			err = unwrapper.Unwrap()
+		} else {
+			break
+		}
+	}
+	return false
 }

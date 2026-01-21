@@ -250,9 +250,17 @@ func (tc TestCase) String() string {
 //   - Input: a new map with the same top-level keys and values (shallow copy of values)
 //   - Tags: a new slice with the same elements
 //
-// Output is NOT deep-copied; both original and clone reference the same value.
-// This is intentional: Output is typically consumed read-only in test assertions.
-// If you need to modify Output, copy it manually.
+// IMPORTANT: Output is NOT deep-copied; both original and clone reference the same
+// underlying value. Modifying Output on the clone also modifies the original:
+//
+//	original := TestCase{Output: map[string]interface{}{"key": "value"}}
+//	clone := original.Clone()
+//	clone.Output.(map[string]interface{})["key"] = "changed"
+//	// original.Output["key"] is now "changed" too!
+//
+// This is intentional: Output is typically consumed read-only in test assertions,
+// and deep-copying arbitrary interface{} values safely is complex. If you need to
+// modify Output independently, copy it manually before modification.
 //
 // Nil fields remain nil; empty slices/maps remain empty (not collapsed to nil).
 func (tc TestCase) Clone() TestCase {
@@ -332,6 +340,41 @@ func (tc TestCase) Validate() error {
 		return errors.New("output must not be nil")
 	}
 	return nil
+}
+
+// ValidateStrict performs all checks from [Validate] plus type validation for Output.
+// Use this method when creating TestCase instances programmatically to ensure
+// Output contains only JSON-compatible Go types.
+//
+// In addition to Validate() checks, ValidateStrict verifies that Output is one of:
+//   - float64 (JSON numbers)
+//   - string (JSON strings)
+//   - bool (JSON booleans)
+//   - []interface{} (JSON arrays)
+//   - map[string]interface{} (JSON objects)
+//
+// If Output is a different type (e.g., int, custom struct), ValidateStrict returns
+// an error. This catches type mismatches that would cause undefined behavior or
+// panics in comparison functions.
+//
+// Note: ValidateStrict only checks the top-level type of Output. It does NOT
+// recursively validate that array elements or map values are also JSON-compatible.
+// For deeply nested structures, ensure all values follow JSON type conventions.
+func (tc TestCase) ValidateStrict() error {
+	if err := tc.Validate(); err != nil {
+		return err
+	}
+	return validateOutputType(tc.Output)
+}
+
+// validateOutputType checks that v is a JSON-compatible Go type.
+func validateOutputType(v interface{}) error {
+	switch v.(type) {
+	case float64, string, bool, []interface{}, map[string]interface{}:
+		return nil
+	default:
+		return fmt.Errorf("output has unsupported type %T; must be float64, string, bool, []interface{}, or map[string]interface{}", v)
+	}
 }
 
 // LoadTestSuite loads all test cases from a suite directory.
@@ -646,7 +689,33 @@ var ErrEmptySuiteName = errors.New("suite name cannot be empty")
 // Invalid characters include path separators (/, \), path traversal sequences (..),
 // and null bytes. These restrictions prevent path injection attacks and ensure
 // suite names map safely to filesystem directories.
+//
+// Use [errors.Is] to check for this error type:
+//
+//	if errors.Is(err, testhelper.ErrInvalidSuiteName) {
+//	    // handle invalid suite name
+//	}
+//
+// The actual returned error may be an [InvalidSuiteNameError] with additional
+// context (the suite name and rejection reason).
 var ErrInvalidSuiteName = errors.New("suite name contains invalid characters")
+
+// InvalidSuiteNameError indicates a suite name contains invalid characters.
+// It carries the original name and the reason for rejection.
+type InvalidSuiteNameError struct {
+	Name   string // The invalid suite name
+	Reason string // Why it was rejected: "path_traversal", "path_separator", or "null_byte"
+}
+
+func (e *InvalidSuiteNameError) Error() string {
+	return fmt.Sprintf("invalid suite name %q: %s", e.Name, e.Reason)
+}
+
+// Is implements error matching for [errors.Is].
+// Returns true when target is [ErrInvalidSuiteName].
+func (e *InvalidSuiteNameError) Is(target error) bool {
+	return target == ErrInvalidSuiteName
+}
 
 // ValidateSuiteName checks if a suite name is valid.
 // Returns ErrEmptySuiteName if the name is empty.
@@ -663,15 +732,15 @@ func ValidateSuiteName(name string) error {
 	}
 	// Check for path traversal sequences
 	if strings.Contains(name, "..") {
-		return ErrInvalidSuiteName
+		return &InvalidSuiteNameError{Name: name, Reason: "path_traversal"}
 	}
 	// Check for path separators (both Unix and Windows)
 	if strings.ContainsAny(name, "/\\") {
-		return ErrInvalidSuiteName
+		return &InvalidSuiteNameError{Name: name, Reason: "path_separator"}
 	}
 	// Check for null bytes
 	if strings.ContainsRune(name, '\x00') {
-		return ErrInvalidSuiteName
+		return &InvalidSuiteNameError{Name: name, Reason: "null_byte"}
 	}
 	return nil
 }
@@ -779,16 +848,19 @@ func validatePathComponent(name string) error {
 
 // SuiteExistsErr checks if a test suite exists, returning detailed error information.
 // Returns (true, nil) if the suite exists, (false, nil) if it doesn't exist,
-// or (false, error) for other errors like permission denied.
-// This variant is useful when callers need to distinguish "not found" from "access error".
+// or (false, error) for other errors like permission denied or invalid suite name.
+// This variant is useful when callers need to distinguish "not found" from "access error"
+// or "invalid input".
 //
-// This function validates the suite name and returns (false, nil) for invalid names
-// (containing path separators or traversal sequences like ".."). This matches the
-// behavior of [SuiteExists] and prevents path injection when the suite name comes
-// from untrusted input.
+// This function validates the suite name and returns (false, error) for invalid names
+// (containing path separators or traversal sequences like ".."). Use [errors.Is] with
+// [ErrInvalidSuiteName] or [ErrEmptySuiteName] to detect validation failures.
+//
+// Note: This differs from [SuiteExists], which returns false for validation errors
+// without distinguishing them from "not found".
 func SuiteExistsErr(projectRoot, suite string) (bool, error) {
 	if err := ValidateSuiteName(suite); err != nil {
-		return false, nil
+		return false, err
 	}
 	suiteDir := filepath.Join(projectRoot, "tests", suite)
 	info, err := os.Stat(suiteDir)
@@ -806,19 +878,22 @@ func SuiteExistsErr(projectRoot, suite string) (bool, error) {
 
 // TestCaseExistsErr checks if a specific test case exists, returning detailed error information.
 // Returns (true, nil) if the test case exists, (false, nil) if it doesn't exist,
-// or (false, error) for other errors like permission denied.
-// This variant is useful when callers need to distinguish "not found" from "access error".
+// or (false, error) for other errors like permission denied or invalid input.
+// This variant is useful when callers need to distinguish "not found" from "access error"
+// or "invalid input".
 //
-// This function validates both suite and name parameters and returns (false, nil) for
-// invalid names (containing path separators or traversal sequences like ".."). This matches
-// the behavior of [TestCaseExists] and prevents path injection when names come from
-// untrusted input.
+// This function validates both suite and name parameters and returns (false, error) for
+// invalid names (containing path separators or traversal sequences like ".."). Use [errors.Is]
+// with [ErrInvalidSuiteName] or [ErrEmptySuiteName] to detect suite validation failures.
+//
+// Note: This differs from [TestCaseExists], which returns false for validation errors
+// without distinguishing them from "not found".
 func TestCaseExistsErr(projectRoot, suite, name string) (bool, error) {
 	if err := ValidateSuiteName(suite); err != nil {
-		return false, nil
+		return false, err
 	}
 	if err := validatePathComponent(name); err != nil {
-		return false, nil
+		return false, err
 	}
 	path := filepath.Join(projectRoot, "tests", suite, name+".json")
 	_, err := os.Stat(path)

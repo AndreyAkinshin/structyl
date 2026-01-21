@@ -1197,6 +1197,55 @@ func TestValidateSuiteName(t *testing.T) {
 	}
 }
 
+func TestValidateSuiteName_ErrorContext(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		suite      string
+		wantReason string
+	}{
+		{"path_traversal", "../foo", "path_traversal"},
+		{"path_separator_forward", "foo/bar", "path_separator"},
+		{"path_separator_back", "foo\\bar", "path_separator"},
+		{"null_byte", "foo\x00bar", "null_byte"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := ValidateSuiteName(tt.suite)
+			if err == nil {
+				t.Fatalf("ValidateSuiteName(%q) = nil, want error", tt.suite)
+			}
+
+			// Check it's still matchable via errors.Is
+			if !errors.Is(err, ErrInvalidSuiteName) {
+				t.Errorf("errors.Is(%v, ErrInvalidSuiteName) = false, want true", err)
+			}
+
+			// Check it's an InvalidSuiteNameError with correct context
+			var invErr *InvalidSuiteNameError
+			if !errors.As(err, &invErr) {
+				t.Fatalf("error is not *InvalidSuiteNameError: %T", err)
+			}
+
+			if invErr.Name != tt.suite {
+				t.Errorf("InvalidSuiteNameError.Name = %q, want %q", invErr.Name, tt.suite)
+			}
+			if invErr.Reason != tt.wantReason {
+				t.Errorf("InvalidSuiteNameError.Reason = %q, want %q", invErr.Reason, tt.wantReason)
+			}
+
+			// Verify error message contains the reason (name may be escaped in %q format)
+			errMsg := err.Error()
+			if !strings.Contains(errMsg, tt.wantReason) {
+				t.Errorf("error message %q should contain reason %q", errMsg, tt.wantReason)
+			}
+		})
+	}
+}
+
 func TestLoadTestCaseWithSuite_EmptySuite_ReturnsError(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test1.json")
@@ -1308,6 +1357,102 @@ func TestTestCase_Validate(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestTestCase_ValidateStrict(t *testing.T) {
+	t.Parallel()
+
+	// Valid JSON-compatible types should pass
+	validTypes := []struct {
+		name   string
+		output interface{}
+	}{
+		{"float64", float64(42.5)},
+		{"string", "hello"},
+		{"bool_true", true},
+		{"bool_false", false},
+		{"array", []interface{}{1, 2, 3}},
+		{"object", map[string]interface{}{"key": "value"}},
+		{"empty_array", []interface{}{}},
+		{"empty_object", map[string]interface{}{}},
+	}
+
+	for _, tt := range validTypes {
+		t.Run("valid_"+tt.name, func(t *testing.T) {
+			t.Parallel()
+			tc := TestCase{
+				Name:   "test",
+				Input:  map[string]interface{}{},
+				Output: tt.output,
+			}
+			if err := tc.ValidateStrict(); err != nil {
+				t.Errorf("ValidateStrict() = %v for type %T, want nil", err, tt.output)
+			}
+		})
+	}
+
+	// Invalid types should fail
+	invalidTypes := []struct {
+		name   string
+		output interface{}
+	}{
+		{"int", 42},
+		{"int64", int64(42)},
+		{"int32", int32(42)},
+		{"float32", float32(42.5)},
+		{"uint", uint(42)},
+		{"struct", struct{ X int }{X: 1}},
+		{"slice_int", []int{1, 2, 3}},
+		{"map_int", map[string]int{"key": 1}},
+	}
+
+	for _, tt := range invalidTypes {
+		t.Run("invalid_"+tt.name, func(t *testing.T) {
+			t.Parallel()
+			tc := TestCase{
+				Name:   "test",
+				Input:  map[string]interface{}{},
+				Output: tt.output,
+			}
+			err := tc.ValidateStrict()
+			if err == nil {
+				t.Errorf("ValidateStrict() = nil for type %T, want error", tt.output)
+			}
+			if err != nil && !strings.Contains(err.Error(), "unsupported type") {
+				t.Errorf("error = %q, want error mentioning 'unsupported type'", err.Error())
+			}
+		})
+	}
+
+	// ValidateStrict should still catch Validate() errors
+	t.Run("nil_output", func(t *testing.T) {
+		t.Parallel()
+		tc := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: nil,
+		}
+		err := tc.ValidateStrict()
+		if err == nil {
+			t.Error("ValidateStrict() = nil for nil output, want error")
+		}
+		if err != nil && !strings.Contains(err.Error(), "output") {
+			t.Errorf("error = %q, want error mentioning 'output'", err.Error())
+		}
+	})
+
+	t.Run("empty_name", func(t *testing.T) {
+		t.Parallel()
+		tc := TestCase{
+			Name:   "",
+			Input:  map[string]interface{}{},
+			Output: "value",
+		}
+		err := tc.ValidateStrict()
+		if err == nil {
+			t.Error("ValidateStrict() = nil for empty name, want error")
+		}
+	})
 }
 
 func TestTestCase_Clone(t *testing.T) {
@@ -1551,7 +1696,7 @@ func TestTestCase_WithSuite(t *testing.T) {
 // SuiteExistsErr and TestCaseExistsErr validation tests
 // =============================================================================
 
-func TestSuiteExistsErr_InvalidName_ReturnsFalse(t *testing.T) {
+func TestSuiteExistsErr_InvalidName_ReturnsError(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
@@ -1559,22 +1704,26 @@ func TestSuiteExistsErr_InvalidName_ReturnsFalse(t *testing.T) {
 	os.MkdirAll(filepath.Join(tmpDir, "tests"), 0755)
 
 	tests := []struct {
-		name  string
-		suite string
+		name      string
+		suite     string
+		wantError error
 	}{
-		{"empty", ""},
-		{"path_traversal", "../etc"},
-		{"path_separator_forward", "foo/bar"},
-		{"path_separator_back", "foo\\bar"},
-		{"null_byte", "foo\x00bar"},
+		{"empty", "", ErrEmptySuiteName},
+		{"path_traversal", "../etc", ErrInvalidSuiteName},
+		{"path_separator_forward", "foo/bar", ErrInvalidSuiteName},
+		{"path_separator_back", "foo\\bar", ErrInvalidSuiteName},
+		{"null_byte", "foo\x00bar", ErrInvalidSuiteName},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			exists, err := SuiteExistsErr(tmpDir, tt.suite)
-			if err != nil {
-				t.Errorf("SuiteExistsErr(%q) error = %v, want nil", tt.suite, err)
+			if err == nil {
+				t.Errorf("SuiteExistsErr(%q) error = nil, want error", tt.suite)
+			}
+			if !errors.Is(err, tt.wantError) {
+				t.Errorf("SuiteExistsErr(%q) error = %v, want %v", tt.suite, err, tt.wantError)
 			}
 			if exists {
 				t.Errorf("SuiteExistsErr(%q) = true, want false for invalid name", tt.suite)
@@ -1583,7 +1732,7 @@ func TestSuiteExistsErr_InvalidName_ReturnsFalse(t *testing.T) {
 	}
 }
 
-func TestTestCaseExistsErr_InvalidSuiteName_ReturnsFalse(t *testing.T) {
+func TestTestCaseExistsErr_InvalidSuiteName_ReturnsError(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
@@ -1593,20 +1742,24 @@ func TestTestCaseExistsErr_InvalidSuiteName_ReturnsFalse(t *testing.T) {
 	os.WriteFile(filepath.Join(suiteDir, "test.json"), []byte(`{}`), 0644)
 
 	tests := []struct {
-		name  string
-		suite string
+		name      string
+		suite     string
+		wantError error
 	}{
-		{"empty", ""},
-		{"path_traversal", "../etc"},
-		{"path_separator_forward", "foo/bar"},
+		{"empty", "", ErrEmptySuiteName},
+		{"path_traversal", "../etc", ErrInvalidSuiteName},
+		{"path_separator_forward", "foo/bar", ErrInvalidSuiteName},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			exists, err := TestCaseExistsErr(tmpDir, tt.suite, "test")
-			if err != nil {
-				t.Errorf("TestCaseExistsErr(%q, test) error = %v, want nil", tt.suite, err)
+			if err == nil {
+				t.Errorf("TestCaseExistsErr(%q, test) error = nil, want error", tt.suite)
+			}
+			if !errors.Is(err, tt.wantError) {
+				t.Errorf("TestCaseExistsErr(%q, test) error = %v, want %v", tt.suite, err, tt.wantError)
 			}
 			if exists {
 				t.Errorf("TestCaseExistsErr(%q, test) = true, want false for invalid suite name", tt.suite)
@@ -1615,7 +1768,7 @@ func TestTestCaseExistsErr_InvalidSuiteName_ReturnsFalse(t *testing.T) {
 	}
 }
 
-func TestTestCaseExistsErr_InvalidTestName_ReturnsFalse(t *testing.T) {
+func TestTestCaseExistsErr_InvalidTestName_ReturnsError(t *testing.T) {
 	t.Parallel()
 
 	tmpDir := t.TempDir()
@@ -1639,8 +1792,8 @@ func TestTestCaseExistsErr_InvalidTestName_ReturnsFalse(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			exists, err := TestCaseExistsErr(tmpDir, "valid", tt.testName)
-			if err != nil {
-				t.Errorf("TestCaseExistsErr(valid, %q) error = %v, want nil", tt.testName, err)
+			if err == nil {
+				t.Errorf("TestCaseExistsErr(valid, %q) error = nil, want error", tt.testName)
 			}
 			if exists {
 				t.Errorf("TestCaseExistsErr(valid, %q) = true, want false for invalid test name", tt.testName)

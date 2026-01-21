@@ -257,16 +257,16 @@ type TargetConfig struct {
 
 ### Error Types
 
-Exit codes with internal and public API names:
+Exit codes are defined in [docs/specs/error-handling.md](docs/specs/error-handling.md#exit-codes).
 
-| Code | Internal (`internal/errors`) | Public (`pkg/structyl`) | Meaning |
-|------|------------------------------|-------------------------|---------|
-| 0 | `ExitSuccess` | `ExitSuccess` | Success |
-| 1 | `ExitRuntimeError` | `ExitFailure` | Command failed, target error |
-| 2 | `ExitConfigError` | `ExitConfigError` | Invalid configuration |
-| 3 | `ExitEnvironmentError` | `ExitEnvError` | Environment error (Docker not available, etc.) |
+| Exit Code | Public Constant | Internal Constant |
+|-----------|-----------------|-------------------|
+| 0 | `ExitSuccess` | `ExitSuccess` |
+| 1 | `ExitFailure` | `ExitRuntimeError` |
+| 2 | `ExitConfigError` | `ExitConfigError` |
+| 3 | `ExitEnvError` | `ExitEnvironmentError` |
 
-**External integrations** SHOULD use `pkg/structyl` constants. Internal packages use longer names for semantic clarity.
+**External integrations** SHOULD use `pkg/structyl` constants (shorter names, stable API). Internal packages use longer names for semantic clarity.
 
 ```go
 // internal/errors/errors.go

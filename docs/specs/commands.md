@@ -366,6 +366,10 @@ Note: `-q, --quiet` and `-v, --verbose` are mutually exclusive.
 
 For `NO_COLOR`, see [no-color.org](https://no-color.org/) for the standard.
 
+::: warning STRUCTYL_PARALLEL Limitation
+`STRUCTYL_PARALLEL` only affects Structyl's internal parallel execution mode. Since mise is the default task execution backend for CLI commands, this variable has **no effect** in typical workflows. Mise handles its own parallelism independently.
+:::
+
 ### Docker Mode Precedence
 
 Docker mode is determined with the following precedence (highest to lowest):

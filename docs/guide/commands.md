@@ -62,10 +62,14 @@ structyl test py --verbose
 structyl build rs --release
 ```
 
-Use `--` to separate Structyl flags from command arguments:
+Use `--` to separate Structyl flags from command arguments. Everything after `--` is passed directly to the underlying command without being interpreted by Structyl:
 
 ```bash
+structyl --docker build cs -- --verbose --debug
+# Structyl processes --docker, passes --verbose --debug to the build command
+
 structyl build rs -- --help
+# Shows help for the underlying build tool, not Structyl
 ```
 
 ## Command Variants
@@ -129,6 +133,10 @@ See [CI Integration](./ci-integration) for details.
 | `structyl config validate`    | Validate configuration                      |
 | `structyl completion <shell>` | Generate shell completion (bash, zsh, fish) |
 | `structyl test-summary`       | Parse and summarize `go test -json` output  |
+
+::: warning release --force includes uncommitted changes
+When `--force` is used with `structyl release`, all uncommitted changes in the working directory are staged and included in the release commit. Ensure uncommitted changes are intentional before using this flag.
+:::
 
 ## Generation Commands
 

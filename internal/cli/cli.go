@@ -142,7 +142,13 @@ type GlobalOptions struct {
 	Verbose    bool
 }
 
-// parseGlobalFlags extracts global flags from arguments.
+// parseGlobalFlags manually parses global flags from arguments.
+//
+// Manual parsing is used instead of stdlib flag package because:
+// - Flags can appear anywhere in the argument list, not just before the command
+// - Pass-through arguments after -- must be preserved verbatim
+// - Custom error messages with usage hints are needed
+// - Flag package doesn't support these use cases cleanly
 func parseGlobalFlags(args []string) (*GlobalOptions, []string, error) {
 	opts := &GlobalOptions{}
 	var remaining []string

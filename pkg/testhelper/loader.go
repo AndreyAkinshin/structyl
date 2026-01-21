@@ -306,6 +306,61 @@ func (tc TestCase) Clone() TestCase {
 	return clone
 }
 
+// DeepClone returns a deep copy of TestCase including Output.
+// Unlike [Clone], modifying DeepClone's Output does not affect the original.
+//
+// # Implementation
+//
+// DeepClone uses JSON marshal/unmarshal to create a deep copy of Output.
+// This approach:
+//   - Handles arbitrarily nested structures (maps, slices)
+//   - Preserves JSON-compatible types correctly
+//   - Returns an error if Output cannot be marshaled/unmarshaled
+//
+// # Limitations
+//
+// Because this uses JSON serialization:
+//   - Output must be JSON-serializable (no channels, functions, or cycles)
+//   - Type information may be normalized (e.g., int becomes float64)
+//   - This is consistent with how test cases are loaded from JSON files
+//
+// # When to Use
+//
+// Use DeepClone when you need to modify Output independently:
+//
+//	original := loadedTestCase
+//	modified := original.DeepClone()
+//	modified.Output.(map[string]interface{})["key"] = "new value"
+//	// original.Output is unchanged
+//
+// For most test assertions where Output is read-only, [Clone] is sufficient
+// and more efficient.
+//
+// # Error Handling
+//
+// Returns an error if Output cannot be deep-copied (e.g., contains non-JSON types).
+// The error wraps the underlying JSON error for debugging.
+func (tc TestCase) DeepClone() (TestCase, error) {
+	// Start with shallow clone for all fields
+	clone := tc.Clone()
+
+	// Deep copy Output via JSON round-trip
+	if tc.Output != nil {
+		data, err := json.Marshal(tc.Output)
+		if err != nil {
+			return TestCase{}, fmt.Errorf("DeepClone: failed to marshal Output: %w", err)
+		}
+
+		var deepCopy interface{}
+		if err := json.Unmarshal(data, &deepCopy); err != nil {
+			return TestCase{}, fmt.Errorf("DeepClone: failed to unmarshal Output: %w", err)
+		}
+		clone.Output = deepCopy
+	}
+
+	return clone, nil
+}
+
 // WithSuite returns a copy of the TestCase with the Suite field set to the given value.
 // This is useful when loading test cases with [LoadTestCase], which does not populate
 // the Suite field, and you want to associate the test case with a suite name.

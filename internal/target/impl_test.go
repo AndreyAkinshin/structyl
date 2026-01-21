@@ -17,6 +17,7 @@ import (
 )
 
 func TestTargetType_IsValid(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		typ  TargetType
 		want bool
@@ -40,6 +41,7 @@ func TestTargetType_IsValid(t *testing.T) {
 }
 
 func TestParseTargetType(t *testing.T) {
+	t.Parallel()
 	tests := []struct {
 		input   string
 		wantTyp TargetType
@@ -67,6 +69,7 @@ func TestParseTargetType(t *testing.T) {
 }
 
 func TestValidTargetTypes(t *testing.T) {
+	t.Parallel()
 	types := ValidTargetTypes()
 
 	if len(types) != 2 {

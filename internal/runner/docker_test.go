@@ -158,42 +158,35 @@ func TestCheckDockerAvailable_ReturnsCorrectType(t *testing.T) {
 	// If err is nil, Docker is available - both outcomes are valid
 }
 
-func TestBuildRunArgs_IncludesComposeFile(t *testing.T) {
-	t.Parallel()
-	runner := NewDockerRunner("/project", &config.DockerConfig{
-		ComposeFile: "custom.yml",
-	})
-
-	args := runner.buildRunArgs("service", "cmd")
-
-	// Find -f flag and its value
-	for i, arg := range args {
-		if arg == "-f" && i+1 < len(args) {
-			if args[i+1] != "custom.yml" {
-				t.Errorf("compose file = %q, want %q", args[i+1], "custom.yml")
-			}
-			return
-		}
-	}
-	t.Error("args should contain -f flag with compose file")
-}
-
 func TestBuildRunArgs_CustomComposeFile(t *testing.T) {
 	t.Parallel()
-	cfg := &config.DockerConfig{ComposeFile: "docker/compose.yaml"}
-	runner := NewDockerRunner("/project", cfg)
-
-	args := runner.buildRunArgs("app", "echo test")
-
-	foundCompose := false
-	for i, arg := range args {
-		if arg == "-f" && i+1 < len(args) && args[i+1] == "docker/compose.yaml" {
-			foundCompose = true
-			break
-		}
+	tests := []struct {
+		name        string
+		composeFile string
+	}{
+		{"simple", "custom.yml"},
+		{"nested_path", "docker/compose.yaml"},
 	}
-	if !foundCompose {
-		t.Error("args should contain custom compose file path")
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			runner := NewDockerRunner("/project", &config.DockerConfig{
+				ComposeFile: tt.composeFile,
+			})
+
+			args := runner.buildRunArgs("service", "cmd")
+
+			for i, arg := range args {
+				if arg == "-f" && i+1 < len(args) {
+					if args[i+1] != tt.composeFile {
+						t.Errorf("compose file = %q, want %q", args[i+1], tt.composeFile)
+					}
+					return
+				}
+			}
+			t.Errorf("args should contain -f flag with compose file %q", tt.composeFile)
+		})
 	}
 }
 

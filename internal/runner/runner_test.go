@@ -105,22 +105,38 @@ func TestCombineErrors_Single(t *testing.T) {
 
 func TestCombineErrors_Multiple(t *testing.T) {
 	t.Parallel()
-	errs := []error{
-		os.ErrNotExist,
-		os.ErrPermission,
-	}
-	err := combineErrors(errs)
-	if err == nil {
-		t.Error("combineErrors([2]) = nil, want error")
+	tests := []struct {
+		name     string
+		errs     []error
+		contains []string
+	}{
+		{
+			name:     "two_errors",
+			errs:     []error{os.ErrNotExist, os.ErrPermission},
+			contains: []string{"not exist", "permission denied"},
+		},
+		{
+			name:     "three_errors",
+			errs:     []error{errors.New("error one"), errors.New("error two"), errors.New("error three")},
+			contains: []string{"error one", "error two", "error three"},
+		},
 	}
 
-	// Verify message contains both errors
-	msg := err.Error()
-	if !strings.Contains(msg, "not exist") {
-		t.Errorf("error message = %q, want to contain first error", msg)
-	}
-	if !strings.Contains(msg, "permission denied") {
-		t.Errorf("error message = %q, want to contain second error", msg)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			combined := combineErrors(tt.errs)
+			if combined == nil {
+				t.Fatal("combineErrors() = nil, want error")
+			}
+
+			msg := combined.Error()
+			for _, substr := range tt.contains {
+				if !strings.Contains(msg, substr) {
+					t.Errorf("message = %q, want to contain %q", msg, substr)
+				}
+			}
+		})
 	}
 }
 
@@ -515,28 +531,6 @@ func TestRunParallel_FailFastCancels(t *testing.T) {
 	// First should have executed
 	if target1.ExecCount() != 1 {
 		t.Errorf("target1.ExecCount() = %d, want 1", target1.ExecCount())
-	}
-}
-
-func TestCombineErrors_MessageFormat(t *testing.T) {
-	t.Parallel()
-	errs := []error{
-		errors.New("error one"),
-		errors.New("error two"),
-		errors.New("error three"),
-	}
-
-	combined := combineErrors(errs)
-	msg := combined.Error()
-
-	if !strings.Contains(msg, "error one") {
-		t.Errorf("message should contain 'error one', got %q", msg)
-	}
-	if !strings.Contains(msg, "error two") {
-		t.Errorf("message should contain 'error two', got %q", msg)
-	}
-	if !strings.Contains(msg, "error three") {
-		t.Errorf("message should contain 'error three', got %q", msg)
 	}
 }
 

@@ -138,6 +138,8 @@ structyl/
 
 ## Key Interfaces
 
+> **Note:** The interfaces below are in `internal/` packages and are **not part of the public API**. They are documented here for contributor reference only. External tools should integrate via the CLI or configuration schema, not by importing internal packages.
+
 ### Target Interface
 
 ```go
@@ -222,9 +224,13 @@ type Config struct {
     Version       *VersionConfig
     Targets       map[string]TargetConfig
     Toolchains    map[string]ToolchainConfig
+    Mise          *MiseConfig
     Tests         *TestsConfig
     Documentation *DocsConfig
     Docker        *DockerConfig
+    Release       *ReleaseConfig
+    CI            *CIConfig
+    Artifacts     *ArtifactsConfig
 }
 
 type TargetConfig struct {

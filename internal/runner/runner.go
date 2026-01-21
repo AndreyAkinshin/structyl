@@ -154,10 +154,7 @@ func (r *Runner) runSequential(ctx context.Context, targets []target.Target, cmd
 		}
 
 		if err := t.Execute(ctx, cmd, execOpts); err != nil {
-			// Skip errors are logged as warnings but don't cause failure.
-			// Per docs/specs/commands.md, disabled commands produce warnings, not info.
-			if target.IsSkipError(err) {
-				out.Warning("%s", err.Error())
+			if isSkipError(err) {
 				continue
 			}
 			errs = append(errs, fmt.Errorf("[%s] %s failed: %w", t.Name(), cmd, err))
@@ -224,10 +221,7 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 			defer mu.Unlock()
 
 			if err != nil {
-				// Skip errors are logged as warnings but don't cause failure.
-				// Per docs/specs/commands.md, disabled commands produce warnings, not info.
-				if target.IsSkipError(err) {
-					out.Warning("%s", err.Error())
+				if isSkipError(err) {
 					return
 				}
 				errs = append(errs, fmt.Errorf("[%s] %s failed: %w", t.Name(), cmd, err))
@@ -261,7 +255,20 @@ func getParallelWorkers() int {
 			return n
 		}
 	}
+	// Ensure at least 1 worker even if runtime.NumCPU() returns 0 (which can happen
+	// in containerized or restricted environments where CPU detection fails).
 	return max(1, runtime.NumCPU())
+}
+
+// isSkipError checks if err is a skip error and logs a warning if so.
+// Returns true if the error was a skip error (caller should skip, not fail).
+// Per docs/specs/commands.md, disabled commands produce warnings, not info.
+func isSkipError(err error) bool {
+	if target.IsSkipError(err) {
+		out.Warning("%s", err.Error())
+		return true
+	}
+	return false
 }
 
 // combineErrors combines multiple errors into one.

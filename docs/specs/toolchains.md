@@ -105,6 +105,38 @@ All toolchains implement this vocabulary:
 
 \* `check` composition varies by toolchain. Some include all three components (lint, typecheck, format-check), others include subsets based on ecosystem conventions and available tools. See individual toolchain sections for exact composition.
 
+### `check` Composition Summary
+
+| Toolchain  | Lint | Typecheck | Format-check |
+| ---------- | ---- | --------- | ------------ |
+| `cargo`    | ✓ (clippy) | — | ✓ |
+| `dotnet`   | — | — | ✓ |
+| `go`       | ✓ (golangci-lint, vet) | — | ✓ |
+| `npm`      | ✓ | ✓ | ✓ |
+| `pnpm`     | ✓ | ✓ | ✓ |
+| `yarn`     | ✓ | ✓ | ✓ |
+| `bun`      | ✓ | ✓ | ✓ |
+| `python`   | ✓ (ruff) | ✓ (mypy) | ✓ |
+| `uv`       | ✓ (ruff) | ✓ (mypy) | ✓ |
+| `poetry`   | ✓ (ruff) | ✓ (mypy) | ✓ |
+| `gradle`   | ✓ (check) | — | ✓ (spotless) |
+| `maven`    | ✓ (checkstyle) | — | ✓ (spotless) |
+| `make`     | ✓ | — | — |
+| `cmake`    | ✓ | — | ✓ |
+| `swift`    | ✓ (swiftlint) | — | ✓ (swiftformat) |
+| `deno`     | ✓ | ✓ | ✓ |
+| `r`        | ✓ (lintr) | — | ✓ (styler) |
+| `bundler`  | ✓ (rubocop) | — | — |
+| `composer` | ✓ | — | ✓ |
+| `mix`      | ✓ (credo) | ✓ (dialyzer) | ✓ |
+| `sbt`      | — | — | ✓ (scalafmt) |
+| `cabal`    | ✓ (hlint, check) | — | ✓ (ormolu) |
+| `stack`    | ✓ (hlint) | — | ✓ (ormolu) |
+| `dune`     | — | — | ✓ |
+| `lein`     | ✓ (check, eastwood) | — | ✓ (cljfmt) |
+| `zig`      | — | — | ✓ |
+| `rebar3`   | ✓ (dialyzer, lint) | — | — |
+
 Commands not applicable to a toolchain are set to `null` (skipped).
 
 > **Table notation:** In command tables below, `—` (em-dash) indicates the command is not available for this toolchain (equivalent to `null` in configuration). Invoking a `null` command succeeds with a warning: `command "X" is not available`.

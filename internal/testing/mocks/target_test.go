@@ -327,6 +327,100 @@ func TestTarget_FluentBuilder(t *testing.T) {
 	}
 }
 
+func TestTarget_LastCommand(t *testing.T) {
+	t.Parallel()
+	m := NewTarget("test")
+	ctx := context.Background()
+
+	// Initially empty
+	if got := m.LastCommand(); got != "" {
+		t.Errorf("LastCommand() before any execute = %q, want empty", got)
+	}
+
+	// Execute first command
+	_ = m.Execute(ctx, "build", target.ExecOptions{})
+	if got := m.LastCommand(); got != "build" {
+		t.Errorf("LastCommand() = %q, want %q", got, "build")
+	}
+
+	// Execute second command - last should update
+	_ = m.Execute(ctx, "test", target.ExecOptions{})
+	if got := m.LastCommand(); got != "test" {
+		t.Errorf("LastCommand() = %q, want %q", got, "test")
+	}
+}
+
+func TestTarget_CommandHistory(t *testing.T) {
+	t.Parallel()
+	m := NewTarget("test")
+	ctx := context.Background()
+
+	// Initially empty
+	history := m.CommandHistory()
+	if len(history) != 0 {
+		t.Errorf("CommandHistory() before any execute = %v, want empty", history)
+	}
+
+	// Execute commands in sequence
+	_ = m.Execute(ctx, "clean", target.ExecOptions{})
+	_ = m.Execute(ctx, "build", target.ExecOptions{})
+	_ = m.Execute(ctx, "test", target.ExecOptions{})
+
+	history = m.CommandHistory()
+	expected := []string{"clean", "build", "test"}
+	if len(history) != len(expected) {
+		t.Fatalf("len(CommandHistory()) = %d, want %d", len(history), len(expected))
+	}
+	for i, want := range expected {
+		if history[i] != want {
+			t.Errorf("CommandHistory()[%d] = %q, want %q", i, history[i], want)
+		}
+	}
+}
+
+func TestTarget_CommandHistory_IndependentCopy(t *testing.T) {
+	t.Parallel()
+	m := NewTarget("test")
+	ctx := context.Background()
+
+	_ = m.Execute(ctx, "build", target.ExecOptions{})
+
+	// Get history and modify it
+	history := m.CommandHistory()
+	history[0] = "modified"
+
+	// Original should be unchanged
+	originalHistory := m.CommandHistory()
+	if originalHistory[0] != "build" {
+		t.Errorf("CommandHistory() was modified externally: got %q, want %q", originalHistory[0], "build")
+	}
+}
+
+func TestTarget_Reset_ClearsCommandHistory(t *testing.T) {
+	t.Parallel()
+	m := NewTarget("test")
+	ctx := context.Background()
+
+	_ = m.Execute(ctx, "build", target.ExecOptions{})
+	_ = m.Execute(ctx, "test", target.ExecOptions{})
+
+	if m.LastCommand() == "" {
+		t.Fatal("LastCommand should not be empty before reset")
+	}
+	if len(m.CommandHistory()) == 0 {
+		t.Fatal("CommandHistory should not be empty before reset")
+	}
+
+	m.Reset()
+
+	if m.LastCommand() != "" {
+		t.Errorf("LastCommand() = %q, want empty after reset", m.LastCommand())
+	}
+	if len(m.CommandHistory()) != 0 {
+		t.Errorf("CommandHistory() = %v, want empty after reset", m.CommandHistory())
+	}
+}
+
 func TestTarget_ConcurrentExec(t *testing.T) {
 	t.Parallel()
 	m := NewTarget("test")
@@ -352,5 +446,11 @@ func TestTarget_ConcurrentExec(t *testing.T) {
 	order := m.ExecOrder()
 	if len(order) != goroutines {
 		t.Errorf("len(ExecOrder()) = %d, want %d", len(order), goroutines)
+	}
+
+	// Verify CommandHistory has exactly goroutines entries
+	history := m.CommandHistory()
+	if len(history) != goroutines {
+		t.Errorf("len(CommandHistory()) = %d, want %d", len(history), goroutines)
 	}
 }

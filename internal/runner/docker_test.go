@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -868,4 +869,502 @@ func TestNewDockerRunnerWithCommandRunner(t *testing.T) {
 	if runner.runner != mock {
 		t.Error("runner should be the provided mock")
 	}
+}
+
+// =============================================================================
+// selectTargetsToBuild Tests
+// =============================================================================
+
+func TestSelectTargetsToBuild_EmptyServices_ReturnsAllTargets(t *testing.T) {
+	t.Parallel()
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"go":   {Type: "language", Title: "Go"},
+			"rs":   {Type: "language", Title: "Rust"},
+			"ts":   {Type: "language", Title: "TypeScript"},
+		},
+	}
+	runner := &DockerRunner{projectConfig: cfg}
+
+	targets := runner.selectTargetsToBuild(nil)
+
+	if len(targets) != 3 {
+		t.Errorf("selectTargetsToBuild(nil) returned %d targets, want 3", len(targets))
+	}
+	for _, name := range []string{"go", "rs", "ts"} {
+		if _, ok := targets[name]; !ok {
+			t.Errorf("targets missing %q", name)
+		}
+	}
+}
+
+func TestSelectTargetsToBuild_EmptySlice_ReturnsAllTargets(t *testing.T) {
+	t.Parallel()
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"api": {Type: "service"},
+			"web": {Type: "service"},
+		},
+	}
+	runner := &DockerRunner{projectConfig: cfg}
+
+	targets := runner.selectTargetsToBuild([]string{})
+
+	if len(targets) != 2 {
+		t.Errorf("selectTargetsToBuild([]) returned %d targets, want 2", len(targets))
+	}
+}
+
+func TestSelectTargetsToBuild_SpecificServices_ReturnsMatching(t *testing.T) {
+	t.Parallel()
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"go":   {Type: "language", Title: "Go"},
+			"rs":   {Type: "language", Title: "Rust"},
+			"ts":   {Type: "language", Title: "TypeScript"},
+		},
+	}
+	runner := &DockerRunner{projectConfig: cfg}
+
+	targets := runner.selectTargetsToBuild([]string{"go", "ts"})
+
+	if len(targets) != 2 {
+		t.Errorf("selectTargetsToBuild([go, ts]) returned %d targets, want 2", len(targets))
+	}
+	if _, ok := targets["go"]; !ok {
+		t.Error("targets missing 'go'")
+	}
+	if _, ok := targets["ts"]; !ok {
+		t.Error("targets missing 'ts'")
+	}
+	if _, ok := targets["rs"]; ok {
+		t.Error("targets should not contain 'rs'")
+	}
+}
+
+func TestSelectTargetsToBuild_NonexistentService_ReturnsEmpty(t *testing.T) {
+	t.Parallel()
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"go": {Type: "language"},
+		},
+	}
+	runner := &DockerRunner{projectConfig: cfg}
+
+	targets := runner.selectTargetsToBuild([]string{"nonexistent"})
+
+	if len(targets) != 0 {
+		t.Errorf("selectTargetsToBuild([nonexistent]) returned %d targets, want 0", len(targets))
+	}
+}
+
+func TestSelectTargetsToBuild_MixedExistingAndNonexistent(t *testing.T) {
+	t.Parallel()
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"go": {Type: "language"},
+			"rs": {Type: "language"},
+		},
+	}
+	runner := &DockerRunner{projectConfig: cfg}
+
+	targets := runner.selectTargetsToBuild([]string{"go", "nonexistent", "rs"})
+
+	if len(targets) != 2 {
+		t.Errorf("selectTargetsToBuild returned %d targets, want 2", len(targets))
+	}
+	if _, ok := targets["go"]; !ok {
+		t.Error("targets missing 'go'")
+	}
+	if _, ok := targets["rs"]; !ok {
+		t.Error("targets missing 'rs'")
+	}
+}
+
+// =============================================================================
+// buildTarget Tests
+// =============================================================================
+
+func TestBuildTarget_CallsDockerBuild(t *testing.T) {
+	t.Parallel()
+	mock := &mockDockerCommandRunner{}
+
+	runner := &DockerRunner{
+		projectRoot: "/project",
+		runner:      mock,
+	}
+
+	targetCfg := config.TargetConfig{Directory: "myapp"}
+	err := runner.buildTarget(context.Background(), "myapp", targetCfg)
+
+	if err != nil {
+		t.Fatalf("buildTarget() error = %v", err)
+	}
+	if len(mock.calls) != 1 {
+		t.Fatalf("expected 1 call, got %d", len(mock.calls))
+	}
+
+	call := mock.calls[0]
+	argsStr := strings.Join(call.args, " ")
+
+	// Verify docker build command structure
+	if !strings.Contains(argsStr, "build") {
+		t.Error("args should contain 'build'")
+	}
+	if !strings.Contains(argsStr, "-t") {
+		t.Error("args should contain '-t' for image tag")
+	}
+	if !strings.Contains(argsStr, "structyl-myapp") {
+		t.Error("args should contain image name 'structyl-myapp'")
+	}
+	if !strings.Contains(argsStr, "-f") {
+		t.Error("args should contain '-f' for dockerfile path")
+	}
+}
+
+func TestBuildTarget_UsesCorrectImageName(t *testing.T) {
+	t.Parallel()
+	mock := &mockDockerCommandRunner{}
+
+	runner := &DockerRunner{
+		projectRoot: "/project",
+		runner:      mock,
+	}
+
+	targetCfg := config.TargetConfig{Directory: "services/api"}
+	err := runner.buildTarget(context.Background(), "api-service", targetCfg)
+
+	if err != nil {
+		t.Fatalf("buildTarget() error = %v", err)
+	}
+
+	call := mock.calls[0]
+	foundImageName := false
+	for i, arg := range call.args {
+		if arg == "-t" && i+1 < len(call.args) {
+			if call.args[i+1] == "structyl-api-service" {
+				foundImageName = true
+			}
+			break
+		}
+	}
+	if !foundImageName {
+		t.Errorf("image name should be 'structyl-api-service', got args: %v", call.args)
+	}
+}
+
+func TestBuildTarget_UsesCorrectDockerfilePath(t *testing.T) {
+	t.Parallel()
+	mock := &mockDockerCommandRunner{}
+
+	runner := &DockerRunner{
+		projectRoot: "/project",
+		runner:      mock,
+	}
+
+	targetCfg := config.TargetConfig{Directory: "services/api"}
+	err := runner.buildTarget(context.Background(), "api", targetCfg)
+
+	if err != nil {
+		t.Fatalf("buildTarget() error = %v", err)
+	}
+
+	call := mock.calls[0]
+	foundDockerfile := false
+	expectedPath := filepath.FromSlash("/project/services/api/Dockerfile")
+	for i, arg := range call.args {
+		if arg == "-f" && i+1 < len(call.args) {
+			if call.args[i+1] == expectedPath {
+				foundDockerfile = true
+			}
+			break
+		}
+	}
+	if !foundDockerfile {
+		t.Errorf("dockerfile path should be %q, got args: %v", expectedPath, call.args)
+	}
+}
+
+func TestBuildTarget_UsesProjectRootAsDir(t *testing.T) {
+	t.Parallel()
+	mock := &mockDockerCommandRunner{}
+
+	runner := &DockerRunner{
+		projectRoot: "/my/project",
+		runner:      mock,
+	}
+
+	targetCfg := config.TargetConfig{}
+	err := runner.buildTarget(context.Background(), "app", targetCfg)
+
+	if err != nil {
+		t.Fatalf("buildTarget() error = %v", err)
+	}
+
+	call := mock.calls[0]
+	if call.dir != "/my/project" {
+		t.Errorf("dir = %q, want /my/project", call.dir)
+	}
+}
+
+func TestBuildTarget_PropagatesRunError(t *testing.T) {
+	t.Parallel()
+	expectedErr := fmt.Errorf("docker build failed")
+	mock := &mockDockerCommandRunner{
+		runFunc: func(ctx context.Context, args []string, dir string) error {
+			return expectedErr
+		},
+	}
+
+	runner := &DockerRunner{
+		projectRoot: "/project",
+		runner:      mock,
+	}
+
+	targetCfg := config.TargetConfig{}
+	err := runner.buildTarget(context.Background(), "app", targetCfg)
+
+	if err != expectedErr {
+		t.Errorf("buildTarget() error = %v, want %v", err, expectedErr)
+	}
+}
+
+// =============================================================================
+// tryBuildWithDockerfiles Tests
+// =============================================================================
+
+func TestTryBuildWithDockerfiles_NoDockerfiles_ReturnsFalse(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+	mock := &mockDockerCommandRunner{}
+
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"go": {Directory: "go"},
+			"rs": {Directory: "rs"},
+		},
+	}
+	runner := &DockerRunner{
+		projectRoot:   tmpDir,
+		projectConfig: cfg,
+		runner:        mock,
+	}
+
+	built, err := runner.tryBuildWithDockerfiles(context.Background(), nil)
+
+	if err != nil {
+		t.Fatalf("tryBuildWithDockerfiles() error = %v", err)
+	}
+	if built {
+		t.Error("tryBuildWithDockerfiles() should return false when no Dockerfiles exist")
+	}
+	if len(mock.calls) != 0 {
+		t.Errorf("expected 0 calls, got %d", len(mock.calls))
+	}
+}
+
+func TestTryBuildWithDockerfiles_WithDockerfile_ReturnsTrue(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	// Create target directory with Dockerfile
+	goDir := filepath.Join(tmpDir, "go")
+	if err := createDirWithDockerfile(goDir); err != nil {
+		t.Fatalf("setup failed: %v", err)
+	}
+
+	mock := &mockDockerCommandRunner{}
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"go": {Directory: "go"},
+		},
+	}
+	runner := &DockerRunner{
+		projectRoot:   tmpDir,
+		projectConfig: cfg,
+		runner:        mock,
+	}
+
+	built, err := runner.tryBuildWithDockerfiles(context.Background(), nil)
+
+	if err != nil {
+		t.Fatalf("tryBuildWithDockerfiles() error = %v", err)
+	}
+	if !built {
+		t.Error("tryBuildWithDockerfiles() should return true when Dockerfile exists")
+	}
+	if len(mock.calls) != 1 {
+		t.Fatalf("expected 1 call, got %d", len(mock.calls))
+	}
+}
+
+func TestTryBuildWithDockerfiles_MultipleTargets_OnlyBuildsWithDockerfile(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	// Create directories - only 'go' has a Dockerfile
+	goDir := filepath.Join(tmpDir, "go")
+	rsDir := filepath.Join(tmpDir, "rs")
+	if err := createDirWithDockerfile(goDir); err != nil {
+		t.Fatalf("setup failed: %v", err)
+	}
+	if err := createDirWithoutDockerfile(rsDir); err != nil {
+		t.Fatalf("setup failed: %v", err)
+	}
+
+	mock := &mockDockerCommandRunner{}
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"go": {Directory: "go"},
+			"rs": {Directory: "rs"},
+		},
+	}
+	runner := &DockerRunner{
+		projectRoot:   tmpDir,
+		projectConfig: cfg,
+		runner:        mock,
+	}
+
+	built, err := runner.tryBuildWithDockerfiles(context.Background(), nil)
+
+	if err != nil {
+		t.Fatalf("tryBuildWithDockerfiles() error = %v", err)
+	}
+	if !built {
+		t.Error("tryBuildWithDockerfiles() should return true")
+	}
+	// Should only build 'go' target
+	if len(mock.calls) != 1 {
+		t.Fatalf("expected 1 call (only go), got %d", len(mock.calls))
+	}
+}
+
+func TestTryBuildWithDockerfiles_FilteredServices(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	// Create directories with Dockerfiles for both
+	goDir := filepath.Join(tmpDir, "go")
+	rsDir := filepath.Join(tmpDir, "rs")
+	if err := createDirWithDockerfile(goDir); err != nil {
+		t.Fatalf("setup failed: %v", err)
+	}
+	if err := createDirWithDockerfile(rsDir); err != nil {
+		t.Fatalf("setup failed: %v", err)
+	}
+
+	mock := &mockDockerCommandRunner{}
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"go": {Directory: "go"},
+			"rs": {Directory: "rs"},
+		},
+	}
+	runner := &DockerRunner{
+		projectRoot:   tmpDir,
+		projectConfig: cfg,
+		runner:        mock,
+	}
+
+	// Only request 'go' service
+	built, err := runner.tryBuildWithDockerfiles(context.Background(), []string{"go"})
+
+	if err != nil {
+		t.Fatalf("tryBuildWithDockerfiles() error = %v", err)
+	}
+	if !built {
+		t.Error("tryBuildWithDockerfiles() should return true")
+	}
+	// Should only build 'go' target even though 'rs' also has Dockerfile
+	if len(mock.calls) != 1 {
+		t.Fatalf("expected 1 call (only go), got %d", len(mock.calls))
+	}
+}
+
+func TestTryBuildWithDockerfiles_BuildError_StopsAndReturnsError(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	goDir := filepath.Join(tmpDir, "go")
+	if err := createDirWithDockerfile(goDir); err != nil {
+		t.Fatalf("setup failed: %v", err)
+	}
+
+	expectedErr := fmt.Errorf("build failed")
+	mock := &mockDockerCommandRunner{
+		runFunc: func(ctx context.Context, args []string, dir string) error {
+			return expectedErr
+		},
+	}
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"go": {Directory: "go"},
+		},
+	}
+	runner := &DockerRunner{
+		projectRoot:   tmpDir,
+		projectConfig: cfg,
+		runner:        mock,
+	}
+
+	built, err := runner.tryBuildWithDockerfiles(context.Background(), nil)
+
+	if err != expectedErr {
+		t.Errorf("tryBuildWithDockerfiles() error = %v, want %v", err, expectedErr)
+	}
+	if built {
+		t.Error("tryBuildWithDockerfiles() should return false on error")
+	}
+}
+
+func TestTryBuildWithDockerfiles_UsesTargetNameAsDirectory(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	// Create directory using target name (empty Directory config)
+	apiDir := filepath.Join(tmpDir, "api")
+	if err := createDirWithDockerfile(apiDir); err != nil {
+		t.Fatalf("setup failed: %v", err)
+	}
+
+	mock := &mockDockerCommandRunner{}
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"api": {Directory: ""}, // Empty means use target name
+		},
+	}
+	runner := &DockerRunner{
+		projectRoot:   tmpDir,
+		projectConfig: cfg,
+		runner:        mock,
+	}
+
+	built, err := runner.tryBuildWithDockerfiles(context.Background(), nil)
+
+	if err != nil {
+		t.Fatalf("tryBuildWithDockerfiles() error = %v", err)
+	}
+	if !built {
+		t.Error("tryBuildWithDockerfiles() should return true")
+	}
+	if len(mock.calls) != 1 {
+		t.Fatalf("expected 1 call, got %d", len(mock.calls))
+	}
+}
+
+// Helper functions for test setup
+
+func createDirWithDockerfile(dir string) error {
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+	return createFile(filepath.Join(dir, "Dockerfile"), "FROM scratch\n")
+}
+
+func createDirWithoutDockerfile(dir string) error {
+	return os.MkdirAll(dir, 0755)
+}
+
+func createFile(path, content string) error {
+	return os.WriteFile(path, []byte(content), 0644)
 }

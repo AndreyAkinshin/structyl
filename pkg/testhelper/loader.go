@@ -84,6 +84,9 @@ type TestCase struct {
 	// Input MUST be a JSON object (not an array or scalar). The object may be
 	// empty ({}). A nil Input (missing field) causes a validation error.
 	//
+	// Post-validation guarantee: After LoadTestCase, LoadTestCaseWithSuite, or
+	// LoadTestSuite returns successfully, Input is guaranteed to be non-nil.
+	//
 	// Why object-only? Test inputs typically represent named parameters or
 	// configuration. Objects provide named access to individual values and
 	// align with how most test frameworks expect structured input.

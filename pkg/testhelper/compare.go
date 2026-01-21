@@ -7,6 +7,10 @@ import (
 )
 
 // CompareOptions configures output comparison behavior.
+//
+// Important: Use the provided constants (ToleranceModeRelative, ArrayOrderStrict,
+// etc.) for ToleranceMode and ArrayOrder fields. Arbitrary strings are rejected
+// by ValidateOptions with an error listing valid values.
 type CompareOptions struct {
 	// FloatTolerance specifies the tolerance for float comparisons.
 	// For "relative" and "absolute" modes, this is the tolerance threshold.

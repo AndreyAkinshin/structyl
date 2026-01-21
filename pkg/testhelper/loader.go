@@ -725,11 +725,13 @@ func ListSuites(projectRoot string) ([]string, error) {
 // Use [LoadTestSuite] for detailed error information, or [SuiteExistsErr] to
 // distinguish "not found" from "permission denied" or other errors.
 //
-// Note: This function does NOT validate the suite name. Invalid names (containing
-// path separators or traversal sequences like "..") will check unintended paths
-// and return false without error. Use [ValidateSuiteName] first if the suite name
-// comes from untrusted input.
+// This function validates the suite name and returns false for invalid names
+// (containing path separators or traversal sequences like ".."). This prevents
+// path injection when the suite name comes from untrusted input.
 func SuiteExists(projectRoot, suite string) bool {
+	if err := ValidateSuiteName(suite); err != nil {
+		return false
+	}
 	suiteDir := filepath.Join(projectRoot, "tests", suite)
 	info, err := os.Stat(suiteDir)
 	return err == nil && info.IsDir()
@@ -739,10 +741,40 @@ func SuiteExists(projectRoot, suite string) bool {
 // Returns false for any error (including permission errors), not just "not found".
 // Use [LoadTestCase] for detailed error information, or [TestCaseExistsErr] to
 // distinguish "not found" from "permission denied" or other errors.
+//
+// This function validates both suite and name parameters and returns false for
+// invalid names (containing path separators or traversal sequences like "..").
+// This prevents path injection when names come from untrusted input.
 func TestCaseExists(projectRoot, suite, name string) bool {
+	if err := ValidateSuiteName(suite); err != nil {
+		return false
+	}
+	if err := validatePathComponent(name); err != nil {
+		return false
+	}
 	path := filepath.Join(projectRoot, "tests", suite, name+".json")
 	_, err := os.Stat(path)
 	return err == nil
+}
+
+// validatePathComponent checks if a path component is safe.
+// Returns an error if the name is empty, contains path traversal sequences (..),
+// path separators (/ or \), or null bytes.
+// This is used internally for test case name validation.
+func validatePathComponent(name string) error {
+	if name == "" {
+		return errors.New("name cannot be empty")
+	}
+	if strings.Contains(name, "..") {
+		return errors.New("name contains path traversal")
+	}
+	if strings.ContainsAny(name, "/\\") {
+		return errors.New("name contains path separator")
+	}
+	if strings.ContainsRune(name, '\x00') {
+		return errors.New("name contains null byte")
+	}
+	return nil
 }
 
 // SuiteExistsErr checks if a test suite exists, returning detailed error information.

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -226,6 +227,14 @@ func cmdTargets(args []string, opts *GlobalOptions) int {
 		return 0
 	}
 
+	// Parse --json flag
+	jsonOutput := false
+	for _, arg := range args {
+		if arg == "--json" {
+			jsonOutput = true
+		}
+	}
+
 	_, registry, exitCode := loadProjectWithRegistry()
 	if registry == nil {
 		return exitCode
@@ -235,11 +244,19 @@ func cmdTargets(args []string, opts *GlobalOptions) int {
 	if opts.TargetType != "" {
 		targets = registry.ByType(target.TargetType(opts.TargetType))
 		if len(targets) == 0 {
+			if jsonOutput {
+				fmt.Println("[]")
+				return 0
+			}
 			out.WarningSimple("no targets of type %q found", opts.TargetType)
 			return 0
 		}
 	} else {
 		targets = registry.All()
+	}
+
+	if jsonOutput {
+		return printTargetsJSON(targets)
 	}
 
 	for _, t := range targets {
@@ -251,6 +268,41 @@ func cmdTargets(args []string, opts *GlobalOptions) int {
 		}
 	}
 
+	return 0
+}
+
+// TargetJSON represents a target in JSON output format.
+// This structure is stable and part of the public CLI API.
+type TargetJSON struct {
+	Name      string   `json:"name"`
+	Type      string   `json:"type"`
+	Title     string   `json:"title,omitempty"`
+	Commands  []string `json:"commands"`
+	DependsOn []string `json:"depends_on,omitempty"`
+}
+
+// printTargetsJSON outputs targets in machine-readable JSON format.
+func printTargetsJSON(targets []target.Target) int {
+	result := make([]TargetJSON, 0, len(targets))
+	for _, t := range targets {
+		tj := TargetJSON{
+			Name:     t.Name(),
+			Type:     string(t.Type()),
+			Title:    t.Title(),
+			Commands: t.Commands(),
+		}
+		if deps := t.DependsOn(); len(deps) > 0 {
+			tj.DependsOn = deps
+		}
+		result = append(result, tj)
+	}
+
+	data, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		out.ErrorPrefix("failed to marshal targets to JSON: %v", err)
+		return internalerrors.ExitRuntimeError
+	}
+	fmt.Println(string(data))
 	return 0
 }
 
@@ -796,11 +848,13 @@ func printTargetsUsage() {
 	out.Println("  title, available commands, and dependencies.")
 
 	out.HelpSection("Options:")
+	out.HelpFlag("--json", "Output in machine-readable JSON format", widthFlagWithValue)
 	out.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", widthFlagWithValue)
 	out.HelpFlag("-h, --help", "Show this help", widthFlagWithValue)
 
 	out.HelpSection("Examples:")
 	out.HelpExample("structyl targets", "List all targets")
+	out.HelpExample("structyl targets --json", "List targets as JSON")
 	out.HelpExample("structyl targets --type=language", "List only language targets")
 	out.Println("")
 }

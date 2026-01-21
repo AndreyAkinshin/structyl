@@ -459,6 +459,37 @@ func TestCmdTargets_WithTypeFilter(t *testing.T) {
 	})
 }
 
+func TestCmdTargets_JSONOutput(t *testing.T) {
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		exitCode := cmdTargets([]string{"--json"}, &GlobalOptions{})
+		if exitCode != 0 {
+			t.Errorf("cmdTargets(--json) = %d, want 0", exitCode)
+		}
+	})
+}
+
+func TestCmdTargets_JSONWithTypeFilter(t *testing.T) {
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		exitCode := cmdTargets([]string{"--json"}, &GlobalOptions{TargetType: "language"})
+		if exitCode != 0 {
+			t.Errorf("cmdTargets(--json, language) = %d, want 0", exitCode)
+		}
+	})
+}
+
+func TestCmdTargets_JSONEmptyResult(t *testing.T) {
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		// Filter to nonexistent type should return empty array
+		exitCode := cmdTargets([]string{"--json"}, &GlobalOptions{TargetType: "nonexistent"})
+		if exitCode != 0 {
+			t.Errorf("cmdTargets(--json, nonexistent) = %d, want 0 (empty result)", exitCode)
+		}
+	})
+}
+
 func TestCmdConfig_NoSubcommand_ReturnsError(t *testing.T) {
 	exitCode := cmdConfig([]string{})
 	if exitCode != 2 {

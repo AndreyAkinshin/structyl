@@ -47,6 +47,12 @@ func loadProject() (*project.Project, int) {
 	return proj, 0
 }
 
+// miseConfigForce constants document the boolean parameter for ensureMiseConfig.
+const (
+	miseConfigForceRegenerate = true  // Always regenerate mise.toml
+	miseConfigAutoRegenerate  = false // Regenerate only if auto_generate is enabled or file is missing
+)
+
 // ensureMiseConfig ensures mise.toml is up-to-date.
 // If auto_generate is enabled, regenerates the file.
 // If force is true, always regenerates.
@@ -147,7 +153,7 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 	}
 
 	// Ensure mise.toml is up-to-date
-	if err := ensureMiseConfig(proj, false); err != nil {
+	if err := ensureMiseConfig(proj, miseConfigAutoRegenerate); err != nil {
 		out.ErrorPrefix("%v", err)
 		return internalerrors.ExitRuntimeError
 	}
@@ -314,7 +320,7 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 	}
 
 	// Ensure mise.toml is up-to-date
-	if err := ensureMiseConfig(proj, false); err != nil {
+	if err := ensureMiseConfig(proj, miseConfigAutoRegenerate); err != nil {
 		out.ErrorPrefix("%v", err)
 		return internalerrors.ExitRuntimeError
 	}

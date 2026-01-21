@@ -27,9 +27,10 @@ type Target struct {
 	ExecFunc func(ctx context.Context, cmd string, opts target.ExecOptions) error
 
 	// Execution tracking (thread-safe)
-	execCount int32
-	mu        sync.Mutex
-	execOrder []string
+	execCount      int32
+	mu             sync.Mutex
+	execOrder      []string
+	commandHistory []string // Commands passed to Execute
 }
 
 // NewTarget creates a new mock target with the given name.
@@ -155,6 +156,7 @@ func (m *Target) Execute(ctx context.Context, cmd string, opts target.ExecOption
 	atomic.AddInt32(&m.execCount, 1)
 	m.mu.Lock()
 	m.execOrder = append(m.execOrder, m.name)
+	m.commandHistory = append(m.commandHistory, cmd)
 	m.mu.Unlock()
 
 	if m.ExecFunc != nil {
@@ -180,10 +182,30 @@ func (m *Target) ExecOrder() []string {
 	return result
 }
 
+// LastCommand returns the last command passed to Execute, or empty string if never called.
+func (m *Target) LastCommand() string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if len(m.commandHistory) == 0 {
+		return ""
+	}
+	return m.commandHistory[len(m.commandHistory)-1]
+}
+
+// CommandHistory returns all commands passed to Execute in order.
+func (m *Target) CommandHistory() []string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	result := make([]string, len(m.commandHistory))
+	copy(result, m.commandHistory)
+	return result
+}
+
 // Reset clears execution tracking state.
 func (m *Target) Reset() {
 	atomic.StoreInt32(&m.execCount, 0)
 	m.mu.Lock()
 	m.execOrder = nil
+	m.commandHistory = nil
 	m.mu.Unlock()
 }

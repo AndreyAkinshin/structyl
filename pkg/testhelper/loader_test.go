@@ -1911,7 +1911,7 @@ func TestTestCase_Clone(t *testing.T) {
 		}
 	})
 
-	t.Run("output_shallow_copied", func(t *testing.T) {
+	t.Run("output_shallow_copied_clone_to_original", func(t *testing.T) {
 		t.Parallel()
 		// Output is interface{} and is shallow-copied (by design)
 		original := TestCase{
@@ -1930,6 +1930,230 @@ func TestTestCase_Clone(t *testing.T) {
 		cloneOutput["new"] = "added"
 		if _, exists := originalOutput["new"]; !exists {
 			t.Error("Output should be shallow-copied (modifying clone should affect original)")
+		}
+	})
+
+	t.Run("output_shallow_copied_original_to_clone", func(t *testing.T) {
+		t.Parallel()
+		// Verify bidirectional: modifying original also affects clone
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: map[string]interface{}{"key": "value"},
+		}
+
+		clone := original.Clone()
+
+		// Both should reference the same Output map (shallow copy)
+		originalOutput := original.Output.(map[string]interface{})
+		cloneOutput := clone.Output.(map[string]interface{})
+
+		// Modifying original's Output affects clone (shallow copy behavior)
+		originalOutput["another"] = "change"
+		if _, exists := cloneOutput["another"]; !exists {
+			t.Error("Output should be shallow-copied (modifying original should affect clone)")
+		}
+	})
+}
+
+func TestTestCase_DeepClone(t *testing.T) {
+	t.Parallel()
+
+	t.Run("output_independent_clone_to_original", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{"key": "value"},
+			Output: map[string]interface{}{"nested": "original"},
+		}
+
+		clone, err := original.DeepClone()
+		if err != nil {
+			t.Fatalf("DeepClone() error = %v", err)
+		}
+
+		// Modify clone's Output
+		cloneOutput := clone.Output.(map[string]interface{})
+		cloneOutput["nested"] = "modified"
+
+		// Original should be unchanged
+		originalOutput := original.Output.(map[string]interface{})
+		if originalOutput["nested"] != "original" {
+			t.Errorf("DeepClone modified original: got %q, want %q",
+				originalOutput["nested"], "original")
+		}
+	})
+
+	t.Run("output_independent_original_to_clone", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{"key": "value"},
+			Output: map[string]interface{}{"nested": "original"},
+		}
+
+		clone, err := original.DeepClone()
+		if err != nil {
+			t.Fatalf("DeepClone() error = %v", err)
+		}
+
+		// Modify original's Output
+		originalOutput := original.Output.(map[string]interface{})
+		originalOutput["nested"] = "modified"
+
+		// Clone should be unchanged
+		cloneOutput := clone.Output.(map[string]interface{})
+		if cloneOutput["nested"] != "original" {
+			t.Errorf("modifying original affected DeepClone: got %q, want %q",
+				cloneOutput["nested"], "original")
+		}
+	})
+
+	t.Run("deeply_nested_structures", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:  "test",
+			Input: map[string]interface{}{},
+			Output: map[string]interface{}{
+				"level1": map[string]interface{}{
+					"level2": map[string]interface{}{
+						"value": "deep",
+					},
+				},
+			},
+		}
+
+		clone, err := original.DeepClone()
+		if err != nil {
+			t.Fatalf("DeepClone() error = %v", err)
+		}
+
+		// Modify deeply nested value in clone
+		clone.Output.(map[string]interface{})["level1"].(map[string]interface{})["level2"].(map[string]interface{})["value"] = "changed"
+
+		// Original should be unchanged
+		originalValue := original.Output.(map[string]interface{})["level1"].(map[string]interface{})["level2"].(map[string]interface{})["value"]
+		if originalValue != "deep" {
+			t.Errorf("DeepClone modified deeply nested original: got %q, want %q",
+				originalValue, "deep")
+		}
+	})
+
+	t.Run("array_output", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: []interface{}{1.0, 2.0, 3.0},
+		}
+
+		clone, err := original.DeepClone()
+		if err != nil {
+			t.Fatalf("DeepClone() error = %v", err)
+		}
+
+		// Modify clone's Output array
+		cloneOutput := clone.Output.([]interface{})
+		cloneOutput[0] = 999.0
+
+		// Original should be unchanged
+		originalOutput := original.Output.([]interface{})
+		if originalOutput[0] != 1.0 {
+			t.Errorf("DeepClone modified original array: got %v, want %v",
+				originalOutput[0], 1.0)
+		}
+	})
+
+	t.Run("primitive_output", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "string value",
+		}
+
+		clone, err := original.DeepClone()
+		if err != nil {
+			t.Fatalf("DeepClone() error = %v", err)
+		}
+
+		if clone.Output != "string value" {
+			t.Errorf("DeepClone Output = %v, want %v", clone.Output, "string value")
+		}
+	})
+
+	t.Run("nil_output", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: nil,
+		}
+
+		clone, err := original.DeepClone()
+		if err != nil {
+			t.Fatalf("DeepClone() error = %v", err)
+		}
+
+		if clone.Output != nil {
+			t.Errorf("DeepClone nil Output = %v, want nil", clone.Output)
+		}
+	})
+
+	t.Run("input_still_shallow", func(t *testing.T) {
+		t.Parallel()
+		// DeepClone only deep-copies Output, Input remains shallow
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{"key": "value"},
+			Output: "result",
+		}
+
+		clone, err := original.DeepClone()
+		if err != nil {
+			t.Fatalf("DeepClone() error = %v", err)
+		}
+
+		// Modify clone's Input at top level
+		clone.Input["new"] = "added"
+
+		// Original's top-level keys should be unaffected (shallow copy behavior)
+		if _, exists := original.Input["new"]; exists {
+			t.Error("DeepClone Input should be shallow-copied (new key affected original)")
+		}
+	})
+
+	t.Run("preserves_all_fields", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:        "testname",
+			Suite:       "testsuite",
+			Description: "desc",
+			Skip:        true,
+			Input:       map[string]interface{}{"a": 1.0},
+			Output:      map[string]interface{}{"b": 2.0},
+			Tags:        []string{"tag1", "tag2"},
+		}
+
+		clone, err := original.DeepClone()
+		if err != nil {
+			t.Fatalf("DeepClone() error = %v", err)
+		}
+
+		if clone.Name != original.Name {
+			t.Errorf("Name: got %q, want %q", clone.Name, original.Name)
+		}
+		if clone.Suite != original.Suite {
+			t.Errorf("Suite: got %q, want %q", clone.Suite, original.Suite)
+		}
+		if clone.Description != original.Description {
+			t.Errorf("Description: got %q, want %q", clone.Description, original.Description)
+		}
+		if clone.Skip != original.Skip {
+			t.Errorf("Skip: got %v, want %v", clone.Skip, original.Skip)
+		}
+		if len(clone.Tags) != len(original.Tags) {
+			t.Errorf("Tags length: got %d, want %d", len(clone.Tags), len(original.Tags))
 		}
 	})
 }

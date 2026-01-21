@@ -39,9 +39,11 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 > **Note:** The `test:coverage` command is part of the standard vocabulary but **no built-in toolchain provides a default implementation**. Projects requiring coverage MUST define a custom `test:coverage` command in target configuration. This command is OPTIONAL and not required for toolchain conformance.
 >
 > **Semantics (when defined):**
+> - MUST run test suite with coverage instrumentation enabled
 > - Coverage output location: implementation-defined (commonly `coverage/` or tool default)
 > - Output format: implementation-defined
 > - Exit code: SHOULD return 0 if tests pass regardless of coverage percentage; coverage enforcement is out of scope
+> - Coverage threshold enforcement is NOT part of Structyl's contract; use CI tooling if required
 
 ### Command Semantics
 
@@ -174,6 +176,7 @@ These commands operate across all targets.
 | Command                  | Description                                                                                                 |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------- |
 | `init`                   | Initialize a new Structyl project in current directory                                                      |
+| `new`                    | **Deprecated:** Alias for `init`. Will be removed in a future version.                                      |
 | `targets`                | List all configured targets (see [targets.md](targets.md#target-listing))                                   |
 | `release <version>`      | Set version, commit, and tag (see [version-management.md](version-management.md#automated-release-command)) |
 | `upgrade [version]`      | Manage pinned CLI version (see [version-management.md](version-management.md#cli-version-pinning))          |
@@ -427,9 +430,19 @@ Note: `-q, --quiet` and `-v, --verbose` are mutually exclusive.
 | Variable            | Description                                                       | Default              |
 | ------------------- | ----------------------------------------------------------------- | -------------------- |
 | `STRUCTYL_DOCKER`   | Enable Docker mode (`1`, `true`, or `yes`, case-insensitive)      | (disabled)           |
+| `STRUCTYL_PARALLEL` | Parallel workers for internal runner (see note below)             | `runtime.NumCPU()`   |
 | `NO_COLOR`          | Disable colored output (any non-empty value)                      | (colors enabled)     |
 
 For `NO_COLOR`, see [no-color.org](https://no-color.org/) for the standard.
+
+::: info STRUCTYL_PARALLEL (Internal Runner Only)
+The `STRUCTYL_PARALLEL` environment variable controls the number of parallel workers when using Structyl's internal runner. **When using mise as the backend (the default), this variable has no effect**—mise manages its own parallelism.
+
+**Behavior:**
+- Value `1`: Serial execution (one target at a time)
+- Value `2-256`: Parallel execution with N workers
+- Value `0`, negative, `>256`, or non-integer: Falls back to CPU core count with warning
+:::
 
 ### Docker Mode Precedence
 

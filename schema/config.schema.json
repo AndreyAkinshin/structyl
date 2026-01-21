@@ -292,7 +292,7 @@
       "properties": {
         "auto_generate": {
           "type": "boolean",
-          "description": "Regenerate mise.toml before each run",
+          "description": "Regenerate mise.toml before target command execution. When true, synchronizes tool versions with toolchain config. Set false and use 'structyl mise sync' for manual control.",
           "default": true
         },
         "extra_tools": {

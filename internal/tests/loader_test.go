@@ -7,6 +7,7 @@ import (
 )
 
 func TestLoadTestSuite_ValidSuite_ReturnsTestCases(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	suiteDir := filepath.Join(tmpDir, "suite1")
 	if err := os.MkdirAll(suiteDir, 0755); err != nil {
@@ -51,6 +52,7 @@ func TestLoadTestSuite_ValidSuite_ReturnsTestCases(t *testing.T) {
 }
 
 func TestLoadTestSuite_NonExistentDir_ReturnsError(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 
 	_, err := LoadTestSuite(tmpDir, "nonexistent", "*.json")
@@ -60,6 +62,7 @@ func TestLoadTestSuite_NonExistentDir_ReturnsError(t *testing.T) {
 }
 
 func TestLoadTestSuite_EmptySuite_ReturnsEmpty(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	suiteDir := filepath.Join(tmpDir, "empty")
 	if err := os.MkdirAll(suiteDir, 0755); err != nil {
@@ -77,6 +80,7 @@ func TestLoadTestSuite_EmptySuite_ReturnsEmpty(t *testing.T) {
 }
 
 func TestLoadTestCase_ValidJSON_ParsesCorrectly(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.json")
 	content := `{
@@ -115,6 +119,7 @@ func TestLoadTestCase_ValidJSON_ParsesCorrectly(t *testing.T) {
 }
 
 func TestLoadTestCase_MissingInput_ReturnsError(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.json")
 	content := `{"output": 42}`
@@ -129,6 +134,7 @@ func TestLoadTestCase_MissingInput_ReturnsError(t *testing.T) {
 }
 
 func TestLoadTestCase_MissingOutput_ReturnsError(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.json")
 	content := `{"input": {"x": 1}}`
@@ -143,6 +149,7 @@ func TestLoadTestCase_MissingOutput_ReturnsError(t *testing.T) {
 }
 
 func TestLoadTestCase_InputNotObject_ReturnsError(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.json")
 	content := `{"input": [1, 2, 3], "output": 6}`
@@ -157,6 +164,7 @@ func TestLoadTestCase_InputNotObject_ReturnsError(t *testing.T) {
 }
 
 func TestLoadTestCase_InvalidJSON_ReturnsError(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test.json")
 	content := `{invalid json}`
@@ -171,6 +179,7 @@ func TestLoadTestCase_InvalidJSON_ReturnsError(t *testing.T) {
 }
 
 func TestLoadTestCase_FileNotFound_ReturnsError(t *testing.T) {
+	t.Parallel()
 	_, err := LoadTestCase("/nonexistent/path/test.json")
 	if err == nil {
 		t.Error("LoadTestCase() expected error for missing file")
@@ -178,6 +187,7 @@ func TestLoadTestCase_FileNotFound_ReturnsError(t *testing.T) {
 }
 
 func TestResolveFileRefs_NestedMap_ResolvesRecursively(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 
 	// Create referenced file
@@ -208,6 +218,7 @@ func TestResolveFileRefs_NestedMap_ResolvesRecursively(t *testing.T) {
 }
 
 func TestResolveFileRefs_Array_ResolvesElements(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 
 	// Create referenced file
@@ -236,6 +247,7 @@ func TestResolveFileRefs_Array_ResolvesElements(t *testing.T) {
 }
 
 func TestResolveFileRefs_Primitive_ReturnsUnchanged(t *testing.T) {
+	t.Parallel()
 	tests := []interface{}{
 		"string",
 		float64(42),
@@ -255,6 +267,7 @@ func TestResolveFileRefs_Primitive_ReturnsUnchanged(t *testing.T) {
 }
 
 func TestLoadFileRef_PathTraversal_ReturnsError(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 
 	_, err := loadFileRef("../escape.json", tmpDir)
@@ -264,6 +277,7 @@ func TestLoadFileRef_PathTraversal_ReturnsError(t *testing.T) {
 }
 
 func TestLoadFileRef_EscapesBaseDir_ReturnsError(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	subDir := filepath.Join(tmpDir, "sub")
 	if err := os.MkdirAll(subDir, 0755); err != nil {
@@ -279,6 +293,7 @@ func TestLoadFileRef_EscapesBaseDir_ReturnsError(t *testing.T) {
 }
 
 func TestLoadFileRef_ValidJSONFile_ParsesAsJSON(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	refFile := filepath.Join(tmpDir, "data.json")
 	if err := os.WriteFile(refFile, []byte(`{"key": "value"}`), 0644); err != nil {
@@ -300,6 +315,7 @@ func TestLoadFileRef_ValidJSONFile_ParsesAsJSON(t *testing.T) {
 }
 
 func TestLoadFileRef_NonJSONFile_ReturnsString(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 	refFile := filepath.Join(tmpDir, "data.txt")
 	if err := os.WriteFile(refFile, []byte("plain text content"), 0644); err != nil {
@@ -321,6 +337,7 @@ func TestLoadFileRef_NonJSONFile_ReturnsString(t *testing.T) {
 }
 
 func TestLoadFileRef_FileNotFound_ReturnsError(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 
 	_, err := loadFileRef("nonexistent.json", tmpDir)
@@ -330,6 +347,7 @@ func TestLoadFileRef_FileNotFound_ReturnsError(t *testing.T) {
 }
 
 func TestFindMatches_GlobPattern_FindsFiles(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 
 	// Create test files
@@ -361,6 +379,7 @@ func TestFindMatches_GlobPattern_FindsFiles(t *testing.T) {
 }
 
 func TestFindMatches_NoMatches_ReturnsEmpty(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 
 	// Create non-matching file
@@ -379,6 +398,7 @@ func TestFindMatches_NoMatches_ReturnsEmpty(t *testing.T) {
 }
 
 func TestLoadAllSuites_MultipleSuites_ReturnsAll(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 
 	// Create suite1
@@ -422,6 +442,7 @@ func TestLoadAllSuites_MultipleSuites_ReturnsAll(t *testing.T) {
 }
 
 func TestLoadAllSuites_EmptyDir_ReturnsEmpty(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 
 	suites, err := LoadAllSuites(tmpDir, "*.json")
@@ -435,6 +456,7 @@ func TestLoadAllSuites_EmptyDir_ReturnsEmpty(t *testing.T) {
 }
 
 func TestLoadAllSuites_EmptySuitesSkipped(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 
 	// Create suite with no JSON files
@@ -467,6 +489,7 @@ func TestLoadAllSuites_EmptySuitesSkipped(t *testing.T) {
 }
 
 func TestFindMatches_DoubleStarPattern_FindsNestedFiles(t *testing.T) {
+	t.Parallel()
 	tmpDir := t.TempDir()
 
 	// Create nested directory structure

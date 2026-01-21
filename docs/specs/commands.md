@@ -213,7 +213,11 @@ The `config` command provides configuration utilities. A subcommand is required.
 | ---------- | ------------------------------ |
 | `validate` | Validate project configuration |
 
-Running `structyl config` without a subcommand prints an error and exits with code 2.
+Running `structyl config` without a subcommand prints an error and exits with code 2:
+
+```
+structyl: config requires a subcommand (validate)
+```
 
 ### `config validate` Command
 
@@ -297,6 +301,8 @@ This file complements the root `AGENTS.md` with project-specific context.
 | ------------ | --------------------------------------------- |
 | `--mise`     | Generate/regenerate `mise.toml` configuration |
 | `-h, --help` | Show help                                     |
+
+When `--mise` is passed, the `mise.toml` file is generated after all other initialization steps complete. Without `--mise`, no `mise.toml` is created; use `structyl mise sync` separately if needed.
 
 **Exit codes:**
 

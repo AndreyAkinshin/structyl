@@ -4,7 +4,7 @@ Structyl maintains a single version for your entire project, automatically updat
 
 ## Version Source
 
-Create a `VERSION` file in the `.structyl` directory:
+Create a `PROJECT_VERSION` file in the `.structyl` directory:
 
 ```
 1.0.0
@@ -27,7 +27,7 @@ structyl version
 structyl version set 2.0.0
 ```
 
-This updates the VERSION file and propagates to all configured files.
+This updates the PROJECT_VERSION file and propagates to all configured files.
 
 ### Bump Version
 
@@ -147,7 +147,7 @@ structyl release 2.0.0
 
 This command:
 
-1. Updates VERSION file
+1. Updates PROJECT_VERSION file
 2. Propagates to all configured files
 3. Regenerates documentation
 4. Creates git commit

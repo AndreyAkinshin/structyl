@@ -751,15 +751,15 @@ func TestCmdInit_CreatesVersionFile(t *testing.T) {
 			return
 		}
 
-		// Verify VERSION file was created
+		// Verify PROJECT_VERSION file was created
 		versionPath := filepath.Join(root, ".structyl", "PROJECT_VERSION")
 		content, err := os.ReadFile(versionPath)
 		if err != nil {
-			t.Errorf("VERSION file not created: %v", err)
+			t.Errorf("PROJECT_VERSION file not created: %v", err)
 			return
 		}
 		if string(content) != "0.1.0\n" {
-			t.Errorf("VERSION = %q, want %q", string(content), "0.1.0\n")
+			t.Errorf("PROJECT_VERSION = %q, want %q", string(content), "0.1.0\n")
 		}
 	})
 }
@@ -800,12 +800,12 @@ func TestCmdInit_VersionFileExists_NotOverwritten(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Create existing VERSION file in .structyl directory
+	// Create existing PROJECT_VERSION file in .structyl directory
 	structylDir := filepath.Join(root, ".structyl")
 	if err := os.MkdirAll(structylDir, 0755); err != nil {
 		t.Fatal(err)
 	}
-	versionPath := filepath.Join(structylDir, "VERSION")
+	versionPath := filepath.Join(structylDir, "PROJECT_VERSION")
 	existingVersion := "1.0.0\n"
 	if err := os.WriteFile(versionPath, []byte(existingVersion), 0644); err != nil {
 		t.Fatal(err)
@@ -818,13 +818,13 @@ func TestCmdInit_VersionFileExists_NotOverwritten(t *testing.T) {
 			return
 		}
 
-		// Verify VERSION file was NOT overwritten
+		// Verify PROJECT_VERSION file was NOT overwritten
 		content, err := os.ReadFile(versionPath)
 		if err != nil {
 			t.Fatal(err)
 		}
 		if string(content) != existingVersion {
-			t.Errorf("VERSION = %q, want %q (should not be overwritten)", string(content), existingVersion)
+			t.Errorf("PROJECT_VERSION = %q, want %q (should not be overwritten)", string(content), existingVersion)
 		}
 	})
 }

@@ -95,11 +95,11 @@ type targetImpl struct {
 	dependsOn  []string
 	demoPath   string
 	rootDir    string // Absolute path to project root
-	version    string // Project version from VERSION file (empty if not available)
+	version    string // Project version from PROJECT_VERSION file (empty if not available)
 }
 
 // NewTarget creates a new target from configuration.
-// The version parameter is the project version (from VERSION file) used for ${version} interpolation.
+// The version parameter is the project version (from PROJECT_VERSION file) used for ${version} interpolation.
 // Pass empty string if version is not available.
 func NewTarget(name string, cfg config.TargetConfig, rootDir string, version string, resolver *toolchain.Resolver) (Target, error) {
 	commands, err := resolver.GetResolvedCommands(cfg)
@@ -282,7 +282,7 @@ func (t *targetImpl) resolveCommandVariant(cmd string, v Verbosity) string {
 //   - ${target}: target name (e.g., "rs", "go")
 //   - ${target_dir}: target directory path
 //   - ${root}: project root directory (absolute path)
-//   - ${version}: project version from VERSION file (empty if not available)
+//   - ${version}: project version from PROJECT_VERSION file (empty if not available)
 func (t *targetImpl) interpolateVars(cmd string) string {
 	// First, handle escaped variables: $${var} -> placeholder
 	result := strings.ReplaceAll(cmd, "$${", escapePlaceholder)

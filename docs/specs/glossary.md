@@ -1,7 +1,5 @@
 # Glossary
 
-> **Terminology:** This specification uses [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) keywords (MUST, SHOULD, MAY, etc.) to indicate requirement levels.
-
 This document defines key terms used throughout the Structyl specification.
 
 ## Terms
@@ -86,6 +84,10 @@ A command that operates across multiple targets. Examples: `structyl build` (all
 ### Mise
 
 A polyglot tool version manager and task runner. Structyl integrates with mise for tool version management and task execution. See [mise.jdx.dev](https://mise.jdx.dev/).
+
+### Pipeline
+
+A sequence of CI steps that define the complete build and test workflow. Pipelines consist of steps with optional dependencies and continue-on-error behavior. See [ci-integration.md](ci-integration.md) for pipeline configuration details.
 
 ### Project Root
 

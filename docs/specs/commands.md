@@ -33,7 +33,7 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 | `publish`      | Publish package to registry                    |
 | `publish:dry`  | Dry-run publish (validate without uploading)   |
 
-† `build:release` is only provided by toolchains with distinct release/optimized build modes (e.g., `cargo`, `dotnet`, `swift`, `make`, `zig`). Toolchains without a native release mode do not define this variant. See [toolchains.md](toolchains.md) for per-toolchain availability.
+† `build:release` is only provided by toolchains with distinct release/optimized build modes. Toolchains providing `build:release`: `cargo`, `dotnet`, `make`, `swift`, `zig`. Toolchains without a native release mode do not define this variant. See [toolchains.md](toolchains.md) for per-toolchain details.
 
 <!-- VitePress component: Renders full standard command reference table in docs site (non-normative) -->
 <StandardCommands />

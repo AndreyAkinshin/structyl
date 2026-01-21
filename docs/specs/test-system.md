@@ -271,11 +271,11 @@ Configure tolerance in `.structyl/config.json`:
 
 ### Tolerance Modes
 
-| Mode       | Formula                                                    | Use Case        |
-| ---------- | ---------------------------------------------------------- | --------------- |
-| `absolute` | `\|expected - actual\| <= tolerance`                       | Small values    |
-| `relative` | `\|expected - actual\| / \|expected\| <= tolerance`        | General purpose |
-| `ulp`      | ULP difference <= tolerance                                | IEEE precision  |
+| Mode       | Formula                                            | Use Case        |
+| ---------- | -------------------------------------------------- | --------------- |
+| `absolute` | \|expected − actual\| ≤ tolerance                  | Small values    |
+| `relative` | \|expected − actual\| / \|expected\| ≤ tolerance   | General purpose |
+| `ulp`      | ULP difference ≤ tolerance                         | IEEE precision  |
 
 **Note:** For `relative` mode, when `expected` is exactly 0.0, the formula changes to `|actual| <= tolerance` to avoid division by zero.
 

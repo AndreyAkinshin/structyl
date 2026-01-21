@@ -177,18 +177,19 @@ See [Docker](./docker) for container configuration.
 
 Each target supports these options:
 
-| Field               | Type   | Default        | Description                   |
-| ------------------- | ------ | -------------- | ----------------------------- |
-| `type`              | string | Required       | `"language"` or `"auxiliary"` |
-| `title`             | string | Required       | Display name                  |
-| `toolchain`         | string | Auto-detect    | Toolchain preset              |
-| `toolchain_version` | string | From toolchain | Override mise tool version    |
-| `directory`         | string | Target key     | Directory path                |
-| `cwd`               | string | `directory`    | Working directory             |
-| `commands`          | object | From toolchain | Command overrides             |
-| `vars`              | object | `{}`           | Custom variables              |
-| `env`               | object | `{}`           | Environment variables         |
-| `depends_on`        | array  | `[]`           | Dependency targets            |
+| Field               | Type   | Default        | Description                             |
+| ------------------- | ------ | -------------- | --------------------------------------- |
+| `type`              | string | Required       | `"language"` or `"auxiliary"`           |
+| `title`             | string | Required       | Display name                            |
+| `toolchain`         | string | Auto-detect    | Toolchain preset                        |
+| `toolchain_version` | string | From toolchain | Override mise tool version              |
+| `directory`         | string | Target key     | Directory path                          |
+| `cwd`               | string | `directory`    | Working directory                       |
+| `commands`          | object | From toolchain | Command overrides                       |
+| `vars`              | object | `{}`           | Custom variables                        |
+| `env`               | object | `{}`           | Environment variables                   |
+| `depends_on`        | array  | `[]`           | Dependency targets                      |
+| `demo_path`         | string | None           | Path to demo source (for doc generation)|
 
 ### Command Definitions
 

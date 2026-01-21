@@ -298,7 +298,7 @@ Release workflow configuration.
 | Field          | Type     | Default        | Description                           |
 | -------------- | -------- | -------------- | ------------------------------------- |
 | `tag_format`   | string   | `v{version}`   | Git tag format (`{version}` replaced) |
-| `extra_tags`   | string[] | `[]`           | Additional tags to create             |
+| `extra_tags`   | string[] | `[]`           | Additional tags to create (e.g., `go/v{version}` for Go module versioning) |
 | `pre_commands` | string[] | `[]`           | Commands to run before release        |
 | `remote`       | string   | `origin`       | Git remote for `--push` flag          |
 | `branch`       | string   | `main`         | Branch to release from                |

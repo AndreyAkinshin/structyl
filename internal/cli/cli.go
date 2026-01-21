@@ -185,27 +185,36 @@ func parseGlobalFlags(args []string) (*GlobalOptions, []string, error) {
 		}
 	}
 
+	if err := validateGlobalOptions(opts); err != nil {
+		return nil, nil, err
+	}
+
+	return opts, remaining, nil
+}
+
+// validateGlobalOptions checks that global options are valid.
+func validateGlobalOptions(opts *GlobalOptions) error {
 	// Validate target type
 	if opts.TargetType != "" {
 		if _, ok := target.ParseTargetType(opts.TargetType); !ok {
-			return nil, nil, fmt.Errorf("invalid --type value %q\n  valid values: %s\n  example: structyl build --type=language",
+			return fmt.Errorf("invalid --type value %q\n  valid values: %s\n  example: structyl build --type=language",
 				opts.TargetType, strings.Join(target.ValidTargetTypes(), ", "))
 		}
 	}
 
 	// Validate mutual exclusivity of quiet and verbose
 	if opts.Quiet && opts.Verbose {
-		return nil, nil, fmt.Errorf("--quiet and --verbose are mutually exclusive")
+		return fmt.Errorf("--quiet and --verbose are mutually exclusive")
 	}
 
 	// Validate mutual exclusivity of docker and no-docker.
 	// Note: When both flags are absent, GetDockerMode() checks STRUCTYL_DOCKER env var.
 	// See docs/specs/commands.md for full precedence rules.
 	if opts.Docker && opts.NoDocker {
-		return nil, nil, fmt.Errorf("--docker and --no-docker are mutually exclusive")
+		return fmt.Errorf("--docker and --no-docker are mutually exclusive")
 	}
 
-	return opts, remaining, nil
+	return nil
 }
 
 func printUsage() {

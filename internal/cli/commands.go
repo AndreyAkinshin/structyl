@@ -526,8 +526,7 @@ func cmdRelease(args []string, opts *GlobalOptions) int {
 	releaseOpts := release.Options{}
 	var remaining []string
 
-	for i := 0; i < len(args); i++ {
-		arg := args[i]
+	for _, arg := range args {
 		switch arg {
 		case "--push":
 			releaseOpts.Push = true

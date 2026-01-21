@@ -759,6 +759,10 @@ Shell selection is automatic based on the operating system. There is no configur
 On Unix systems, `/bin/sh` is used directly without assuming bash-specific features. Commands SHOULD be written using POSIX shell syntax for maximum portability. Bash-specific syntax (arrays, `[[`, process substitution) may fail on systems where `/bin/sh` is not bash (e.g., Debian/Ubuntu where `/bin/sh` is dash).
 :::
 
+::: info Windows PowerShell Version
+Structyl uses Windows PowerShell (`powershell.exe`, version 5.1+) by default. PowerShell Core (`pwsh.exe`) is not currently used.
+:::
+
 ### Working Directory
 
 Commands execute in the target directory by default. Override with `cwd`:

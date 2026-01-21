@@ -94,6 +94,7 @@ Structyl logs warnings when deprecated features are used.
 - Configuration schema documented in [configuration.md](configuration.md)
 - Exit codes documented in [error-handling.md](error-handling.md)
 - Skip error reason identifiers: `disabled`, `command_not_found`, `script_not_found` (see [error-handling.md](error-handling.md#skip-errors))
+- `structyl targets --json` output format (see [TargetJSON Structure](#targetjson-structure) below)
 
 ### Unstable (May Change)
 
@@ -132,6 +133,32 @@ The following may change without major version bump:
 3. **Legal requirements**: License or legal compliance changes
 
 Such changes are documented in release notes with clear migration guidance.
+
+## TargetJSON Structure
+
+The `structyl targets --json` command outputs an array of target objects with the following stable structure:
+
+```json
+[
+  {
+    "name": "rs",
+    "type": "language",
+    "title": "Rust",
+    "commands": ["clean", "restore", "build", "test", "check"],
+    "depends_on": ["core"]
+  }
+]
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Target identifier (e.g., `"rs"`, `"py"`, `"img"`) |
+| `type` | string | Yes | Target type: `"language"` or `"auxiliary"` |
+| `title` | string | No | Human-readable name (omitted if empty) |
+| `commands` | string[] | Yes | Available commands for this target |
+| `depends_on` | string[] | No | Dependency target names (omitted if empty) |
+
+This structure is stable and covered by the [Source Compatibility](#source-compatibility) guarantees. New optional fields MAY be added in minor versions.
 
 ## See Also
 

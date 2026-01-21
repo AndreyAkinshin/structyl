@@ -1535,3 +1535,258 @@ func TestWriter_PrintTaskSummary_EmptyTasks(t *testing.T) {
 		t.Error("PrintTaskSummary() should show 0 for empty tasks")
 	}
 }
+
+func TestWriter_UpdateNotification(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		color   bool
+		version string
+		expect  string
+	}{
+		{"without color", false, "1.2.3", "structyl 1.2.3 available. Run 'structyl upgrade' to update.\n"},
+		{"with color", true, "2.0.0", "\033[2mstructyl 2.0.0 available. Run 'structyl upgrade' to update.\033[0m\n"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			w, _, stderr := newTestWriter()
+			w.color = tt.color
+
+			w.UpdateNotification(tt.version)
+
+			if got := stderr.String(); got != tt.expect {
+				t.Errorf("UpdateNotification() = %q, want %q", got, tt.expect)
+			}
+		})
+	}
+}
+
+func TestWriter_PrintTaskSummary_WithFailedTests(t *testing.T) {
+	t.Parallel()
+	w, stdout, _ := newTestWriter()
+
+	taskCounts := &testparser.TestCounts{
+		Parsed:  true,
+		Passed:  8,
+		Failed:  2,
+		Skipped: 0,
+		FailedTests: []testparser.FailedTest{
+			{Name: "TestFoo", Reason: "assertion failed"},
+			{Name: "TestBar", Reason: ""},
+		},
+	}
+
+	summary := &TaskRunSummary{
+		Tasks: []TaskResult{
+			{
+				Name:       "test",
+				Success:    false,
+				Duration:   time.Second,
+				TestCounts: taskCounts,
+				Error:      errors.New("exit 1"),
+			},
+		},
+		TotalDuration: time.Second,
+		Passed:        0,
+		Failed:        1,
+		TestCounts:    taskCounts,
+	}
+
+	w.PrintTaskSummary("Test", summary)
+
+	output := stdout.String()
+
+	// Should contain failed tests section
+	if !strings.Contains(output, "Failed Tests") {
+		t.Error("PrintTaskSummary() missing 'Failed Tests' section")
+	}
+
+	// Should contain failed test names
+	if !strings.Contains(output, "TestFoo") {
+		t.Error("PrintTaskSummary() missing failed test name 'TestFoo'")
+	}
+	if !strings.Contains(output, "TestBar") {
+		t.Error("PrintTaskSummary() missing failed test name 'TestBar'")
+	}
+
+	// Should contain failure reason when available
+	if !strings.Contains(output, "assertion failed") {
+		t.Error("PrintTaskSummary() missing failure reason")
+	}
+}
+
+func TestWriter_PrintTaskSummary_WithFailedTests_Color(t *testing.T) {
+	t.Parallel()
+	w, stdout, _ := newTestWriter()
+	w.color = true
+
+	taskCounts := &testparser.TestCounts{
+		Parsed:  true,
+		Passed:  5,
+		Failed:  1,
+		Skipped: 2,
+		FailedTests: []testparser.FailedTest{
+			{Name: "TestFailure", Reason: "timeout"},
+		},
+	}
+
+	summary := &TaskRunSummary{
+		Tasks: []TaskResult{
+			{
+				Name:       "test",
+				Success:    false,
+				Duration:   time.Second,
+				TestCounts: taskCounts,
+			},
+		},
+		TotalDuration: time.Second,
+		Passed:        0,
+		Failed:        1,
+		TestCounts:    taskCounts,
+	}
+
+	w.PrintTaskSummary("Test", summary)
+
+	output := stdout.String()
+
+	// Should contain colored indicators for passed/failed/skipped
+	if !strings.Contains(output, "\033[32m") { // green for passed
+		t.Error("PrintTaskSummary() missing green color for passed tests")
+	}
+	if !strings.Contains(output, "\033[31m") { // red for failed
+		t.Error("PrintTaskSummary() missing red color for failed tests")
+	}
+	if !strings.Contains(output, "\033[33m") { // yellow for skipped
+		t.Error("PrintTaskSummary() missing yellow color for skipped tests")
+	}
+}
+
+func TestWriter_printFailedTestDetails_Empty(t *testing.T) {
+	t.Parallel()
+	w, stdout, _ := newTestWriter()
+
+	// Access via PrintTaskSummary with no failed tests
+	taskCounts := &testparser.TestCounts{
+		Parsed:      true,
+		Passed:      10,
+		Failed:      0,
+		FailedTests: nil,
+	}
+
+	summary := &TaskRunSummary{
+		Tasks: []TaskResult{
+			{
+				Name:       "test",
+				Success:    true,
+				Duration:   time.Second,
+				TestCounts: taskCounts,
+			},
+		},
+		TotalDuration: time.Second,
+		Passed:        1,
+		Failed:        0,
+		TestCounts:    taskCounts,
+	}
+
+	w.PrintTaskSummary("Test", summary)
+
+	output := stdout.String()
+
+	// Should NOT contain "Failed Tests" section
+	if strings.Contains(output, "Failed Tests") {
+		t.Error("PrintTaskSummary() should not show 'Failed Tests' section when no tests failed")
+	}
+}
+
+func TestWriter_printTaskResultLine_WithError(t *testing.T) {
+	t.Parallel()
+	w, stdout, _ := newTestWriter()
+
+	summary := &TaskRunSummary{
+		Tasks: []TaskResult{
+			{
+				Name:     "build",
+				Success:  false,
+				Duration: 2 * time.Second,
+				Error:    errors.New("compilation error"),
+			},
+		},
+		TotalDuration: 2 * time.Second,
+		Passed:        0,
+		Failed:        1,
+	}
+
+	w.PrintTaskSummary("Build", summary)
+
+	output := stdout.String()
+
+	// Should contain the error message in parentheses
+	if !strings.Contains(output, "(compilation error)") {
+		t.Error("PrintTaskSummary() missing error message in task line")
+	}
+}
+
+func TestWriter_printTaskResultLine_WithTestCounts_NoError(t *testing.T) {
+	t.Parallel()
+	w, stdout, _ := newTestWriter()
+
+	taskCounts := &testparser.TestCounts{
+		Parsed: true,
+		Passed: 15,
+		Failed: 0,
+	}
+
+	summary := &TaskRunSummary{
+		Tasks: []TaskResult{
+			{
+				Name:       "test",
+				Success:    true,
+				Duration:   time.Second,
+				TestCounts: taskCounts,
+			},
+		},
+		TotalDuration: time.Second,
+		Passed:        1,
+		Failed:        0,
+		TestCounts:    taskCounts,
+	}
+
+	w.PrintTaskSummary("Test", summary)
+
+	output := stdout.String()
+
+	// Should show test counts, not error
+	if !strings.Contains(output, "15 passed") {
+		t.Error("PrintTaskSummary() missing test counts")
+	}
+}
+
+func TestWriter_HelpCommand_NegativePadding(t *testing.T) {
+	t.Parallel()
+	// Test when command name is longer than width (negative padding)
+	w, stdout, _ := newTestWriter()
+	w.color = true
+
+	w.HelpCommand("very-long-command-name", "Description", 5)
+
+	output := stdout.String()
+	if !strings.Contains(output, "very-long-command-name") {
+		t.Error("HelpCommand() should handle long command names")
+	}
+}
+
+func TestWriter_HelpFlag_NegativePadding(t *testing.T) {
+	t.Parallel()
+	// Test when flag name is longer than width (negative padding)
+	w, stdout, _ := newTestWriter()
+	w.color = true
+
+	w.HelpFlag("--very-long-flag-name", "Description", 5)
+
+	output := stdout.String()
+	if !strings.Contains(output, "very-long-flag-name") {
+		t.Error("HelpFlag() should handle long flag names")
+	}
+}

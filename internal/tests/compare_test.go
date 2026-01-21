@@ -426,42 +426,8 @@ func TestPathStr(t *testing.T) {
 	}
 }
 
-func TestUlpDiff_IdenticalValues(t *testing.T) {
-	if diff := ulpDiff(1.0, 1.0); diff != 0 {
-		t.Errorf("ulpDiff(1.0, 1.0) = %d, want 0", diff)
-	}
-	if diff := ulpDiff(0.0, 0.0); diff != 0 {
-		t.Errorf("ulpDiff(0.0, 0.0) = %d, want 0", diff)
-	}
-	if diff := ulpDiff(-1.0, -1.0); diff != 0 {
-		t.Errorf("ulpDiff(-1.0, -1.0) = %d, want 0", diff)
-	}
-}
-
-func TestUlpDiff_AdjacentValues(t *testing.T) {
-	a := 1.0
-	b := math.Nextafter(a, 2.0)
-	if diff := ulpDiff(a, b); diff != 1 {
-		t.Errorf("ulpDiff(1.0, nextafter(1.0)) = %d, want 1", diff)
-	}
-}
-
-func TestUlpDiff_Symmetric(t *testing.T) {
-	a := 1.0
-	b := 1.5
-	if ulpDiff(a, b) != ulpDiff(b, a) {
-		t.Errorf("ulpDiff should be symmetric: ulpDiff(%v, %v) = %d, ulpDiff(%v, %v) = %d",
-			a, b, ulpDiff(a, b), b, a, ulpDiff(b, a))
-	}
-}
-
-func TestUlpDiff_NegativeValues(t *testing.T) {
-	a := -1.0
-	b := math.Nextafter(a, 0.0)
-	if diff := ulpDiff(a, b); diff != 1 {
-		t.Errorf("ulpDiff(-1.0, nextafter(-1.0, 0)) = %d, want 1", diff)
-	}
-}
+// Note: ULPDiff tests have been consolidated in pkg/testhelper/compare_test.go
+// since that package now owns the canonical implementation.
 
 func TestCompare_ULPTolerance_ExactBoundary(t *testing.T) {
 	// Test exact ULP boundary: 1 ULP tolerance should pass for 1 ULP diff, fail for 2 ULP diff

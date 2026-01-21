@@ -7,6 +7,7 @@ import (
 	"sort"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/pkg/testhelper"
 )
 
 // Compare compares expected and actual values using the given configuration.
@@ -92,7 +93,7 @@ func compareFloats(expected float64, actual interface{}, cfg ComparisonConfig, p
 		withinTolerance = math.Abs(expected-actFloat) <= cfg.FloatTolerance
 	case config.ToleranceModeULP:
 		// ULP comparison using IEEE 754 bit representation
-		withinTolerance = ulpDiff(expected, actFloat) <= int64(cfg.FloatTolerance)
+		withinTolerance = testhelper.ULPDiff(expected, actFloat) <= int64(cfg.FloatTolerance)
 	default:
 		// Relative tolerance (default for empty, "relative", or unknown modes)
 		if expected == 0 {
@@ -244,25 +245,6 @@ func pathStr(path string) string {
 		return "root"
 	}
 	return path
-}
-
-// ulpDiff computes the difference in ULPs (Units in Last Place) between two floats.
-// This uses the IEEE 754 bit representation to count representable floats between a and b.
-func ulpDiff(a, b float64) int64 {
-	ai := int64(math.Float64bits(a))
-	bi := int64(math.Float64bits(b))
-	// Convert from sign-magnitude to two's complement for proper ordering
-	if ai < 0 {
-		ai = math.MinInt64 - ai
-	}
-	if bi < 0 {
-		bi = math.MinInt64 - bi
-	}
-	diff := ai - bi
-	if diff < 0 {
-		return -diff
-	}
-	return diff
 }
 
 // SortedKeys returns sorted keys of a map for deterministic iteration.

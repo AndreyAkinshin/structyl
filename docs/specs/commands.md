@@ -64,7 +64,7 @@ structyl clean cs
 
 #### `restore`
 
-Downloads and installs dependencies. MUST be idempotent given unchanged lock files—running twice on the same lock file state MUST have no additional effect. If lock files change between runs (e.g., due to manual edits or `npm update`), behavior is implementation-defined.
+Downloads and installs dependencies. MUST be idempotent: given unchanged lock files, the observable project state (installed dependencies, file existence) after N executions (N ≥ 1) is equivalent. Metadata files (timestamps, formatting) MAY change between runs without violating idempotency. If lock files change between runs (e.g., due to manual edits or `npm update`), behavior is implementation-defined.
 
 ```bash
 structyl restore py  # uv sync --all-extras
@@ -177,8 +177,6 @@ These commands operate across all targets.
 | `check`                | Run check for all targets                                                              |
 | `ci`                   | Run full CI pipeline (see [ci-integration.md](ci-integration.md))                      |
 | `version`              | Show current project version                                                           |
-| `version set <ver>`    | Set version and propagate to configured files                                          |
-| `version bump <level>` | Bump major/minor/patch/prerelease (see [version-management.md](version-management.md)) |
 | `version check`        | Verify version consistency across configured files                                     |
 
 ## Utility Commands
@@ -331,8 +329,20 @@ Creates a release by setting the version across all targets, committing the chan
 | `--force`    | Allow release even with uncommitted changes (see note) |
 | `-h, --help` | Show help                                              |
 
-::: warning --force includes uncommitted changes
-When `--force` is used with uncommitted changes present, Structyl stages all working directory changes (`git add -A`) before committing. This behavior is intentional—`--force` explicitly opts into including whatever state exists. Users SHOULD verify uncommitted changes are intentional before using `--force`.
+::: warning --force includes ALL uncommitted changes
+When `--force` is used with uncommitted changes present, Structyl stages ALL working directory changes (`git add -A`) before committing. This includes:
+
+- Untracked files (potentially sensitive: `.env`, credentials, secrets)
+- Modified files you may not have intended to commit
+- Files that should normally be in `.gitignore`
+
+**Before using `--force`:**
+
+1. Run `git status` to review what will be included
+2. Add sensitive files to `.gitignore` if not already
+3. Consider `git stash` for changes you want to exclude
+
+This behavior is intentional—`--force` explicitly opts into including whatever state exists. Users SHOULD verify uncommitted changes are intentional before using `--force`.
 :::
 
 **Dirty worktree behavior:**

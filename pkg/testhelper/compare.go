@@ -186,7 +186,7 @@ func Equal(expected, actual interface{}, opts CompareOptions) bool {
 // Returns true if they match according to the options.
 // Panics if opts contains invalid enum values (use ValidateOptions to check beforehand).
 //
-// Deprecated: Use [Equal] instead. Will be removed in v1.0.
+// Deprecated: Use [Equal] instead. Scheduled for removal in v2.0.0.
 func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
 	return Equal(expected, actual, opts)
 }
@@ -471,7 +471,7 @@ func pathStr(path string) string {
 
 // FormatDiff compares expected and actual values, returning a description.
 //
-// Deprecated: Use [FormatComparisonResult] instead. Will be removed in v1.0.
+// Deprecated: Use [FormatComparisonResult] instead. Scheduled for removal in v2.0.0.
 // FormatDiff returns "values are equal" when values match, which is
 // semantically inconsistent. FormatComparisonResult has clearer semantics:
 // empty string on match, descriptive diff on mismatch.

@@ -25,11 +25,12 @@ var out = output.New()
 
 // Help text alignment widths for consistent formatting.
 // These values align the flag/command names with their descriptions.
+// Each width accommodates the longest string in its category plus padding.
 const (
-	helpFlagWidthShort      = 10 // Width for short flags like "-h, --help"
-	helpFlagWidthLong       = 12 // Width for longer flags like "[services]"
-	helpFlagWidthGlobal     = 14 // Width for global flags like "--type=<type>"
-	helpSubcommandWidthSync = 6  // Width for "sync" subcommand in mise help
+	helpFlagWidthShort      = 10 // Accommodates "-h, --help" (10 chars)
+	helpFlagWidthLong       = 12 // Accommodates "[services]" (10 chars) + 2 padding
+	helpFlagWidthGlobal     = 14 // Accommodates "--type=<type>" (13 chars) + 1 padding
+	helpSubcommandWidthSync = 6  // Accommodates "sync" (4 chars) + 2 padding
 )
 
 // applyVerbosityToOutput configures the output writer based on verbosity settings.

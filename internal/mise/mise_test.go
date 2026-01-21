@@ -405,3 +405,100 @@ func TestGenerateMiseToml_DisabledCommands(t *testing.T) {
 		t.Error("test:rs task should not exist (disabled)")
 	}
 }
+
+func TestWriteTasks_SequenceWithParallelSubtasks(t *testing.T) {
+	t.Parallel()
+
+	// Create tasks with RunSequence containing Tasks (parallel subtasks)
+	tasks := map[string]MiseTask{
+		"deploy": {
+			Description: "Deploy to all environments",
+			RunSequence: []RunStep{
+				{Run: "echo 'Starting deploy'"},                  // Shell command
+				{Task: "build"},                                  // Single task
+				{Tasks: []string{"deploy:staging", "deploy:qa"}}, // Parallel tasks
+				{Run: "echo 'Deploy complete'"},                  // Final shell command
+			},
+		},
+	}
+
+	var b strings.Builder
+	writeTasks(&b, tasks)
+	content := b.String()
+
+	// Verify run array structure
+	if !strings.Contains(content, `[tasks."deploy"]`) {
+		t.Error("missing deploy task")
+	}
+	if !strings.Contains(content, "run = [") {
+		t.Error("missing run array")
+	}
+
+	// Verify shell command in sequence
+	if !strings.Contains(content, `"echo 'Starting deploy'"`) {
+		t.Error("missing shell command in sequence")
+	}
+
+	// Verify single task reference
+	if !strings.Contains(content, `{ task = "build" }`) {
+		t.Error("missing single task reference in sequence")
+	}
+
+	// Verify parallel tasks array - this exercises the RunStep.Tasks branch
+	if !strings.Contains(content, `{ tasks = ["deploy:staging", "deploy:qa"] }`) {
+		t.Error("missing parallel tasks array in sequence")
+	}
+
+	// Verify final shell command
+	if !strings.Contains(content, `"echo 'Deploy complete'"`) {
+		t.Error("missing final shell command in sequence")
+	}
+}
+
+func TestGetResolvedCommands_WithExtends(t *testing.T) {
+	t.Parallel()
+
+	// Test that custom toolchains extending built-in toolchains properly inherit
+	// and override commands. This exercises the tcCfg.Extends branch in
+	// getResolvedCommandsForTargetWithToolchains (lines 274-287).
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"custom": {
+				Toolchain: "my-cargo",
+				Title:     "Custom Rust",
+			},
+		},
+		Toolchains: map[string]config.ToolchainConfig{
+			"my-cargo": {
+				Extends: "cargo", // Extends built-in cargo toolchain
+				Commands: map[string]interface{}{
+					"build": "cargo build --release --all-features", // Override
+					"lint":  "custom-lint-tool",                     // Add new command
+				},
+			},
+		},
+	}
+
+	targetCfg := cfg.Targets["custom"]
+	commands := getResolvedCommandsForTargetWithToolchains(targetCfg, cfg, nil)
+
+	// Verify inherited command from base cargo toolchain
+	if testCmd, ok := commands["test"]; !ok || testCmd != "cargo test" {
+		t.Errorf("expected test command from base cargo, got %v", commands["test"])
+	}
+
+	// Verify overridden command
+	if buildCmd, ok := commands["build"]; !ok || buildCmd != "cargo build --release --all-features" {
+		t.Errorf("expected overridden build command, got %v", commands["build"])
+	}
+
+	// Verify added command
+	if lintCmd, ok := commands["lint"]; !ok || lintCmd != "custom-lint-tool" {
+		t.Errorf("expected added lint command, got %v", commands["lint"])
+	}
+
+	// Verify other inherited commands from cargo
+	if cleanCmd, ok := commands["clean"]; !ok || cleanCmd != "cargo clean" {
+		t.Errorf("expected clean command from base cargo, got %v", commands["clean"])
+	}
+}

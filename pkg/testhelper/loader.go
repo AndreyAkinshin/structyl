@@ -353,7 +353,7 @@ func (e *TestCaseNotFoundError) Is(target error) bool {
 
 // ErrFileReferenceNotSupported is returned when a test case contains $file references.
 // File references are only supported in the internal test runner. Use embedded data instead.
-var ErrFileReferenceNotSupported = errors.New("$file references not supported in pkg/testhelper; use internal/tests or embed data directly")
+var ErrFileReferenceNotSupported = errors.New("$file references not supported; embed data directly in JSON")
 
 // ErrEmptySuiteName is returned when an empty suite name is provided.
 // Suite names must be non-empty strings corresponding to directory names.

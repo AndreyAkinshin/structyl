@@ -267,6 +267,7 @@ func compareIdentifier(a, b string) int {
 
 // parseNumeric attempts to parse a string as a non-negative integer.
 // Returns (value, true) if successful, (0, false) otherwise.
+// Returns false for strings that would overflow int (handled by strconv.Atoi).
 func parseNumeric(s string) (int, bool) {
 	if s == "" {
 		return 0, false
@@ -275,12 +276,9 @@ func parseNumeric(s string) (int, bool) {
 	if len(s) > 1 && s[0] == '0' {
 		return 0, false
 	}
-	n := 0
-	for _, c := range s {
-		if c < '0' || c > '9' {
-			return 0, false
-		}
-		n = n*10 + int(c-'0')
+	n, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, false
 	}
 	return n, true
 }

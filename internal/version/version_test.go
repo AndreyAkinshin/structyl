@@ -434,3 +434,30 @@ func TestCompare_IdenticalVersions(t *testing.T) {
 		})
 	}
 }
+
+func TestParseNumeric_Overflow(t *testing.T) {
+	t.Parallel()
+	// parseNumeric should reject strings that would overflow int.
+	// A 20+ digit string exceeds int64 range (max ~19 digits).
+	tests := []struct {
+		name  string
+		input string
+		want  bool // expected ok return value
+	}{
+		{"normal_number", "123", true},
+		{"zero", "0", true},
+		{"max_reasonable", "999999999", true},
+		{"overflow_20_digits", "99999999999999999999", false},
+		{"overflow_100_digits", "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			_, ok := parseNumeric(tt.input)
+			if ok != tt.want {
+				t.Errorf("parseNumeric(%q) ok = %v, want %v", tt.input, ok, tt.want)
+			}
+		})
+	}
+}

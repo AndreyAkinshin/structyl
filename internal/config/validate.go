@@ -199,6 +199,8 @@ func validateTargetConfig(name string, target TargetConfig) error {
 		}
 	}
 
+	// Note: String literals used here instead of target.TypeLanguage/TypeAuxiliary constants
+	// due to circular dependency (target package imports config package).
 	if target.Type != "language" && target.Type != "auxiliary" {
 		return &ValidationError{
 			Field:   fmt.Sprintf("targets.%s.type", name),

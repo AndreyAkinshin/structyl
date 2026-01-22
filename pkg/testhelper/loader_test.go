@@ -1297,6 +1297,66 @@ func TestTestCaseNotFoundError(t *testing.T) {
 	}
 }
 
+func TestTestCaseNotFoundError_WithSuiteAndName(t *testing.T) {
+	err := &TestCaseNotFoundError{
+		Path:  "/project/tests/my-suite/my-test.json",
+		Suite: "my-suite",
+		Name:  "my-test",
+	}
+
+	errMsg := err.Error()
+	if !strings.Contains(errMsg, "my-suite") {
+		t.Errorf("Error() should contain suite, got: %s", errMsg)
+	}
+	if !strings.Contains(errMsg, "my-test") {
+		t.Errorf("Error() should contain name, got: %s", errMsg)
+	}
+	if !strings.Contains(errMsg, "/project/tests/my-suite/my-test.json") {
+		t.Errorf("Error() should contain path, got: %s", errMsg)
+	}
+}
+
+func TestLoadTestCaseByName_NotFound_PopulatesSuiteAndName(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// Create project structure
+	structylDir := filepath.Join(tmpDir, ".structyl")
+	if err := os.MkdirAll(structylDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	configPath := filepath.Join(structylDir, "config.json")
+	if err := os.WriteFile(configPath, []byte(`{}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create suite directory but no test file
+	suiteDir := filepath.Join(tmpDir, "tests", "my-suite")
+	if err := os.MkdirAll(suiteDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Attempt to load non-existent test case
+	_, err := LoadTestCaseByName(tmpDir, "my-suite", "nonexistent")
+	if err == nil {
+		t.Fatal("expected error for missing test case")
+	}
+
+	var tcnfErr *TestCaseNotFoundError
+	if !errors.As(err, &tcnfErr) {
+		t.Fatalf("expected *TestCaseNotFoundError, got %T", err)
+	}
+
+	if tcnfErr.Suite != "my-suite" {
+		t.Errorf("Suite = %q, want %q", tcnfErr.Suite, "my-suite")
+	}
+	if tcnfErr.Name != "nonexistent" {
+		t.Errorf("Name = %q, want %q", tcnfErr.Name, "nonexistent")
+	}
+	if !strings.HasSuffix(tcnfErr.Path, "nonexistent.json") {
+		t.Errorf("Path should end with nonexistent.json, got %q", tcnfErr.Path)
+	}
+}
+
 func TestLoadTestCase_MissingInput_ReturnsError(t *testing.T) {
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "missing_input.json")

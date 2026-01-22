@@ -770,7 +770,20 @@ func LoadTestCaseByName(projectRoot, suite, name string) (*TestCase, error) {
 		return nil, err
 	}
 	path := filepath.Join(projectRoot, "tests", suite, name+".json")
-	return loadTestCaseInternal(path, suite)
+	tc, err := loadTestCaseInternal(path, suite)
+	if err != nil {
+		// Enhance TestCaseNotFoundError with suite and name context
+		var tcnfErr *TestCaseNotFoundError
+		if errors.As(err, &tcnfErr) {
+			return nil, &TestCaseNotFoundError{
+				Path:  tcnfErr.Path,
+				Suite: suite,
+				Name:  name,
+			}
+		}
+		return nil, err
+	}
+	return tc, nil
 }
 
 // NewTestCaseFromJSON creates a TestCase from JSON data.
@@ -1071,10 +1084,15 @@ var ErrTestCaseNotFound = errors.New("test case not found")
 
 // TestCaseNotFoundError indicates a test case file was not found.
 type TestCaseNotFoundError struct {
-	Path string
+	Path  string // The path that was searched
+	Suite string // Suite name (populated when known, e.g., from LoadTestCaseByName)
+	Name  string // Test case name (populated when known, e.g., from LoadTestCaseByName)
 }
 
 func (e *TestCaseNotFoundError) Error() string {
+	if e.Suite != "" && e.Name != "" {
+		return fmt.Sprintf("test case not found: %s/%s (path: %s)", e.Suite, e.Name, e.Path)
+	}
 	return "test case not found: " + e.Path
 }
 

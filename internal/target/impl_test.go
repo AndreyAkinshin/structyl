@@ -3,6 +3,7 @@ package target
 import (
 	"context"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -696,6 +697,35 @@ func TestInterpolateVars_MixedVariables(t *testing.T) {
 	expected := "test value ${literal} ${unknown}"
 	if result != expected {
 		t.Errorf("interpolateVars() = %q, want %q", result, expected)
+	}
+}
+
+func TestEscapePlaceholder_NULByteAssumption(t *testing.T) {
+	t.Parallel()
+
+	// This test validates the assumption documented in impl.go that NUL bytes
+	// cannot appear in JSON input. The escapePlaceholder constant uses NUL bytes
+	// ("\x00ESCAPED\x00") specifically because JSON forbids them, guaranteeing
+	// no collision with user-provided values.
+	//
+	// If this test fails, it means Go's JSON parser has changed behavior and
+	// the escapePlaceholder implementation needs to be reviewed.
+
+	// JSON spec (RFC 8259) forbids NUL bytes in strings
+	inputWithNul := `{"key": "value` + "\x00" + `with null"}`
+	var v interface{}
+	err := json.Unmarshal([]byte(inputWithNul), &v)
+	if err == nil {
+		t.Error("expected JSON unmarshal to reject NUL bytes in strings; " +
+			"escapePlaceholder assumption may be violated")
+	}
+
+	// Also verify NUL in key names is rejected
+	inputWithNulKey := `{"key` + "\x00" + `name": "value"}`
+	err = json.Unmarshal([]byte(inputWithNulKey), &v)
+	if err == nil {
+		t.Error("expected JSON unmarshal to reject NUL bytes in keys; " +
+			"escapePlaceholder assumption may be violated")
 	}
 }
 

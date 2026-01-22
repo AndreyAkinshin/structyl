@@ -317,18 +317,22 @@ func nonNilStrings(s []string) []string {
 	return s
 }
 
+// targetToJSON converts a Target to its JSON representation.
+func targetToJSON(t target.Target) TargetJSON {
+	return TargetJSON{
+		Name:      t.Name(),
+		Type:      string(t.Type()),
+		Title:     t.Title(),
+		Commands:  nonNilStrings(t.Commands()),
+		DependsOn: nonNilStrings(t.DependsOn()),
+	}
+}
+
 // printTargetsJSON outputs targets in machine-readable JSON format.
 func printTargetsJSON(targets []target.Target) int {
 	result := make([]TargetJSON, 0, len(targets))
 	for _, t := range targets {
-		tj := TargetJSON{
-			Name:      t.Name(),
-			Type:      string(t.Type()),
-			Title:     t.Title(),
-			Commands:  nonNilStrings(t.Commands()),
-			DependsOn: nonNilStrings(t.DependsOn()),
-		}
-		result = append(result, tj)
+		result = append(result, targetToJSON(t))
 	}
 
 	data, err := json.MarshalIndent(result, "", "  ")

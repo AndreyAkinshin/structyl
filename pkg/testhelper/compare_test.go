@@ -436,6 +436,124 @@ func TestCompareOptions_String(t *testing.T) {
 	}
 }
 
+func TestCompareOptions_WithFloatTolerance(t *testing.T) {
+	t.Parallel()
+
+	base := DefaultOptions()
+	modified := base.WithFloatTolerance(1e-6)
+
+	// Verify the tolerance is changed
+	if modified.FloatTolerance != 1e-6 {
+		t.Errorf("WithFloatTolerance() FloatTolerance = %v, want %v", modified.FloatTolerance, 1e-6)
+	}
+
+	// Verify other fields are unchanged
+	if modified.ToleranceMode != base.ToleranceMode {
+		t.Errorf("WithFloatTolerance() ToleranceMode changed: got %v, want %v", modified.ToleranceMode, base.ToleranceMode)
+	}
+	if modified.NaNEqualsNaN != base.NaNEqualsNaN {
+		t.Errorf("WithFloatTolerance() NaNEqualsNaN changed: got %v, want %v", modified.NaNEqualsNaN, base.NaNEqualsNaN)
+	}
+	if modified.ArrayOrder != base.ArrayOrder {
+		t.Errorf("WithFloatTolerance() ArrayOrder changed: got %v, want %v", modified.ArrayOrder, base.ArrayOrder)
+	}
+
+	// Verify original is unchanged
+	if base.FloatTolerance == 1e-6 {
+		t.Error("WithFloatTolerance() modified original")
+	}
+}
+
+func TestCompareOptions_WithToleranceMode(t *testing.T) {
+	t.Parallel()
+
+	base := DefaultOptions()
+	modified := base.WithToleranceMode(ToleranceModeAbsolute)
+
+	// Verify the mode is changed
+	if modified.ToleranceMode != ToleranceModeAbsolute {
+		t.Errorf("WithToleranceMode() ToleranceMode = %v, want %v", modified.ToleranceMode, ToleranceModeAbsolute)
+	}
+
+	// Verify other fields are unchanged
+	if modified.FloatTolerance != base.FloatTolerance {
+		t.Errorf("WithToleranceMode() FloatTolerance changed")
+	}
+
+	// Verify original is unchanged
+	if base.ToleranceMode == ToleranceModeAbsolute {
+		t.Error("WithToleranceMode() modified original")
+	}
+}
+
+func TestCompareOptions_WithNaNEqualsNaN(t *testing.T) {
+	t.Parallel()
+
+	base := DefaultOptions() // NaNEqualsNaN is true by default
+	modified := base.WithNaNEqualsNaN(false)
+
+	// Verify the field is changed
+	if modified.NaNEqualsNaN != false {
+		t.Errorf("WithNaNEqualsNaN() NaNEqualsNaN = %v, want %v", modified.NaNEqualsNaN, false)
+	}
+
+	// Verify other fields are unchanged
+	if modified.FloatTolerance != base.FloatTolerance {
+		t.Errorf("WithNaNEqualsNaN() FloatTolerance changed")
+	}
+
+	// Verify original is unchanged
+	if !base.NaNEqualsNaN {
+		t.Error("WithNaNEqualsNaN() modified original")
+	}
+}
+
+func TestCompareOptions_WithArrayOrder(t *testing.T) {
+	t.Parallel()
+
+	base := DefaultOptions()
+	modified := base.WithArrayOrder(ArrayOrderUnordered)
+
+	// Verify the order is changed
+	if modified.ArrayOrder != ArrayOrderUnordered {
+		t.Errorf("WithArrayOrder() ArrayOrder = %v, want %v", modified.ArrayOrder, ArrayOrderUnordered)
+	}
+
+	// Verify other fields are unchanged
+	if modified.FloatTolerance != base.FloatTolerance {
+		t.Errorf("WithArrayOrder() FloatTolerance changed")
+	}
+
+	// Verify original is unchanged
+	if base.ArrayOrder == ArrayOrderUnordered {
+		t.Error("WithArrayOrder() modified original")
+	}
+}
+
+func TestCompareOptions_Chaining(t *testing.T) {
+	t.Parallel()
+
+	// Test method chaining
+	opts := DefaultOptions().
+		WithFloatTolerance(1e-6).
+		WithToleranceMode(ToleranceModeAbsolute).
+		WithNaNEqualsNaN(false).
+		WithArrayOrder(ArrayOrderUnordered)
+
+	if opts.FloatTolerance != 1e-6 {
+		t.Errorf("Chained FloatTolerance = %v, want %v", opts.FloatTolerance, 1e-6)
+	}
+	if opts.ToleranceMode != ToleranceModeAbsolute {
+		t.Errorf("Chained ToleranceMode = %v, want %v", opts.ToleranceMode, ToleranceModeAbsolute)
+	}
+	if opts.NaNEqualsNaN != false {
+		t.Errorf("Chained NaNEqualsNaN = %v, want %v", opts.NaNEqualsNaN, false)
+	}
+	if opts.ArrayOrder != ArrayOrderUnordered {
+		t.Errorf("Chained ArrayOrder = %v, want %v", opts.ArrayOrder, ArrayOrderUnordered)
+	}
+}
+
 func TestValidateOptions(t *testing.T) {
 	// Valid options
 	validCases := []CompareOptions{

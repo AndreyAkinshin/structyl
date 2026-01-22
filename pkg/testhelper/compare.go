@@ -377,6 +377,44 @@ func (o CompareOptions) IsZero() bool {
 	return o == CompareOptions{}
 }
 
+// WithFloatTolerance returns a copy of CompareOptions with the FloatTolerance field set.
+// This enables fluent configuration:
+//
+//	opts := testhelper.DefaultOptions().WithFloatTolerance(1e-6)
+func (o CompareOptions) WithFloatTolerance(tolerance float64) CompareOptions {
+	o.FloatTolerance = tolerance
+	return o
+}
+
+// WithToleranceMode returns a copy of CompareOptions with the ToleranceMode field set.
+// Use the ToleranceMode* constants: [ToleranceModeRelative], [ToleranceModeAbsolute], [ToleranceModeULP].
+// This enables fluent configuration:
+//
+//	opts := testhelper.DefaultOptions().WithToleranceMode(testhelper.ToleranceModeAbsolute)
+func (o CompareOptions) WithToleranceMode(mode string) CompareOptions {
+	o.ToleranceMode = mode
+	return o
+}
+
+// WithNaNEqualsNaN returns a copy of CompareOptions with the NaNEqualsNaN field set.
+// This enables fluent configuration:
+//
+//	opts := testhelper.DefaultOptions().WithNaNEqualsNaN(false)
+func (o CompareOptions) WithNaNEqualsNaN(nanEqualsNaN bool) CompareOptions {
+	o.NaNEqualsNaN = nanEqualsNaN
+	return o
+}
+
+// WithArrayOrder returns a copy of CompareOptions with the ArrayOrder field set.
+// Use the ArrayOrder* constants: [ArrayOrderStrict], [ArrayOrderUnordered].
+// This enables fluent configuration:
+//
+//	opts := testhelper.DefaultOptions().WithArrayOrder(testhelper.ArrayOrderUnordered)
+func (o CompareOptions) WithArrayOrder(order string) CompareOptions {
+	o.ArrayOrder = order
+	return o
+}
+
 // Equal compares expected and actual outputs for equality.
 // Panics on invalid opts; use [ValidateOptions] or [EqualE] for error handling.
 //

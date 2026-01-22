@@ -3292,3 +3292,86 @@ func FuzzValidateTestCaseName(f *testing.F) {
 		}
 	})
 }
+
+func TestLoadTestCaseByName_Concurrent(t *testing.T) {
+	t.Parallel()
+
+	// Set up test data
+	tmpDir := t.TempDir()
+	suiteDir := filepath.Join(tmpDir, "tests", "math")
+	os.MkdirAll(suiteDir, 0755)
+
+	// Create multiple test files
+	testFiles := []string{"add", "sub", "mul", "div"}
+	for _, name := range testFiles {
+		content := fmt.Sprintf(`{"input": {"op": %q}, "output": 1}`, name)
+		os.WriteFile(filepath.Join(suiteDir, name+".json"), []byte(content), 0644)
+	}
+
+	// Run concurrent loader calls
+	const numGoroutines = 50
+	errChan := make(chan error, numGoroutines)
+
+	for i := 0; i < numGoroutines; i++ {
+		go func(idx int) {
+			// Each goroutine loads a different test case
+			testName := testFiles[idx%len(testFiles)]
+			tc, err := LoadTestCaseByName(tmpDir, "math", testName)
+			if err != nil {
+				errChan <- fmt.Errorf("goroutine %d: LoadTestCaseByName(%q) = %v", idx, testName, err)
+				return
+			}
+			if tc.Name != testName {
+				errChan <- fmt.Errorf("goroutine %d: Name = %q, want %q", idx, tc.Name, testName)
+				return
+			}
+			errChan <- nil
+		}(i)
+	}
+
+	// Collect results
+	for i := 0; i < numGoroutines; i++ {
+		if err := <-errChan; err != nil {
+			t.Error(err)
+		}
+	}
+}
+
+func TestLoadAllSuites_Concurrent(t *testing.T) {
+	t.Parallel()
+
+	// Set up test data with multiple suites
+	tmpDir := t.TempDir()
+	suites := []string{"math", "string", "array"}
+	for _, suite := range suites {
+		suiteDir := filepath.Join(tmpDir, "tests", suite)
+		os.MkdirAll(suiteDir, 0755)
+		os.WriteFile(filepath.Join(suiteDir, "basic.json"), []byte(`{"input": {}, "output": 1}`), 0644)
+	}
+
+	// Run concurrent LoadAllSuites calls
+	const numGoroutines = 20
+	errChan := make(chan error, numGoroutines)
+
+	for i := 0; i < numGoroutines; i++ {
+		go func(idx int) {
+			result, err := LoadAllSuites(tmpDir)
+			if err != nil {
+				errChan <- fmt.Errorf("goroutine %d: LoadAllSuites() = %v", idx, err)
+				return
+			}
+			if len(result) != len(suites) {
+				errChan <- fmt.Errorf("goroutine %d: got %d suites, want %d", idx, len(result), len(suites))
+				return
+			}
+			errChan <- nil
+		}(i)
+	}
+
+	// Collect results
+	for i := 0; i < numGoroutines; i++ {
+		if err := <-errChan; err != nil {
+			t.Error(err)
+		}
+	}
+}

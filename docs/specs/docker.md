@@ -330,6 +330,8 @@ Both `services.<target>.platform` and `targets.<target>.platform` configure the 
 
 **Recommendation:** Set `platform` in `services` for build-time platform selection. Only use `targets.platform` when you need runtime-only platform override (rare).
 
+> **Note:** Structyl does not validate platform consistency between `services` and `targets`. Users SHOULD ensure platforms match when both are configured for the same target.
+
 ## Configuration Reference
 
 ```json

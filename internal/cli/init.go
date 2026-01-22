@@ -286,7 +286,7 @@ func cmdInit(args []string) int {
 
 	// Handle --mise flag: generate/regenerate mise.toml
 	if opts.Mise {
-		miseCreated, err := mise.WriteMiseToml(cwd, result.cfg, mise.WriteAlways)
+		miseCreated, err := mise.WriteMiseTomlWithToolchains(cwd, result.cfg, nil, mise.WriteAlways)
 		if err != nil {
 			w.WarningSimple("could not create mise.toml: %v", err)
 		} else if miseCreated {

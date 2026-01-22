@@ -397,7 +397,9 @@ func writeTasks(b *strings.Builder, tasks map[string]MiseTask) {
 // WriteMiseToml generates and writes a mise.toml file to the project root.
 // Returns true if a new file was created, false if it already exists.
 // Use WriteAlways to overwrite an existing file.
+//
 // Deprecated: Use WriteMiseTomlWithToolchains for loaded toolchains configuration.
+// This function will be removed in v2.0.0.
 func WriteMiseToml(projectRoot string, cfg *config.Config, mode WriteMode) (bool, error) {
 	return WriteMiseTomlWithToolchains(projectRoot, cfg, nil, mode)
 }

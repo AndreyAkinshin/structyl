@@ -755,6 +755,8 @@ func FormatDuration(d time.Duration) string {
 }
 
 // colorPlaceholders highlights <placeholder> patterns in text.
+// Limitation: Does not handle nested angle brackets or escaped brackets.
+// Sufficient for help text formatting where placeholders are simple (e.g., <target>).
 func (w *Writer) colorPlaceholders(text string) string {
 	var result strings.Builder
 	for {

@@ -179,7 +179,9 @@ These commands operate across all targets.
 | `restore`              | Run restore for all targets                                                            |
 | `check`                | Run check for all targets                                                              |
 | `ci`                   | Run full CI pipeline (see [ci-integration.md](ci-integration.md))                      |
-| `version`              | Show current project version                                                           |
+| `version`              | Show current project version (see [version-management.md](version-management.md))      |
+| `version set <ver>`    | Set project version (see [version-management.md](version-management.md#set-version))   |
+| `version bump <level>` | Bump version (see [version-management.md](version-management.md#bump-version))         |
 | `version check`        | Verify version consistency across configured files                                     |
 
 ## Utility Commands
@@ -431,13 +433,17 @@ This command only supports Go's JSON test output format (`go test -json`). Other
 
 **Exit codes:**
 
-| Code | Condition                                                   |
-| ---- | ----------------------------------------------------------- |
-| 0    | All tests passed                                            |
-| 1    | One or more tests failed                                    |
-| 2    | Invalid input (file not found, malformed JSON, parse error) |
+| Code | Condition                                  |
+| ---- | ------------------------------------------ |
+| 0    | All tests passed                           |
+| 1    | One or more tests failed, or input invalid |
 
-**Note:** Empty input (EOF with no JSON lines) returns exit code 0, treated as "zero tests, zero failures."
+**Input format requirements:**
+
+- Input MUST be newline-delimited JSON (one JSON object per line)
+- Each line is parsed independently
+- Lines that are empty or not valid JSON are silently skipped
+- Exit code 1 when: file not found, no valid test results parsed, or any test failed
 
 **Examples:**
 

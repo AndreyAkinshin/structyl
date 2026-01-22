@@ -544,6 +544,111 @@ func TestListSuites_NoTestsDir(t *testing.T) {
 	}
 }
 
+func TestListTestCases(t *testing.T) {
+	tmpDir := t.TempDir()
+	suiteDir := filepath.Join(tmpDir, "tests", "math")
+	os.MkdirAll(suiteDir, 0755)
+
+	// Create test files
+	os.WriteFile(filepath.Join(suiteDir, "add.json"), []byte(`{"input": {}, "output": 1}`), 0644)
+	os.WriteFile(filepath.Join(suiteDir, "sub.json"), []byte(`{"input": {}, "output": 2}`), 0644)
+	os.WriteFile(filepath.Join(suiteDir, "readme.txt"), []byte("ignored"), 0644) // Non-json file
+
+	cases, err := ListTestCases(tmpDir, "math")
+	if err != nil {
+		t.Fatalf("ListTestCases() error = %v", err)
+	}
+
+	if len(cases) != 2 {
+		t.Errorf("len(cases) = %d, want 2", len(cases))
+	}
+
+	// Check names don't include .json extension
+	for _, name := range cases {
+		if strings.Contains(name, ".json") {
+			t.Errorf("name %q should not contain .json extension", name)
+		}
+	}
+}
+
+func TestListTestCases_Empty(t *testing.T) {
+	tmpDir := t.TempDir()
+	suiteDir := filepath.Join(tmpDir, "tests", "empty")
+	os.MkdirAll(suiteDir, 0755)
+
+	cases, err := ListTestCases(tmpDir, "empty")
+	if err != nil {
+		t.Fatalf("ListTestCases() error = %v", err)
+	}
+
+	if cases == nil {
+		t.Error("ListTestCases() should return empty slice, not nil")
+	}
+	if len(cases) != 0 {
+		t.Errorf("len(cases) = %d, want 0", len(cases))
+	}
+}
+
+func TestListTestCases_NonexistentSuite(t *testing.T) {
+	tmpDir := t.TempDir()
+	// Create tests directory but not the suite
+	os.MkdirAll(filepath.Join(tmpDir, "tests"), 0755)
+
+	_, err := ListTestCases(tmpDir, "nonexistent")
+	if err == nil {
+		t.Fatal("ListTestCases() expected error for nonexistent suite")
+	}
+
+	if !errors.Is(err, ErrSuiteNotFound) {
+		t.Errorf("errors.Is(err, ErrSuiteNotFound) = false, want true; got %v", err)
+	}
+}
+
+func TestListTestCases_InvalidSuiteName(t *testing.T) {
+	tmpDir := t.TempDir()
+	os.MkdirAll(filepath.Join(tmpDir, "tests"), 0755)
+
+	tests := []struct {
+		name    string
+		suite   string
+		wantErr error
+	}{
+		{"empty", "", ErrEmptySuiteName},
+		{"path_traversal", "../etc", ErrInvalidSuiteName},
+		{"path_separator", "foo/bar", ErrInvalidSuiteName},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ListTestCases(tmpDir, tt.suite)
+			if !errors.Is(err, tt.wantErr) {
+				t.Errorf("ListTestCases(%q) error = %v, want %v", tt.suite, err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestListTestCases_IgnoresSubdirectories(t *testing.T) {
+	tmpDir := t.TempDir()
+	suiteDir := filepath.Join(tmpDir, "tests", "math")
+	os.MkdirAll(suiteDir, 0755)
+
+	// Create test file
+	os.WriteFile(filepath.Join(suiteDir, "add.json"), []byte(`{"input": {}, "output": 1}`), 0644)
+	// Create subdirectory (should be ignored)
+	os.MkdirAll(filepath.Join(suiteDir, "helpers"), 0755)
+	os.WriteFile(filepath.Join(suiteDir, "helpers", "test.json"), []byte(`{"input": {}, "output": 1}`), 0644)
+
+	cases, err := ListTestCases(tmpDir, "math")
+	if err != nil {
+		t.Fatalf("ListTestCases() error = %v", err)
+	}
+
+	if len(cases) != 1 {
+		t.Errorf("len(cases) = %d, want 1 (subdirectories should be ignored)", len(cases))
+	}
+}
+
 func TestSuiteExists(t *testing.T) {
 	tmpDir := t.TempDir()
 	os.MkdirAll(filepath.Join(tmpDir, "tests", "exists"), 0755)

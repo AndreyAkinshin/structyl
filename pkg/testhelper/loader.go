@@ -79,7 +79,17 @@
 // See docs/specs/test-system.md for the complete test file specification,
 // including field definitions, comparison options, and special value handling.
 //
-// # Copy Semantics
+// # Copy Semantics Warning
+//
+// [TestCase.Clone] and all With* builder methods perform SHALLOW copies.
+// The [TestCase.Output] field is NOT copied - both original and copy share
+// the same reference. Modifying Output on a clone affects the original:
+//
+//	tc := original.WithInput(newInput)  // uses Clone internally
+//	tc.Output.(map[string]interface{})["key"] = "changed"
+//	// Surprise: original.Output is also changed!
+//
+// Use [TestCase.DeepClone] when you need to modify Output independently.
 //
 // [TestCase] provides two copy methods with different guarantees:
 //

@@ -255,7 +255,6 @@ func validateCommandDef(targetName, cmdName string, cmdDef interface{}) error {
 		for i, elem := range v {
 			switch elem.(type) {
 			case string:
-				// Valid - command reference
 			default:
 				return &ValidationError{
 					Field:   fmt.Sprintf("%s[%d]", fieldPath, i),

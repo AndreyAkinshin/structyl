@@ -1203,9 +1203,9 @@ var ErrEmptySuiteName = errors.New("suite name cannot be empty")
 // context (the suite name and rejection reason).
 var ErrInvalidSuiteName = errors.New("suite name contains invalid characters")
 
-// InvalidSuiteNameReason constants for [InvalidSuiteNameError.Reason].
-// These constants ensure type safety and enable compile-time checking
-// when handling invalid suite name errors.
+// Validation failure reason constants shared by [InvalidSuiteNameError.Reason]
+// and [InvalidTestCaseNameError.Reason]. These constants ensure type safety
+// and enable compile-time checking when handling name validation errors.
 const (
 	// ReasonPathTraversal indicates the suite name contains ".." sequences.
 	ReasonPathTraversal = "path_traversal"

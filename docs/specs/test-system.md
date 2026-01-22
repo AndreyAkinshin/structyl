@@ -566,6 +566,22 @@ func Equal(expected, actual interface{}, opts CompareOptions) bool {
 }
 ```
 
+#### pkg/testhelper Field Mapping
+
+The actual `pkg/testhelper.TestCase` struct uses the following JSON field mapping:
+
+| JSON Field    | Go Field      | Go Type                    | Notes                                        |
+| ------------- | ------------- | -------------------------- | -------------------------------------------- |
+| `input`       | `Input`       | `map[string]interface{}`   | Required; must be a JSON object              |
+| `output`      | `Output`      | `interface{}`              | Required; any non-null JSON value            |
+| `description` | `Description` | `string`                   | Optional                                     |
+| `skip`        | `Skip`        | `bool`                     | Optional; defaults to `false`                |
+| `tags`        | `Tags`        | `[]string`                 | Optional                                     |
+| —             | `Name`        | `string`                   | Set by loader from filename (not in JSON)    |
+| —             | `Suite`       | `string`                   | Set by loader from directory (not in JSON)   |
+
+The `Name` and `Suite` fields have `json:"-"` tags and are populated by the loader functions, not deserialized from JSON. Use `LoadTestSuite` or `LoadTestCaseWithSuite` to automatically populate the `Suite` field.
+
 ### Example: Python Test Loader
 
 ```python

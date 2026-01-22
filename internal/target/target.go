@@ -76,9 +76,15 @@ type Target interface {
 	//   - (nil, true) means the command is deliberately disabled (JSON null value)
 	//   - (nil, false) means the command doesn't exist in the target's command map
 	GetCommand(name string) (interface{}, bool)
-	Env() map[string]string  // Environment variables
-	Vars() map[string]string // Variables for interpolation
-	DemoPath() string        // Path to demo file for documentation
+	// Env returns environment variables to set when executing commands.
+	// Returns nil if no environment variables are configured.
+	// Note: empty maps are normalized to nil (cannot distinguish "not set" from "set to empty").
+	Env() map[string]string
+	// Vars returns variables available for interpolation in command strings.
+	// Returns nil if no variables are configured.
+	// Note: empty maps are normalized to nil (cannot distinguish "not set" from "set to empty").
+	Vars() map[string]string
+	DemoPath() string // Path to demo file for documentation
 
 	// Execution
 	//

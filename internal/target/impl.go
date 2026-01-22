@@ -173,6 +173,11 @@ func (t *targetImpl) GetCommand(name string) (interface{}, bool) {
 	return cmd, ok
 }
 
+// Execute runs the specified command.
+//
+// Command definitions are validated at registry creation time. Valid command
+// definition types are: string (shell command), nil (disabled), or []interface{}
+// (list of sub-command names). See config/validate.go for validation rules.
 func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) error {
 	// Resolve variant based on verbosity
 	resolvedCmd := t.resolveCommandVariant(cmd, opts.Verbosity)

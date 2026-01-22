@@ -3,6 +3,7 @@ package project
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -312,6 +313,68 @@ func TestFindRoot_FromProjectRoot(t *testing.T) {
 	}
 	if found != root {
 		t.Errorf("FindRoot() = %q, want %q", found, root)
+	}
+}
+
+func TestLoadProjectFrom_MalformedToolchains(t *testing.T) {
+	root := t.TempDir()
+
+	// Create .structyl directory
+	structylDir := filepath.Join(root, ".structyl")
+	if err := os.MkdirAll(structylDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create valid config.json
+	configPath := filepath.Join(structylDir, "config.json")
+	config := `{"project": {"name": "myproject"}}`
+	if err := os.WriteFile(configPath, []byte(config), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create malformed toolchains.json (invalid JSON)
+	toolchainsPath := filepath.Join(structylDir, "toolchains.json")
+	if err := os.WriteFile(toolchainsPath, []byte(`{invalid json`), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadProjectFrom(root)
+	if err == nil {
+		t.Fatal("LoadProjectFrom() expected error for malformed toolchains.json")
+	}
+	if !strings.Contains(err.Error(), "failed to load toolchains") {
+		t.Errorf("error = %q, want error containing 'failed to load toolchains'", err)
+	}
+}
+
+func TestLoadProjectFrom_InvalidVersionFile(t *testing.T) {
+	root := t.TempDir()
+
+	// Create .structyl directory
+	structylDir := filepath.Join(root, ".structyl")
+	if err := os.MkdirAll(structylDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create valid config.json
+	configPath := filepath.Join(structylDir, "config.json")
+	config := `{"project": {"name": "myproject"}}`
+	if err := os.WriteFile(configPath, []byte(config), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create VERSION file with invalid semver
+	versionPath := filepath.Join(structylDir, "PROJECT_VERSION")
+	if err := os.WriteFile(versionPath, []byte("not-a-valid-semver"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadProjectFrom(root)
+	if err == nil {
+		t.Fatal("LoadProjectFrom() expected error for invalid VERSION file")
+	}
+	if !strings.Contains(err.Error(), "version validation failed") {
+		t.Errorf("error = %q, want error containing 'version validation failed'", err)
 	}
 }
 

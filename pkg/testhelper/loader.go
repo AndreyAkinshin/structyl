@@ -773,6 +773,75 @@ func LoadTestCaseByName(projectRoot, suite, name string) (*TestCase, error) {
 	return loadTestCaseInternal(path, suite)
 }
 
+// NewTestCaseFromJSON creates a TestCase from JSON data.
+// The name parameter sets TestCase.Name (required, not derived from JSON).
+// The Suite field will be empty ("").
+//
+// Returns an error if:
+//   - name is empty
+//   - data contains invalid JSON
+//   - required fields (input, output) are missing
+//   - input is not a JSON object
+//   - output is null
+//   - data contains $file references (not supported in this package)
+//
+// This function provides the same validation as [LoadTestCase] without requiring
+// a file path, useful for programmatic test case creation from embedded or
+// network-sourced JSON data.
+func NewTestCaseFromJSON(data []byte, name string) (*TestCase, error) {
+	return newTestCaseFromJSONInternal(data, name, "")
+}
+
+// NewTestCaseFromJSONWithSuite creates a TestCase from JSON data with a suite name.
+// The name parameter sets TestCase.Name, and suite sets TestCase.Suite.
+// Returns ErrEmptyTestCaseName if name is empty.
+// Returns ErrEmptySuiteName if suite is empty.
+// See [NewTestCaseFromJSON] for other error conditions.
+func NewTestCaseFromJSONWithSuite(data []byte, name, suite string) (*TestCase, error) {
+	if err := ValidateSuiteName(suite); err != nil {
+		return nil, err
+	}
+	return newTestCaseFromJSONInternal(data, name, suite)
+}
+
+// newTestCaseFromJSONInternal is the shared implementation for NewTestCaseFromJSON variants.
+func newTestCaseFromJSONInternal(data []byte, name, suite string) (*TestCase, error) {
+	if err := ValidateTestCaseName(name); err != nil {
+		return nil, err
+	}
+
+	// Pre-validate input field type before unmarshaling into TestCase.
+	if err := validateInputFieldType(data); err != nil {
+		return nil, err
+	}
+
+	var tc TestCase
+	if err := json.Unmarshal(data, &tc); err != nil {
+		return nil, fmt.Errorf("invalid JSON: %w", err)
+	}
+
+	// Detect $file references which are not supported in this package
+	if containsFileReference(tc.Input) || containsFileReference(tc.Output) {
+		return nil, ErrFileReferenceNotSupported
+	}
+
+	// Validate required fields per spec
+	if tc.Input == nil {
+		return nil, errors.New("missing required field \"input\"")
+	}
+	if tc.Output == nil {
+		var checker outputPresenceChecker
+		if checker.hasOutputField(data) {
+			return nil, errors.New("\"output\" field is null (use empty string, object, or array instead)")
+		}
+		return nil, errors.New("missing required field \"output\"")
+	}
+
+	tc.Name = name
+	tc.Suite = suite
+	return &tc, nil
+}
+
 // outputPresenceChecker is used to distinguish between missing and null output fields.
 // Go's json.Unmarshal sets interface{} to nil for both cases, so we check if the
 // "output" key exists in the raw JSON object.

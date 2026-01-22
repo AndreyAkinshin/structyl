@@ -1,10 +1,12 @@
 package testhelper
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -63,6 +65,151 @@ func TestLoadTestCaseWithSuite(t *testing.T) {
 	if tc.Suite != "math" {
 		t.Errorf("Suite = %q, want %q", tc.Suite, "math")
 	}
+}
+
+func TestNewTestCaseFromJSON(t *testing.T) {
+	t.Parallel()
+
+	t.Run("valid_basic", func(t *testing.T) {
+		t.Parallel()
+		data := []byte(`{
+			"input": {"a": 1, "b": 2},
+			"output": {"sum": 3},
+			"description": "add two numbers"
+		}`)
+
+		tc, err := NewTestCaseFromJSON(data, "test1")
+		if err != nil {
+			t.Fatalf("NewTestCaseFromJSON() error = %v", err)
+		}
+
+		if tc.Name != "test1" {
+			t.Errorf("Name = %q, want %q", tc.Name, "test1")
+		}
+		if tc.Suite != "" {
+			t.Errorf("Suite = %q, want empty", tc.Suite)
+		}
+		if tc.Description != "add two numbers" {
+			t.Errorf("Description = %q, want %q", tc.Description, "add two numbers")
+		}
+		if tc.Input["a"] != float64(1) {
+			t.Errorf("Input[a] = %v, want 1", tc.Input["a"])
+		}
+	})
+
+	t.Run("with_suite", func(t *testing.T) {
+		t.Parallel()
+		data := []byte(`{"input": {"x": 1}, "output": 2}`)
+
+		tc, err := NewTestCaseFromJSONWithSuite(data, "test1", "math")
+		if err != nil {
+			t.Fatalf("NewTestCaseFromJSONWithSuite() error = %v", err)
+		}
+
+		if tc.Name != "test1" {
+			t.Errorf("Name = %q, want %q", tc.Name, "test1")
+		}
+		if tc.Suite != "math" {
+			t.Errorf("Suite = %q, want %q", tc.Suite, "math")
+		}
+	})
+
+	t.Run("empty_name", func(t *testing.T) {
+		t.Parallel()
+		data := []byte(`{"input": {"x": 1}, "output": 2}`)
+
+		_, err := NewTestCaseFromJSON(data, "")
+		if err == nil {
+			t.Fatal("expected error for empty name")
+		}
+		if !strings.Contains(err.Error(), "name") {
+			t.Errorf("error = %v, want to contain 'name'", err)
+		}
+	})
+
+	t.Run("invalid_json", func(t *testing.T) {
+		t.Parallel()
+		data := []byte(`{not valid json}`)
+
+		_, err := NewTestCaseFromJSON(data, "test1")
+		if err == nil {
+			t.Fatal("expected error for invalid JSON")
+		}
+	})
+
+	t.Run("missing_input", func(t *testing.T) {
+		t.Parallel()
+		data := []byte(`{"output": 42}`)
+
+		_, err := NewTestCaseFromJSON(data, "test1")
+		if err == nil {
+			t.Fatal("expected error for missing input")
+		}
+		if !strings.Contains(err.Error(), "input") {
+			t.Errorf("error = %v, want to contain 'input'", err)
+		}
+	})
+
+	t.Run("missing_output", func(t *testing.T) {
+		t.Parallel()
+		data := []byte(`{"input": {"x": 1}}`)
+
+		_, err := NewTestCaseFromJSON(data, "test1")
+		if err == nil {
+			t.Fatal("expected error for missing output")
+		}
+		if !strings.Contains(err.Error(), "output") {
+			t.Errorf("error = %v, want to contain 'output'", err)
+		}
+	})
+
+	t.Run("null_output", func(t *testing.T) {
+		t.Parallel()
+		data := []byte(`{"input": {"x": 1}, "output": null}`)
+
+		_, err := NewTestCaseFromJSON(data, "test1")
+		if err == nil {
+			t.Fatal("expected error for null output")
+		}
+		if !strings.Contains(err.Error(), "null") {
+			t.Errorf("error = %v, want to contain 'null'", err)
+		}
+	})
+
+	t.Run("input_array_rejected", func(t *testing.T) {
+		t.Parallel()
+		data := []byte(`{"input": [1, 2, 3], "output": 6}`)
+
+		_, err := NewTestCaseFromJSON(data, "test1")
+		if err == nil {
+			t.Fatal("expected error for array input")
+		}
+		if !strings.Contains(err.Error(), "object") {
+			t.Errorf("error = %v, want to contain 'object'", err)
+		}
+	})
+
+	t.Run("with_tags_and_skip", func(t *testing.T) {
+		t.Parallel()
+		data := []byte(`{
+			"input": {"x": 1},
+			"output": 2,
+			"skip": true,
+			"tags": ["slow", "integration"]
+		}`)
+
+		tc, err := NewTestCaseFromJSON(data, "test1")
+		if err != nil {
+			t.Fatalf("NewTestCaseFromJSON() error = %v", err)
+		}
+
+		if !tc.Skip {
+			t.Error("Skip = false, want true")
+		}
+		if len(tc.Tags) != 2 || tc.Tags[0] != "slow" || tc.Tags[1] != "integration" {
+			t.Errorf("Tags = %v, want [slow, integration]", tc.Tags)
+		}
+	})
 }
 
 func TestLoadTestCaseByName(t *testing.T) {
@@ -3610,5 +3757,109 @@ func TestWithOutput_ReferenceSemantics(t *testing.T) {
 
 	if gotOutput["key"] != "modified" {
 		t.Errorf("Output[key] = %q, want %q (WithOutput should store by reference)", gotOutput["key"], "modified")
+	}
+}
+
+// TestTestCase_JSONRoundTrip verifies that TestCase JSON-tagged fields survive
+// marshal/unmarshal round-trip correctly. Note: Name and Suite have `json:"-"`
+// tags, so they are NOT included in JSON serialization.
+func TestTestCase_JSONRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		tc   TestCase
+	}{
+		{
+			name: "basic",
+			tc: TestCase{
+				Input:       map[string]interface{}{"x": float64(1), "y": float64(2)},
+				Output:      float64(3),
+				Description: "add two numbers",
+			},
+		},
+		{
+			name: "with_tags_and_skip",
+			tc: TestCase{
+				Input:  map[string]interface{}{"data": []interface{}{float64(1), float64(2), float64(3)}},
+				Output: map[string]interface{}{"sum": float64(6), "count": float64(3)},
+				Skip:   true,
+				Tags:   []string{"slow", "integration"},
+			},
+		},
+		{
+			name: "complex_nested",
+			tc: TestCase{
+				Input: map[string]interface{}{
+					"nested": map[string]interface{}{
+						"deep": map[string]interface{}{
+							"value": float64(42),
+						},
+					},
+				},
+				Output: []interface{}{float64(1), "two", true, nil},
+			},
+		},
+		{
+			name: "empty_input_string_output",
+			tc: TestCase{
+				Input:  map[string]interface{}{},
+				Output: "result",
+			},
+		},
+		{
+			name: "bool_output",
+			tc: TestCase{
+				Input:  map[string]interface{}{"flag": true},
+				Output: false,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Marshal to JSON
+			data, err := json.Marshal(tt.tc)
+			if err != nil {
+				t.Fatalf("json.Marshal() error = %v", err)
+			}
+
+			// Unmarshal back
+			var result TestCase
+			if err := json.Unmarshal(data, &result); err != nil {
+				t.Fatalf("json.Unmarshal() error = %v", err)
+			}
+
+			// Name and Suite should be zero (json:"-" excludes them)
+			if result.Name != "" {
+				t.Errorf("Name = %q, want empty (json:\"-\")", result.Name)
+			}
+			if result.Suite != "" {
+				t.Errorf("Suite = %q, want empty (json:\"-\")", result.Suite)
+			}
+
+			// Compare Input (must use reflect.DeepEqual for nested structures)
+			if !reflect.DeepEqual(result.Input, tt.tc.Input) {
+				t.Errorf("Input = %v, want %v", result.Input, tt.tc.Input)
+			}
+
+			// Compare Output
+			if !reflect.DeepEqual(result.Output, tt.tc.Output) {
+				t.Errorf("Output = %v, want %v", result.Output, tt.tc.Output)
+			}
+
+			// Compare other fields
+			if result.Description != tt.tc.Description {
+				t.Errorf("Description = %q, want %q", result.Description, tt.tc.Description)
+			}
+			if result.Skip != tt.tc.Skip {
+				t.Errorf("Skip = %v, want %v", result.Skip, tt.tc.Skip)
+			}
+			if !reflect.DeepEqual(result.Tags, tt.tc.Tags) {
+				t.Errorf("Tags = %v, want %v", result.Tags, tt.tc.Tags)
+			}
+		})
 	}
 }

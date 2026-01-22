@@ -130,9 +130,14 @@ func TestBump(t *testing.T) {
 		{"1.2.3", "patch", "1.2.4"},
 		{"1.0.0-alpha", "major", "2.0.0"},
 		{"1.0.0-alpha", "release", "1.0.0"},
+		{"1.2.3", "release", "1.2.3"}, // idempotent: no prerelease to remove
 		{"1.2.3", "prerelease", "1.2.4-alpha.1"},
 		{"1.0.0-alpha.1", "prerelease", "1.0.0-alpha.2"},
 		{"1.0.0-rc", "prerelease", "1.0.0-rc.1"},
+		// Build metadata is always cleared on bump
+		{"1.2.3+build", "patch", "1.2.4"},
+		{"1.0.0-alpha+build", "release", "1.0.0"},
+		{"1.0.0+build.123", "minor", "1.1.0"},
 	}
 
 	for _, tt := range tests {

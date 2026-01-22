@@ -36,6 +36,7 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 † `build:release` is only provided by toolchains with distinct release/optimized build modes. Toolchains providing `build:release`: `cargo`, `dotnet`, `make`, `swift`, `zig`. Toolchains without a native release mode do not define this variant. See [toolchains.md](toolchains.md) for per-toolchain details.
 
 <!-- VitePress component: Renders standard command reference table in docs site (non-normative) -->
+<!-- When viewing raw markdown, see the Standard Commands table in the section above -->
 <StandardCommands />
 
 > **Vocabulary vs Implementation:** Standard commands define the semantic contract for what operations mean. Toolchains implement a subset of the vocabulary; commands without toolchain implementation return [skip errors](error-handling.md#skip-errors) unless overridden in target configuration.

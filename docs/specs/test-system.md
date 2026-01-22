@@ -187,7 +187,7 @@ A file reference is a JSON object with exactly one key `$file`:
 { "$file": "<relative-path>" }
 ```
 
-**Validation rules:**
+**Validation rules (internal runner only):**
 
 - The object MUST have exactly one key: `$file`
 - The value MUST be a non-empty string

@@ -318,20 +318,9 @@ Mise build tool integration configuration.
 
 - When `auto_generate: true` (or absent/omitted), Structyl regenerates `mise.toml` before executing target commands. This ensures mise tool versions stay synchronized with toolchain requirements.
 
-  **Commands that trigger regeneration:**
-  - Standard target commands: `build`, `build:release`, `test`, `test:coverage`, `clean`, `restore`, `check`, `check:fix`, `bench`, `demo`, `doc`, `pack`, `publish`, `publish:dry`
-  - CI commands: `ci`, `ci:release` (regeneration occurs before the first pipeline step)
-  - Custom commands defined in configuration
+  **Regeneration principle:** Commands that execute target actions (standard commands like `build`, `test`, `check`, CI pipeline commands, and custom commands) trigger regeneration. Commands that query, generate artifacts, or manage the release workflow do NOT trigger regeneration.
 
-  **Commands that do NOT trigger regeneration:**
-  - Project initialization: `init`
-  - Query/utility commands: `targets`, `config`, `config validate`, `version`, `completion`, `upgrade`
-  - Release workflow: `release` (uses existing mise.toml)
-  - Generation commands: `dockerfile`, `github`, `mise sync`
-  - Docker commands: `docker-build`, `docker-clean`
-  - Test utilities: `test-summary`
-
-  > **Note:** These lists reflect the current command vocabulary. If new commands are added in future versions, this documentation will be updated accordingly.
+  > **Implementation reference:** For the authoritative list of which commands trigger regeneration, see `internal/cli/cli.go`.
 
 - When `auto_generate: false` is explicitly set, Structyl does not auto-regenerate `mise.toml`. Use `structyl mise sync` to manually regenerate when needed.
 - `extra_tools` entries are merged with toolchain-detected tools and written to `mise.toml`. Keys are tool names, values are version specifiers (e.g., `"latest"`, `"1.54.0"`, `">=1.50"`).

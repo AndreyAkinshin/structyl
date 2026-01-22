@@ -166,6 +166,10 @@ func Bump(current, part string) (string, error) {
 }
 
 // bumpPrerelease increments a prerelease version.
+// Examples:
+//   - "alpha.1" → "alpha.2" (increments rightmost numeric part)
+//   - "rc.2.1"  → "rc.2.2"  (increments rightmost numeric part)
+//   - "alpha"   → "alpha.1" (no numeric part found, appends .1)
 func bumpPrerelease(prerelease string) string {
 	// Try to find and increment a numeric suffix
 	parts := strings.Split(prerelease, ".")

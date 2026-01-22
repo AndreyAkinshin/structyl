@@ -407,8 +407,9 @@ func writeTasks(b *strings.Builder, tasks map[string]MiseTask) {
 }
 
 // WriteMiseToml generates and writes a mise.toml file to the project root.
-// Returns true if a new file was created, false if it already exists.
-// Use WriteAlways to overwrite an existing file.
+// Returns true if the file was written (created or overwritten), false if skipped.
+// With WriteIfMissing mode, returns false when the file already exists.
+// With WriteAlways mode, always writes and returns true.
 //
 // Deprecated: Use WriteMiseTomlWithToolchains for loaded toolchains configuration.
 // This function will be removed in v2.0.0.
@@ -418,8 +419,9 @@ func WriteMiseToml(projectRoot string, cfg *config.Config, mode WriteMode) (bool
 
 // WriteMiseTomlWithToolchains generates and writes a mise.toml file to the project root
 // using the loaded toolchains configuration.
-// Returns true if a new file was created, false if it already exists.
-// Use WriteAlways to overwrite an existing file.
+// Returns true if the file was written (created or overwritten), false if skipped.
+// With WriteIfMissing mode, returns false when the file already exists.
+// With WriteAlways mode, always writes and returns true.
 func WriteMiseTomlWithToolchains(projectRoot string, cfg *config.Config, loaded *toolchain.ToolchainsFile, mode WriteMode) (bool, error) {
 	outputPath := filepath.Join(projectRoot, "mise.toml")
 

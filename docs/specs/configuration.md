@@ -145,8 +145,10 @@ Build targets configuration. See [targets.md](targets.md) for details.
 
 | Field               | Type   | Default        | Description                                           |
 | ------------------- | ------ | -------------- | ----------------------------------------------------- |
-| `type`              | string | Required       | `"language"` or `"auxiliary"`                         |
+| `type`              | string | Required*      | `"language"` or `"auxiliary"`                         |
 | `title`             | string | Required       | Display name                                          |
+
+\* Required in explicit mode. In auto-discovery mode, `type` is inferred from the slug. See [targets.md](targets.md#target-configuration) for details.
 | `toolchain`         | string | Auto-detect    | Toolchain preset (see [toolchains.md](toolchains.md)) |
 | `toolchain_version` | string | From toolchain | Override mise tool version for this target            |
 | `directory`         | string | Target key     | Directory path relative to root                       |

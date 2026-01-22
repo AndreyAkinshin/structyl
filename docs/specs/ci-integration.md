@@ -92,6 +92,15 @@ The default CI steps can be overridden using the `ci` configuration section in `
 | `depends_on`        | No       | string[] | Step names that must complete first                |
 | `continue_on_error` | No       | boolean  | Continue pipeline if step fails (default: `false`) |
 
+**`continue_on_error` semantics:**
+
+When a step with `continue_on_error: true` fails:
+- Execution continues to subsequent steps
+- The failure is logged as a warning
+- The step does NOT contribute to the final exit code
+
+The final exit code is `0` only if all steps without `continue_on_error: true` succeed.
+
 ::: warning Parallel Execution Limitation
 When `STRUCTYL_PARALLEL > 1`, Structyl does not guarantee that targets in `depends_on` complete before the dependent target starts. See [targets.md#known-limitation-parallel-execution-and-dependencies](targets.md#known-limitation-parallel-execution-and-dependencies) for details and workarounds.
 :::

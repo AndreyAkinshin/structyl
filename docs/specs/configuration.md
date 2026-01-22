@@ -307,6 +307,8 @@ Docker configuration. See [docker.md](docker.md) for details.
 | `services[target].platform`   | string   | None    | Target platform (e.g., `linux/amd64`) |
 | `services[target].volumes`    | string[] | `[]`    | Additional volume mounts              |
 
+See [docker.md](docker.md#volume-mounts) for complete volume mount semantics and cache volume recommendations.
+
 **`docker.targets` fields** (per-target runtime configuration):
 
 | Field                          | Type   | Default | Description                           |

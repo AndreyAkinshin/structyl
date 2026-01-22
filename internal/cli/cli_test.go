@@ -1788,6 +1788,33 @@ func TestCmdMiseSync_UnknownOption_ReturnsError(t *testing.T) {
 	})
 }
 
+func TestCmdMiseSync_RemovedForceFlag_ReturnsError(t *testing.T) {
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		exitCode := cmdMiseSync([]string{"--force"}, &GlobalOptions{})
+		if exitCode != 2 {
+			t.Errorf("cmdMiseSync([--force]) = %d, want 2 (config error)", exitCode)
+		}
+	})
+}
+
+func TestCmdMiseSync_ValidProject_Success(t *testing.T) {
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		// First call should generate mise.toml
+		exitCode := cmdMiseSync(nil, &GlobalOptions{})
+		if exitCode != 0 {
+			t.Errorf("cmdMiseSync() = %d, want 0", exitCode)
+		}
+
+		// Verify mise.toml was created
+		miseTomlPath := filepath.Join(root, "mise.toml")
+		if _, err := os.Stat(miseTomlPath); os.IsNotExist(err) {
+			t.Error("mise.toml was not created")
+		}
+	})
+}
+
 func TestCmdDockerfile_NoProject_ReturnsError(t *testing.T) {
 	tmpDir := t.TempDir()
 	withWorkingDir(t, tmpDir, func() {

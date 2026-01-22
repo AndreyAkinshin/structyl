@@ -960,6 +960,8 @@ Example:
 
 Output: `Version is ${version}` followed by `Actual: 1.2.3`
 
+> **Note:** Commands use `${var}` syntax. Version file replacements use `{var}` syntax (without `$`). See [configuration.md](configuration.md#version-files) for details on version file placeholder syntax.
+
 ### Argument Interpretation
 
 When running `structyl <command> <arg>`, Structyl uses a heuristic to determine whether `<arg>` is a target name or a command argument:

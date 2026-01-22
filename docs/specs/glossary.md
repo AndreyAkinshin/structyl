@@ -22,6 +22,10 @@ A target with `type: "auxiliary"`. Auxiliary targets are supporting tools that a
 
 A specific type of [Artifact](#artifact) produced by a build command. Includes compiled binaries, libraries, and intermediate build outputs. Distinguished from release artifacts (packaged distributions) and documentation artifacts (generated docs). In Structyl context, build artifacts are typically created by `build` or `build:release` commands and cleaned by `clean`. Examples: `.o` files, `.class` files, compiled binaries, `target/` directories.
 
+### Bootstrap Scripts
+
+The `.structyl/setup.sh` (Unix) and `.structyl/setup.ps1` (Windows) scripts created by `structyl init`. These scripts install the pinned CLI version from `.structyl/version`, enabling reproducible builds without requiring Structyl to be pre-installed globally.
+
 ### Code Fence
 
 A markdown syntax for displaying code blocks. Uses triple backticks (` ``` `) followed by a language identifier (e.g., `python`, `rust`, `json`). Used in README templates to specify syntax highlighting for demo code.
@@ -104,6 +108,10 @@ A command is idempotent if:
 - `restore` is idempotent: dependencies are installed to the same state regardless of repetition
 - `build` is conditionally idempotent: the file system structure remains equivalent, but some compilers embed build timestamps in output binaries, causing byte-level differences between runs. For Structyl's orchestration purposes, `build` is treated as idempotent since the semantic output is equivalent
 
+### Internal Runner
+
+Structyl's built-in parallel execution engine, controlled by the `STRUCTYL_PARALLEL` environment variable. Distinguished from the [Mise Backend](#mise-backend), which handles its own task orchestration. The internal runner does NOT respect `depends_on` ordering in parallel mode. See [commands.md](commands.md#environment-variables) for configuration details.
+
 ### Language Target
 
 A target with `type: "language"`. Language targets represent implementations of a library in a specific programming language. Included in `structyl test` and `structyl demo`.
@@ -115,6 +123,10 @@ A file whose presence indicates a specific toolchain. Examples: `Cargo.toml` ind
 ### Meta Command
 
 A command that operates across multiple targets. Examples: `structyl build` (all targets), `structyl test` (all language targets), `structyl ci` (full pipeline).
+
+### Mise Backend
+
+The default task execution backend for Structyl. When mise is the backend, Structyl delegates task execution to mise, which manages parallelism and dependency resolution independently. Mise properly tracks task dependencies via the generated `mise.toml`. Contrasted with the [Internal Runner](#internal-runner).
 
 ### Mise
 

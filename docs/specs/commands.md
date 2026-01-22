@@ -960,6 +960,25 @@ Example:
 
 Output: `Version is ${version}` followed by `Actual: 1.2.3`
 
+### Argument Interpretation
+
+When running `structyl <command> <arg>`, Structyl uses a heuristic to determine whether `<arg>` is a target name or a command argument:
+
+1. If `<arg>` matches a configured target name → interpreted as target, command runs on that target
+2. If `<arg>` does not match any target → interpreted as command argument, command runs on all targets
+
+**Target interpretation always wins when ambiguous.** If you have a target named `go` and want to pass the literal string "go" as a command argument, use `--` to force argument interpretation:
+
+```bash
+# With a target named "go"
+structyl build go       # Runs build on the "go" target
+structyl build -- go    # Runs build on all targets, passing "go" as argument
+```
+
+::: warning Ambiguous Target Names
+If your target names overlap with common command arguments (e.g., `verbose`, `release`, `debug`), users MUST use `--` to pass those strings as arguments. Consider using unique target names to avoid ambiguity.
+:::
+
 ### Argument Forwarding
 
 Arguments after the command are appended to the shell command:

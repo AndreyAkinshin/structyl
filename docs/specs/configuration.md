@@ -26,7 +26,7 @@ Structyl uses JSON for configuration. Rationale:
 - **IDE support** — JSON Schema enables autocomplete and validation
 - **No hidden complexity** — Unlike YAML's multiple specs and implicit typing
 
-For validation, use the [JSON Schema](/schema/config.schema.json) (published URL: `https://structyl.akinshin.dev/schema/config.json`).
+For validation, use the [JSON Schema](/schema/config.schema.json) (published URL: `https://structyl.akinshin.dev/schema/config.json`). A separate [toolchains schema](/schema/toolchains.schema.json) validates custom toolchain definitions when extending the built-in toolchains.
 
 ## Configuration Sections
 
@@ -580,6 +580,39 @@ With this minimal config, Structyl uses all defaults:
   }
 }
 ```
+
+## Variable Syntax
+
+Structyl uses two different placeholder syntaxes depending on context:
+
+| Context | Syntax | Example | Reason |
+|---------|--------|---------|--------|
+| Command interpolation | `${var}` | `${version}`, `${target}` | Shell-like syntax familiar to developers |
+| Version file replacement | `{var}` | `{version}` | Avoids conflict with regex `$` backreferences |
+
+**Command variables** (used in `commands` definitions):
+```json
+{
+  "commands": {
+    "build": "dotnet build /p:Version=${version}"
+  }
+}
+```
+
+**Version file placeholders** (used in `version.files[].replace`):
+```json
+{
+  "version": {
+    "files": [{
+      "path": "Cargo.toml",
+      "pattern": "version = \".*?\"",
+      "replace": "version = \"{version}\""
+    }]
+  }
+}
+```
+
+The distinction exists because version file patterns use regex syntax where `$` has special meaning (backreferences like `$1`). Using `{version}` avoids ambiguity. See [commands.md](commands.md#variables) for the full list of available command variables.
 
 ## Schema Validation
 

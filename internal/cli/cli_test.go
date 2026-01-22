@@ -1615,8 +1615,12 @@ func TestPrintUsage_WithProjectTargets_ShowsAllTargets(t *testing.T) {
 }
 
 // =============================================================================
-// Print Function Tests
-// These tests verify print/usage functions execute without panic.
+// Print Function Tests (Smoke Tests)
+//
+// These tests verify print/usage functions execute without panic. They are
+// intentionally smoke tests with minimal assertions—the primary value is
+// catching nil pointer dereferences, missing template variables, and other
+// runtime errors that would cause panics during help output generation.
 // =============================================================================
 
 func TestPrintUnifiedUsage_AllCommands(t *testing.T) {

@@ -6,6 +6,64 @@ import (
 	"testing"
 )
 
+// assertCommonInvariants checks invariants that must hold for all parser results.
+// Call this in every fuzz test to ensure consistent validation.
+func assertCommonInvariants(t *testing.T, result TestCounts) {
+	t.Helper()
+
+	// No negative counts
+	if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
+		t.Errorf("negative count: passed=%d failed=%d skipped=%d total=%d",
+			result.Passed, result.Failed, result.Skipped, result.Total)
+	}
+
+	// Total should equal sum of components when parsed
+	if result.Parsed {
+		sum := result.Passed + result.Failed + result.Skipped
+		if result.Total != sum {
+			t.Errorf("total mismatch: total=%d, sum=%d", result.Total, sum)
+		}
+	}
+
+	// When not parsed, all counts must be zero
+	if !result.Parsed {
+		if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
+			t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
+				result.Passed, result.Failed, result.Skipped, result.Total)
+		}
+	}
+}
+
+// assertFailedTestsInvariants checks invariants for parsers that populate FailedTests.
+// Use for GoParser and JSONParser.
+func assertFailedTestsInvariants(t *testing.T, result TestCounts) {
+	t.Helper()
+
+	// FailedTests length should not exceed Failed count
+	if len(result.FailedTests) > result.Failed {
+		t.Errorf("FailedTests length %d exceeds Failed count %d",
+			len(result.FailedTests), result.Failed)
+	}
+
+	// FailedTests elements should have non-empty names
+	for i, ft := range result.FailedTests {
+		if ft.Name == "" {
+			t.Errorf("FailedTests[%d].Name is empty", i)
+		}
+	}
+}
+
+// assertNoFailedTests checks that parser does not populate FailedTests.
+// Use for parsers that only extract counts (Cargo, Dotnet, Pytest, Bun, Deno).
+func assertNoFailedTests(t *testing.T, result TestCounts, parserName string) {
+	t.Helper()
+
+	if len(result.FailedTests) != 0 {
+		t.Errorf("%s should not populate FailedTests, got %d entries",
+			parserName, len(result.FailedTests))
+	}
+}
+
 // FuzzGoParser tests the Go test output parser with arbitrary input.
 // Run: go test -fuzz=FuzzGoParser -fuzztime=30s ./internal/testparser
 func FuzzGoParser(f *testing.F) {
@@ -51,45 +109,14 @@ func FuzzGoParser(f *testing.F) {
 			t.Errorf("non-deterministic parsing: first=%+v, second=%+v", result, result2)
 		}
 
-		// Basic invariants that must hold for any input
-		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
-			t.Errorf("negative count: passed=%d failed=%d skipped=%d total=%d",
-				result.Passed, result.Failed, result.Skipped, result.Total)
-		}
-
-		// Total should equal sum of components when parsed
-		if result.Parsed {
-			sum := result.Passed + result.Failed + result.Skipped
-			if result.Total != sum {
-				t.Errorf("total mismatch: total=%d, sum=%d", result.Total, sum)
-			}
-		}
-
-		// When not parsed, all counts must be zero
-		if !result.Parsed {
-			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
-				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
-					result.Passed, result.Failed, result.Skipped, result.Total)
-			}
-		}
+		assertCommonInvariants(t, result)
 
 		// Empty input must never be parsed
 		if input == "" && result.Parsed {
 			t.Error("empty input should never be parsed")
 		}
 
-		// FailedTests length should match Failed count
-		if len(result.FailedTests) > result.Failed {
-			t.Errorf("FailedTests length %d exceeds Failed count %d",
-				len(result.FailedTests), result.Failed)
-		}
-
-		// FailedTests elements should have non-empty names
-		for i, ft := range result.FailedTests {
-			if ft.Name == "" {
-				t.Errorf("FailedTests[%d].Name is empty", i)
-			}
-		}
+		assertFailedTestsInvariants(t, result)
 	})
 }
 
@@ -135,37 +162,8 @@ func FuzzCargoParser(f *testing.F) {
 			t.Errorf("non-deterministic parsing: first=%+v, second=%+v", result, result2)
 		}
 
-		// Basic invariants
-		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
-			t.Errorf("negative count: passed=%d failed=%d skipped=%d total=%d",
-				result.Passed, result.Failed, result.Skipped, result.Total)
-		}
-
-		// Total should equal sum of components when parsed.
-		// Note: Cargo parser may have Parsed=true with Total=0 if the regex matches
-		// a line like "test result: ok. 0 passed; 0 failed; 0 ignored;". The invariant
-		// Total == sum still holds (0 == 0+0+0).
-		if result.Parsed {
-			sum := result.Passed + result.Failed + result.Skipped
-			if result.Total != sum {
-				t.Errorf("total mismatch: total=%d, sum=%d", result.Total, sum)
-			}
-		}
-
-		// When not parsed, all counts must be zero
-		if !result.Parsed {
-			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
-				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
-					result.Passed, result.Failed, result.Skipped, result.Total)
-			}
-		}
-
-		// Note: CargoParser does not populate FailedTests (see cargo_test.go).
-		// Only GoParser and JSONParser extract failure details.
-		if len(result.FailedTests) != 0 {
-			t.Errorf("CargoParser should not populate FailedTests, got %d entries",
-				len(result.FailedTests))
-		}
+		assertCommonInvariants(t, result)
+		assertNoFailedTests(t, result, "CargoParser")
 	})
 }
 
@@ -206,34 +204,8 @@ func FuzzDotnetParser(f *testing.F) {
 			t.Errorf("non-deterministic parsing: first=%+v, second=%+v", result, result2)
 		}
 
-		// Basic invariants
-		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
-			t.Errorf("negative count: passed=%d failed=%d skipped=%d total=%d",
-				result.Passed, result.Failed, result.Skipped, result.Total)
-		}
-
-		// Total should equal sum of components when parsed
-		if result.Parsed {
-			sum := result.Passed + result.Failed + result.Skipped
-			if result.Total != sum {
-				t.Errorf("total mismatch: total=%d, sum=%d", result.Total, sum)
-			}
-		}
-
-		// When not parsed, all counts must be zero
-		if !result.Parsed {
-			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
-				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
-					result.Passed, result.Failed, result.Skipped, result.Total)
-			}
-		}
-
-		// Note: DotnetParser does not populate FailedTests.
-		// Only GoParser and JSONParser extract failure details.
-		if len(result.FailedTests) != 0 {
-			t.Errorf("DotnetParser should not populate FailedTests, got %d entries",
-				len(result.FailedTests))
-		}
+		assertCommonInvariants(t, result)
+		assertNoFailedTests(t, result, "DotnetParser")
 	})
 }
 
@@ -274,34 +246,8 @@ func FuzzPytestParser(f *testing.F) {
 			t.Errorf("non-deterministic parsing: first=%+v, second=%+v", result, result2)
 		}
 
-		// Basic invariants
-		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
-			t.Errorf("negative count: passed=%d failed=%d skipped=%d total=%d",
-				result.Passed, result.Failed, result.Skipped, result.Total)
-		}
-
-		// Total should equal sum of components when parsed
-		if result.Parsed {
-			sum := result.Passed + result.Failed + result.Skipped
-			if result.Total != sum {
-				t.Errorf("total mismatch: total=%d, sum=%d", result.Total, sum)
-			}
-		}
-
-		// When not parsed, all counts must be zero
-		if !result.Parsed {
-			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
-				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
-					result.Passed, result.Failed, result.Skipped, result.Total)
-			}
-		}
-
-		// Note: PytestParser does not populate FailedTests.
-		// Only GoParser and JSONParser extract failure details.
-		if len(result.FailedTests) != 0 {
-			t.Errorf("PytestParser should not populate FailedTests, got %d entries",
-				len(result.FailedTests))
-		}
+		assertCommonInvariants(t, result)
+		assertNoFailedTests(t, result, "PytestParser")
 	})
 }
 
@@ -339,34 +285,8 @@ func FuzzBunParser(f *testing.F) {
 			t.Errorf("non-deterministic parsing: first=%+v, second=%+v", result, result2)
 		}
 
-		// Basic invariants
-		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
-			t.Errorf("negative count: passed=%d failed=%d skipped=%d total=%d",
-				result.Passed, result.Failed, result.Skipped, result.Total)
-		}
-
-		// Total should equal sum of components when parsed
-		if result.Parsed {
-			sum := result.Passed + result.Failed + result.Skipped
-			if result.Total != sum {
-				t.Errorf("total mismatch: total=%d, sum=%d", result.Total, sum)
-			}
-		}
-
-		// When not parsed, all counts must be zero
-		if !result.Parsed {
-			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
-				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
-					result.Passed, result.Failed, result.Skipped, result.Total)
-			}
-		}
-
-		// Note: BunParser does not populate FailedTests.
-		// Only GoParser and JSONParser extract failure details.
-		if len(result.FailedTests) != 0 {
-			t.Errorf("BunParser should not populate FailedTests, got %d entries",
-				len(result.FailedTests))
-		}
+		assertCommonInvariants(t, result)
+		assertNoFailedTests(t, result, "BunParser")
 	})
 }
 
@@ -405,34 +325,8 @@ func FuzzDenoParser(f *testing.F) {
 			t.Errorf("non-deterministic parsing: first=%+v, second=%+v", result, result2)
 		}
 
-		// Basic invariants
-		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
-			t.Errorf("negative count: passed=%d failed=%d skipped=%d total=%d",
-				result.Passed, result.Failed, result.Skipped, result.Total)
-		}
-
-		// Total should equal sum of components when parsed
-		if result.Parsed {
-			sum := result.Passed + result.Failed + result.Skipped
-			if result.Total != sum {
-				t.Errorf("total mismatch: total=%d, sum=%d", result.Total, sum)
-			}
-		}
-
-		// When not parsed, all counts must be zero
-		if !result.Parsed {
-			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
-				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
-					result.Passed, result.Failed, result.Skipped, result.Total)
-			}
-		}
-
-		// Note: DenoParser does not populate FailedTests.
-		// Only GoParser and JSONParser extract failure details.
-		if len(result.FailedTests) != 0 {
-			t.Errorf("DenoParser should not populate FailedTests, got %d entries",
-				len(result.FailedTests))
-		}
+		assertCommonInvariants(t, result)
+		assertNoFailedTests(t, result, "DenoParser")
 	})
 }
 
@@ -480,39 +374,7 @@ func FuzzJSONParser(f *testing.F) {
 			t.Errorf("non-deterministic parsing: first=%+v, second=%+v", result, result2)
 		}
 
-		// Basic invariants
-		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
-			t.Errorf("negative count: passed=%d failed=%d skipped=%d total=%d",
-				result.Passed, result.Failed, result.Skipped, result.Total)
-		}
-
-		// Total should equal sum of components when parsed
-		if result.Parsed {
-			sum := result.Passed + result.Failed + result.Skipped
-			if result.Total != sum {
-				t.Errorf("total mismatch: total=%d, sum=%d", result.Total, sum)
-			}
-		}
-
-		// When not parsed, all counts must be zero
-		if !result.Parsed {
-			if result.Passed != 0 || result.Failed != 0 || result.Skipped != 0 || result.Total != 0 {
-				t.Errorf("unparsed result has non-zero counts: passed=%d failed=%d skipped=%d total=%d",
-					result.Passed, result.Failed, result.Skipped, result.Total)
-			}
-		}
-
-		// FailedTests length should not exceed Failed count
-		if len(result.FailedTests) > result.Failed {
-			t.Errorf("FailedTests length %d exceeds Failed count %d",
-				len(result.FailedTests), result.Failed)
-		}
-
-		// FailedTests elements should have non-empty names
-		for i, ft := range result.FailedTests {
-			if ft.Name == "" {
-				t.Errorf("FailedTests[%d].Name is empty", i)
-			}
-		}
+		assertCommonInvariants(t, result)
+		assertFailedTestsInvariants(t, result)
 	})
 }

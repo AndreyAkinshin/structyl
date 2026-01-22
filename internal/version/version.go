@@ -49,7 +49,7 @@ type Semver struct {
 func Read(path string) (string, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return "", fmt.Errorf("version source file not found: %w", err)
+		return "", fmt.Errorf("cannot read version file: %w", err)
 	}
 
 	version := strings.TrimSpace(string(data))

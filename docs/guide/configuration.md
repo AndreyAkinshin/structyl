@@ -173,8 +173,8 @@ Enable Docker-based builds.
   "docker": {
     "compose_file": "docker-compose.yml",
     "services": {
-      "rs": { "base_image": "rust:1.75" },
-      "py": { "base_image": "python:3.12-slim" }
+      "rs": { "base_image": "rust:1.80" },
+      "py": { "base_image": "python:3.13-slim" }
     }
   }
 }

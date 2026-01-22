@@ -259,7 +259,7 @@ Docker configuration. See [docker.md](docker.md) for details.
     "env_var": "STRUCTYL_DOCKER",
     "services": {
       "cs": { "base_image": "mcr.microsoft.com/dotnet/sdk:8.0" },
-      "py": { "base_image": "python:3.12-slim" }
+      "py": { "base_image": "python:3.13-slim" }
     },
     "targets": {
       "cs": {

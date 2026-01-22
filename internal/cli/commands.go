@@ -219,7 +219,7 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 	remaining := args[1:]
 
 	// Determine target name (if specified)
-	targetName, cmdArgs := extractTargetArg(remaining, registry)
+	targetName, passthruArgs := extractTargetArg(remaining, registry)
 
 	// Ensure mise is ready (installed and mise.toml up-to-date)
 	if exitCode := ensureMiseReady(proj); exitCode != 0 {
@@ -228,21 +228,21 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 
 	// If --type is specified and no specific target given, filter targets by type
 	if opts.TargetType != "" && targetName == "" {
-		return runForFilteredTargets(proj, cmd, opts, registry, cmdArgs)
+		return runForFilteredTargets(proj, cmd, opts, registry, passthruArgs)
 	}
 
-	return runViaMise(proj, cmd, targetName, cmdArgs, opts, registry)
+	return runViaMise(proj, cmd, targetName, passthruArgs, opts, registry)
 }
 
 // runForFilteredTargets runs a command on all targets matching the --type filter.
-func runForFilteredTargets(proj *project.Project, cmd string, opts *GlobalOptions, registry *target.Registry, cmdArgs []string) int {
+func runForFilteredTargets(proj *project.Project, cmd string, opts *GlobalOptions, registry *target.Registry, passthruArgs []string) int {
 	targets := registry.ByType(target.TargetType(opts.TargetType))
 	if len(targets) == 0 {
 		out.WarningSimple("no targets of type %q found", opts.TargetType)
 		return 0
 	}
 	for _, t := range targets {
-		if result := runViaMise(proj, cmd, t.Name(), cmdArgs, opts, registry); result != 0 {
+		if result := runViaMise(proj, cmd, t.Name(), passthruArgs, opts, registry); result != 0 {
 			return result
 		}
 	}
@@ -444,13 +444,13 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 	// run mise tasks directly. This differs from standard commands (cmdUnified) which
 	// require the registry to resolve target-specific commands.
 	var targetName string
-	var cmdArgs []string
+	var passthruArgs []string
 	registry, err := target.NewRegistry(proj.Config, proj.Root)
 	if err != nil {
 		out.WarningSimple("could not load target registry: %v", err)
-		cmdArgs = args
+		passthruArgs = args
 	} else {
-		targetName, cmdArgs = extractTargetArg(args, registry)
+		targetName, passthruArgs = extractTargetArg(args, registry)
 	}
 
 	// Ensure mise is ready (installed and mise.toml up-to-date)
@@ -458,7 +458,7 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 		return exitCode
 	}
 
-	return runViaMise(proj, cmd, targetName, cmdArgs, opts, registry)
+	return runViaMise(proj, cmd, targetName, passthruArgs, opts, registry)
 }
 
 // extractTargetArg extracts an optional target name from args if the first arg is a known target.

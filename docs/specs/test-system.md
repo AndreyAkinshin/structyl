@@ -329,6 +329,16 @@ Configure tolerance in `.structyl/config.json`:
 
 **Note:** For `relative` mode, when `expected` is exactly 0.0, the formula changes to `|actual| <= tolerance` to avoid division by zero.
 
+### Numeric Type Handling
+
+When comparing expected and actual values:
+
+- JSON-decoded numbers are `float64` per Go's `encoding/json` semantics
+- Programmatically-constructed `int` actual values are converted to `float64` before comparison
+- This enables test assertions with integer literals: `Equal(1.0, myIntResult, opts)` works even if `myIntResult` is `int`
+
+This accommodation only applies to the `actual` parameter; `expected` values from JSON are always `float64`.
+
 ### Array Comparison
 
 ```json

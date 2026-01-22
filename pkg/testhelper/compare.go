@@ -83,6 +83,18 @@ import (
 //	result, err := testhelper.EqualE(expected, actual, opts)
 //
 // The panic functions are the primary API; the *E variants are escape hatches.
+//
+// # JSON Schema Field Mapping
+//
+// When using CompareOptions in JSON configuration (e.g., structyl.json tests section),
+// field names use snake_case per JSON conventions:
+//
+//	| Go Field       | JSON Field       |
+//	|----------------|------------------|
+//	| FloatTolerance | float_tolerance  |
+//	| ToleranceMode  | tolerance_mode   |
+//	| NaNEqualsNaN   | nan_equals_nan   |
+//	| ArrayOrder     | array_order      |
 type CompareOptions struct {
 	// FloatTolerance specifies the tolerance for float comparisons.
 	// For "relative" and "absolute" modes, this is the tolerance threshold.
@@ -109,6 +121,8 @@ type CompareOptions struct {
 	ToleranceMode string
 
 	// NaNEqualsNaN treats NaN values as equal when true.
+	// This applies to both float64 NaN values and special string representations
+	// ("NaN") used in JSON test case outputs. See [SpecialFloatNaN].
 	NaNEqualsNaN bool
 
 	// ArrayOrder specifies array comparison order.

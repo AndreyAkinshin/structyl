@@ -24,6 +24,8 @@ go install github.com/AndreyAkinshin/structyl/cmd/structyl@latest
 
 See the [documentation](https://structyl.akinshin.dev/getting-started/installation) for additional installation methods.
 
+**Prerequisite:** [mise](https://mise.jdx.dev/) is required for task execution.
+
 ## Quickstart
 
 ```bash

@@ -168,9 +168,8 @@
         },
         "pattern": {
           "type": "string",
-          "description": "Glob pattern for test files",
-          "default": "**/*.json",
-          "$comment": "Note: pkg/testhelper.LoadTestSuite supports *.json only (immediate directory). Recursive patterns (**/*.json) are supported by Structyl's internal test runner."
+          "description": "Glob pattern for test files. Note: pkg/testhelper.LoadTestSuite supports *.json only (immediate directory); recursive patterns (**/*.json) are only supported by Structyl's internal test runner.",
+          "default": "**/*.json"
         },
         "comparison": {
           "type": "object",

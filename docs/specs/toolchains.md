@@ -117,6 +117,8 @@ All toolchains implement this vocabulary:
 
 \* `check` composition varies by toolchain. Some include all three components (lint, typecheck, format-check), others include subsets based on ecosystem conventions and available tools. See individual toolchain sections for exact composition.
 
+> **Command availability:** Not all toolchains implement every command. Commands like `doc`, `pack`, `publish`, `demo`, and `bench` depend on ecosystem support. See individual toolchain sections (e.g., [Cargo](#cargo), [Go](#go)) for exact command mappings. Unavailable commands are set to `null` (invoking them succeeds with a warning).
+
 ### `check` Composition Summary
 
 > **Table notation:** In command tables below, `—` (em-dash) indicates the command is not available for this toolchain (equivalent to `null` in configuration). Invoking a `null` command succeeds with a warning: `command "X" is not available`.

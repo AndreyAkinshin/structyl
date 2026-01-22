@@ -43,6 +43,8 @@ Every test file has `input` and `output`:
 | `skip`        | No       | boolean        | When `true`, marks the test as skipped                                                             |
 | `tags`        | No       | string[]       | Optional categorization for filtering or grouping                                                  |
 
+**Canonical Identifier:** The canonical identifier for a test case is `{suite}/{name}` (e.g., `math/addition`). When suite is empty, the identifier is just the name. The forward slash (`/`) separator is used on all platforms for cross-platform consistency. In `pkg/testhelper`, use `TestCase.ID()` to obtain this identifier.
+
 **Validation Rules:**
 
 - Missing `input` field: Load fails with `test case {suite}/{name}: missing required field "input"`
@@ -54,7 +56,9 @@ Every test file has `input` and `output`:
 
 **Tags validation:** Tags are intentionally permissive: empty strings, duplicates, and any characters are allowed. This design avoids constraining downstream tooling. Establish per-project conventions for tag naming.
 
-**Reserved field names:** The field names `timeout`, `setup`, and `teardown` are reserved for future specification versions. Users SHOULD NOT use these for custom metadata as they MAY gain normative semantics in future releases. These fields are currently ignored by all loaders.
+::: warning Reserved Field Names
+The field names `timeout`, `setup`, and `teardown` are reserved for future specification versions. Users SHOULD NOT use these for custom metadata as they MAY gain normative semantics in future releases. These fields are currently ignored by all loaders.
+:::
 
 ### Loading Failure Behavior
 

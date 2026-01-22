@@ -537,8 +537,7 @@ mise tasks
 }
 ```
 
-> **Note:** `internal/toolchain/builtin.go` is a legacy fallback that mirrors this JSON.
-> Always edit the JSON template first; the Go file exists for backwards compatibility.
+> **Note:** `internal/toolchain/builtin.go` is a legacy fallback that mirrors this JSON and is marked deprecated. When adding or modifying toolchains, edit only `toolchains_template.json`—the Go file should not be edited directly and will be removed in a future version.
 
 2. Add marker file detection in `internal/toolchain/detect.go`:
 

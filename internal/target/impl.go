@@ -400,11 +400,8 @@ func extractCommandName(cmdStr string) string {
 	if trimmed[0] == '"' || trimmed[0] == '\'' {
 		return ""
 	}
-	fields := strings.Fields(trimmed)
-	if len(fields) == 0 {
-		return ""
-	}
-	return fields[0]
+	// After TrimSpace with non-empty result, Fields always returns at least one element.
+	return strings.Fields(trimmed)[0]
 }
 
 // isCommandAvailable checks if a command is available in PATH.

@@ -426,6 +426,22 @@ When a toolchain command is not found, Structyl skips the target with a warning 
 3. If using mise, run `mise install` to install configured tools
 4. Check that the toolchain is correctly configured in `.structyl/config.json`
 
+### Missing mise Installation
+
+When mise is not installed or not in PATH:
+
+**Symptoms:**
+
+- `structyl: mise not found` or similar shell error
+- Commands fail immediately without executing any targets
+
+**Solutions:**
+
+1. Install mise following the [mise installation guide](https://mise.jdx.dev/getting-started.html)
+2. Ensure mise is in your shell's PATH
+3. Restart your shell or run `source ~/.bashrc` / `source ~/.zshrc`
+4. Verify installation with `mise --version`
+
 ### Corrupted mise.toml
 
 When `mise.auto_generate: true` is enabled, Structyl regenerates `mise.toml` on certain commands. If the generated file is invalid:

@@ -232,7 +232,13 @@ func validateCommands(targetName string, commands map[string]interface{}) error 
 	return nil
 }
 
+// commandFieldPath returns the JSON path for a command field in validation errors.
+func commandFieldPath(targetName, cmdName string) string {
+	return fmt.Sprintf("targets.%s.commands.%s", targetName, cmdName)
+}
+
 func validateCommandDef(targetName, cmdName string, cmdDef interface{}) error {
+	fieldPath := commandFieldPath(targetName, cmdName)
 	switch v := cmdDef.(type) {
 	case nil, string:
 		return nil
@@ -244,7 +250,7 @@ func validateCommandDef(targetName, cmdName string, cmdDef interface{}) error {
 				// Valid - command reference
 			default:
 				return &ValidationError{
-					Field:   fmt.Sprintf("targets.%s.commands.%s[%d]", targetName, cmdName, i),
+					Field:   fmt.Sprintf("%s[%d]", fieldPath, i),
 					Message: fmt.Sprintf("command list elements must be strings, got %T", elem),
 				}
 			}
@@ -253,12 +259,12 @@ func validateCommandDef(targetName, cmdName string, cmdDef interface{}) error {
 	case map[string]interface{}:
 		// Object-form commands ({run, cwd, env}) are not implemented
 		return &ValidationError{
-			Field:   fmt.Sprintf("targets.%s.commands.%s", targetName, cmdName),
+			Field:   fieldPath,
 			Message: "object-form commands are not supported; use string or array syntax",
 		}
 	default:
 		return &ValidationError{
-			Field:   fmt.Sprintf("targets.%s.commands.%s", targetName, cmdName),
+			Field:   fieldPath,
 			Message: fmt.Sprintf("invalid command type %T; must be string, null, or array", cmdDef),
 		}
 	}

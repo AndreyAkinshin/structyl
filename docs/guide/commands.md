@@ -13,7 +13,7 @@ Structyl provides a unified command interface that works across all programming 
 | `build`         | Build the project                                   | `structyl build rs`         |
 | `build:release` | Build with release optimizations                    | `structyl build:release rs` |
 | `test`          | Run tests                                           | `structyl test py`          |
-| `test:coverage` | Run tests with coverage                             | `structyl test:coverage py` |
+| `test:coverage` | Run tests with coverage (requires custom config)    | `structyl test:coverage py` |
 | `check`         | Run static analysis (lint, typecheck, format-check) | `structyl check go`         |
 | `check:fix`     | Auto-fix static analysis issues                     | `structyl check:fix go`     |
 | `bench`         | Run benchmarks                                      | `structyl bench go`         |
@@ -291,6 +291,10 @@ Using removed flags produces an error.
 | `STRUCTYL_DOCKER`   | Enable Docker mode (`1`, `true`, or `yes`)   | (unset)   |
 | `STRUCTYL_PARALLEL` | Parallel workers (internal runner only)      | CPU count |
 | `NO_COLOR`          | Disable colored output (any non-empty value) | (unset)   |
+
+::: warning STRUCTYL_PARALLEL Limitation
+When `STRUCTYL_PARALLEL > 1`, targets are scheduled in topological order but execution does **not** wait for dependencies to complete. Use `STRUCTYL_PARALLEL=1` for strict dependency ordering. See [Commands Specification](../specs/commands.md#environment-variables) for details.
+:::
 
 ## Exit Codes
 

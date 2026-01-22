@@ -624,7 +624,7 @@ def compare_output(expected, actual, tolerance=1e-9) -> bool:
 | Field                        | Default       | Description                 |
 | ---------------------------- | ------------- | --------------------------- |
 | `directory`                  | `"tests"`     | Test data directory         |
-| `pattern`                    | `"**/*.json"` | Glob pattern for test files |
+| `pattern`                    | `"**/*.json"` | Glob pattern for test files (internal runner only; `pkg/testhelper` uses `*.json`) |
 | `comparison.float_tolerance` | `1e-9`        | Numeric tolerance           |
 | `comparison.tolerance_mode`  | `"relative"`  | How tolerance is applied    |
 | `comparison.array_order`     | `"strict"`    | Array comparison mode       |

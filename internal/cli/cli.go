@@ -189,6 +189,10 @@ func parseGlobalFlags(args []string) (*GlobalOptions, []string, error) {
 		}
 	}
 
+	// Normalize --type to lowercase for case-insensitive matching.
+	// Users may type --type=Language or --type=LANGUAGE; normalize to --type=language.
+	opts.TargetType = strings.ToLower(opts.TargetType)
+
 	if err := validateGlobalOptions(opts); err != nil {
 		return nil, nil, err
 	}

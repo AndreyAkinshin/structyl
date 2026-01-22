@@ -110,6 +110,18 @@ func TestParseGlobalFlags(t *testing.T) {
 			wantRemaining:  []string{"build"},
 		},
 		{
+			name:           "--type uppercase normalized to lowercase",
+			args:           []string{"--type=Language", "build"},
+			wantTargetType: "language",
+			wantRemaining:  []string{"build"},
+		},
+		{
+			name:           "--type ALLCAPS normalized to lowercase",
+			args:           []string{"--type", "AUXILIARY", "build"},
+			wantTargetType: "auxiliary",
+			wantRemaining:  []string{"build"},
+		},
+		{
 			name:          "-- passthrough",
 			args:          []string{"build", "--", "--verbose", "--debug"},
 			wantRemaining: []string{"build", "--", "--verbose", "--debug"},

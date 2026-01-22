@@ -267,6 +267,20 @@ Lists all configured targets with their types, toolchains, and dependencies.
 
 **JSON output:** Stable structure per [stability.md](stability.md#targetjson-structure). Use this for automation and tooling integration.
 
+**JSON output example:**
+
+```json
+[
+  {
+    "name": "rs",
+    "type": "language",
+    "title": "Rust",
+    "commands": ["clean", "restore", "build", "test", "check"],
+    "depends_on": []
+  }
+]
+```
+
 ### `init` Command
 
 ```

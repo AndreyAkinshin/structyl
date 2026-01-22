@@ -87,10 +87,5 @@ tests/test_foo.py::test_baz PASSED
 	}
 }
 
-func TestPytestParserName(t *testing.T) {
-	t.Parallel()
-	parser := &PytestParser{}
-	if parser.Name() != "pytest" {
-		t.Errorf("Name: got %s, want pytest", parser.Name())
-	}
-}
+// Note: Parser name verification is covered by TestRegistry in registry_test.go,
+// which validates all parser names through the registration system.

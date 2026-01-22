@@ -184,13 +184,8 @@ ok  	example.com/pkg	0.001s`,
 	}
 }
 
-func TestGoParserName(t *testing.T) {
-	t.Parallel()
-	parser := &GoParser{}
-	if parser.Name() != "go" {
-		t.Errorf("Name: got %s, want go", parser.Name())
-	}
-}
+// Note: Parser name verification is covered by TestRegistry in registry_test.go,
+// which validates all parser names through the registration system.
 
 func TestGoParserFailedTestDetails(t *testing.T) {
 	t.Parallel()

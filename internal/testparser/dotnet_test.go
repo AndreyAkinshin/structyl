@@ -73,10 +73,5 @@ Passed!  - Failed:     0, Passed:    47, Skipped:     0, Total:    47`,
 	}
 }
 
-func TestDotnetParserName(t *testing.T) {
-	t.Parallel()
-	parser := &DotnetParser{}
-	if parser.Name() != "dotnet" {
-		t.Errorf("Name: got %s, want dotnet", parser.Name())
-	}
-}
+// Note: Parser name verification is covered by TestRegistry in registry_test.go,
+// which validates all parser names through the registration system.

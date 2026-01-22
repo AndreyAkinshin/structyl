@@ -83,10 +83,5 @@ test_foo.ts:
 	}
 }
 
-func TestBunParserName(t *testing.T) {
-	t.Parallel()
-	parser := &BunParser{}
-	if parser.Name() != "bun" {
-		t.Errorf("Name: got %s, want bun", parser.Name())
-	}
-}
+// Note: Parser name verification is covered by TestRegistry in registry_test.go,
+// which validates all parser names through the registration system.

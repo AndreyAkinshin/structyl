@@ -80,13 +80,8 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; fini
 	}
 }
 
-func TestCargoParserName(t *testing.T) {
-	t.Parallel()
-	parser := &CargoParser{}
-	if parser.Name() != "cargo" {
-		t.Errorf("Name: got %s, want cargo", parser.Name())
-	}
-}
+// Note: Parser name verification is covered by TestRegistry in registry_test.go,
+// which validates all parser names through the registration system.
 
 func TestCargoParserFailedTestDetails(t *testing.T) {
 	t.Parallel()

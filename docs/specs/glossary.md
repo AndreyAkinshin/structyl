@@ -24,7 +24,7 @@ A specific type of [Artifact](#artifact) produced by a build command. Includes c
 
 ### Bootstrap Scripts
 
-The `.structyl/setup.sh` (Unix) and `.structyl/setup.ps1` (Windows) scripts created by `structyl init`. These scripts install the pinned CLI version from `.structyl/version`, enabling reproducible builds without requiring Structyl to be pre-installed globally.
+The `.structyl/setup.sh` (Unix) and `.structyl/setup.ps1` (Windows) scripts created by `structyl init`. These scripts install the pinned CLI version from `.structyl/version`, enabling reproducible builds without requiring Structyl to be pre-installed globally. See [commands.md](commands.md#init-command) for details on project initialization.
 
 ### Code Fence
 

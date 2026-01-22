@@ -405,9 +405,9 @@ func validateTests(cfg *Config) error {
 	}
 
 	// ULP tolerance requires integer values (representing bit distance)
-	isULPMode := c.ToleranceMode == string(ToleranceModeULP)
-	hasNonIntegerTolerance := c.FloatTolerance != nil && *c.FloatTolerance != float64(int(*c.FloatTolerance))
-	if isULPMode && hasNonIntegerTolerance {
+	ulpRequiresInteger := c.ToleranceMode == string(ToleranceModeULP)
+	toleranceIsNonInteger := c.FloatTolerance != nil && *c.FloatTolerance != float64(int(*c.FloatTolerance))
+	if ulpRequiresInteger && toleranceIsNonInteger {
 		return &ValidationError{
 			Field:   "tests.comparison.float_tolerance",
 			Message: "must be an integer when tolerance_mode is \"ulp\"",

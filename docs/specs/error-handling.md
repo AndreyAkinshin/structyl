@@ -123,6 +123,20 @@ A [skip error](glossary.md#skip-error) indicates a command was skipped (not fail
 - Skip errors do NOT affect exit code (exit 0 unless actual failure occurs)
 - Skip errors are excluded from combined error results
 
+### Skip Error Message Formats
+
+| Reason              | Message Format                                                        |
+| ------------------- | --------------------------------------------------------------------- |
+| `disabled`          | `[{target}] {cmd}: disabled, skipping`                                |
+| `command_not_found` | `[{target}] {cmd}: {executable} not found, skipping`                  |
+| `script_not_found`  | `[{target}] {cmd}: script '{script}' not found in package.json, skipping` |
+
+Where:
+- `{target}` — target name (e.g., `go`, `ts`, `cs`)
+- `{cmd}` — command name (e.g., `build`, `test`)
+- `{executable}` — the executable that was not found (e.g., `go`, `cargo`)
+- `{script}` — the npm/pnpm/yarn/bun script name (e.g., `test`, `build`)
+
 ### Example Output
 
 ```

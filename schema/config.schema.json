@@ -331,7 +331,7 @@
         "pre_commands": {
           "type": "array",
           "items": {"type": "string"},
-          "description": "Commands to run before release"
+          "description": "Commands to run before release. Executed via 'sh -c' on all platforms including Windows."
         },
         "remote": {
           "type": "string",

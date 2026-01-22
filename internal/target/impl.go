@@ -70,15 +70,16 @@ type SkipError struct {
 }
 
 func (e *SkipError) Error() string {
+	prefix := fmt.Sprintf("[%s] %s:", e.Target, e.Command)
 	switch e.Reason {
 	case SkipReasonDisabled:
-		return fmt.Sprintf("[%s] %s: disabled, skipping", e.Target, e.Command)
+		return prefix + " disabled, skipping"
 	case SkipReasonCommandNotFound:
-		return fmt.Sprintf("[%s] %s: %s not found, skipping", e.Target, e.Command, e.Detail)
+		return fmt.Sprintf("%s %s not found, skipping", prefix, e.Detail)
 	case SkipReasonScriptNotFound:
-		return fmt.Sprintf("[%s] %s: script '%s' not found in package.json, skipping", e.Target, e.Command, e.Detail)
+		return fmt.Sprintf("%s script '%s' not found in package.json, skipping", prefix, e.Detail)
 	default:
-		return fmt.Sprintf("[%s] %s: skipped (%s)", e.Target, e.Command, e.Reason)
+		return fmt.Sprintf("%s skipped (%s)", prefix, e.Reason)
 	}
 }
 

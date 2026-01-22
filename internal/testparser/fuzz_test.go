@@ -66,6 +66,11 @@ func FuzzGoParser(f *testing.F) {
 			}
 		}
 
+		// Empty input must never be parsed
+		if input == "" && result.Parsed {
+			t.Error("empty input should never be parsed")
+		}
+
 		// FailedTests length should match Failed count
 		if len(result.FailedTests) > result.Failed {
 			t.Errorf("FailedTests length %d exceeds Failed count %d",

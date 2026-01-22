@@ -144,7 +144,7 @@ func (p *GoParser) findFailureReason(lines []string, testName string) string {
 
 	// Return the first (most relevant) error, truncated if too long
 	reason := reasons[0]
-	// Extract just the message part after file:line:
+	// Extract message from "file.go:123: actual message" format
 	if idx := strings.Index(reason, ".go:"); idx != -1 {
 		// Find the colon after line number
 		afterFile := reason[idx+4:]

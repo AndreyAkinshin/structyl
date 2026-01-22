@@ -1151,6 +1151,46 @@ func ListSuites(projectRoot string) ([]string, error) {
 	return suites, nil
 }
 
+// ListTestCases returns the names of all test cases in a suite.
+// Returns an empty slice (not nil) if the suite exists but has no test cases.
+// Returns [ErrSuiteNotFound] if the suite does not exist.
+// Returns [ErrEmptySuiteName] or [ErrInvalidSuiteName] for invalid suite names.
+//
+// Only .json files are included in the result; other files are ignored.
+// The returned names do not include the .json extension.
+func ListTestCases(projectRoot, suite string) ([]string, error) {
+	if err := ValidateSuiteName(suite); err != nil {
+		return nil, err
+	}
+
+	suiteDir := filepath.Join(projectRoot, "tests", suite)
+	entries, err := os.ReadDir(suiteDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil, &SuiteNotFoundError{Root: projectRoot, Suite: suite}
+		}
+		return nil, err
+	}
+
+	var testCases []string
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if strings.HasSuffix(name, ".json") {
+			testCases = append(testCases, strings.TrimSuffix(name, ".json"))
+		}
+	}
+
+	// Return empty slice (not nil) for consistency with ListSuites
+	if testCases == nil {
+		testCases = []string{}
+	}
+
+	return testCases, nil
+}
+
 // SuiteExists checks if a test suite exists.
 // Returns false for any error (including permission errors), not just "not found".
 // Use [LoadTestSuite] for detailed error information, or [SuiteExistsErr] to

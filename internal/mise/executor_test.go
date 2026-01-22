@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/AndreyAkinshin/structyl/internal/output"
 )
 
 func TestBuildRunArgs_WithoutSkipDeps(t *testing.T) {
@@ -633,5 +635,581 @@ func TestExecutor_Trust_WithMock(t *testing.T) {
 	expectedArgs := []string{"trust"}
 	if !reflect.DeepEqual(call.args, expectedArgs) {
 		t.Errorf("args = %v, want %v", call.args, expectedArgs)
+	}
+}
+
+// =============================================================================
+// RunTaskWithCapture Tests
+// =============================================================================
+
+func TestExecutor_RunTaskWithCapture_Success(t *testing.T) {
+	expectedOutput := "build output\nline 2\n"
+	mock := &mockCommandRunner{
+		runFunc: func(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+			// Write to stdout (which is captured via MultiWriter)
+			stdout.Write([]byte(expectedOutput))
+			return nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	output, err := e.RunTaskWithCapture(context.Background(), "build", nil)
+
+	if err != nil {
+		t.Fatalf("RunTaskWithCapture() error = %v", err)
+	}
+	if output != expectedOutput {
+		t.Errorf("output = %q, want %q", output, expectedOutput)
+	}
+	if len(mock.calls) != 1 {
+		t.Fatalf("expected 1 call, got %d", len(mock.calls))
+	}
+	call := mock.calls[0]
+	expectedArgs := []string{"run", "build"}
+	if !reflect.DeepEqual(call.args, expectedArgs) {
+		t.Errorf("args = %v, want %v", call.args, expectedArgs)
+	}
+}
+
+func TestExecutor_RunTaskWithCapture_WithArgs(t *testing.T) {
+	mock := &mockCommandRunner{
+		runFunc: func(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+			return nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	_, err := e.RunTaskWithCapture(context.Background(), "test", []string{"--verbose", "--coverage"})
+
+	if err != nil {
+		t.Fatalf("RunTaskWithCapture() error = %v", err)
+	}
+	call := mock.calls[0]
+	expectedArgs := []string{"run", "test", "--verbose", "--coverage"}
+	if !reflect.DeepEqual(call.args, expectedArgs) {
+		t.Errorf("args = %v, want %v", call.args, expectedArgs)
+	}
+}
+
+func TestExecutor_RunTaskWithCapture_Error(t *testing.T) {
+	expectedErr := errors.New("task failed")
+	outputBeforeError := "partial output\n"
+	mock := &mockCommandRunner{
+		runFunc: func(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+			stdout.Write([]byte(outputBeforeError))
+			return expectedErr
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	output, err := e.RunTaskWithCapture(context.Background(), "build", nil)
+
+	if err != expectedErr {
+		t.Errorf("error = %v, want %v", err, expectedErr)
+	}
+	// Output should still be captured even on error
+	if output != outputBeforeError {
+		t.Errorf("output = %q, want %q", output, outputBeforeError)
+	}
+}
+
+func TestExecutor_RunTaskWithCapture_CapturesStderr(t *testing.T) {
+	stdoutContent := "stdout line\n"
+	stderrContent := "stderr line\n"
+	mock := &mockCommandRunner{
+		runFunc: func(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+			stdout.Write([]byte(stdoutContent))
+			stderr.Write([]byte(stderrContent))
+			return nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	output, err := e.RunTaskWithCapture(context.Background(), "build", nil)
+
+	if err != nil {
+		t.Fatalf("RunTaskWithCapture() error = %v", err)
+	}
+	// Both stdout and stderr should be captured
+	if !strings.Contains(output, stdoutContent) {
+		t.Errorf("output missing stdout: %q", output)
+	}
+	if !strings.Contains(output, stderrContent) {
+		t.Errorf("output missing stderr: %q", output)
+	}
+}
+
+// =============================================================================
+// RunTaskOutput Tests
+// =============================================================================
+
+func TestExecutor_RunTaskOutput_Success(t *testing.T) {
+	expectedOutput := "task output\n"
+	mock := &mockCommandRunner{
+		runFunc: func(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+			stdout.Write([]byte(expectedOutput))
+			return nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	output, err := e.RunTaskOutput(context.Background(), "build", nil)
+
+	if err != nil {
+		t.Fatalf("RunTaskOutput() error = %v", err)
+	}
+	if output != expectedOutput {
+		t.Errorf("output = %q, want %q", output, expectedOutput)
+	}
+}
+
+func TestExecutor_RunTaskOutput_WithArgs(t *testing.T) {
+	mock := &mockCommandRunner{
+		runFunc: func(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+			return nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	_, err := e.RunTaskOutput(context.Background(), "test", []string{"--json"})
+
+	if err != nil {
+		t.Fatalf("RunTaskOutput() error = %v", err)
+	}
+	call := mock.calls[0]
+	expectedArgs := []string{"run", "test", "--json"}
+	if !reflect.DeepEqual(call.args, expectedArgs) {
+		t.Errorf("args = %v, want %v", call.args, expectedArgs)
+	}
+}
+
+func TestExecutor_RunTaskOutput_Error(t *testing.T) {
+	stderrContent := "error details"
+	mock := &mockCommandRunner{
+		runFunc: func(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+			stderr.Write([]byte(stderrContent))
+			return errors.New("exit status 1")
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	_, err := e.RunTaskOutput(context.Background(), "build", nil)
+
+	if err == nil {
+		t.Fatal("RunTaskOutput() expected error")
+	}
+	if !strings.Contains(err.Error(), "mise run failed") {
+		t.Errorf("error = %q, want to contain 'mise run failed'", err.Error())
+	}
+	if !strings.Contains(err.Error(), stderrContent) {
+		t.Errorf("error = %q, want to contain stderr content %q", err.Error(), stderrContent)
+	}
+}
+
+func TestExecutor_RunTaskOutput_ReturnsOnlyStdout(t *testing.T) {
+	stdoutContent := "stdout only\n"
+	stderrContent := "stderr content\n"
+	mock := &mockCommandRunner{
+		runFunc: func(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+			stdout.Write([]byte(stdoutContent))
+			stderr.Write([]byte(stderrContent))
+			return nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	output, err := e.RunTaskOutput(context.Background(), "build", nil)
+
+	if err != nil {
+		t.Fatalf("RunTaskOutput() error = %v", err)
+	}
+	// Should only return stdout, not stderr
+	if output != stdoutContent {
+		t.Errorf("output = %q, want %q", output, stdoutContent)
+	}
+	if strings.Contains(output, stderrContent) {
+		t.Errorf("output should not contain stderr: %q", output)
+	}
+}
+
+// =============================================================================
+// ListTasks Tests
+// =============================================================================
+
+func TestExecutor_ListTasks_Success(t *testing.T) {
+	miseOutput := "build  Build the project\ntest   Run tests\nclean  Clean artifacts\n"
+	mock := &mockCommandRunner{
+		outputFunc: func(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+			return []byte(miseOutput), nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	tasks, err := e.ListTasks(context.Background())
+
+	if err != nil {
+		t.Fatalf("ListTasks() error = %v", err)
+	}
+	expected := []string{"build", "test", "clean"}
+	if !reflect.DeepEqual(tasks, expected) {
+		t.Errorf("tasks = %v, want %v", tasks, expected)
+	}
+}
+
+func TestExecutor_ListTasks_WithNamespacedTasks(t *testing.T) {
+	miseOutput := "build:go   Build Go\nbuild:rs   Build Rust\ntest:go    Test Go\n"
+	mock := &mockCommandRunner{
+		outputFunc: func(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+			return []byte(miseOutput), nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	tasks, err := e.ListTasks(context.Background())
+
+	if err != nil {
+		t.Fatalf("ListTasks() error = %v", err)
+	}
+	expected := []string{"build:go", "build:rs", "test:go"}
+	if !reflect.DeepEqual(tasks, expected) {
+		t.Errorf("tasks = %v, want %v", tasks, expected)
+	}
+}
+
+func TestExecutor_ListTasks_Empty(t *testing.T) {
+	mock := &mockCommandRunner{
+		outputFunc: func(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+			return []byte(""), nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	tasks, err := e.ListTasks(context.Background())
+
+	if err != nil {
+		t.Fatalf("ListTasks() error = %v", err)
+	}
+	if len(tasks) != 0 {
+		t.Errorf("tasks = %v, want empty", tasks)
+	}
+}
+
+func TestExecutor_ListTasks_SkipsComments(t *testing.T) {
+	miseOutput := "# This is a comment\nbuild  Build\n# Another comment\ntest   Test\n"
+	mock := &mockCommandRunner{
+		outputFunc: func(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+			return []byte(miseOutput), nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	tasks, err := e.ListTasks(context.Background())
+
+	if err != nil {
+		t.Fatalf("ListTasks() error = %v", err)
+	}
+	expected := []string{"build", "test"}
+	if !reflect.DeepEqual(tasks, expected) {
+		t.Errorf("tasks = %v, want %v", tasks, expected)
+	}
+}
+
+func TestExecutor_ListTasks_SkipsBlankLines(t *testing.T) {
+	miseOutput := "build  Build\n\n   \ntest   Test\n"
+	mock := &mockCommandRunner{
+		outputFunc: func(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+			return []byte(miseOutput), nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	tasks, err := e.ListTasks(context.Background())
+
+	if err != nil {
+		t.Fatalf("ListTasks() error = %v", err)
+	}
+	expected := []string{"build", "test"}
+	if !reflect.DeepEqual(tasks, expected) {
+		t.Errorf("tasks = %v, want %v", tasks, expected)
+	}
+}
+
+func TestExecutor_ListTasks_Error(t *testing.T) {
+	mock := &mockCommandRunner{
+		outputFunc: func(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+			return nil, errors.New("mise not found")
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	_, err := e.ListTasks(context.Background())
+
+	if err == nil {
+		t.Fatal("ListTasks() expected error")
+	}
+}
+
+func TestExecutor_ListTasks_VerifiesArgs(t *testing.T) {
+	mock := &mockCommandRunner{
+		outputFunc: func(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+			return []byte(""), nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	_, _ = e.ListTasks(context.Background())
+
+	if len(mock.calls) != 1 {
+		t.Fatalf("expected 1 call, got %d", len(mock.calls))
+	}
+	call := mock.calls[0]
+	if call.method != "Output" {
+		t.Errorf("method = %q, want Output", call.method)
+	}
+	expectedArgs := []string{"tasks"}
+	if !reflect.DeepEqual(call.args, expectedArgs) {
+		t.Errorf("args = %v, want %v", call.args, expectedArgs)
+	}
+}
+
+// =============================================================================
+// ResolveTaskDependencies Tests (via Executor)
+// =============================================================================
+
+func TestExecutor_ResolveTaskDependencies_Success(t *testing.T) {
+	jsonOutput := `[{"name":"build","depends":["restore"]},{"name":"restore","depends":[]}]`
+	mock := &mockCommandRunner{
+		outputFunc: func(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+			return []byte(jsonOutput), nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	tasks, err := e.ResolveTaskDependencies(context.Background(), "build")
+
+	if err != nil {
+		t.Fatalf("ResolveTaskDependencies() error = %v", err)
+	}
+	if len(tasks) != 2 {
+		t.Fatalf("len(tasks) = %d, want 2", len(tasks))
+	}
+	// restore should come before build
+	if tasks[0].Name != "restore" {
+		t.Errorf("tasks[0].Name = %q, want restore", tasks[0].Name)
+	}
+	if tasks[1].Name != "build" {
+		t.Errorf("tasks[1].Name = %q, want build", tasks[1].Name)
+	}
+}
+
+func TestExecutor_ResolveTaskDependencies_GetTasksMetaError(t *testing.T) {
+	mock := &mockCommandRunner{
+		outputFunc: func(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+			return nil, errors.New("mise not found")
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	_, err := e.ResolveTaskDependencies(context.Background(), "build")
+
+	if err == nil {
+		t.Fatal("ResolveTaskDependencies() expected error")
+	}
+}
+
+func TestExecutor_ResolveTaskDependencies_TaskNotFound(t *testing.T) {
+	jsonOutput := `[{"name":"build","depends":[]}]`
+	mock := &mockCommandRunner{
+		outputFunc: func(ctx context.Context, name string, args []string, dir string) ([]byte, error) {
+			return []byte(jsonOutput), nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	_, err := e.ResolveTaskDependencies(context.Background(), "nonexistent")
+
+	if err == nil {
+		t.Fatal("ResolveTaskDependencies() expected error for missing task")
+	}
+	if !strings.Contains(err.Error(), "not found") {
+		t.Errorf("error = %q, want to contain 'not found'", err.Error())
+	}
+}
+
+// =============================================================================
+// RunTasksWithTracking Tests
+// =============================================================================
+
+func TestExecutor_RunTasksWithTracking_AllSuccess(t *testing.T) {
+	mock := &mockCommandRunner{
+		runFunc: func(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+			return nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	tasks := []MiseTaskMeta{
+		{Name: "restore"},
+		{Name: "build"},
+		{Name: "test"},
+	}
+
+	// Use an output writer that discards output
+	out := output.NewWithWriters(io.Discard, io.Discard, false)
+	summary := e.RunTasksWithTracking(context.Background(), tasks, nil, false, out, nil)
+
+	if summary.Passed != 3 {
+		t.Errorf("Passed = %d, want 3", summary.Passed)
+	}
+	if summary.Failed != 0 {
+		t.Errorf("Failed = %d, want 0", summary.Failed)
+	}
+	if len(summary.Tasks) != 3 {
+		t.Errorf("len(Tasks) = %d, want 3", len(summary.Tasks))
+	}
+	for i, task := range summary.Tasks {
+		if !task.Success {
+			t.Errorf("task[%d] Success = false, want true", i)
+		}
+	}
+}
+
+func TestExecutor_RunTasksWithTracking_StopsOnFailure(t *testing.T) {
+	callCount := 0
+	mock := &mockCommandRunner{
+		runFunc: func(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+			callCount++
+			// Fail on second task
+			if callCount == 2 {
+				return errors.New("task failed")
+			}
+			return nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	tasks := []MiseTaskMeta{
+		{Name: "restore"},
+		{Name: "build"},
+		{Name: "test"},
+	}
+
+	out := output.NewWithWriters(io.Discard, io.Discard, false)
+	summary := e.RunTasksWithTracking(context.Background(), tasks, nil, false, out, nil)
+
+	// Should stop after failure (continueOnError = false)
+	if summary.Passed != 1 {
+		t.Errorf("Passed = %d, want 1", summary.Passed)
+	}
+	if summary.Failed != 1 {
+		t.Errorf("Failed = %d, want 1", summary.Failed)
+	}
+	if len(summary.Tasks) != 2 {
+		t.Errorf("len(Tasks) = %d, want 2 (stopped after failure)", len(summary.Tasks))
+	}
+}
+
+func TestExecutor_RunTasksWithTracking_ContinueOnError(t *testing.T) {
+	callCount := 0
+	mock := &mockCommandRunner{
+		runFunc: func(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+			callCount++
+			// Fail on second task
+			if callCount == 2 {
+				return errors.New("task failed")
+			}
+			return nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	tasks := []MiseTaskMeta{
+		{Name: "restore"},
+		{Name: "build"},
+		{Name: "test"},
+	}
+
+	out := output.NewWithWriters(io.Discard, io.Discard, false)
+	summary := e.RunTasksWithTracking(context.Background(), tasks, nil, true, out, nil) // continueOnError = true
+
+	// Should continue after failure
+	if summary.Passed != 2 {
+		t.Errorf("Passed = %d, want 2", summary.Passed)
+	}
+	if summary.Failed != 1 {
+		t.Errorf("Failed = %d, want 1", summary.Failed)
+	}
+	if len(summary.Tasks) != 3 {
+		t.Errorf("len(Tasks) = %d, want 3", len(summary.Tasks))
+	}
+}
+
+func TestExecutor_RunTasksWithTracking_EmptyTasks(t *testing.T) {
+	mock := &mockCommandRunner{}
+
+	e := NewExecutorWithRunner("/project", mock)
+	out := output.NewWithWriters(io.Discard, io.Discard, false)
+	summary := e.RunTasksWithTracking(context.Background(), []MiseTaskMeta{}, nil, false, out, nil)
+
+	if summary.Passed != 0 {
+		t.Errorf("Passed = %d, want 0", summary.Passed)
+	}
+	if summary.Failed != 0 {
+		t.Errorf("Failed = %d, want 0", summary.Failed)
+	}
+	if len(summary.Tasks) != 0 {
+		t.Errorf("len(Tasks) = %d, want 0", len(summary.Tasks))
+	}
+	if len(mock.calls) != 0 {
+		t.Errorf("expected 0 calls, got %d", len(mock.calls))
+	}
+}
+
+func TestExecutor_RunTasksWithTracking_WithArgs(t *testing.T) {
+	var capturedArgs [][]string
+	mock := &mockCommandRunner{
+		runFunc: func(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+			capturedArgs = append(capturedArgs, args)
+			return nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	tasks := []MiseTaskMeta{
+		{Name: "test"},
+	}
+
+	out := output.NewWithWriters(io.Discard, io.Discard, false)
+	e.RunTasksWithTracking(context.Background(), tasks, []string{"--verbose"}, false, out, nil)
+
+	if len(capturedArgs) != 1 {
+		t.Fatalf("expected 1 call, got %d", len(capturedArgs))
+	}
+	expectedArgs := []string{"run", "test", "--verbose"}
+	if !reflect.DeepEqual(capturedArgs[0], expectedArgs) {
+		t.Errorf("args = %v, want %v", capturedArgs[0], expectedArgs)
+	}
+}
+
+func TestExecutor_RunTasksWithTracking_RecordsDuration(t *testing.T) {
+	mock := &mockCommandRunner{
+		runFunc: func(ctx context.Context, name string, args []string, dir string, env []string, stdin io.Reader, stdout, stderr io.Writer) error {
+			return nil
+		},
+	}
+
+	e := NewExecutorWithRunner("/project", mock)
+	tasks := []MiseTaskMeta{
+		{Name: "build"},
+	}
+
+	out := output.NewWithWriters(io.Discard, io.Discard, false)
+	summary := e.RunTasksWithTracking(context.Background(), tasks, nil, false, out, nil)
+
+	if summary.TotalDuration <= 0 {
+		t.Error("TotalDuration should be positive")
+	}
+	if len(summary.Tasks) == 1 && summary.Tasks[0].Duration <= 0 {
+		t.Error("task Duration should be positive")
 	}
 }

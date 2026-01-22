@@ -16,105 +16,50 @@ import (
 
 // Note: getParallelWorkers tests use t.Setenv which modifies process-wide state.
 // These tests cannot use t.Parallel() - they must run sequentially.
-func TestGetParallelWorkers_Default(t *testing.T) {
-	t.Setenv("STRUCTYL_PARALLEL", "")
+func TestGetParallelWorkers(t *testing.T) {
+	defaultWorkers := max(1, runtime.NumCPU())
 
-	workers := getParallelWorkers()
-	expected := max(1, runtime.NumCPU())
-	if workers != expected {
-		t.Errorf("getParallelWorkers() = %d, want max(1, runtime.NumCPU()) = %d", workers, expected)
-	}
-}
+	tests := []struct {
+		name     string
+		env      string
+		expected int
+		minBound bool // if true, expected is minimum bound (>=), else exact match
+	}{
+		// Valid values
+		{name: "default_empty", env: "", expected: defaultWorkers, minBound: false},
+		{name: "valid_4", env: "4", expected: 4, minBound: false},
+		{name: "valid_leading_zeros", env: "007", expected: 7, minBound: false},
+		{name: "boundary_min", env: "1", expected: 1, minBound: false},
+		{name: "boundary_max", env: "256", expected: 256, minBound: false},
+		{name: "boundary_255", env: "255", expected: 255, minBound: false},
 
-func TestGetParallelWorkers_FromEnv(t *testing.T) {
-	t.Setenv("STRUCTYL_PARALLEL", "4")
-
-	workers := getParallelWorkers()
-	if workers != 4 {
-		t.Errorf("getParallelWorkers() = %d, want 4", workers)
-	}
-}
-
-func TestGetParallelWorkers_InvalidEnv(t *testing.T) {
-	// Note: t.Setenv modifies process state, so these tests cannot use t.Parallel()
-	tests := []string{
-		"invalid",
-		"0",
-		"-1",
-		"257",
-		" 4",  // leading whitespace - strconv.Atoi fails
-		"4 ",  // trailing whitespace - strconv.Atoi fails
-		"4.0", // float - strconv.Atoi fails
+		// Invalid values (all fall back to CPU count with minimum bound check)
+		{name: "invalid_text", env: "invalid", expected: 1, minBound: true},
+		{name: "invalid_zero", env: "0", expected: 1, minBound: true},
+		{name: "invalid_negative", env: "-1", expected: 1, minBound: true},
+		{name: "invalid_above_max", env: "257", expected: 1, minBound: true},
+		{name: "invalid_leading_space", env: " 4", expected: 1, minBound: true},
+		{name: "invalid_trailing_space", env: "4 ", expected: 1, minBound: true},
+		{name: "invalid_float", env: "4.0", expected: 1, minBound: true},
+		{name: "invalid_whitespace_only", env: "   ", expected: 1, minBound: true},
+		{name: "invalid_overflow", env: "9999999999999999999", expected: 1, minBound: true},
 	}
 
-	for _, val := range tests {
-		t.Run(val, func(t *testing.T) {
-			t.Setenv("STRUCTYL_PARALLEL", val)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("STRUCTYL_PARALLEL", tt.env)
 
 			workers := getParallelWorkers()
-			// Should fall back to CPU count
-			if workers < 1 {
-				t.Errorf("getParallelWorkers() = %d, want >= 1", workers)
+			if tt.minBound {
+				if workers < tt.expected {
+					t.Errorf("getParallelWorkers() = %d, want >= %d", workers, tt.expected)
+				}
+			} else {
+				if workers != tt.expected {
+					t.Errorf("getParallelWorkers() = %d, want %d", workers, tt.expected)
+				}
 			}
 		})
-	}
-}
-
-func TestGetParallelWorkers_LeadingZeros(t *testing.T) {
-	// Leading zeros are valid for strconv.Atoi
-	t.Setenv("STRUCTYL_PARALLEL", "007")
-
-	workers := getParallelWorkers()
-	if workers != 7 {
-		t.Errorf("getParallelWorkers() = %d, want 7 (leading zeros accepted)", workers)
-	}
-}
-
-func TestGetParallelWorkers_Boundary1(t *testing.T) {
-	t.Setenv("STRUCTYL_PARALLEL", "1")
-
-	workers := getParallelWorkers()
-	if workers != 1 {
-		t.Errorf("getParallelWorkers() = %d, want 1", workers)
-	}
-}
-
-func TestGetParallelWorkers_Boundary256(t *testing.T) {
-	t.Setenv("STRUCTYL_PARALLEL", "256")
-
-	workers := getParallelWorkers()
-	if workers != 256 {
-		t.Errorf("getParallelWorkers() = %d, want 256", workers)
-	}
-}
-
-func TestGetParallelWorkers_Boundary255(t *testing.T) {
-	t.Setenv("STRUCTYL_PARALLEL", "255")
-
-	workers := getParallelWorkers()
-	if workers != 255 {
-		t.Errorf("getParallelWorkers() = %d, want 255", workers)
-	}
-}
-
-func TestGetParallelWorkers_WhitespaceOnly(t *testing.T) {
-	t.Setenv("STRUCTYL_PARALLEL", "   ")
-
-	workers := getParallelWorkers()
-	// Whitespace-only should fail strconv.Atoi and fall back to CPU count
-	if workers < 1 {
-		t.Errorf("getParallelWorkers() = %d, want >= 1", workers)
-	}
-}
-
-func TestGetParallelWorkers_Overflow(t *testing.T) {
-	// Value exceeds int64 max, strconv.Atoi returns error
-	t.Setenv("STRUCTYL_PARALLEL", "9999999999999999999")
-
-	workers := getParallelWorkers()
-	// Should fall back to CPU count on overflow
-	if workers < 1 {
-		t.Errorf("getParallelWorkers() = %d, want >= 1", workers)
 	}
 }
 

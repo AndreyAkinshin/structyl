@@ -26,8 +26,12 @@ var varPattern = regexp.MustCompile(`\$\{([^}]+)\}`)
 // This prevents ${var} from being interpreted as a variable reference when
 // the user wants a literal ${var} in the output.
 //
-// NUL bytes (\x00) are used because they cannot appear in valid shell commands,
-// making collisions impossible. The interpolation process:
+// NUL bytes (\x00) are used because:
+//  1. NUL cannot appear in POSIX shell command strings (terminates C strings)
+//  2. NUL cannot appear in Go strings from config.json (JSON spec forbids it)
+//  3. This guarantees no collision with any user-provided variable values
+//
+// The interpolation process:
 //  1. Replace $${var} with escapePlaceholder
 //  2. Replace ${var} with actual values
 //  3. Restore escapePlaceholder back to ${var} (literal)

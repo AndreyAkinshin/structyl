@@ -484,3 +484,136 @@ func TestSort_Deterministic(t *testing.T) {
 		}
 	}
 }
+
+func TestSort_UnicodeNodeNames(t *testing.T) {
+	t.Parallel()
+	// Graph with Unicode node names (various scripts)
+	g := Graph{
+		"日本語":      nil,          // Japanese
+		"中文":       {"日本語"},      // Chinese depends on Japanese
+		"한국어":      {"中文"},       // Korean depends on Chinese
+		"Ελληνικά": {"한국어"},      // Greek depends on Korean
+		"العربية":  {"Ελληνικά"}, // Arabic depends on Greek
+		"🚀":        {"العربية"},  // Emoji depends on Arabic
+	}
+	result, err := Sort(g, nil)
+	if err != nil {
+		t.Fatalf("Sort() error = %v, want nil", err)
+	}
+	if len(result) != 6 {
+		t.Errorf("Sort() returned %d nodes, want 6", len(result))
+	}
+
+	// Verify ordering
+	indexOf := make(map[string]int)
+	for i, name := range result {
+		indexOf[name] = i
+	}
+
+	// Each node must come after its dependencies
+	for name, deps := range g {
+		for _, dep := range deps {
+			if indexOf[dep] >= indexOf[name] {
+				t.Errorf("Sort() dependency %q should come before %q", dep, name)
+			}
+		}
+	}
+}
+
+func TestSort_VeryLongNodeNames(t *testing.T) {
+	t.Parallel()
+	// Create node names with >1000 characters
+	longName1 := strings.Repeat("a", 1001)
+	longName2 := strings.Repeat("b", 1500)
+	longName3 := strings.Repeat("c", 2000)
+
+	g := Graph{
+		longName1: nil,
+		longName2: {longName1},
+		longName3: {longName2},
+	}
+
+	result, err := Sort(g, nil)
+	if err != nil {
+		t.Fatalf("Sort() error = %v, want nil", err)
+	}
+	if len(result) != 3 {
+		t.Errorf("Sort() returned %d nodes, want 3", len(result))
+	}
+
+	// Verify ordering
+	indexOf := make(map[string]int, 3)
+	for i, name := range result {
+		indexOf[name] = i
+	}
+
+	if indexOf[longName1] >= indexOf[longName2] {
+		t.Error("Sort() longName1 should come before longName2")
+	}
+	if indexOf[longName2] >= indexOf[longName3] {
+		t.Error("Sort() longName2 should come before longName3")
+	}
+}
+
+func TestSort_VeryLargeGraph(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping stress test in short mode")
+	}
+	t.Parallel()
+
+	// Build a graph with 10,000 nodes in a complex structure:
+	// - First 5000 nodes form independent chains of length 5
+	// - Last 5000 nodes depend on multiple earlier nodes
+	const nodeCount = 10000
+	const chainLength = 5
+	g := make(Graph, nodeCount)
+
+	nodeName := func(i int) string {
+		return fmt.Sprintf("node_%05d", i)
+	}
+
+	// Create chains of length 5
+	for i := 0; i < nodeCount/2; i++ {
+		name := nodeName(i)
+		if i%chainLength == 0 {
+			g[name] = nil
+		} else {
+			g[name] = []string{nodeName(i - 1)}
+		}
+	}
+
+	// Create nodes that depend on multiple chain heads
+	for i := nodeCount / 2; i < nodeCount; i++ {
+		name := nodeName(i)
+		// Each node depends on a few chain heads
+		deps := make([]string, 0, 3)
+		for j := 0; j < 3; j++ {
+			chainHead := ((i + j*13) % (nodeCount / 2 / chainLength)) * chainLength
+			deps = append(deps, nodeName(chainHead))
+		}
+		g[name] = deps
+	}
+
+	result, err := Sort(g, nil)
+	if err != nil {
+		t.Fatalf("Sort() error = %v, want nil", err)
+	}
+
+	if len(result) != nodeCount {
+		t.Errorf("Sort() returned %d nodes, want %d", len(result), nodeCount)
+	}
+
+	// Verify ordering constraint: each node appears after all its dependencies
+	indexOf := make(map[string]int, nodeCount)
+	for i, name := range result {
+		indexOf[name] = i
+	}
+
+	for name, deps := range g {
+		for _, dep := range deps {
+			if indexOf[dep] >= indexOf[name] {
+				t.Errorf("Sort() dependency %s should come before %s", dep, name)
+			}
+		}
+	}
+}

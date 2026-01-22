@@ -99,15 +99,71 @@ This table is synchronized with `// Deprecated:` comments in Go source code. If 
 
 ### Stable (Covered by Guarantees)
 
-- `pkg/structyl`: Exit code constants
-- `pkg/testhelper`: Test loading and comparison functions (including error-returning variants: `EqualE`, `CompareE`, `FormatComparisonResultE`)
+- `pkg/structyl`: Exit code constants (`ExitSuccess`, `ExitFailure`, `ExitConfigError`, `ExitEnvError`)
+- `pkg/testhelper`: Test loading and comparison library (detailed below)
 - CLI commands and flags documented in [commands.md](commands.md)
 - Configuration schema documented in [configuration.md](configuration.md)
 - Exit codes documented in [error-handling.md](error-handling.md)
 - Skip error reason identifiers: `disabled`, `command_not_found`, `script_not_found` (see [error-handling.md](error-handling.md#skip-errors))
 - `structyl targets --json` output format (see [TargetJSON Structure](#targetjson-structure) below)
 - Diff path format: JSON Path notation (`$`, `$.foo`, `$.foo[0].bar`) in `Compare`/`FormatComparisonResult` output (see [test-system.md](test-system.md#output-comparison))
-- Validation error reason constants: `ReasonPathTraversal`, `ReasonPathSeparator`, `ReasonNullByte` (used with `InvalidSuiteNameError` and `InvalidTestCaseNameError`)
+
+#### pkg/testhelper Stable Symbols
+
+**Types:**
+
+- `TestCase` — Test case representation with builder methods
+- `CompareOptions` — Comparison configuration
+- `ProjectNotFoundError`, `SuiteNotFoundError`, `TestCaseNotFoundError` — Structured error types
+- `InvalidSuiteNameError`, `InvalidTestCaseNameError` — Validation error types
+
+**Sentinel Errors:**
+
+- `ErrProjectNotFound`, `ErrSuiteNotFound`, `ErrTestCaseNotFound` — For `errors.Is()` matching
+- `ErrInvalidSuiteName`, `ErrInvalidTestCaseName` — For `errors.Is()` matching
+- `ErrEmptySuiteName`, `ErrEmptyTestCaseName` — Empty name errors
+- `ErrFileReferenceNotSupported` — `$file` syntax rejection
+
+**Test Loading Functions:**
+
+- `LoadTestSuite`, `LoadTestCase`, `LoadTestCaseByName`, `LoadTestCaseWithSuite` — Load test cases
+- `LoadAllSuites` — Load all suites as map
+- `ListSuites`, `ListTestCases` — Discovery functions
+- `FindProjectRoot`, `FindProjectRootFrom` — Project root detection
+- `NewTestCase`, `NewTestCaseFromJSON`, `NewTestCaseFromJSONWithSuite` — Constructors
+- `SuiteExists`, `SuiteExistsErr`, `TestCaseExists`, `TestCaseExistsErr` — Existence checks
+- `ValidateSuiteName`, `ValidateTestCaseName` — Name validation
+
+**Comparison Functions:**
+
+- `Equal`, `EqualE` — Boolean equality check (panic/error variants)
+- `Compare`, `CompareE` — Equality check with diff path (panic/error variants)
+- `FormatComparisonResult`, `FormatComparisonResultE` — Formatted diff output (panic/error variants)
+- `ULPDiff` — ULP distance calculation for floats
+
+**Options Functions:**
+
+- `DefaultOptions` — Default comparison options
+- `NewCompareOptionsOrdered` — Constructor with validated parameters
+- `ValidateOptions` — Options validation
+
+**Constants:**
+
+- `ToleranceModeRelative`, `ToleranceModeAbsolute`, `ToleranceModeULP` — Float tolerance modes
+- `ArrayOrderStrict`, `ArrayOrderUnordered` — Array comparison modes
+- `SpecialFloatNaN`, `SpecialFloatInfinity`, `SpecialFloatNegInfinity` — Special float string representations
+- `ReasonPathTraversal`, `ReasonPathSeparator`, `ReasonNullByte` — Validation rejection reasons
+
+**TestCase Methods:**
+
+- `Clone`, `DeepClone` — Copy methods
+- `WithName`, `WithSuite`, `WithDescription`, `WithInput`, `WithOutput`, `WithTags`, `WithSkip` — Builder methods
+- `HasSuite`, `TagsContain` — Query methods
+- `Validate`, `ValidateStrict`, `ValidateDeep` — Validation hierarchy
+
+**CompareOptions Methods:**
+
+- `IsValid`, `IsZero` — Validation and zero-value check
 
 ### Unstable (May Change)
 

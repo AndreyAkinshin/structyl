@@ -2807,6 +2807,118 @@ func TestTestCase_WithOutput(t *testing.T) {
 	})
 }
 
+func TestTestCase_WithDescription(t *testing.T) {
+	t.Parallel()
+
+	t.Run("sets_description", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:        "test",
+			Input:       map[string]interface{}{},
+			Output:      "result",
+			Description: "",
+		}
+
+		result := original.WithDescription("new description")
+
+		if result.Description != "new description" {
+			t.Errorf("Description: got %q, want %q", result.Description, "new description")
+		}
+	})
+
+	t.Run("replaces_existing_description", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:        "test",
+			Input:       map[string]interface{}{},
+			Output:      "result",
+			Description: "old description",
+		}
+
+		result := original.WithDescription("new description")
+
+		if result.Description != "new description" {
+			t.Errorf("Description: got %q, want %q", result.Description, "new description")
+		}
+	})
+
+	t.Run("original_unchanged", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:        "test",
+			Input:       map[string]interface{}{},
+			Output:      "result",
+			Description: "original description",
+		}
+
+		_ = original.WithDescription("new description")
+
+		if original.Description != "original description" {
+			t.Errorf("original Description changed: got %q, want %q", original.Description, "original description")
+		}
+	})
+
+	t.Run("preserves_other_fields", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:        "test-name",
+			Suite:       "suite",
+			Description: "old",
+			Input:       map[string]interface{}{"key": "value"},
+			Output:      "output",
+			Tags:        []string{"tag"},
+			Skip:        true,
+		}
+
+		result := original.WithDescription("new")
+
+		if result.Name != original.Name {
+			t.Errorf("Name: got %q, want %q", result.Name, original.Name)
+		}
+		if result.Suite != original.Suite {
+			t.Errorf("Suite: got %q, want %q", result.Suite, original.Suite)
+		}
+		if result.Skip != original.Skip {
+			t.Errorf("Skip: got %v, want %v", result.Skip, original.Skip)
+		}
+		if len(result.Tags) != len(original.Tags) {
+			t.Errorf("Tags: got %v, want %v", result.Tags, original.Tags)
+		}
+	})
+
+	t.Run("clears_with_empty_string", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:        "test",
+			Input:       map[string]interface{}{},
+			Output:      "result",
+			Description: "existing",
+		}
+
+		result := original.WithDescription("")
+
+		if result.Description != "" {
+			t.Errorf("Description: got %q, want empty", result.Description)
+		}
+	})
+
+	t.Run("input_isolation", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{"key": "value"},
+			Output: "result",
+		}
+
+		result := original.WithDescription("desc")
+		result.Input["new"] = "added"
+
+		if _, exists := original.Input["new"]; exists {
+			t.Error("modifying result's Input affected original")
+		}
+	})
+}
+
 // =============================================================================
 // SuiteExistsErr and TestCaseExistsErr validation tests
 // =============================================================================

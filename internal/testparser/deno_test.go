@@ -57,6 +57,14 @@ ok | 47 passed | 0 failed (123ms)`,
 			output:   "ok | 5 passed | 0 failed",
 			expected: TestCounts{Passed: 5, Failed: 0, Skipped: 0, Total: 5, Parsed: true},
 		},
+		{
+			// Pipe format with ignored: the pipe regex only captures passed|failed,
+			// so ignored is lost when pipe format matches. This documents current behavior.
+			// Note: Deno's actual pipe format doesn't include ignored in most versions.
+			name:     "pipe format with ignored (limitation)",
+			output:   "ok | 5 passed | 0 failed | 2 ignored (50ms)",
+			expected: TestCounts{Passed: 5, Failed: 0, Skipped: 0, Total: 5, Parsed: true},
+		},
 	}
 
 	for _, tt := range tests {

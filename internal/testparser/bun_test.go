@@ -58,6 +58,27 @@ test_foo.ts:
 			output:   "47 PASS\n2 FAIL",
 			expected: TestCounts{Parsed: false},
 		},
+		{
+			// Leading zeros are stripped by strconv.Atoi.
+			// This documents current behavior—007 becomes 7.
+			name:     "leading zeros",
+			output:   "007 pass\n003 fail",
+			expected: TestCounts{Passed: 7, Failed: 3, Skipped: 0, Total: 10, Parsed: true},
+		},
+		{
+			// Partial word match: "pass" in "passengers" matches.
+			// This documents current behavior—pattern is not word-bounded.
+			name:     "partial word match",
+			output:   "100 passengers boarded",
+			expected: TestCounts{Passed: 100, Failed: 0, Skipped: 0, Total: 100, Parsed: true},
+		},
+		{
+			// Multiple matches: first occurrence wins (FindStringSubmatch behavior).
+			// This documents current behavior.
+			name:     "first match wins",
+			output:   "5 pass\n10 pass",
+			expected: TestCounts{Passed: 5, Failed: 0, Skipped: 0, Total: 5, Parsed: true},
+		},
 	}
 
 	for _, tt := range tests {

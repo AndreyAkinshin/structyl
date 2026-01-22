@@ -159,6 +159,14 @@ PASS
 ok  	example.com/pkg	0.001s`,
 			expected: TestCounts{Passed: 1, Failed: 0, Skipped: 0, Total: 1, Parsed: true},
 		},
+		{
+			// Edge case: ANSI codes in the middle of test name.
+			// Since the regex anchors to line start with "---\s+PASS:", ANSI codes
+			// within the test name do not affect parsing.
+			name:     "ansi_midstream_parses",
+			output:   "=== RUN   Test\x1b[32mFoo\x1b[0m\n--- PASS: Test\x1b[32mFoo\x1b[0m (0.00s)\nPASS",
+			expected: TestCounts{Passed: 1, Failed: 0, Skipped: 0, Total: 1, Parsed: true},
+		},
 	}
 
 	for _, tt := range tests {

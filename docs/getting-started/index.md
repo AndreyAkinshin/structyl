@@ -82,3 +82,4 @@ Structyl provides 14 standard commands. Availability per toolchain varies:
 
 - [Installation](./installation) - Install Structyl
 - [Quick Start](./quick-start) - Create your first project
+- [Contributing](https://github.com/AndreyAkinshin/structyl/blob/main/AGENTS.md) - Development guide

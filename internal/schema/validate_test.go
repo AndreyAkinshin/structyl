@@ -3,6 +3,7 @@ package schema
 import (
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 )
 
@@ -598,5 +599,63 @@ func TestSchemaInvalidConfig_InvalidArrayOrder(t *testing.T) {
 	err := ValidateConfig(data)
 	if err == nil {
 		t.Error("expected validation error for invalid array_order, got nil")
+	}
+}
+
+func TestValidateConfig_ConcurrentAccess(t *testing.T) {
+	t.Parallel()
+
+	// Valid config data for concurrent validation
+	validData := []byte(`{"project": {"name": "concurrent-test"}}`)
+
+	// Run 100 concurrent goroutines to verify thread-safety of sync.Once
+	const goroutines = 100
+	var wg sync.WaitGroup
+	errs := make(chan error, goroutines)
+
+	for i := 0; i < goroutines; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := ValidateConfig(validData); err != nil {
+				errs <- err
+			}
+		}()
+	}
+
+	wg.Wait()
+	close(errs)
+
+	// All validations should succeed
+	for err := range errs {
+		t.Errorf("concurrent validation failed: %v", err)
+	}
+}
+
+func TestValidateToolchains_ConcurrentAccess(t *testing.T) {
+	t.Parallel()
+
+	// Valid toolchains data for concurrent validation
+	validData := []byte(`{"version": "1.0", "toolchains": {}}`)
+
+	const goroutines = 100
+	var wg sync.WaitGroup
+	errs := make(chan error, goroutines)
+
+	for i := 0; i < goroutines; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := ValidateToolchains(validData); err != nil {
+				errs <- err
+			}
+		}()
+	}
+
+	wg.Wait()
+	close(errs)
+
+	for err := range errs {
+		t.Errorf("concurrent validation failed: %v", err)
 	}
 }

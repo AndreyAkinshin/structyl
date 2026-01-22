@@ -96,7 +96,7 @@ The full configuration structure:
       "directory": "string",
       "cwd": "string",
       "commands": {
-        "<command>": "string | array | object | null"
+        "<command>": "string | array | null"
       },
       "vars": { "<key>": "string" },
       "env": { "<key>": "string" },
@@ -138,6 +138,16 @@ The full configuration structure:
 
 ::: tip Complete Schema
 This reference shows the most common configuration fields. For the complete schema including `mise`, `release`, `ci`, and `artifacts` sections, see the [JSON Schema file](/schema/config.schema.json).
+:::
+
+::: info Command Value Types
+Commands support three value types:
+
+- **string**: A shell command to execute (e.g., `"go build ./..."`)
+- **array**: A list of command references to execute in sequence (e.g., `["clean", "build"]`)
+- **null**: Explicitly disables the command for this target
+
+Object-form commands (with per-command `cwd`, `env`, etc.) are reserved for future use and currently rejected.
 :::
 
 ## Required Fields

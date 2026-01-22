@@ -371,7 +371,7 @@ func printGlobalFlags(w *output.Writer) {
 	w.HelpFlag("-v, --verbose", "Maximum detail", widthFlagWithValue)
 	w.HelpFlag("--docker", "Run in Docker container", widthFlagWithValue)
 	w.HelpFlag("--no-docker", "Disable Docker mode", widthFlagWithValue)
-	w.HelpFlag("--type=<type>", "Filter targets by type (language, auxiliary)", widthFlagWithValue)
+	w.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", widthFlagWithValue)
 	w.HelpFlag("-h, --help", "Show this help", widthFlagWithValue)
 	w.HelpFlag("--version", "Show version", widthFlagWithValue)
 

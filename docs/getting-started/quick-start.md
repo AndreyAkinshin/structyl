@@ -7,6 +7,17 @@ This guide walks you through creating a simple multi-language project with Struc
 - **Structyl CLI** installed (see [Installation](installation.md))
 - **[mise](https://mise.jdx.dev/)** installed (required for task execution)
 
+Verify both tools are available:
+
+```bash
+structyl version
+mise --version
+```
+
+::: tip Missing mise?
+If `mise` is not installed, Structyl commands will fail with exit code 3 (environment error). Install mise from [mise.jdx.dev](https://mise.jdx.dev/) before proceeding.
+:::
+
 ## Initialize a Project
 
 Create a new directory and initialize Structyl:

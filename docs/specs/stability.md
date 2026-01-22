@@ -172,6 +172,10 @@ The `structyl targets --json` command outputs an array of target objects with th
 | `commands`   | string[] | Yes      | Available commands for this target (always present, may be empty) |
 | `depends_on` | string[] | Yes      | Dependency target names (always present, may be empty array)      |
 
+**Intentionally omitted fields:**
+
+- `toolchain`: The target's toolchain is intentionally NOT included in the JSON output. Toolchain selection is an internal implementation detail that MAY change without affecting the target's public behavior. Use `structyl targets` (human-readable format) to see toolchain information for debugging purposes.
+
 This structure is stable and covered by the [Source Compatibility](#source-compatibility) guarantees. New optional fields MAY be added in minor versions.
 
 ## See Also

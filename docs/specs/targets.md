@@ -21,9 +21,9 @@ Target names (the keys in the `targets` object) MUST follow these rules:
 Target names allow trailing hyphens and consecutive hyphens (e.g., `my-target-`, `my--target`), unlike [project names](./configuration.md#project) which have stricter rules for package registry compatibility. Target names are internal identifiers and don't flow to external systems.
 :::
 
-Invalid target names cause exit code 2 with message: `targets.{name}: target name must match pattern ^[a-z][a-z0-9-]*$ (lowercase letters, digits, hyphens)`
+Invalid target names cause exit code 2. CLI output: `structyl: targets.{name}: target name must match pattern ^[a-z][a-z0-9-]*$ (lowercase letters, digits, hyphens)`
 
-**Reserved names:** The target name `all` is reserved and MUST NOT be used. This prevents ambiguity with commands that operate on all targets (e.g., `structyl build all` vs. `structyl build` for a target named "all"). Using a reserved name causes exit code 2 with message: `targets.all: "all" is a reserved name`
+**Reserved names:** The target name `all` is reserved and MUST NOT be used. This prevents ambiguity with commands that operate on all targets (e.g., `structyl build all` vs. `structyl build` for a target named "all"). Using a reserved name causes exit code 2. CLI output: `structyl: targets.all: "all" is a reserved name`
 
 ## Target Types
 

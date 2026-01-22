@@ -62,9 +62,11 @@ func Run(args []string) int {
 	cmd = remaining[0]
 	cmdArgs := remaining[1:]
 
+	// Update check flow: initUpdateCheck starts a background goroutine that checks
+	// for new versions. showUpdateNotification displays the result if one is available.
+	// TEMPORAL COUPLING: initUpdateCheck MUST be called before showUpdateNotification
+	// is deferred, as it initializes the channel that showUpdateNotification reads from.
 	initUpdateCheck(opts.Quiet)
-
-	// Show notification at the end of the run (unless skipped)
 	defer showUpdateNotification()
 
 	// Route to command handler

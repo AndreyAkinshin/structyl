@@ -68,21 +68,7 @@ tests/test_foo.py::test_baz PASSED
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			result := parser.Parse(tt.output)
-			if result.Passed != tt.expected.Passed {
-				t.Errorf("Passed: got %d, want %d", result.Passed, tt.expected.Passed)
-			}
-			if result.Failed != tt.expected.Failed {
-				t.Errorf("Failed: got %d, want %d", result.Failed, tt.expected.Failed)
-			}
-			if result.Skipped != tt.expected.Skipped {
-				t.Errorf("Skipped: got %d, want %d", result.Skipped, tt.expected.Skipped)
-			}
-			if result.Total != tt.expected.Total {
-				t.Errorf("Total: got %d, want %d", result.Total, tt.expected.Total)
-			}
-			if result.Parsed != tt.expected.Parsed {
-				t.Errorf("Parsed: got %v, want %v", result.Parsed, tt.expected.Parsed)
-			}
+			assertTestCountsEqual(t, result, tt.expected)
 		})
 	}
 }

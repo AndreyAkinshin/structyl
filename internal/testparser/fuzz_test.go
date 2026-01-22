@@ -69,6 +69,28 @@ func assertNoFailedTests(t *testing.T, result TestCounts, parserName string) {
 	}
 }
 
+// assertTestCountsEqual checks that got and want TestCounts are equal.
+// Use this in table-driven parser tests to reduce assertion boilerplate.
+func assertTestCountsEqual(t *testing.T, got, want TestCounts) {
+	t.Helper()
+
+	if got.Passed != want.Passed {
+		t.Errorf("Passed: got %d, want %d", got.Passed, want.Passed)
+	}
+	if got.Failed != want.Failed {
+		t.Errorf("Failed: got %d, want %d", got.Failed, want.Failed)
+	}
+	if got.Skipped != want.Skipped {
+		t.Errorf("Skipped: got %d, want %d", got.Skipped, want.Skipped)
+	}
+	if got.Total != want.Total {
+		t.Errorf("Total: got %d, want %d", got.Total, want.Total)
+	}
+	if got.Parsed != want.Parsed {
+		t.Errorf("Parsed: got %v, want %v", got.Parsed, want.Parsed)
+	}
+}
+
 // FuzzGoParser tests the Go test output parser with arbitrary input.
 // Run: go test -fuzz=FuzzGoParser -fuzztime=30s ./internal/testparser
 func FuzzGoParser(f *testing.F) {

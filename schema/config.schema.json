@@ -114,7 +114,8 @@
           },
           "toolchain_version": {
             "type": "string",
-            "description": "Override mise tool version for this target"
+            "description": "Override mise tool version for this target",
+            "examples": ["1.80.0", "latest", "nightly"]
           },
           "directory": {
             "type": "string",

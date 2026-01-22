@@ -133,3 +133,33 @@ func TestCliRun_MutuallyExclusiveFlags(t *testing.T) {
 		t.Errorf("cli.Run([--quiet, --verbose]) = %d, want 2", exitCode)
 	}
 }
+
+// TestCliRun_ShortHelpFlag verifies -h works like --help.
+func TestCliRun_ShortHelpFlag(t *testing.T) {
+	t.Parallel()
+
+	exitCode := cli.Run([]string{"-h"})
+	if exitCode != 0 {
+		t.Errorf("cli.Run([-h]) = %d, want 0", exitCode)
+	}
+}
+
+// TestCliRun_HelpCommand verifies "help" command works.
+func TestCliRun_HelpCommand(t *testing.T) {
+	t.Parallel()
+
+	exitCode := cli.Run([]string{"help"})
+	if exitCode != 0 {
+		t.Errorf("cli.Run([help]) = %d, want 0", exitCode)
+	}
+}
+
+// TestCliRun_VersionCommand verifies "version" command works.
+func TestCliRun_VersionCommand(t *testing.T) {
+	t.Parallel()
+
+	exitCode := cli.Run([]string{"version"})
+	if exitCode != 0 {
+		t.Errorf("cli.Run([version]) = %d, want 0", exitCode)
+	}
+}

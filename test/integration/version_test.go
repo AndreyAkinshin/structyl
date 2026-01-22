@@ -41,27 +41,9 @@ func TestVersionReadMissing(t *testing.T) {
 	}
 }
 
-func TestVersionWriteAndRead(t *testing.T) {
-	t.Parallel()
-	tmpDir := t.TempDir()
-	versionPath := filepath.Join(tmpDir, "VERSION")
-
-	// Write version
-	err := version.Write(versionPath, "2.0.0")
-	if err != nil {
-		t.Fatalf("failed to write version: %v", err)
-	}
-
-	// Read version
-	v, err := version.Read(versionPath)
-	if err != nil {
-		t.Fatalf("failed to read version: %v", err)
-	}
-
-	if v != "2.0.0" {
-		t.Errorf("expected version %q, got %q", "2.0.0", v)
-	}
-}
+// Note: TestVersionWriteAndRead was removed as it duplicates unit test coverage
+// in internal/version/version_test.go:TestWrite. Integration tests here focus on
+// fixture-based testing; write/read roundtrip testing belongs in unit tests.
 
 func TestVersionWriteInvalid(t *testing.T) {
 	t.Parallel()

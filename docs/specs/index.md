@@ -65,7 +65,7 @@ Configuration files MAY include a `$schema` field for IDE validation:
 }
 ```
 
-Structyl ignores this field (per Extensibility Rule 3).
+Structyl ignores the `$schema` field at runtime (per Extensibility Rule 3).
 
 ## Getting Started
 

@@ -191,6 +191,8 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 > **Execution order:** When commands are composed from multiple operations (e.g., `check` = lint + format-check), they execute left-to-right as listed in the Implementation column. For `check:fix`, this typically means lint auto-fix runs before formatting.
 
+> **Fail-fast behavior:** Composite commands execute with fail-fast semantics. If any component fails, subsequent components are not executed. For example, if `lint --fix` in a `check:fix` composition fails, the `format` step is skipped.
+
 ---
 
 ## Built-in Toolchains

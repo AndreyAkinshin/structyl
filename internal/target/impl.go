@@ -107,7 +107,7 @@ type targetImpl struct {
 func NewTarget(name string, cfg config.TargetConfig, rootDir string, version string, resolver *toolchain.Resolver) (Target, error) {
 	commands, err := resolver.GetResolvedCommands(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to resolve commands: %w", err)
+		return nil, fmt.Errorf("resolve commands: %w", err)
 	}
 
 	dir := cfg.Directory
@@ -387,7 +387,9 @@ func extractCommandName(cmdStr string) string {
 	if len(trimmed) == 0 {
 		return ""
 	}
-	// Shell/PowerShell string expressions start with quotes - these are always valid
+	// Commands starting with quotes are shell string expressions (e.g., 'echo "text"' or
+	// PowerShell Write-Output). These don't require executable lookup since the shell
+	// interprets them directly. Return empty to skip PATH validation for such commands.
 	if trimmed[0] == '"' || trimmed[0] == '\'' {
 		return ""
 	}

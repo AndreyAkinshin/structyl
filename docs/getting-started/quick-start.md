@@ -5,7 +5,7 @@ This guide walks you through creating a simple multi-language project with Struc
 ## Prerequisites
 
 - **Structyl CLI** installed (see [Installation](installation.md))
-- **[mise](https://mise.jdx.dev/)** installed (required for task execution)
+- **[mise](https://mise.jdx.dev/)** installed (latest version recommended; required for task execution)
 
 Verify both tools are available:
 

@@ -1,6 +1,6 @@
 # Glossary
 
-> **Terminology:** This document uses [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) keywords (MUST, SHOULD, MAY) when describing requirements referenced from other specifications.
+> **Terminology:** This specification uses [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119) keywords (MUST, SHOULD, MAY, etc.) to indicate requirement levels.
 
 This document defines key terms used throughout the Structyl specification.
 

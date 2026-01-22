@@ -4,6 +4,7 @@ import (
 	"bufio"
 	_ "embed"
 	"encoding/json"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -490,18 +491,21 @@ func printInitUsage() {
 // promptConfirm asks the user a yes/no question and returns true if they confirm.
 // The prompt is displayed on a single line with "[y/N]" suffix.
 // Uses output.Writer for consistent output handling.
-//
-// Testing note: This function reads directly from os.Stdin, making it difficult
-// to unit test without significant refactoring (injecting an io.Reader interface).
-// The function is tested manually during integration testing. The cost of adding
-// testability (interface injection, test complexity) outweighs the benefit for
-// this simple input function.
 func promptConfirm(question string) bool {
+	return promptConfirmWithReader(question, os.Stdin)
+}
+
+// promptConfirmWithReader asks the user a yes/no question using the provided reader.
+// This is the testable implementation of promptConfirm.
+//
+// Accepts "y" or "yes" (case insensitive) as confirmation.
+// Returns false on any read error or non-affirmative response.
+func promptConfirmWithReader(question string, reader io.Reader) bool {
 	w := output.New()
 	w.Print("%s [y/N] ", question)
 
-	reader := bufio.NewReader(os.Stdin)
-	response, err := reader.ReadString('\n')
+	bufReader := bufio.NewReader(reader)
+	response, err := bufReader.ReadString('\n')
 	if err != nil {
 		return false
 	}

@@ -1,5 +1,26 @@
 package cli
 
+// Test Parallelism Design Note
+//
+// Many tests in this file are intentionally NOT parallel (no t.Parallel() call).
+// This is due to global state in the CLI package:
+//
+//   1. Global Output Writer: The `out` variable (output.Writer) is package-level.
+//      Functions like parseGlobalFlags() call applyVerbosityToOutput() which modifies
+//      this shared writer's Quiet and Verbose flags. Parallel tests would cause
+//      data races on this state.
+//
+//   2. Working Directory: Tests using withWorkingDir() change the process's current
+//      working directory via os.Chdir(). This is process-global state that cannot
+//      be safely modified by parallel tests.
+//
+// Tests that don't modify global state (pure functions, independent struct operations)
+// can and do use t.Parallel(). Look for t.Parallel() calls to identify which tests
+// are safe for parallel execution.
+//
+// Future refactoring could inject io.Writer dependencies to enable more parallel tests,
+// but the current design prioritizes simplicity over test performance.
+
 import (
 	"encoding/json"
 	"errors"
@@ -2106,4 +2127,53 @@ func TestEnsureMiseConfig_InvalidMode_Panics(t *testing.T) {
 
 	// Call with invalid mode value (not MiseForceRegenerate or MiseAutoRegenerate)
 	_ = ensureMiseConfig(proj, MiseRegenerateMode(99))
+}
+
+// =============================================================================
+// promptConfirmWithReader Tests
+// =============================================================================
+
+func TestPromptConfirmWithReader(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		input    string
+		expected bool
+	}{
+		{"y returns true", "y\n", true},
+		{"Y returns true", "Y\n", true},
+		{"yes returns true", "yes\n", true},
+		{"YES returns true", "YES\n", true},
+		{"Yes returns true", "Yes\n", true},
+		{"n returns false", "n\n", false},
+		{"no returns false", "no\n", false},
+		{"empty returns false", "\n", false},
+		{"whitespace returns false", "  \n", false},
+		{"invalid returns false", "invalid\n", false},
+		{"yy returns false", "yy\n", false},
+		{"yeah returns false", "yeah\n", false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			reader := strings.NewReader(tt.input)
+			result := promptConfirmWithReader("Test?", reader)
+			if result != tt.expected {
+				t.Errorf("promptConfirmWithReader(%q) = %v, want %v", tt.input, result, tt.expected)
+			}
+		})
+	}
+}
+
+func TestPromptConfirmWithReader_ReadError(t *testing.T) {
+	t.Parallel()
+
+	// Use a reader that returns an error (empty reader triggers EOF on first read)
+	reader := strings.NewReader("")
+	result := promptConfirmWithReader("Test?", reader)
+	if result != false {
+		t.Error("promptConfirmWithReader with empty reader should return false")
+	}
 }

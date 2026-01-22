@@ -691,6 +691,29 @@ func TestListSuites_NoTestsDir(t *testing.T) {
 	}
 }
 
+func TestListSuites_SortedOutput(t *testing.T) {
+	tmpDir := t.TempDir()
+	// Create suites in non-alphabetical order
+	os.MkdirAll(filepath.Join(tmpDir, "tests", "zebra"), 0755)
+	os.MkdirAll(filepath.Join(tmpDir, "tests", "alpha"), 0755)
+	os.MkdirAll(filepath.Join(tmpDir, "tests", "mike"), 0755)
+
+	suites, err := ListSuites(tmpDir)
+	if err != nil {
+		t.Fatalf("ListSuites() error = %v", err)
+	}
+
+	expected := []string{"alpha", "mike", "zebra"}
+	if len(suites) != len(expected) {
+		t.Fatalf("len(suites) = %d, want %d", len(suites), len(expected))
+	}
+	for i, want := range expected {
+		if suites[i] != want {
+			t.Errorf("suites[%d] = %q, want %q", i, suites[i], want)
+		}
+	}
+}
+
 func TestListTestCases(t *testing.T) {
 	tmpDir := t.TempDir()
 	suiteDir := filepath.Join(tmpDir, "tests", "math")
@@ -733,6 +756,32 @@ func TestListTestCases_Empty(t *testing.T) {
 	}
 	if len(cases) != 0 {
 		t.Errorf("len(cases) = %d, want 0", len(cases))
+	}
+}
+
+func TestListTestCases_SortedOutput(t *testing.T) {
+	tmpDir := t.TempDir()
+	suiteDir := filepath.Join(tmpDir, "tests", "sorting")
+	os.MkdirAll(suiteDir, 0755)
+
+	// Create test files in non-alphabetical order
+	os.WriteFile(filepath.Join(suiteDir, "zeta.json"), []byte(`{"input": {}, "output": 1}`), 0644)
+	os.WriteFile(filepath.Join(suiteDir, "alpha.json"), []byte(`{"input": {}, "output": 2}`), 0644)
+	os.WriteFile(filepath.Join(suiteDir, "beta.json"), []byte(`{"input": {}, "output": 3}`), 0644)
+
+	cases, err := ListTestCases(tmpDir, "sorting")
+	if err != nil {
+		t.Fatalf("ListTestCases() error = %v", err)
+	}
+
+	expected := []string{"alpha", "beta", "zeta"}
+	if len(cases) != len(expected) {
+		t.Fatalf("len(cases) = %d, want %d", len(cases), len(expected))
+	}
+	for i, want := range expected {
+		if cases[i] != want {
+			t.Errorf("cases[%d] = %q, want %q", i, cases[i], want)
+		}
 	}
 }
 

@@ -1286,6 +1286,7 @@ func containsFileReference(v interface{}) bool {
 }
 
 // ListSuites returns the names of all available test suites.
+// Results are sorted alphabetically for deterministic output.
 // Returns an empty slice (not nil) if the tests directory doesn't exist.
 func ListSuites(projectRoot string) ([]string, error) {
 	testsDir := filepath.Join(projectRoot, "tests")
@@ -1304,10 +1305,12 @@ func ListSuites(projectRoot string) ([]string, error) {
 		}
 	}
 
+	sort.Strings(suites)
 	return suites, nil
 }
 
 // ListTestCases returns the names of all test cases in a suite.
+// Results are sorted alphabetically for deterministic output.
 // Returns an empty slice (not nil) if the suite exists but has no test cases.
 // Returns [ErrSuiteNotFound] if the suite does not exist.
 // Returns [ErrEmptySuiteName] or [ErrInvalidSuiteName] for invalid suite names.
@@ -1344,6 +1347,7 @@ func ListTestCases(projectRoot, suite string) ([]string, error) {
 		testCases = []string{}
 	}
 
+	sort.Strings(testCases)
 	return testCases, nil
 }
 

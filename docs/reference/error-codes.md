@@ -71,6 +71,21 @@ An external system or resource is unavailable.
 structyl: Docker is not available
 ```
 
+### Skipped Commands
+
+Some commands are **skipped** rather than failed. Skip scenarios include:
+
+- Command explicitly set to `null` in configuration
+- Executable not found in PATH
+- npm/pnpm/yarn/bun script missing from package.json
+
+Skipped commands:
+
+- Log warnings but do NOT fail the build
+- Do NOT affect exit code (still exits 0 if no actual failure)
+
+See [Error Handling Specification](../specs/error-handling.md#skip-errors) for details.
+
 ## Scripting with Exit Codes
 
 ```bash

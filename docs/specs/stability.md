@@ -92,7 +92,7 @@ Structyl logs warnings when deprecated features are used.
 | `new` command (alias)              | v1.0.0        | v2.0.0         | `init`                     | Standardize on `init` for initialization                   |
 
 ::: info Maintenance Note
-This table is synchronized with `// Deprecated:` comments in Go source code. If discrepancies arise between this table and the code comments, the code comments are authoritative.
+This table is synchronized with `// Deprecated:` comments in Go source code. If discrepancies arise between this table and the code comments, the code comments are authoritative. Run `grep -r '// Deprecated:' pkg/ internal/` to list all deprecated symbols for verification.
 :::
 
 ## Public API Surface

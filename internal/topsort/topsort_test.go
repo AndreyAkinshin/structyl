@@ -106,8 +106,13 @@ func TestSort_Cycle(t *testing.T) {
 	if err == nil {
 		t.Error("Sort() expected error for cycle, got nil")
 	}
-	if !strings.Contains(err.Error(), "circular") {
+	errStr := err.Error()
+	if !strings.Contains(errStr, "circular") {
 		t.Errorf("Sort() error = %v, want to contain 'circular'", err)
+	}
+	// Verify error identifies at least one cycle participant for debugging
+	if !strings.Contains(errStr, "a") && !strings.Contains(errStr, "b") {
+		t.Errorf("Sort() error should identify cycle node, got: %v", err)
 	}
 }
 

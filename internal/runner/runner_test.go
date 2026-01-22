@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"os"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -19,8 +20,9 @@ func TestGetParallelWorkers_Default(t *testing.T) {
 	t.Setenv("STRUCTYL_PARALLEL", "")
 
 	workers := getParallelWorkers()
-	if workers < 1 {
-		t.Errorf("getParallelWorkers() = %d, want >= 1", workers)
+	expected := max(1, runtime.NumCPU())
+	if workers != expected {
+		t.Errorf("getParallelWorkers() = %d, want max(1, runtime.NumCPU()) = %d", workers, expected)
 	}
 }
 

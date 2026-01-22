@@ -19,7 +19,7 @@ This document provides comprehensive information for AI agents and developers wo
 mise run build        # Build the project
 mise run test         # Run tests
 mise run check        # Run lint and static analysis
-mise run check:fix    # Auto-fix formatting issues
+mise run check:fix    # Auto-fix static analysis issues
 
 # List available tasks
 mise tasks

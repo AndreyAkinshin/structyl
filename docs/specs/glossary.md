@@ -87,7 +87,7 @@ See [error-handling.md](error-handling.md#exit-codes) for detailed semantics.
 
 ### Fail-fast
 
-An execution strategy where processing stops on first failure. In fail-fast mode, when one target fails, pending targets are cancelled (though already-running targets complete). This is Structyl's default execution behavior.
+An execution strategy where processing stops on first failure. In fail-fast mode, when one target fails, pending targets are cancelled (though already-running targets complete). This is Structyl's **mandatory** execution behavior since v1.0.0 (the `--continue` flag was removed).
 
 ### Forward Compatibility
 

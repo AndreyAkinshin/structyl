@@ -76,6 +76,16 @@ Loading failures are **configuration errors** (exit code 2), distinct from **tes
 
 > **`pkg/testhelper` limitation:** The public Go package uses `*.json` pattern (immediate directory only), not the recursive `**/*.json` pattern supported by Structyl's internal runner. See the [Test Loader Implementation](#test-loader-implementation) section.
 
+### API Differences: Internal vs Public
+
+| Capability         | Internal Runner (`internal/tests`) | Public API (`pkg/testhelper`)        |
+| ------------------ | ---------------------------------- | ------------------------------------ |
+| Glob patterns      | `**/*.json` (recursive)            | `*.json` (immediate directory only)  |
+| `$file` references | Full support                       | `ErrFileReferenceNotSupported`       |
+| Binary data        | Via file references                | Embed as base64 or load separately   |
+
+Users requiring recursive patterns or binary file references SHOULD use the internal package or implement project-specific loading. See [pkg/testhelper Limitations](#pkg-testhelper-limitations) for workarounds.
+
 **Error message format:**
 
 ```

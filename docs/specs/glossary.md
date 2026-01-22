@@ -198,6 +198,17 @@ The target key in the `targets` configuration object. Used as the identifier in 
 
 A single test defined in a JSON file. Contains `input` (parameters) and `output` (expected result).
 
+### Test Loader
+
+A language-specific module that reads JSON test cases from the `tests/` directory and validates implementation outputs against expected results. Each language implementation MUST provide a test loader that:
+
+1. Locates the project root via `.structyl/config.json`
+2. Discovers test suites and cases
+3. Loads JSON files with validation
+4. Compares outputs using configurable tolerance
+
+Structyl provides `pkg/testhelper` for Go implementations. See [Test Loader Implementation](test-system.md#test-loader-implementation) for requirements and examples.
+
 ### Toolchain
 
 A preset that provides default command implementations for a specific build ecosystem. Examples: `cargo` (Rust), `dotnet` (C#), `npm` (Node.js). Toolchains map Structyl's standard commands to ecosystem-specific invocations.

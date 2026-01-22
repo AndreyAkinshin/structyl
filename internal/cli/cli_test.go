@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
+	"github.com/AndreyAkinshin/structyl/internal/project"
 	"github.com/AndreyAkinshin/structyl/internal/runner" //nolint:staticcheck // SA1019: Testing Docker error handling requires runner package
 	"github.com/AndreyAkinshin/structyl/internal/target"
 	"github.com/AndreyAkinshin/structyl/internal/testing/mocks"
@@ -687,6 +688,35 @@ func TestCmdUnified_TargetWithUndefinedCommand_ReturnsError(t *testing.T) {
 		exitCode := cmdUnified([]string{"build", "img"}, &GlobalOptions{})
 		if exitCode != 1 {
 			t.Errorf("cmdUnified(build, img) = %d, want 1", exitCode)
+		}
+	})
+}
+
+func TestCmdUnified_TypeFilter_NoMatchingTargets(t *testing.T) {
+	// Cannot use t.Parallel(): uses withWorkingDir which modifies global state
+	root := createTestProjectWithOptions(t, testProjectOptions{IncludeAuxiliaryTarget: false})
+	withWorkingDir(t, root, func() {
+		// Project has only "cs" (language) target, no auxiliary targets
+		// Filter by auxiliary type should find no targets and return 0 with warning
+		exitCode := cmdUnified([]string{"build"}, &GlobalOptions{TargetType: "auxiliary"})
+		if exitCode != 0 {
+			t.Errorf("cmdUnified(build, --type=auxiliary) = %d, want 0 (warning, no error)", exitCode)
+		}
+	})
+}
+
+func TestCmdUnified_TypeFilter_MatchingTargets(t *testing.T) {
+	// Cannot use t.Parallel(): uses withWorkingDir which modifies global state
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		// Project has "cs" (language) and "img" (auxiliary) targets
+		// Filter by language type should find "cs" target and attempt to run command
+		// Exit code 1 is expected because mise is disabled in test project
+		exitCode := cmdUnified([]string{"build"}, &GlobalOptions{TargetType: "language"})
+		// We just verify the code path is exercised - exit code depends on mise availability
+		// The important thing is it doesn't return 2 (config error) or panic
+		if exitCode == 2 {
+			t.Errorf("cmdUnified(build, --type=language) = 2 (config error), want 0 or 1")
 		}
 	})
 }
@@ -2050,4 +2080,30 @@ func TestIsMiseAutoGenerateEnabled(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestEnsureMiseConfig_InvalidMode_Panics(t *testing.T) {
+	t.Parallel()
+
+	defer func() {
+		r := recover()
+		if r == nil {
+			t.Error("expected panic for invalid MiseRegenerateMode")
+		}
+		// Verify panic message contains expected text
+		msg, ok := r.(string)
+		if !ok {
+			t.Errorf("panic value is not a string: %T", r)
+			return
+		}
+		if !strings.Contains(msg, "BUG: invalid MiseRegenerateMode") {
+			t.Errorf("panic message = %q, want to contain %q", msg, "BUG: invalid MiseRegenerateMode")
+		}
+	}()
+
+	// Create minimal project (won't be used since panic happens first)
+	proj := &project.Project{}
+
+	// Call with invalid mode value (not MiseForceRegenerate or MiseAutoRegenerate)
+	_ = ensureMiseConfig(proj, MiseRegenerateMode(99))
 }

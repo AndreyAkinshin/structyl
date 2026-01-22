@@ -578,6 +578,35 @@ func NewTestCase(name string, input map[string]interface{}, output interface{}) 
 	return tc, nil
 }
 
+// NewTestCaseWithSuite creates a TestCase with required fields and suite name validated.
+// This constructor provides a pit-of-success for programmatic TestCase creation
+// with suite association by ensuring all required fields are provided and valid.
+//
+// Returns an error if:
+//   - suite is empty (returns [ErrEmptySuiteName])
+//   - suite contains invalid characters (returns [ErrInvalidSuiteName])
+//   - name is empty
+//   - input is nil (empty map {} is valid)
+//   - output is nil
+//
+// Example:
+//
+//	tc, err := testhelper.NewTestCaseWithSuite("my-test", "math", map[string]interface{}{"x": 1.0}, "expected")
+//	if err != nil {
+//	    return err
+//	}
+func NewTestCaseWithSuite(name, suite string, input map[string]interface{}, output interface{}) (TestCase, error) {
+	if err := ValidateSuiteName(suite); err != nil {
+		return TestCase{}, err
+	}
+	tc, err := NewTestCase(name, input, output)
+	if err != nil {
+		return TestCase{}, err
+	}
+	tc.Suite = suite
+	return tc, nil
+}
+
 // Validate checks that TestCase fields satisfy basic structural requirements.
 // Returns nil if valid, or an error describing the first validation failure.
 //

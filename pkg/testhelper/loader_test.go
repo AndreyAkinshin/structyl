@@ -2479,6 +2479,78 @@ func TestNewTestCase(t *testing.T) {
 	})
 }
 
+func TestNewTestCaseWithSuite(t *testing.T) {
+	t.Parallel()
+
+	t.Run("valid", func(t *testing.T) {
+		t.Parallel()
+		tc, err := NewTestCaseWithSuite("test-name", "math", map[string]interface{}{"x": 1.0}, "output")
+		if err != nil {
+			t.Fatalf("NewTestCaseWithSuite() error = %v", err)
+		}
+		if tc.Name != "test-name" {
+			t.Errorf("Name = %q, want %q", tc.Name, "test-name")
+		}
+		if tc.Suite != "math" {
+			t.Errorf("Suite = %q, want %q", tc.Suite, "math")
+		}
+		if tc.Input["x"] != 1.0 {
+			t.Errorf("Input[x] = %v, want 1.0", tc.Input["x"])
+		}
+		if tc.Output != "output" {
+			t.Errorf("Output = %v, want %q", tc.Output, "output")
+		}
+	})
+
+	t.Run("empty_suite", func(t *testing.T) {
+		t.Parallel()
+		_, err := NewTestCaseWithSuite("test", "", map[string]interface{}{}, "output")
+		if !errors.Is(err, ErrEmptySuiteName) {
+			t.Errorf("NewTestCaseWithSuite() error = %v, want ErrEmptySuiteName", err)
+		}
+	})
+
+	t.Run("invalid_suite_path_traversal", func(t *testing.T) {
+		t.Parallel()
+		_, err := NewTestCaseWithSuite("test", "../escape", map[string]interface{}{}, "output")
+		if !errors.Is(err, ErrInvalidSuiteName) {
+			t.Errorf("NewTestCaseWithSuite() error = %v, want ErrInvalidSuiteName", err)
+		}
+	})
+
+	t.Run("invalid_suite_path_separator", func(t *testing.T) {
+		t.Parallel()
+		_, err := NewTestCaseWithSuite("test", "foo/bar", map[string]interface{}{}, "output")
+		if !errors.Is(err, ErrInvalidSuiteName) {
+			t.Errorf("NewTestCaseWithSuite() error = %v, want ErrInvalidSuiteName", err)
+		}
+	})
+
+	t.Run("empty_name", func(t *testing.T) {
+		t.Parallel()
+		_, err := NewTestCaseWithSuite("", "suite", map[string]interface{}{}, "output")
+		if err == nil {
+			t.Error("NewTestCaseWithSuite() = nil error, want error for empty name")
+		}
+	})
+
+	t.Run("nil_input", func(t *testing.T) {
+		t.Parallel()
+		_, err := NewTestCaseWithSuite("test", "suite", nil, "output")
+		if err == nil {
+			t.Error("NewTestCaseWithSuite() = nil error, want error for nil input")
+		}
+	})
+
+	t.Run("nil_output", func(t *testing.T) {
+		t.Parallel()
+		_, err := NewTestCaseWithSuite("test", "suite", map[string]interface{}{}, nil)
+		if err == nil {
+			t.Error("NewTestCaseWithSuite() = nil error, want error for nil output")
+		}
+	})
+}
+
 func TestTestCase_Clone(t *testing.T) {
 	t.Parallel()
 

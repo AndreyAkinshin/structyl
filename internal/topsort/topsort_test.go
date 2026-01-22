@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 	"testing"
+	"testing/quick"
 )
 
 // indexOfIn returns the index of s in slice, or -1 if not found.
@@ -607,5 +608,99 @@ func TestSort_VeryLargeGraph(t *testing.T) {
 				t.Errorf("Sort() dependency %s should come before %s", dep, name)
 			}
 		}
+	}
+}
+
+// TestSort_PropertyDependencyOrder uses property-based testing to verify
+// that for any valid DAG, the sorted result satisfies all dependency constraints.
+func TestSort_PropertyDependencyOrder(t *testing.T) {
+	t.Parallel()
+
+	// Property: For any valid DAG, each node appears after all its dependencies
+	property := func(nodeCount uint8, seed uint64) bool {
+		// Limit graph size to avoid slow tests
+		n := int(nodeCount%20) + 1
+
+		// Generate a valid DAG by only allowing edges from higher to lower indices
+		// This guarantees no cycles
+		g := make(Graph, n)
+		for i := 0; i < n; i++ {
+			name := fmt.Sprintf("n%d", i)
+			var deps []string
+			// Node i can depend on nodes 0..i-1 (lower indices)
+			for j := 0; j < i; j++ {
+				// Use seed to deterministically decide if edge exists
+				if (seed>>(uint(j)%64))&1 == 1 {
+					deps = append(deps, fmt.Sprintf("n%d", j))
+				}
+			}
+			g[name] = deps
+		}
+
+		result, err := Sort(g, nil)
+		if err != nil {
+			// Should never happen for a valid DAG
+			return false
+		}
+
+		if len(result) != n {
+			return false
+		}
+
+		// Build index map
+		indexOf := make(map[string]int, n)
+		for i, name := range result {
+			indexOf[name] = i
+		}
+
+		// Verify property: every dependency appears before its dependent
+		for name, deps := range g {
+			for _, dep := range deps {
+				if indexOf[dep] >= indexOf[name] {
+					return false
+				}
+			}
+		}
+
+		return true
+	}
+
+	if err := quick.Check(property, nil); err != nil {
+		t.Error(err)
+	}
+}
+
+// TestSort_PropertyIdempotent verifies that sorting the same graph twice
+// produces identical results (determinism).
+func TestSort_PropertyIdempotent(t *testing.T) {
+	t.Parallel()
+
+	property := func(nodeCount uint8, seed uint64) bool {
+		n := int(nodeCount%15) + 1
+
+		g := make(Graph, n)
+		for i := 0; i < n; i++ {
+			name := fmt.Sprintf("n%d", i)
+			var deps []string
+			for j := 0; j < i; j++ {
+				if (seed>>(uint(j)%64))&1 == 1 {
+					deps = append(deps, fmt.Sprintf("n%d", j))
+				}
+			}
+			g[name] = deps
+		}
+
+		result1, err1 := Sort(g, nil)
+		result2, err2 := Sort(g, nil)
+
+		if err1 != nil || err2 != nil {
+			return false
+		}
+
+		return reflect.DeepEqual(result1, result2)
+	}
+
+	if err := quick.Check(property, nil); err != nil {
+		t.Error(err)
 	}
 }

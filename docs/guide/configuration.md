@@ -294,6 +294,10 @@ Enable IDE autocomplete by adding a schema reference:
 }
 ```
 
+::: info Local Schema Validation
+The `$schema` URL works when the documentation site is deployed. For local development or offline use, reference the schema from the repository's `schema/config.schema.json` file directly in your IDE settings.
+:::
+
 ## Full Example
 
 ```json

@@ -264,7 +264,7 @@ Running a null command succeeds with a warning.
 | --------------- | ---------------------------- |
 | `--docker`      | Run in Docker container      |
 | `--no-docker`   | Disable Docker mode          |
-| `--type=<type>` | Filter by target type        |
+| `--type=<type>` | Filter by target type (`language` or `auxiliary`) |
 | `-q, --quiet`   | Minimal output (errors only) |
 | `-v, --verbose` | Maximum detail               |
 | `-h, --help`    | Show help message            |

@@ -228,21 +228,25 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 
 	// If --type is specified and no specific target given, filter targets by type
 	if opts.TargetType != "" && targetName == "" {
-		targets := registry.ByType(target.TargetType(opts.TargetType))
-		if len(targets) == 0 {
-			out.WarningSimple("no targets of type %q found", opts.TargetType)
-			return 0
-		}
-		// Run command for each matching target
-		for _, t := range targets {
-			if result := runViaMise(proj, cmd, t.Name(), cmdArgs, opts, registry); result != 0 {
-				return result
-			}
-		}
-		return 0
+		return runForFilteredTargets(proj, cmd, opts, registry, cmdArgs)
 	}
 
 	return runViaMise(proj, cmd, targetName, cmdArgs, opts, registry)
+}
+
+// runForFilteredTargets runs a command on all targets matching the --type filter.
+func runForFilteredTargets(proj *project.Project, cmd string, opts *GlobalOptions, registry *target.Registry, cmdArgs []string) int {
+	targets := registry.ByType(target.TargetType(opts.TargetType))
+	if len(targets) == 0 {
+		out.WarningSimple("no targets of type %q found", opts.TargetType)
+		return 0
+	}
+	for _, t := range targets {
+		if result := runViaMise(proj, cmd, t.Name(), cmdArgs, opts, registry); result != 0 {
+			return result
+		}
+	}
+	return 0
 }
 
 // cmdTargets lists all configured targets.

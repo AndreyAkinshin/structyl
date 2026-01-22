@@ -130,6 +130,21 @@ func TestValidateTargetName_Invalid(t *testing.T) {
 	}
 }
 
+func TestValidateTargetName_ErrorMessageIncludesHint(t *testing.T) {
+	t.Parallel()
+	// Verify that pattern mismatch errors include the hint text for both
+	// the public API (ValidateTargetName) and internal config validation.
+	// This ensures consistent error messages across both code paths.
+	err := ValidateTargetName("ABC") // Invalid: uppercase
+	if err == nil {
+		t.Fatal("expected error for uppercase name")
+	}
+	errMsg := err.Error()
+	if !strings.Contains(errMsg, "lowercase letters, digits, hyphens") {
+		t.Errorf("error message should include hint text, got: %q", errMsg)
+	}
+}
+
 func TestValidateTargetName_NotReserved(t *testing.T) {
 	t.Parallel()
 	// These names might seem like they could be reserved, but they are valid target names.

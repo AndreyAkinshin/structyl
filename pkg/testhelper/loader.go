@@ -864,8 +864,9 @@ func (e *TestCaseNotFoundError) Is(target error) bool {
 }
 
 // ErrFileReferenceNotSupported is returned when a test case contains $file references.
-// File references are only supported in the internal test runner. Use embedded data instead.
-var ErrFileReferenceNotSupported = errors.New("$file references not supported; embed data directly in JSON")
+// File references are only supported in the internal test runner (internal/tests package).
+// Use embedded data instead, or use Structyl's internal test runner for $file support.
+var ErrFileReferenceNotSupported = errors.New("$file references not supported in pkg/testhelper; use internal/tests package or embed data directly in JSON")
 
 // ErrEmptySuiteName is returned when an empty suite name is provided.
 // Suite names must be non-empty strings corresponding to directory names.

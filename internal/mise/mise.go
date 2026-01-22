@@ -66,6 +66,16 @@ type RunStep struct {
 	Tasks []string // Multiple tasks to run in parallel
 }
 
+// applyTaskConfig sets the directory and environment on a task if provided.
+func applyTaskConfig(task *MiseTask, dir string, env map[string]string) {
+	if dir != "" {
+		task.Dir = dir
+	}
+	if len(env) > 0 {
+		task.Env = env
+	}
+}
+
 // GenerateMiseToml generates the content of a mise.toml file.
 //
 // Deprecated: Use GenerateMiseTomlWithToolchains for loaded toolchains configuration.
@@ -186,12 +196,7 @@ func generateTasksWithToolchains(cfg *config.Config, loaded *toolchain.Toolchain
 					Description: fmt.Sprintf("%s for %s target", capitalize(cmdName), targetName),
 					Run:         v,
 				}
-				if dir != "" {
-					task.Dir = dir
-				}
-				if len(targetCfg.Env) > 0 {
-					task.Env = targetCfg.Env
-				}
+				applyTaskConfig(&task, dir, targetCfg.Env)
 				tasks[taskName] = task
 				commandTargets[cmdName] = append(commandTargets[cmdName], targetName)
 
@@ -208,12 +213,7 @@ func generateTasksWithToolchains(cfg *config.Config, loaded *toolchain.Toolchain
 						Description: fmt.Sprintf("%s for %s target", capitalize(cmdName), targetName),
 						RunSequence: steps,
 					}
-					if dir != "" {
-						task.Dir = dir
-					}
-					if len(targetCfg.Env) > 0 {
-						task.Env = targetCfg.Env
-					}
+					applyTaskConfig(&task, dir, targetCfg.Env)
 					tasks[taskName] = task
 					commandTargets[cmdName] = append(commandTargets[cmdName], targetName)
 				}

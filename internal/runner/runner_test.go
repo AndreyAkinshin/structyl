@@ -88,6 +88,36 @@ func TestGetParallelWorkers_Boundary256(t *testing.T) {
 	}
 }
 
+func TestGetParallelWorkers_Boundary255(t *testing.T) {
+	t.Setenv("STRUCTYL_PARALLEL", "255")
+
+	workers := getParallelWorkers()
+	if workers != 255 {
+		t.Errorf("getParallelWorkers() = %d, want 255", workers)
+	}
+}
+
+func TestGetParallelWorkers_WhitespaceOnly(t *testing.T) {
+	t.Setenv("STRUCTYL_PARALLEL", "   ")
+
+	workers := getParallelWorkers()
+	// Whitespace-only should fail strconv.Atoi and fall back to CPU count
+	if workers < 1 {
+		t.Errorf("getParallelWorkers() = %d, want >= 1", workers)
+	}
+}
+
+func TestGetParallelWorkers_Overflow(t *testing.T) {
+	// Value exceeds int64 max, strconv.Atoi returns error
+	t.Setenv("STRUCTYL_PARALLEL", "9999999999999999999")
+
+	workers := getParallelWorkers()
+	// Should fall back to CPU count on overflow
+	if workers < 1 {
+		t.Errorf("getParallelWorkers() = %d, want >= 1", workers)
+	}
+}
+
 func TestCombineErrors_Empty(t *testing.T) {
 	t.Parallel()
 	err := combineErrors(nil)

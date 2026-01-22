@@ -107,11 +107,11 @@ The `pkg/testhelper` package returns specific error types for programmatic handl
 
 The `InvalidSuiteNameError` and `InvalidTestCaseNameError` types include a `Reason` field indicating why the name was rejected:
 
-| Constant             | Value                     | Meaning                          |
-| -------------------- | ------------------------- | -------------------------------- |
-| `ReasonPathTraversal`| `"path traversal (..)"` | Name contains `..` sequence      |
-| `ReasonPathSeparator`| `"path separator (/ or \\)"` | Name contains `/` or `\`      |
-| `ReasonNullByte`     | `"null byte"`             | Name contains null byte (`\0`)   |
+| Constant             | Value              | Meaning                          |
+| -------------------- | ------------------ | -------------------------------- |
+| `ReasonPathTraversal`| `"path_traversal"` | Name contains `..` sequence      |
+| `ReasonPathSeparator`| `"path_separator"` | Name contains `/` or `\`         |
+| `ReasonNullByte`     | `"null_byte"`      | Name contains null byte (`\0`)   |
 
 **Additional sentinels (no struct type):**
 

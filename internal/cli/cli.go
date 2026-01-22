@@ -163,7 +163,7 @@ func parseGlobalFlags(args []string) (*GlobalOptions, []string, error) {
 			opts.NoDocker = true
 			i++
 		case arg == "--continue":
-			return nil, nil, fmt.Errorf("--continue flag has been removed; multi-target operations now stop on first failure")
+			return nil, nil, fmt.Errorf("--continue flag has been removed; multi-target operations now stop on first failure. For continue-on-error behavior in CI pipelines, use continue_on_error in CI step definitions (see docs/specs/ci-integration.md)")
 		case arg == "-q" || arg == "--quiet":
 			opts.Quiet = true
 			i++

@@ -130,6 +130,30 @@ func TestValidateTargetName_Invalid(t *testing.T) {
 	}
 }
 
+func TestValidateTargetName_NotReserved(t *testing.T) {
+	t.Parallel()
+	// These names might seem like they could be reserved, but they are valid target names.
+	// Only "all" is reserved (for CI configuration to mean "all targets").
+	notReservedNames := []string{
+		"language",  // valid: not a reserved keyword
+		"auxiliary", // valid: not a reserved keyword
+		"targets",   // valid: not a reserved keyword
+		"project",   // valid: not a reserved keyword
+		"config",    // valid: not a reserved keyword
+		"ci",        // valid: not a reserved keyword
+		"release",   // valid: not a reserved keyword
+		"version",   // valid: not a reserved keyword
+	}
+	for _, name := range notReservedNames {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			if err := ValidateTargetName(name); err != nil {
+				t.Errorf("ValidateTargetName(%q) = %v, want nil (name should NOT be reserved)", name, err)
+			}
+		})
+	}
+}
+
 func TestValidate_MissingProjectName(t *testing.T) {
 	t.Parallel()
 	cfg := &Config{}
@@ -834,6 +858,7 @@ func TestValidate_TargetNames_CaseSensitive(t *testing.T) {
 func TestValidate_VersionPattern_Valid(t *testing.T) {
 	t.Parallel()
 	validPatterns := []string{
+		``,                        // Empty pattern is valid (skipped during validation)
 		`version\s*=\s*"([^"]+)"`, // Standard version pattern
 		`^(\d+\.\d+\.\d+)$`,       // Semver pattern
 		`v(\d+)`,                  // Simple version prefix

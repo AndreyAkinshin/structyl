@@ -572,3 +572,45 @@ func TestRegistry_EmptyDependsOnArray(t *testing.T) {
 		t.Errorf("TopologicalOrder() = %d items, want 2", len(order))
 	}
 }
+
+func TestRegistry_ConcurrentGet(t *testing.T) {
+	t.Parallel()
+	cfg := &config.Config{
+		Project: config.ProjectConfig{Name: "test"},
+		Targets: map[string]config.TargetConfig{
+			"cs": {Type: "language", Title: "C#"},
+			"py": {Type: "language", Title: "Python"},
+			"go": {Type: "language", Title: "Go"},
+		},
+	}
+
+	r, err := NewRegistry(cfg, "/project")
+	if err != nil {
+		t.Fatalf("NewRegistry() error = %v", err)
+	}
+
+	// Run concurrent reads to verify no data race.
+	// The race detector will fail the test if there are races.
+	const numGoroutines = 100
+	done := make(chan struct{})
+
+	for i := 0; i < numGoroutines; i++ {
+		go func() {
+			defer func() { done <- struct{}{} }()
+
+			// Exercise all read methods concurrently
+			_, _ = r.Get("cs")
+			_, _ = r.Get("py")
+			_, _ = r.Get("nonexistent")
+			_ = r.All()
+			_ = r.Names()
+			_ = r.Languages()
+			_ = r.Auxiliary()
+			_, _ = r.TopologicalOrder()
+		}()
+	}
+
+	for i := 0; i < numGoroutines; i++ {
+		<-done
+	}
+}

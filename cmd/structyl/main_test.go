@@ -1,20 +1,21 @@
 // Package main tests for the structyl CLI entry point.
 //
-// Note on coverage: The cmd/structyl package shows 0% coverage because main()
-// calls cli.Run() and then os.Exit(). The os.Exit() call cannot be intercepted
-// during testing without subprocess execution. This is by design:
+// Note on coverage: The cmd/structyl package contains only main(), which calls
+// cli.Run() and then os.Exit(). Since main() cannot be tested directly without
+// process termination, we use two approaches:
 //
-//   - cli.Run() is comprehensively tested in internal/cli with 81%+ coverage
-//   - The tests in this file verify the binary compiles and works correctly
-//   - Using exec.Command to test the actual binary behavior (end-to-end)
+//  1. Direct cli.Run() calls via TestCliRun_* — provides import path coverage
+//  2. Subprocess tests via exec.Command — verifies end-to-end binary behavior
 //
-// The 0% coverage for this package is acceptable because the actual CLI logic
-// resides in internal/cli, not here. This package is a thin entry point.
+// The actual CLI logic resides in internal/cli with comprehensive test coverage.
+// This package is a thin entry point that delegates to cli.Run().
 package main
 
 import (
 	"os/exec"
 	"testing"
+
+	"github.com/AndreyAkinshin/structyl/internal/cli"
 )
 
 // TestMain_BuildVerification verifies the binary builds successfully.
@@ -60,5 +61,36 @@ func TestMain_VersionFlag(t *testing.T) {
 	output := string(out)
 	if len(output) == 0 {
 		t.Error("--version produced empty output")
+	}
+}
+
+// TestCliRun_Help verifies cli.Run returns success for help flag.
+// This provides coverage by testing the same code path as main().
+func TestCliRun_Help(t *testing.T) {
+	t.Parallel()
+
+	exitCode := cli.Run([]string{"--help"})
+	if exitCode != 0 {
+		t.Errorf("cli.Run([--help]) = %d, want 0", exitCode)
+	}
+}
+
+// TestCliRun_Version verifies cli.Run returns success for version flag.
+func TestCliRun_Version(t *testing.T) {
+	t.Parallel()
+
+	exitCode := cli.Run([]string{"--version"})
+	if exitCode != 0 {
+		t.Errorf("cli.Run([--version]) = %d, want 0", exitCode)
+	}
+}
+
+// TestCliRun_NoArgs verifies cli.Run handles no arguments gracefully.
+func TestCliRun_NoArgs(t *testing.T) {
+	t.Parallel()
+
+	exitCode := cli.Run([]string{})
+	if exitCode != 0 {
+		t.Errorf("cli.Run([]) = %d, want 0", exitCode)
 	}
 }

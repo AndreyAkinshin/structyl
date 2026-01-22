@@ -20,10 +20,6 @@ The reference test system does NOT provide:
 
 ## Test Data Format
 
-::: warning pkg/testhelper Limitation
-The public Go package `pkg/testhelper` does NOT support `$file` references for binary data. Any test case using `$file` syntax will be rejected with `ErrFileReferenceNotSupported`. This limitation affects all functions in the public package. See [Binary Data References](#binary-data-references-internal-only) for details and workarounds.
-:::
-
 ### Basic Structure
 
 Every test file has `input` and `output`:

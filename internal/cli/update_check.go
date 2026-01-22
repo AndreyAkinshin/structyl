@@ -193,16 +193,27 @@ func shouldCheckForUpdate(cache *UpdateCache) bool {
 }
 
 // hasNewerVersion returns true if latest is newer than current.
+//
+// Nightly policy: Users on nightly versions are always notified of stable releases,
+// but not notified of newer nightly versions (nightly-to-nightly comparisons return false).
+// This encourages transition to stable releases when available.
 func hasNewerVersion(current, latest string) bool {
-	// Handle nightly versions: always suggest stable updates
-	if isNightlyVersion(current) {
-		return !isNightlyVersion(latest)
+	currentIsNightly := isNightlyVersion(current)
+	latestIsStable := !isNightlyVersion(latest)
+
+	// Nightly users are always notified when a stable release is available
+	if currentIsNightly && latestIsStable {
+		return true
+	}
+	// Nightly-to-nightly: don't notify (no meaningful comparison)
+	if currentIsNightly {
+		return false
 	}
 
+	// Stable-to-stable: standard semantic version comparison
 	cmp, err := version.Compare(current, latest)
 	if err != nil {
 		return false
 	}
-
 	return cmp < 0
 }

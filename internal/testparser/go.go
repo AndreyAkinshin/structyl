@@ -70,8 +70,10 @@ func (p *GoParser) Parse(output string) TestCounts {
 }
 
 // extractFailedTests extracts detailed failure information for each failed test.
+// Duplicate test names are deduplicated - only the first occurrence is kept.
 func (p *GoParser) extractFailedTests(output string, failMatches [][]string) []FailedTest {
 	var failedTests []FailedTest
+	seen := make(map[string]bool)
 	lines := strings.Split(output, "\n")
 
 	// Build a map of test name to failure reason
@@ -84,6 +86,11 @@ func (p *GoParser) extractFailedTests(output string, failMatches [][]string) []F
 			continue
 		}
 		testName := match[1]
+		// Skip duplicates - can occur with malformed or unusual test output
+		if seen[testName] {
+			continue
+		}
+		seen[testName] = true
 		reason := p.findFailureReason(lines, testName)
 		failedTests = append(failedTests, FailedTest{
 			Name:   testName,

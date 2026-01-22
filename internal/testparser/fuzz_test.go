@@ -119,6 +119,12 @@ func FuzzGoParser(f *testing.F) {
 		"=== RUN   " + strings.Repeat("x", 10000) + "\n--- PASS: " + strings.Repeat("x", 10000) + " (0.00s)\nPASS",
 		// Edge cases: binary-like prefix before valid output
 		"\x00\x01\x02=== RUN   TestWithBinaryPrefix\n--- PASS: TestWithBinaryPrefix (0.00s)\nPASS",
+		// Edge case: UTF-8 BOM prefix (common in Windows-created files)
+		"\xef\xbb\xbf=== RUN   TestWithBOM\n--- PASS: TestWithBOM (0.00s)\nPASS",
+		// Edge case: line numbers that could overflow int
+		"=== RUN   TestOverflow\n    test.go:9999999999999999999: assertion failed\n--- FAIL: TestOverflow (0.00s)\nFAIL",
+		// Edge case: very deep subtest nesting
+		"=== RUN   Test\n" + strings.Repeat("=== RUN   Test/sub\n", 100) + "--- PASS: Test (0.00s)\nPASS",
 	}
 
 	for _, seed := range seeds {
@@ -402,6 +408,14 @@ func FuzzJSONParser(f *testing.F) {
 		`{"Action":"pass","Test":"Test","Extra":{"nested":{"deep":{"value":"test"}}}}`,
 		// Edge case: very large output field
 		`{"Action":"output","Test":"Test","Output":"` + strings.Repeat("x", 10000) + `"}`,
+		// Edge case: UTF-8 BOM prefix (common in Windows-created files)
+		"\xef\xbb\xbf" + `{"Action":"pass","Test":"TestBOM"}`,
+		// Edge case: truncated JSON at various points
+		`{"Action":"pass","Test":"TestTrunc`,
+		`{"Action":"pass","Test":`,
+		`[{"Action":"pass"}`,
+		// Edge case: extremely deep nesting (potential stack exhaustion)
+		strings.Repeat(`{"a":`, 100) + `"deep"` + strings.Repeat(`}`, 100),
 	}
 
 	for _, seed := range seeds {

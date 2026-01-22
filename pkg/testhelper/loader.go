@@ -477,7 +477,7 @@ func (tc TestCase) WithSkip(skip bool) TestCase {
 
 // WithOutput returns a copy of the TestCase with the Output field replaced.
 //
-// IMPORTANT: This method stores the output value by reference, NOT by copy.
+// WARNING: Unlike WithInput, this method stores output by REFERENCE, not by copy.
 // If output contains nested maps or slices, modifications to the passed value
 // will affect this TestCase:
 //

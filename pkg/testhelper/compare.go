@@ -423,7 +423,7 @@ func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
 //   - "$.foo.bar[2].baz" for deeply nested paths
 func Compare(expected, actual interface{}, opts CompareOptions) (bool, string) {
 	if err := ValidateOptions(opts); err != nil {
-		panic("testhelper.Compare: " + err.Error())
+		panic("testhelper.Compare: " + err.Error() + "; use ValidateOptions() to check options before comparison")
 	}
 	return compareValues(expected, actual, opts, "")
 }
@@ -606,7 +606,7 @@ func floatsEqual(expected, actual float64, opts CompareOptions) bool {
 	default:
 		// ValidateOptions ensures this is unreachable for properly validated options.
 		// Panic to catch programming errors (invalid options passed without validation).
-		panic("testhelper.floatsEqual: invalid ToleranceMode: " + opts.ToleranceMode)
+		panic("testhelper.floatsEqual: invalid ToleranceMode: " + opts.ToleranceMode + "; use ValidateOptions() to check options before comparison")
 	}
 }
 

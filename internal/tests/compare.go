@@ -19,6 +19,7 @@ import (
 )
 
 // Compare compares expected and actual values using the given configuration.
+// See pkg/testhelper.Compare for the public API version with different error format.
 func Compare(expected, actual interface{}, cfg ComparisonConfig) (bool, string) {
 	return compareValues(expected, actual, cfg, "")
 }

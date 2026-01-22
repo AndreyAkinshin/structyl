@@ -91,7 +91,7 @@ func printTestSummary(counts *testparser.TestCounts) {
 }
 
 func printTestSummaryUsage() {
-	out.HelpTitle("structyl test-summary - parse and summarize go test -json output")
+	out.HelpTitle("structyl test-summary - parse and summarize go test -json output (Go only)")
 	out.HelpSection("Usage:")
 	out.HelpUsage("go test -json ./... | structyl test-summary")
 	out.HelpUsage("go test -json ./... 2>&1 | tee test.json && structyl test-summary test.json")

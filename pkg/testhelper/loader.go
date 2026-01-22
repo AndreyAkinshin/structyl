@@ -432,6 +432,16 @@ func (tc TestCase) Validate() error {
 // Use this method when creating TestCase instances programmatically to ensure
 // Output contains only JSON-compatible Go types.
 //
+// # Validation Hierarchy
+//
+// The validation methods form a hierarchy of increasing strictness:
+//
+//	[Validate] < [ValidateStrict] < [ValidateDeep]
+//
+//   - Validate: structural checks only (Name, Input, Output non-nil)
+//   - ValidateStrict: adds top-level Output type check
+//   - ValidateDeep: adds recursive type validation for all nested values
+//
 // In addition to Validate() checks, ValidateStrict verifies that Output is one of:
 //   - float64 (JSON numbers)
 //   - string (JSON strings)
@@ -465,6 +475,9 @@ func validateOutputType(v interface{}) error {
 
 // ValidateDeep performs all Validate() checks plus recursive type validation.
 // Verifies that all nested values in Input and Output are JSON-compatible types.
+//
+// This is the most comprehensive validation method. See [ValidateStrict] for
+// the validation hierarchy: [Validate] < [ValidateStrict] < [ValidateDeep].
 //
 // In addition to Validate() and ValidateStrict() checks, ValidateDeep recursively
 // verifies that every nested value in arrays and maps is also a valid JSON type:
@@ -516,6 +529,13 @@ func validateDeepType(path string, v interface{}) error {
 
 // LoadTestSuite loads all test cases from a suite directory.
 // It looks for JSON files in <projectRoot>/tests/<suite>/*.json.
+//
+// Note: This function uses *.json pattern which matches JSON files in the
+// immediate suite directory only. Recursive patterns (**/*.json) are NOT
+// supported by this public package. For recursive loading, use Structyl's
+// internal test runner or iterate subdirectories manually.
+// See docs/specs/test-system.md for pattern support details.
+//
 // Returns ErrEmptySuiteName or ErrInvalidSuiteName if the suite name is invalid.
 // Returns SuiteNotFoundError if the suite directory does not exist.
 // Returns an empty slice (not nil) if the suite exists but contains no JSON files.

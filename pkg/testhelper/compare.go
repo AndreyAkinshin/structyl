@@ -377,6 +377,17 @@ func (o CompareOptions) IsZero() bool {
 	return o == CompareOptions{}
 }
 
+// IsDefault reports whether opts equals [DefaultOptions].
+//
+// Use IsDefault to detect whether options have been customized:
+//
+//	if opts.IsDefault() {
+//	    // Using standard comparison settings
+//	}
+func (o CompareOptions) IsDefault() bool {
+	return o == DefaultOptions()
+}
+
 // WithFloatTolerance returns a copy of CompareOptions with the FloatTolerance field set.
 // This enables fluent configuration:
 //

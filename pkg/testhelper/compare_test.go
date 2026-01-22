@@ -672,6 +672,51 @@ func TestIsZero(t *testing.T) {
 	}
 }
 
+func TestIsDefault(t *testing.T) {
+	t.Parallel()
+
+	// DefaultOptions should return true
+	if !DefaultOptions().IsDefault() {
+		t.Error("DefaultOptions() should return true for IsDefault()")
+	}
+
+	// Zero value is NOT default (different FloatTolerance, NaNEqualsNaN, etc.)
+	var zero CompareOptions
+	if zero.IsDefault() {
+		t.Error("zero value CompareOptions should return false for IsDefault()")
+	}
+
+	// Any field different from default should return false
+	tests := []struct {
+		name string
+		opts CompareOptions
+	}{
+		{"different FloatTolerance", DefaultOptions().WithFloatTolerance(1e-6)},
+		{"different ToleranceMode", DefaultOptions().WithToleranceMode(ToleranceModeAbsolute)},
+		{"different NaNEqualsNaN", DefaultOptions().WithNaNEqualsNaN(false)},
+		{"different ArrayOrder", DefaultOptions().WithArrayOrder(ArrayOrderUnordered)},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.opts.IsDefault() {
+				t.Errorf("%s should return false for IsDefault()", tt.name)
+			}
+		})
+	}
+
+	// Manually constructed DefaultOptions equivalent should return true
+	manual := CompareOptions{
+		FloatTolerance: 1e-9,
+		ToleranceMode:  ToleranceModeRelative,
+		NaNEqualsNaN:   true,
+		ArrayOrder:     ArrayOrderStrict,
+	}
+	if !manual.IsDefault() {
+		t.Error("manually constructed default values should return true for IsDefault()")
+	}
+}
+
 func TestFormatDiff(t *testing.T) {
 	opts := DefaultOptions()
 

@@ -207,6 +207,23 @@ func TestSort_SelectedNodes(t *testing.T) {
 	}
 }
 
+func TestSort_SelectedNodes_InvalidReference(t *testing.T) {
+	t.Parallel()
+	g := Graph{
+		"a": nil,
+		"b": {"a"},
+	}
+
+	// Sort with a selected node that doesn't exist in the graph
+	_, err := Sort(g, []string{"nonexistent"})
+	if err == nil {
+		t.Error("Sort() expected error for nonexistent selected node, got nil")
+	}
+	if !strings.Contains(err.Error(), "not found") {
+		t.Errorf("Sort() error = %v, want to contain 'not found'", err)
+	}
+}
+
 func TestSort_NilVsEmptyNodes(t *testing.T) {
 	t.Parallel()
 	g := Graph{

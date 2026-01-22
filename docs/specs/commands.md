@@ -33,7 +33,7 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 | `build`         | Build targets                                       |
 | `build:release` | Build targets (release mode)†                       |
 | `test`          | Run tests                                           |
-| `test:coverage` | Run tests with coverage                             |
+| `test:coverage` | Run tests with coverage‡                            |
 | `check`         | Run static analysis (lint, typecheck, format-check) |
 | `check:fix`     | Auto-fix static analysis issues                     |
 | `bench`         | Run benchmarks                                      |
@@ -44,6 +44,8 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 | `publish:dry`   | Dry-run publish (validate without uploading)        |
 
 † `build:release` is only provided by toolchains with distinct release/optimized build modes. Toolchains providing `build:release`: `cargo`, `dotnet`, `make`, `swift`, `zig`. Toolchains without a native release mode do not define this variant. See [toolchains.md](toolchains.md) for per-toolchain details.
+
+‡ `test:coverage` has no built-in implementation. Projects MUST define this command explicitly. See the info box below.
 
 <!-- VitePress component: Renders standard command reference table in docs site (non-normative) -->
 <!-- When viewing raw markdown, see the Standard Commands table in the section above -->
@@ -519,6 +521,53 @@ Generates Dockerfiles for all targets with mise-supported toolchains. Each targe
 structyl dockerfile          # Generate Dockerfiles for all targets
 structyl dockerfile --force  # Regenerate all Dockerfiles
 ```
+
+### `github` Command
+
+```
+structyl github [--force]
+```
+
+Generates a GitHub Actions CI workflow file at `.github/workflows/ci.yml` for all targets with mise-supported toolchains.
+
+**Options:**
+
+| Option       | Description                           |
+| ------------ | ------------------------------------- |
+| `--force`    | Overwrite existing workflow file      |
+| `-h, --help` | Show help                             |
+
+**Behavior:**
+
+- Creates `.github/workflows/ci.yml` with a job for each target
+- Skips targets without mise-supported toolchains
+- Warns if `mise.toml` doesn't exist (run `structyl init --mise` first)
+- Without `--force`, skips generation if workflow file already exists
+
+**Generated workflow structure:**
+
+- Triggers on push and pull request to `main` branch
+- One job per target with mise-supported toolchain
+- Each job runs `ci` task via mise
+
+**Exit codes:**
+
+| Code | Condition                          |
+| ---- | ---------------------------------- |
+| 0    | Workflow generated or already exists |
+| 1    | Runtime error during generation    |
+| 2    | Configuration error or unknown flag |
+
+**Examples:**
+
+```bash
+structyl github          # Generate CI workflow
+structyl github --force  # Regenerate workflow
+```
+
+::: info Output Format Stability
+The generated workflow file format is considered implementation detail and MAY change between Structyl versions. The workflow is designed for typical CI use cases; customize as needed for your project.
+:::
 
 ### `mise sync` Command
 

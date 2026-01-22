@@ -101,7 +101,7 @@ type CompareOptions struct {
 	// For "ulp" mode, this value is truncated to an integer representing the
 	// maximum allowed ULP (Units in Last Place) difference. For example,
 	// a tolerance of 1.9 allows 1 ULP difference, not 2.
-	FloatTolerance float64
+	FloatTolerance float64 `json:"float_tolerance"`
 
 	// ToleranceMode specifies how tolerance is applied.
 	// Use the ToleranceMode* constants: ToleranceModeRelative (default),
@@ -118,17 +118,17 @@ type CompareOptions struct {
 	// comparison results may be incorrect due to integer overflow. In practice,
 	// ULP tolerances above 1e15 are rarely meaningful since the total number of
 	// representable floats between 1.0 and 2.0 is approximately 4.5e15.
-	ToleranceMode string
+	ToleranceMode string `json:"tolerance_mode"`
 
 	// NaNEqualsNaN treats NaN values as equal when true.
 	// This applies to both float64 NaN values and special string representations
 	// ("NaN") used in JSON test case outputs. See [SpecialFloatNaN].
-	NaNEqualsNaN bool
+	NaNEqualsNaN bool `json:"nan_equals_nan"`
 
 	// ArrayOrder specifies array comparison order.
 	// Use the ArrayOrder* constants: ArrayOrderStrict (default) or
 	// ArrayOrderUnordered. Empty string ("") is treated as ArrayOrderStrict.
-	ArrayOrder string
+	ArrayOrder string `json:"array_order"`
 }
 
 // ToleranceMode constants for CompareOptions.ToleranceMode.
@@ -355,6 +355,26 @@ func ValidateOptions(opts CompareOptions) error {
 //	}
 func (o CompareOptions) IsValid() bool {
 	return ValidateOptions(o) == nil
+}
+
+// IsZero reports whether opts is the zero value of CompareOptions.
+//
+// Note: The zero value differs from [DefaultOptions]:
+//
+//	| Field          | Zero Value       | DefaultOptions()  |
+//	|----------------|------------------|-------------------|
+//	| FloatTolerance | 0 (exact match)  | 1e-9              |
+//	| ToleranceMode  | "" (→ relative)  | "relative"        |
+//	| NaNEqualsNaN   | false            | true              |
+//	| ArrayOrder     | "" (→ strict)    | "strict"          |
+//
+// Use IsZero to detect uninitialized options and provide defaults:
+//
+//	if opts.IsZero() {
+//	    opts = DefaultOptions()
+//	}
+func (o CompareOptions) IsZero() bool {
+	return o == CompareOptions{}
 }
 
 // Equal compares expected and actual outputs for equality.

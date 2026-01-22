@@ -18,6 +18,7 @@ package testhelper
 // behave identically between packages.
 
 import (
+	"encoding/json"
 	"math"
 	"strings"
 	"testing"
@@ -511,6 +512,45 @@ func TestIsValid(t *testing.T) {
 	negativeTol := CompareOptions{FloatTolerance: -1}
 	if negativeTol.IsValid() {
 		t.Error("CompareOptions with negative FloatTolerance should return false")
+	}
+}
+
+func TestIsZero(t *testing.T) {
+	t.Parallel()
+
+	// Zero value should return true
+	var zero CompareOptions
+	if !zero.IsZero() {
+		t.Error("zero value CompareOptions should return true for IsZero()")
+	}
+
+	// Empty literal should return true
+	if !(CompareOptions{}).IsZero() {
+		t.Error("CompareOptions{} should return true for IsZero()")
+	}
+
+	// DefaultOptions is NOT zero (has non-zero FloatTolerance and NaNEqualsNaN)
+	if DefaultOptions().IsZero() {
+		t.Error("DefaultOptions() should return false for IsZero()")
+	}
+
+	// Any non-zero field should return false
+	tests := []struct {
+		name string
+		opts CompareOptions
+	}{
+		{"FloatTolerance set", CompareOptions{FloatTolerance: 1e-9}},
+		{"ToleranceMode set", CompareOptions{ToleranceMode: "relative"}},
+		{"NaNEqualsNaN set", CompareOptions{NaNEqualsNaN: true}},
+		{"ArrayOrder set", CompareOptions{ArrayOrder: "strict"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.opts.IsZero() {
+				t.Errorf("%s should return false for IsZero()", tt.name)
+			}
+		})
 	}
 }
 
@@ -1933,5 +1973,125 @@ func TestEqualE_DoesNotPanic_InvalidOptions(t *testing.T) {
 				t.Error("EqualE() should return error for invalid options")
 			}
 		})
+	}
+}
+
+func TestCompareOptions_JSONRoundTrip(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		opts CompareOptions
+	}{
+		{
+			name: "default options",
+			opts: DefaultOptions(),
+		},
+		{
+			name: "custom options",
+			opts: CompareOptions{
+				FloatTolerance: 1e-6,
+				ToleranceMode:  ToleranceModeAbsolute,
+				NaNEqualsNaN:   false,
+				ArrayOrder:     ArrayOrderUnordered,
+			},
+		},
+		{
+			name: "zero value",
+			opts: CompareOptions{},
+		},
+		{
+			name: "ulp mode",
+			opts: CompareOptions{
+				FloatTolerance: 5,
+				ToleranceMode:  ToleranceModeULP,
+				NaNEqualsNaN:   true,
+				ArrayOrder:     ArrayOrderStrict,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			// Marshal to JSON
+			data, err := json.Marshal(tt.opts)
+			if err != nil {
+				t.Fatalf("json.Marshal() error = %v", err)
+			}
+
+			// Unmarshal back
+			var got CompareOptions
+			if err := json.Unmarshal(data, &got); err != nil {
+				t.Fatalf("json.Unmarshal() error = %v", err)
+			}
+
+			// Verify round-trip equality
+			if got != tt.opts {
+				t.Errorf("round-trip mismatch:\n  got:  %+v\n  want: %+v", got, tt.opts)
+			}
+		})
+	}
+}
+
+func TestCompareOptions_JSONFieldNames(t *testing.T) {
+	t.Parallel()
+
+	opts := CompareOptions{
+		FloatTolerance: 1e-9,
+		ToleranceMode:  ToleranceModeRelative,
+		NaNEqualsNaN:   true,
+		ArrayOrder:     ArrayOrderStrict,
+	}
+
+	data, err := json.Marshal(opts)
+	if err != nil {
+		t.Fatalf("json.Marshal() error = %v", err)
+	}
+
+	// Verify JSON field names use snake_case as documented
+	jsonStr := string(data)
+	expectedFields := []string{
+		`"float_tolerance"`,
+		`"tolerance_mode"`,
+		`"nan_equals_nan"`,
+		`"array_order"`,
+	}
+
+	for _, field := range expectedFields {
+		if !strings.Contains(jsonStr, field) {
+			t.Errorf("JSON output missing field %s\n  got: %s", field, jsonStr)
+		}
+	}
+}
+
+func TestCompareOptions_JSONUnmarshalFromConfig(t *testing.T) {
+	t.Parallel()
+
+	// Simulates loading options from a JSON config file
+	jsonConfig := `{
+		"float_tolerance": 0.001,
+		"tolerance_mode": "absolute",
+		"nan_equals_nan": false,
+		"array_order": "unordered"
+	}`
+
+	var opts CompareOptions
+	if err := json.Unmarshal([]byte(jsonConfig), &opts); err != nil {
+		t.Fatalf("json.Unmarshal() error = %v", err)
+	}
+
+	if opts.FloatTolerance != 0.001 {
+		t.Errorf("FloatTolerance = %v, want 0.001", opts.FloatTolerance)
+	}
+	if opts.ToleranceMode != ToleranceModeAbsolute {
+		t.Errorf("ToleranceMode = %q, want %q", opts.ToleranceMode, ToleranceModeAbsolute)
+	}
+	if opts.NaNEqualsNaN != false {
+		t.Errorf("NaNEqualsNaN = %v, want false", opts.NaNEqualsNaN)
+	}
+	if opts.ArrayOrder != ArrayOrderUnordered {
+		t.Errorf("ArrayOrder = %q, want %q", opts.ArrayOrder, ArrayOrderUnordered)
 	}
 }

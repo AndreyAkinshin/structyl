@@ -95,6 +95,14 @@ The `pkg/testhelper` package returns specific error types for programmatic handl
 | `InvalidSuiteNameError`  | `ErrInvalidSuiteName`     | Suite name contains `..`, `/`, `\`, or `\0`  |
 | `InvalidTestCaseNameError`| `ErrInvalidTestCaseName` | Test case name contains `..`, `/`, `\`, or `\0` |
 
+The `InvalidSuiteNameError` and `InvalidTestCaseNameError` types include a `Reason` field indicating why the name was rejected:
+
+| Constant             | Value                     | Meaning                          |
+| -------------------- | ------------------------- | -------------------------------- |
+| `ReasonPathTraversal`| `"path traversal (..)"` | Name contains `..` sequence      |
+| `ReasonPathSeparator`| `"path separator (/ or \\)"` | Name contains `/` or `\`      |
+| `ReasonNullByte`     | `"null byte"`             | Name contains null byte (`\0`)   |
+
 **Additional sentinels (no struct type):**
 
 | Sentinel                       | Condition                             |

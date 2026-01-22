@@ -64,8 +64,8 @@ func Validate(cfg *Config) (warnings []string, err error) {
 }
 
 // validateCI validates CI configuration steps.
-// Both nil CI config and empty steps array are valid (no CI pipeline configured).
 func validateCI(cfg *Config) error {
+	// CI configuration is optional
 	if cfg.CI == nil || len(cfg.CI.Steps) == 0 {
 		return nil
 	}
@@ -325,8 +325,10 @@ func validateTests(cfg *Config) error {
 		}
 	}
 
-	// Validate float_tolerance is integer when tolerance_mode is "ulp"
-	if c.FloatTolerance != nil && c.ToleranceMode == "ulp" && *c.FloatTolerance != float64(int(*c.FloatTolerance)) {
+	// ULP tolerance requires integer values (representing bit distance)
+	isULPMode := c.ToleranceMode == "ulp"
+	hasNonIntegerTolerance := c.FloatTolerance != nil && *c.FloatTolerance != float64(int(*c.FloatTolerance))
+	if isULPMode && hasNonIntegerTolerance {
 		return &ValidationError{
 			Field:   "tests.comparison.float_tolerance",
 			Message: "must be an integer when tolerance_mode is \"ulp\"",

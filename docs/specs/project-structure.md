@@ -246,7 +246,7 @@ Reserved names SHOULD NOT be used as target names to avoid confusion.
 | File              | Purpose                                    |
 | ----------------- | ------------------------------------------ |
 | `config.json`     | Project configuration (root marker)        |
-| `PROJECT_VERSION` | Canonical project version                  |
+| `PROJECT_VERSION` | Canonical project version (plain text, SemVer format) |
 | `version`         | Pinned CLI version for reproducible builds |
 | `toolchains.json` | Toolchain definitions                      |
 | `setup.sh`        | Bootstrap script for Unix/macOS            |

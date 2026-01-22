@@ -198,6 +198,10 @@ Toolchains provide default command implementations. See [toolchains.md](toolchai
 | `cmake`   | C/C++           | `CMakeLists.txt`                   |
 | `swift`   | Swift           | `Package.swift`                    |
 
+::: info Complete Toolchain Reference
+This table shows commonly used toolchains. For the complete list of 27 built-in toolchains with command mappings and auto-detection markers, see [toolchains.md](toolchains.md).
+:::
+
 ### Toolchain Auto-Detection
 
 When `toolchain` is not specified, Structyl checks for marker files in the target directory:

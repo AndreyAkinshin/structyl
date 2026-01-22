@@ -8,7 +8,7 @@ This document defines key terms used throughout the Structyl specification.
 
 ### Argument Forwarding
 
-The mechanism by which command-line arguments after the command name (or after `--`) are passed to the underlying shell command. In [composite commands](#command-composition), forwarded arguments apply only to the final leaf command. See [commands.md](commands.md#argument-forwarding) for complete semantics.
+The mechanism by which command-line arguments after the command name (or after `--`) are passed to the underlying shell command. Example: `structyl test rs --verbose` passes `--verbose` to the test command. In [composite commands](#command-composition), forwarded arguments apply only to the final leaf command. See [commands.md](commands.md#argument-forwarding) for complete semantics.
 
 ### Artifact
 

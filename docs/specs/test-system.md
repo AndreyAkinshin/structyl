@@ -510,6 +510,7 @@ The example below is illustrative. For the actual public Go API, see the `pkg/te
 :::
 
 ```go
+// Illustrative pseudocode - see pkg/testhelper for actual API
 package testhelper
 
 import (

@@ -2350,6 +2350,81 @@ func TestTestCase_DeepClone(t *testing.T) {
 	})
 }
 
+func TestTestCase_WithName(t *testing.T) {
+	t.Parallel()
+
+	t.Run("sets_name", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "old-name",
+			Input:  map[string]interface{}{"key": "value"},
+			Output: "result",
+		}
+
+		result := original.WithName("new-name")
+
+		if result.Name != "new-name" {
+			t.Errorf("Name: got %q, want %q", result.Name, "new-name")
+		}
+	})
+
+	t.Run("original_unchanged", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "original-name",
+			Input:  map[string]interface{}{"key": "value"},
+			Output: "result",
+		}
+
+		_ = original.WithName("new-name")
+
+		if original.Name != "original-name" {
+			t.Errorf("original Name changed: got %q, want %q", original.Name, "original-name")
+		}
+	})
+
+	t.Run("preserves_other_fields", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:        "test-name",
+			Suite:       "suite",
+			Description: "description",
+			Input:       map[string]interface{}{"a": 1.0},
+			Output:      "output",
+			Tags:        []string{"tag1"},
+			Skip:        true,
+		}
+
+		result := original.WithName("new-name")
+
+		if result.Suite != original.Suite {
+			t.Errorf("Suite: got %q, want %q", result.Suite, original.Suite)
+		}
+		if result.Description != original.Description {
+			t.Errorf("Description: got %q, want %q", result.Description, original.Description)
+		}
+		if result.Skip != original.Skip {
+			t.Errorf("Skip: got %v, want %v", result.Skip, original.Skip)
+		}
+	})
+
+	t.Run("input_independent", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{"key": "value"},
+			Output: "result",
+		}
+
+		result := original.WithName("new-name")
+		result.Input["new"] = "added"
+
+		if _, exists := original.Input["new"]; exists {
+			t.Error("modifying result's Input affected original")
+		}
+	})
+}
+
 func TestTestCase_WithSuite(t *testing.T) {
 	t.Parallel()
 
@@ -2803,6 +2878,29 @@ func TestTestCase_WithOutput(t *testing.T) {
 		}
 		if resultMap["key"] != "value" {
 			t.Errorf("Output: got %v, want map with key=value", result.Output)
+		}
+	})
+
+	t.Run("output_stored_by_reference", func(t *testing.T) {
+		t.Parallel()
+		// Verify that WithOutput stores by reference, not by copy.
+		// This is documented behavior - mutations to the passed value affect the TestCase.
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "old",
+		}
+
+		output := map[string]interface{}{"key": "value"}
+		result := original.WithOutput(output)
+
+		// Modify the passed output AFTER calling WithOutput
+		output["key"] = "modified"
+
+		// The TestCase should reflect the modification (reference semantics)
+		resultMap := result.Output.(map[string]interface{})
+		if resultMap["key"] != "modified" {
+			t.Error("WithOutput should store output by reference; modifying passed value should affect TestCase")
 		}
 	})
 }

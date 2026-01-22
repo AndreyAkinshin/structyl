@@ -328,10 +328,16 @@ func ValidateOptions(opts CompareOptions) error {
 // This is a convenience wrapper around [ValidateOptions] for cases where
 // boolean checking is preferred over error handling.
 //
-// Example:
+// Use IsValid for conditional fallback:
 //
 //	if !opts.IsValid() {
-//	    // handle invalid options
+//	    opts = DefaultOptions()
+//	}
+//
+// Use [ValidateOptions] when you need error details:
+//
+//	if err := ValidateOptions(opts); err != nil {
+//	    return fmt.Errorf("invalid options: %w", err)
 //	}
 func (o CompareOptions) IsValid() bool {
 	return ValidateOptions(o) == nil

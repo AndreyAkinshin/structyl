@@ -381,6 +381,16 @@ func (tc TestCase) DeepClone() (TestCase, error) {
 	return clone, nil
 }
 
+// WithName returns a copy of the TestCase with the Name field set to the given value.
+//
+// Note: This performs a shallow copy like [Clone]; see Clone documentation for
+// details on which fields are deep-copied.
+func (tc TestCase) WithName(name string) TestCase {
+	clone := tc.Clone()
+	clone.Name = name
+	return clone
+}
+
 // WithSuite returns a copy of the TestCase with the Suite field set to the given value.
 // This is useful when loading test cases with [LoadTestCase], which does not populate
 // the Suite field, and you want to associate the test case with a suite name.
@@ -457,10 +467,18 @@ func (tc TestCase) WithSkip(skip bool) TestCase {
 
 // WithOutput returns a copy of the TestCase with the Output field replaced.
 //
-// IMPORTANT: This method does NOT deep-copy the output value. If output contains
-// nested maps or slices, modifications to the copy's Output will affect the
-// original value passed to this method. For complete isolation, use [DeepClone]
-// or ensure output is an immutable value (string, float64, bool).
+// IMPORTANT: This method stores the output value by reference, NOT by copy.
+// If output contains nested maps or slices, modifications to the passed value
+// will affect this TestCase:
+//
+//	output := map[string]interface{}{"key": "value"}
+//	tc := tc.WithOutput(output)
+//	output["key"] = "modified"  // tc.Output["key"] is now "modified"
+//
+// For complete isolation, either:
+//   - Pass an immutable value (string, float64, bool)
+//   - Copy the value before passing it
+//   - Call [DeepClone] on the resulting TestCase
 //
 // Note: This performs a shallow copy like [Clone]; see Clone documentation for
 // details on which fields are deep-copied.

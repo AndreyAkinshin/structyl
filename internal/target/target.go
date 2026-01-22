@@ -20,8 +20,11 @@ type TargetType string
 
 const (
 	// TypeLanguage represents a language implementation target.
+	// Note: config.TypeLanguage mirrors this value to avoid circular dependencies.
 	TypeLanguage TargetType = "language"
+
 	// TypeAuxiliary represents an auxiliary build target.
+	// Note: config.TypeAuxiliary mirrors this value to avoid circular dependencies.
 	TypeAuxiliary TargetType = "auxiliary"
 )
 

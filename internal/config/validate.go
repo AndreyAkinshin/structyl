@@ -17,6 +17,17 @@ const (
 // TargetAll is the special target name meaning "all targets".
 const TargetAll = "all"
 
+// Target type constants. These are defined in config package to avoid circular
+// dependencies (target package imports config). The target package uses these
+// values via its own constants that match these strings.
+const (
+	// TypeLanguage indicates a programming language implementation target.
+	TypeLanguage = "language"
+
+	// TypeAuxiliary indicates a supporting tool/utility target.
+	TypeAuxiliary = "auxiliary"
+)
+
 // Validation patterns from the specification.
 var (
 	// Project name: must start with lowercase letter, may contain lowercase, digits, hyphens.
@@ -202,9 +213,7 @@ func validateTargetConfig(name string, target TargetConfig) error {
 		}
 	}
 
-	// Note: String literals used here instead of target.TypeLanguage/TypeAuxiliary constants
-	// due to circular dependency (target package imports config package).
-	if target.Type != "language" && target.Type != "auxiliary" {
+	if target.Type != TypeLanguage && target.Type != TypeAuxiliary {
 		return &ValidationError{
 			Field:   fmt.Sprintf("targets.%s.type", name),
 			Message: `must be "language" or "auxiliary"`,

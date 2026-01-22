@@ -4,6 +4,16 @@
 
 This document defines the command vocabulary and execution model for Structyl.
 
+## Non-Goals
+
+The following are explicitly **out of scope** for the Structyl command system:
+
+- **Interactive command prompts** — Commands MUST NOT require interactive input during execution. All configuration is via flags, environment variables, or configuration files.
+- **Build system replacement** — Structyl orchestrates existing build tools; it does not implement build logic (compilation, linking, dependency resolution).
+- **Command chaining syntax** — Shell-style chaining (`&&`, `||`, `;`) is delegated to the underlying shell; Structyl provides array-based composition instead.
+- **Real-time output manipulation** — Structyl passes through stdout/stderr from subprocesses without transformation (aside from optional prefix tagging).
+- **Cross-target argument sharing** — Arguments forwarded via `--` apply only to the final leaf command, not to all targets or intermediate commands.
+
 ## Command Line Interface
 
 ```

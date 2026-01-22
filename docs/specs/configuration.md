@@ -13,6 +13,16 @@ Every Structyl project requires a `.structyl/config.json` file at the project ro
 - Configures targets (languages and auxiliary)
 - Specifies test and documentation settings
 
+## Non-Goals
+
+The following are explicitly **out of scope** for the configuration system:
+
+- **Configuration inheritance/includes** — Each project has exactly one `config.json`. No support for splitting configuration across files or inheriting from parent configs.
+- **Dynamic configuration** — Configuration is static JSON evaluated at load time. No template expressions, conditionals, or runtime evaluation.
+- **Environment-specific variants** — No `config.dev.json` / `config.prod.json` pattern. Use environment variables in commands for environment-specific behavior.
+- **Automatic migration** — Schema changes between major versions require manual migration. Structyl does not auto-upgrade configuration files.
+- **Secret management** — Credentials and secrets MUST NOT be stored in configuration. Use environment variables or secret management tools.
+
 ## File Location
 
 The configuration file MUST be named `.structyl/config.json` and placed at the project root directory. Structyl locates the project root by walking up from the current directory until it finds this file.

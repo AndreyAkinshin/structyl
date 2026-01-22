@@ -937,4 +937,5 @@ In this example, the `rs` target uses Rust `1.80.0` (from `toolchain_version`), 
 > **Toolchain count maintenance:** When adding or removing built-in toolchains, update the count in:
 > - `README.md` feature description
 > - `docs/index.md` features section (if applicable)
+> - `AGENTS.md` toolchain system section
 > - This document's [Overview](#overview) section

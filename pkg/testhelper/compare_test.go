@@ -483,6 +483,37 @@ func TestValidateOptions(t *testing.T) {
 	}
 }
 
+func TestIsValid(t *testing.T) {
+	// Valid options should return true
+	if !DefaultOptions().IsValid() {
+		t.Error("DefaultOptions().IsValid() should return true")
+	}
+
+	// Empty options should be valid (defaults to relative/strict)
+	emptyOpts := CompareOptions{}
+	if !emptyOpts.IsValid() {
+		t.Error("empty CompareOptions{}.IsValid() should return true")
+	}
+
+	// Invalid ToleranceMode should return false
+	invalidMode := CompareOptions{ToleranceMode: "invalid"}
+	if invalidMode.IsValid() {
+		t.Error("CompareOptions with invalid ToleranceMode should return false")
+	}
+
+	// Invalid ArrayOrder should return false
+	invalidOrder := CompareOptions{ArrayOrder: "invalid"}
+	if invalidOrder.IsValid() {
+		t.Error("CompareOptions with invalid ArrayOrder should return false")
+	}
+
+	// Negative tolerance should return false
+	negativeTol := CompareOptions{FloatTolerance: -1}
+	if negativeTol.IsValid() {
+		t.Error("CompareOptions with negative FloatTolerance should return false")
+	}
+}
+
 func TestFormatDiff(t *testing.T) {
 	opts := DefaultOptions()
 

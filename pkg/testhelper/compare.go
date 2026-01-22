@@ -324,6 +324,19 @@ func ValidateOptions(opts CompareOptions) error {
 	return nil
 }
 
+// IsValid returns true if opts contains valid configuration values.
+// This is a convenience wrapper around [ValidateOptions] for cases where
+// boolean checking is preferred over error handling.
+//
+// Example:
+//
+//	if !opts.IsValid() {
+//	    // handle invalid options
+//	}
+func (o CompareOptions) IsValid() bool {
+	return ValidateOptions(o) == nil
+}
+
 // Equal compares expected and actual outputs for equality.
 // Panics on invalid opts; use [ValidateOptions] or [EqualE] for error handling.
 //

@@ -51,7 +51,7 @@ The `test:coverage` command is part of the standard vocabulary but **no built-in
 - MUST run test suite with coverage instrumentation enabled
 - Coverage output location: implementation-defined (commonly `coverage/` or tool default)
 - Output format: implementation-defined
-- Exit code: SHOULD be 0 if tests pass (regardless of coverage percentage), non-zero if tests fail
+- Exit code: MUST be 0 if all tests pass, non-zero if any test fails. Coverage percentage MUST NOT affect exit code
 - Coverage threshold enforcement is NOT part of Structyl's contract; use CI tooling if required
   :::
 

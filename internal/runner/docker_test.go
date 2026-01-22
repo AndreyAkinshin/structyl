@@ -1,5 +1,21 @@
 package runner
 
+// Test Coverage Note for Docker Runner
+//
+// The DockerRunner.Run() method has 0% unit test coverage. This is intentional:
+//
+//   1. Run() executes docker-compose commands which require Docker to be installed
+//   2. Unit tests should not depend on external system state (Docker daemon running)
+//   3. The method's logic is primarily command construction and subprocess execution
+//
+// Coverage strategy:
+//   - Unit tests cover: construction, configuration, error types, command building
+//   - Integration tests (//go:build integration) cover: actual Docker execution
+//   - The mock interfaces allow dependent code to be tested without Docker
+//
+// If Docker-dependent tests are needed, use the integration build tag:
+//   go test -tags=integration ./internal/runner/...
+
 import (
 	"context"
 	"fmt"

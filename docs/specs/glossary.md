@@ -152,6 +152,12 @@ A test case defined in JSON format in the `tests/` directory. Reference tests ar
 
 A packaged distribution of software ready for publication. Distinguished from [Build Artifact](#build-artifact) in that release artifacts are created by `pack` and distributed via `publish`. Release artifacts are the final distributable form of a library or application. Examples: `.nupkg` (NuGet), `.whl` (Python), `.crate` (Rust), `.tgz` (npm).
 
+### Release Version
+
+A semantic version without a prerelease identifier. Examples: `1.0.0`, `2.3.4`. Contrasted with prerelease versions that include identifiers like `1.0.0-alpha` or `2.3.4-beta.1`. The `structyl version bump prerelease` command requires the current version to be a prerelease version; invoking it on a release version causes exit code 2 (Configuration Error).
+
+See [error-handling.md](error-handling.md#version-command-errors) for the error message.
+
 ### Semantic Equivalence
 
 The property that two implementation outputs are logically identical within configured tolerance. Two outputs are semantically equivalent if comparison using [Output Comparison](test-system.md#output-comparison) returns true. Byte-level identity is not required; floating-point values may differ within tolerance, and array ordering may be ignored when configured. This is the criterion by which multi-language implementations are validated against reference tests.

@@ -176,11 +176,7 @@ func (r *Releaser) Release(ctx context.Context, opts Options) error {
 }
 
 // dryRun prints what would be done without doing it.
-func (r *Releaser) dryRun(ctx context.Context, verStr string, opts Options) error {
-	// Check for cancellation at start for consistency with Release()
-	if err := ctx.Err(); err != nil {
-		return err
-	}
+func (r *Releaser) dryRun(_ context.Context, verStr string, opts Options) error {
 	r.out.DryRunStart()
 
 	steps := &stepCounter{}
@@ -231,7 +227,7 @@ func (r *Releaser) checkGitClean(ctx context.Context) error {
 
 // setVersion writes the version to the VERSION file.
 func (r *Releaser) setVersion(verStr string) error {
-	versionFile := ".structyl/PROJECT_VERSION"
+	versionFile := config.DefaultVersionSource
 	if r.config.Version != nil && r.config.Version.Source != "" {
 		versionFile = r.config.Version.Source
 	}

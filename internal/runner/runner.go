@@ -108,13 +108,11 @@ func (r *Runner) RunAll(ctx context.Context, cmd string, opts RunOptions) error 
 
 // RunTargets executes a command on specific targets in dependency order.
 func (r *Runner) RunTargets(ctx context.Context, targetNames []string, cmd string, opts RunOptions) error {
-	// Get targets in order
 	allTargets, err := r.registry.TopologicalOrder()
 	if err != nil {
 		return err
 	}
 
-	// Filter to requested targets
 	targetSet := make(map[string]bool)
 	for _, name := range targetNames {
 		targetSet[name] = true
@@ -174,15 +172,14 @@ func (r *Runner) runSequential(ctx context.Context, targets []target.Target, cmd
 	return nil
 }
 
-// warnIfHasDependencies emits a warning if any target has dependencies.
-// Parallel mode doesn't respect depends_on ordering, so users should be aware.
-func warnIfHasDependencies(targets []target.Target) {
+// hasDependencies returns true if any target has depends_on configured.
+func hasDependencies(targets []target.Target) bool {
 	for _, t := range targets {
 		if len(t.DependsOn()) > 0 {
-			out.WarningSimple("parallel mode does not respect depends_on ordering; targets may execute before dependencies complete")
-			return
+			return true
 		}
 	}
+	return false
 }
 
 // runParallel executes targets concurrently using a bounded worker pool.
@@ -193,7 +190,9 @@ func warnIfHasDependencies(targets []target.Target) {
 //
 // Worker count is controlled by STRUCTYL_PARALLEL (default: runtime.NumCPU()).
 func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd string, opts RunOptions) error {
-	warnIfHasDependencies(targets)
+	if hasDependencies(targets) {
+		out.WarningSimple("parallel mode does not respect depends_on ordering; targets may execute before dependencies complete")
+	}
 	workers := getParallelWorkers()
 
 	// Create cancellable context for fail-fast
@@ -262,6 +261,12 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 	return nil
 }
 
+// defaultWorkerCount returns the default number of parallel workers based on CPU count.
+// Always returns at least minParallelWorkers to prevent semaphore deadlock.
+func defaultWorkerCount() int {
+	return max(minParallelWorkers, runtime.NumCPU())
+}
+
 // getParallelWorkers returns the number of parallel workers to use.
 // Invalid STRUCTYL_PARALLEL values (non-numeric, <1, >256) log a warning
 // and fall back to runtime.NumCPU(). The result is always at least 1
@@ -269,18 +274,18 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 func getParallelWorkers() int {
 	env := os.Getenv("STRUCTYL_PARALLEL")
 	if env == "" {
-		return max(minParallelWorkers, runtime.NumCPU())
+		return defaultWorkerCount()
 	}
 
 	n, err := strconv.Atoi(env)
 	if err != nil {
 		out.WarningSimple("invalid STRUCTYL_PARALLEL value %q (not a number), using default", env)
-		return max(minParallelWorkers, runtime.NumCPU())
+		return defaultWorkerCount()
 	}
 
 	if n < minParallelWorkers || n > maxParallelWorkers {
 		out.WarningSimple("STRUCTYL_PARALLEL=%d out of range [%d-%d], using default", n, minParallelWorkers, maxParallelWorkers)
-		return max(minParallelWorkers, runtime.NumCPU())
+		return defaultWorkerCount()
 	}
 
 	return n

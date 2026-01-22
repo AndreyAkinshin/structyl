@@ -51,6 +51,17 @@ And a typical configuration with targets:
 }
 ```
 
+## Auto-Discovery Mode
+
+When the `targets` section is absent or empty (`{}`), Structyl uses **auto-discovery mode**. In this mode, Structyl scans your project directory for toolchain marker files (like `Cargo.toml`, `go.mod`, `package.json`) and automatically configures targets based on what it finds.
+
+This is useful for:
+- Quick setup of new projects
+- Projects with standard toolchain layouts
+- Prototyping before committing to explicit configuration
+
+For full control over target configuration, define the `targets` section explicitly. See the [Targets Specification](../specs/targets.md) for details on auto-discovery behavior.
+
 ## Configuration Sections
 
 ### `project`

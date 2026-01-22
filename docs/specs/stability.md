@@ -117,7 +117,7 @@ This table is synchronized with `// Deprecated:` comments in Go source code. If 
 - `TestCase.String()` output format (explicitly unstable, see code comment)
 - `CompareOptions.String()` output format (explicitly unstable, see code comment)
 - `structyl targets` output format (intended for human consumption, not machine parsing)
-- Log message wording (structure is stable, wording is not)
+- Log and warning message wording (structure is stable, wording is not; includes `STRUCTYL_PARALLEL` validation warnings)
 - Panic message format in `pkg/testhelper` comparison functions (currently `"testhelper.<FuncName>: <error>"` but may change)
 
 ## Breaking Change Process

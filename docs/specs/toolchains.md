@@ -267,6 +267,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 <ToolchainCommands name="go" variant="spec" />
 
 - Note: `lint` requires `golangci-lint` to be installed
+- Note: Go does not have a distinct release build mode. Use `-ldflags` or build tags for production builds.
 
 ---
 

@@ -8,6 +8,17 @@ import (
 	"testing"
 )
 
+// indexOfIn returns the index of s in slice, or -1 if not found.
+// This helper avoids duplicating the indexOf closure in multiple tests.
+func indexOfIn(slice []string, s string) int {
+	for i, v := range slice {
+		if v == s {
+			return i
+		}
+	}
+	return -1
+}
+
 func TestSort_Empty(t *testing.T) {
 	t.Parallel()
 	g := Graph{}
@@ -46,19 +57,10 @@ func TestSort_LinearChain(t *testing.T) {
 	}
 
 	// Verify order: a before b, b before c
-	indexOf := func(s string) int {
-		for i, v := range result {
-			if v == s {
-				return i
-			}
-		}
-		return -1
-	}
-
-	if indexOf("a") >= indexOf("b") {
+	if indexOfIn(result, "a") >= indexOfIn(result, "b") {
 		t.Errorf("Sort() a should come before b: %v", result)
 	}
-	if indexOf("b") >= indexOf("c") {
+	if indexOfIn(result, "b") >= indexOfIn(result, "c") {
 		t.Errorf("Sort() b should come before c: %v", result)
 	}
 }
@@ -77,21 +79,12 @@ func TestSort_Diamond(t *testing.T) {
 		t.Errorf("Sort() error = %v, want nil", err)
 	}
 
-	indexOf := func(s string) int {
-		for i, v := range result {
-			if v == s {
-				return i
-			}
-		}
-		return -1
-	}
-
 	// a must come before b and c
-	if indexOf("a") >= indexOf("b") || indexOf("a") >= indexOf("c") {
+	if indexOfIn(result, "a") >= indexOfIn(result, "b") || indexOfIn(result, "a") >= indexOfIn(result, "c") {
 		t.Errorf("Sort() a should come before b and c: %v", result)
 	}
 	// b and c must come before d
-	if indexOf("b") >= indexOf("d") || indexOf("c") >= indexOf("d") {
+	if indexOfIn(result, "b") >= indexOfIn(result, "d") || indexOfIn(result, "c") >= indexOfIn(result, "d") {
 		t.Errorf("Sort() b and c should come before d: %v", result)
 	}
 }
@@ -365,21 +358,12 @@ func TestSort_MultipleDisconnectedComponents(t *testing.T) {
 	}
 
 	// Verify ordering within components
-	indexOf := func(s string) int {
-		for i, v := range result {
-			if v == s {
-				return i
-			}
-		}
-		return -1
-	}
-
 	// a must come before b
-	if indexOf("a") >= indexOf("b") {
+	if indexOfIn(result, "a") >= indexOfIn(result, "b") {
 		t.Errorf("Sort() a should come before b: %v", result)
 	}
 	// c must come before d
-	if indexOf("c") >= indexOf("d") {
+	if indexOfIn(result, "c") >= indexOfIn(result, "d") {
 		t.Errorf("Sort() c should come before d: %v", result)
 	}
 }
@@ -400,17 +384,8 @@ func TestSort_DuplicateDependencies(t *testing.T) {
 		t.Errorf("Sort() returned %d nodes, want 2", len(result))
 	}
 
-	indexOf := func(s string) int {
-		for i, v := range result {
-			if v == s {
-				return i
-			}
-		}
-		return -1
-	}
-
 	// b must come before a
-	if indexOf("b") >= indexOf("a") {
+	if indexOfIn(result, "b") >= indexOfIn(result, "a") {
 		t.Errorf("Sort() b should come before a: %v", result)
 	}
 }

@@ -52,6 +52,16 @@ IDE integration field for JSON Schema validation. Structyl ignores this field du
 
 See [Schema Validation](#schema-validation) for details on local vs published schema URLs.
 
+### `toolchains.json` Reference File
+
+When `structyl init` creates a project, it copies `.structyl/toolchains.json` containing built-in toolchain definitions. This file:
+
+- Provides IDE autocompletion for toolchain names in configuration
+- Documents available commands for each toolchain
+- Is NOT read by Structyl at runtime (the built-in toolchain template is authoritative)
+
+To refresh after a Structyl upgrade: delete the file and re-run `structyl init` on an existing project.
+
 ### `project` (required)
 
 Project metadata used in documentation and package generation.

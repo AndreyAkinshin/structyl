@@ -480,7 +480,7 @@ This design treats invalid options as programmer errors (fail-fast) rather than 
 > **Stability Note:** Panic message format is unstable and MAY change between versions. See [stability.md](stability.md#unstable-may-change) for details. For user-provided options, use one of these approaches:
 
 1. **Validate before comparison**: Call `ValidateOptions(opts)` first; if it returns `nil`, subsequent comparison calls will not panic
-2. **Use error-returning variants**: `EqualE` and `CompareE` return errors instead of panicking
+2. **Use error-returning variants**: `EqualE`, `CompareE`, and `FormatComparisonResultE` return errors instead of panicking
 
 ```go
 // Option 1: Validate upfront

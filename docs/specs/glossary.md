@@ -74,10 +74,10 @@ A numeric value returned by Structyl to indicate command outcome. Structyl defin
 
 | Code | Name                | Meaning                                       |
 | ---- | ------------------- | --------------------------------------------- |
-| 0    | Success             | Command completed successfully                |
-| 1    | Failure             | Runtime failure (build, test, command failed) |
-| 2    | Configuration Error | Invalid configuration                         |
-| 3    | Environment Error   | External dependency unavailable               |
+| `0`  | Success             | Command completed successfully                |
+| `1`  | Failure             | Runtime failure (build, test, command failed) |
+| `2`  | Configuration Error | Invalid configuration                         |
+| `3`  | Environment Error   | External dependency unavailable               |
 
 See [error-handling.md](error-handling.md#exit-codes) for detailed semantics.
 

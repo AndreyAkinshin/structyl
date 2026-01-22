@@ -218,11 +218,15 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 	}
 
 	// Process targets concurrently with worker pool limiting.
+	//
 	// KNOWN LIMITATION: TopologicalOrder() ensures targets are scheduled in valid
 	// dependency order, but this loop launches all goroutines immediately. The
 	// semaphore limits concurrency but not dependency completion order. This means
 	// targets with depends_on may execute before their dependencies complete.
-	// See AGENTS.md "Known Limitations" for workarounds and fix requirements.
+	//
+	// For dependency-aware parallel execution, use mise (the default backend) or
+	// set STRUCTYL_PARALLEL=1 for sequential execution that respects ordering.
+	// See AGENTS.md "Known Limitations" for full details.
 	for _, t := range targets {
 		wg.Add(1)
 		go func(t target.Target) {
@@ -237,22 +241,19 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 
 			err := t.Execute(ctx, cmd, execOpts)
 
-			// Mutex scope: The lock protects the shared errs slice. The cancel()
-			// call inside the lock ensures atomic "append error + trigger cancel"
-			// semantics, preventing a race where multiple goroutines could append
-			// errors after cancellation was triggered. While cancel() itself is
-			// thread-safe, keeping it under the lock provides clearer invariants.
+			// Determine action under lock, execute cancel outside lock.
+			// This keeps the critical section minimal while preserving atomicity
+			// of the "check error + append + decide to cancel" sequence.
+			var shouldCancel bool
 			mu.Lock()
-			defer mu.Unlock()
-
-			if err != nil {
-				if shouldContinueAfterError(err) {
-					return
-				}
+			if err != nil && !shouldContinueAfterError(err) {
 				errs = append(errs, formatTargetError(t.Name(), cmd, err))
-				if !opts.Continue {
-					cancel()
-				}
+				shouldCancel = !opts.Continue
+			}
+			mu.Unlock()
+
+			if shouldCancel {
+				cancel()
 			}
 		}(t)
 	}

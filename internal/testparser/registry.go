@@ -1,6 +1,9 @@
 package testparser
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // Registry maps toolchain identifiers to their parsers.
 type Registry struct {
@@ -22,8 +25,7 @@ var builtinParsers = []struct {
 }
 
 // NewRegistry creates a new parser registry with all built-in parsers.
-// Note: Aliases in builtinParsers must be unique; duplicate aliases will
-// silently overwrite earlier registrations. This is validated by tests.
+// Panics if builtinParsers contains duplicate aliases (indicates a programming bug).
 func NewRegistry() *Registry {
 	r := &Registry{
 		parsers: make(map[string]Parser),
@@ -31,6 +33,10 @@ func NewRegistry() *Registry {
 
 	for _, entry := range builtinParsers {
 		for _, alias := range entry.aliases {
+			if existing, exists := r.parsers[alias]; exists {
+				panic(fmt.Sprintf("BUG: duplicate parser alias %q: registered by both %q and %q",
+					alias, existing.Name(), entry.parser.Name()))
+			}
 			r.parsers[alias] = entry.parser
 		}
 	}

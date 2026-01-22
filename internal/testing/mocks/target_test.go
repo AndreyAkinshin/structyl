@@ -454,3 +454,37 @@ func TestTarget_ConcurrentExec(t *testing.T) {
 		t.Errorf("len(CommandHistory()) = %d, want %d", len(history), goroutines)
 	}
 }
+
+func TestTarget_ConcurrentExecAndReset(t *testing.T) {
+	t.Parallel()
+	m := NewTarget("test")
+	ctx := context.Background()
+	const execGoroutines = 50
+	const resetGoroutines = 10
+
+	// Run with -race to detect data races between Execute and Reset
+	var wg sync.WaitGroup
+	wg.Add(execGoroutines + resetGoroutines)
+
+	// Start executions
+	for i := 0; i < execGoroutines; i++ {
+		go func() {
+			defer wg.Done()
+			_ = m.Execute(ctx, "cmd", target.ExecOptions{})
+		}()
+	}
+
+	// Interleave resets
+	for i := 0; i < resetGoroutines; i++ {
+		go func() {
+			defer wg.Done()
+			m.Reset()
+		}()
+	}
+
+	wg.Wait()
+
+	// No assertions on counts - the goal is to verify no races or panics.
+	// The actual counts are non-deterministic due to reset interleaving.
+	// This test passes if it completes without -race detector warnings.
+}

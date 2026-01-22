@@ -118,8 +118,8 @@ structyl/
 │   ├── structyl/               # Public API (exit codes, constants)
 │   │   └── exitcodes.go        # ExitSuccess, ExitFailure, ExitConfigError, ExitEnvError
 │   └── testhelper/             # Reusable test utilities
-│       ├── loader.go           # Test data loading helpers
-│       └── compare.go          # ULP comparison, float comparison
+│       ├── loader.go           # Test data loading, suite discovery, error types
+│       └── compare.go          # Output comparison, tolerance modes, ULP math
 ├── test/
 │   ├── integration/            # Integration tests
 │   │   ├── basic_test.go       # Project loading, target execution

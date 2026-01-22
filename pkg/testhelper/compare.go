@@ -421,6 +421,10 @@ func CompareOutput(expected, actual interface{}, opts CompareOptions) bool {
 //   - "$.foo" represents the "foo" key in a root object
 //   - "$.foo[0]" represents the first element of array "foo"
 //   - "$.foo.bar[2].baz" for deeply nested paths
+//
+// Note: For programmatic use, int actual values are converted to float64 for
+// comparison. This accommodates callers who construct test data without JSON
+// unmarshaling (JSON always produces float64 for numbers).
 func Compare(expected, actual interface{}, opts CompareOptions) (bool, string) {
 	if err := ValidateOptions(opts); err != nil {
 		panic("testhelper.Compare: " + err.Error() + "; use ValidateOptions() to check options before comparison")

@@ -243,12 +243,13 @@ func loadFileRef(ref, baseDir string) (interface{}, error) {
 		return nil, fmt.Errorf("$file %q: %w", ref, err)
 	}
 
-	// Return as base64 string for binary data, or try to parse as JSON
+	// If content is valid JSON, return parsed structure.
+	// Otherwise, return raw content as string (callers expecting binary
+	// data must handle encoding themselves).
 	var jsonValue interface{}
 	if err := json.Unmarshal(data, &jsonValue); err == nil {
 		return jsonValue, nil
 	}
 
-	// Return raw bytes as string (could be base64 encoded if needed)
 	return string(data), nil
 }

@@ -276,19 +276,22 @@ func cmdTargets(args []string, opts *GlobalOptions) int {
 		return exitCode
 	}
 
-	var targets []target.Target
+	// Unified target selection: get all targets then filter by type if specified
+	targets := registry.All()
 	if opts.TargetType != "" {
 		targets = registry.ByType(target.TargetType(opts.TargetType))
-		if len(targets) == 0 {
-			if jsonOutput {
-				fmt.Println("[]")
-				return 0
-			}
-			out.WarningSimple("no targets of type %q found", opts.TargetType)
+	}
+
+	// Empty case - single handling point for both --json and text output
+	if len(targets) == 0 {
+		if jsonOutput {
+			fmt.Println("[]")
 			return 0
 		}
-	} else {
-		targets = registry.All()
+		if opts.TargetType != "" {
+			out.WarningSimple("no targets of type %q found", opts.TargetType)
+		}
+		return 0
 	}
 
 	if jsonOutput {

@@ -254,6 +254,8 @@ func cmdTargets(args []string, opts *GlobalOptions) int {
 				out.ErrorPrefix("targets: unknown option %q", arg)
 				return internalerrors.ExitConfigError
 			}
+			out.ErrorPrefix("targets: unexpected argument %q", arg)
+			return internalerrors.ExitConfigError
 		}
 	}
 

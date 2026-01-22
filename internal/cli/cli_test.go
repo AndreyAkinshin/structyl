@@ -556,6 +556,16 @@ func TestCmdTargets_UnknownFlag_ReturnsError(t *testing.T) {
 	})
 }
 
+func TestCmdTargets_UnknownArg_ReturnsError(t *testing.T) {
+	root := createTestProject(t)
+	withWorkingDir(t, root, func() {
+		exitCode := cmdTargets([]string{"foo"}, &GlobalOptions{})
+		if exitCode != 2 {
+			t.Errorf("cmdTargets(foo) = %d, want 2 (config error)", exitCode)
+		}
+	})
+}
+
 func TestTargetJSON_DependsOnAlwaysPresent(t *testing.T) {
 	t.Parallel()
 	// Verify that TargetJSON serializes depends_on even when empty.

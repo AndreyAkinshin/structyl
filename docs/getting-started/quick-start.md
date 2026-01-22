@@ -2,6 +2,11 @@
 
 This guide walks you through creating a simple multi-language project with Structyl.
 
+## Prerequisites
+
+- **Structyl CLI** installed (see [Installation](installation.md))
+- **[mise](https://mise.jdx.dev/)** installed (required for task execution)
+
 ## Initialize a Project
 
 Create a new directory and initialize Structyl:

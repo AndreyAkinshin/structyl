@@ -2,6 +2,7 @@ package cli
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -35,6 +36,9 @@ var (
 const (
 	httpTimeout = 10 * time.Second
 )
+
+// ErrReleaseNotFound is returned when a GitHub release does not exist.
+var ErrReleaseNotFound = errors.New("release not found")
 
 // GitHubRelease represents the GitHub API response for a release.
 type GitHubRelease struct {
@@ -340,7 +344,7 @@ func fetchGitHubRelease(url string) (*GitHubRelease, error) {
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, fmt.Errorf("release not found")
+		return nil, ErrReleaseNotFound
 	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("github API returned status %d", resp.StatusCode)
@@ -370,7 +374,7 @@ func fetchLatestVersion() (string, error) {
 func fetchNightlyVersion() (string, error) {
 	release, err := fetchGitHubRelease(githubNightlyAPIURL)
 	if err != nil {
-		if err.Error() == "release not found" {
+		if errors.Is(err, ErrReleaseNotFound) {
 			return "", fmt.Errorf("no nightly release found")
 		}
 		return "", err

@@ -876,6 +876,21 @@ func TestFetchNightlyVersion_NotFound_ReturnsError(t *testing.T) {
 	}
 }
 
+func TestFetchGitHubRelease_NotFound_ReturnsErrReleaseNotFound(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	_, err := fetchGitHubRelease(server.URL)
+	if err == nil {
+		t.Fatal("fetchGitHubRelease() error = nil, want ErrReleaseNotFound")
+	}
+	if !errors.Is(err, ErrReleaseNotFound) {
+		t.Errorf("fetchGitHubRelease() error = %v, want ErrReleaseNotFound", err)
+	}
+}
+
 func TestFetchNightlyVersion_HTTPError_ReturnsError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)

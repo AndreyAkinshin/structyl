@@ -70,9 +70,12 @@ func TestLoad_FileNotFound(t *testing.T) {
 	if err == nil {
 		t.Fatal("Load() expected error for missing file")
 	}
-	// Verify error message contains useful information
+	// Verify error message contains useful information.
+	// At least one of these should be present in the error.
 	errMsg := err.Error()
-	if !strings.Contains(errMsg, "nonexistent") && !strings.Contains(errMsg, "no such file") {
+	containsPath := strings.Contains(errMsg, "nonexistent")
+	containsOSError := strings.Contains(errMsg, "no such file")
+	if !containsPath && !containsOSError {
 		t.Errorf("error = %q, want to contain file path or 'no such file'", errMsg)
 	}
 }
@@ -387,9 +390,10 @@ func TestLoadAndValidate_ValidationError_WithUnknownFields_ReturnsBothWarnings(t
 	if cfg != nil {
 		t.Error("LoadAndValidate() should return nil config on error")
 	}
-	// Unknown field warnings should still be returned even when validation fails
-	if len(warnings) < 1 {
-		t.Errorf("LoadAndValidate() should return warnings even with validation error, got %d", len(warnings))
+	// Unknown field warnings should still be returned even when validation fails.
+	// Expected: 2 warnings (one for "unknown_field" at root, one for "unknown_target_field" in target)
+	if len(warnings) != 2 {
+		t.Errorf("LoadAndValidate() warnings = %d, want 2", len(warnings))
 	}
 }
 

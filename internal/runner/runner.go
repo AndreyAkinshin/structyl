@@ -184,11 +184,20 @@ func hasDependencies(targets []target.Target) bool {
 
 // runParallel executes targets concurrently using a bounded worker pool.
 //
-// NOTE: This function does NOT respect depends_on ordering. All targets are
-// dispatched to available workers immediately. For dependency-aware execution,
-// use mise's built-in task runner which topologically sorts targets.
+// # Pattern
 //
-// Worker count is controlled by STRUCTYL_PARALLEL (default: runtime.NumCPU()).
+// Uses a channel-as-semaphore pattern for bounded concurrency. Workers are limited
+// to STRUCTYL_PARALLEL (default: runtime.NumCPU()) concurrent goroutines.
+//
+// # Known Limitation
+//
+// This function does NOT respect depends_on ordering. All targets are dispatched
+// to workers immediately regardless of dependencies. Topological ordering ensures
+// dependencies are scheduled first, but the semaphore doesn't block on dependency
+// completion.
+//
+// For dependency-aware execution, use STRUCTYL_PARALLEL=1 or mise's task runner.
+// See docs/specs/targets.md#known-limitation-parallel-execution-and-dependencies.
 func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd string, opts RunOptions) error {
 	if hasDependencies(targets) {
 		out.WarningSimple("parallel mode does not respect depends_on ordering; targets may execute before dependencies complete")

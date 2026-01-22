@@ -25,6 +25,9 @@ structyl test
 # Run static analysis (lint, format-check, typecheck)
 structyl check
 
+# Show project version
+structyl version
+
 # Run full CI pipeline
 structyl ci
 ```

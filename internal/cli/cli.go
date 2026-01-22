@@ -194,6 +194,11 @@ func parseGlobalFlags(args []string) (*GlobalOptions, []string, error) {
 		return nil, nil, err
 	}
 
+	// Apply verbosity settings to global output writer.
+	// This ensures all commands use consistent verbosity regardless of
+	// whether they explicitly call applyVerbosityToOutput.
+	applyVerbosityToOutput(opts)
+
 	return opts, remaining, nil
 }
 

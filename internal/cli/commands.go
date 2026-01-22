@@ -179,8 +179,6 @@ func maybeHintTypoCorrection(cmd, targetName string, registry *target.Registry) 
 // The first argument is always the command. If a second argument matches a target name,
 // it runs the command on that target. Otherwise, it runs on all targets that have it.
 func cmdUnified(args []string, opts *GlobalOptions) int {
-	applyVerbosityToOutput(opts)
-
 	if len(args) == 0 {
 		out.ErrorPrefix("usage: structyl <command> [target] [args] or structyl <command> [args]")
 		return internalerrors.ExitConfigError
@@ -414,8 +412,6 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 		return 0
 	}
 
-	applyVerbosityToOutput(opts)
-
 	proj, exitCode := loadProject()
 	if proj == nil {
 		return exitCode
@@ -546,12 +542,10 @@ func handleDockerError(err error) int {
 	return internalerrors.ExitRuntimeError
 }
 
-// prepareDockerCommand handles common setup for Docker commands: verbosity, project
-// loading, and Docker availability check. Returns the project on success, or nil
+// prepareDockerCommand handles common setup for Docker commands: project
+// loading and Docker availability check. Returns the project on success, or nil
 // with an exit code on failure.
 func prepareDockerCommand(opts *GlobalOptions) (*project.Project, int) {
-	applyVerbosityToOutput(opts)
-
 	proj, exitCode := loadProject()
 	if proj == nil {
 		return nil, exitCode

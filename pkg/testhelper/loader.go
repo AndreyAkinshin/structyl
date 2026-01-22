@@ -62,7 +62,7 @@
 // as programmer errors (options are typically constants or static config) rather
 // than runtime conditions. To validate options before comparison:
 //
-//   - Use [NewCompareOptions] for validated construction
+//   - Use [NewCompareOptionsOrdered] for validated construction
 //   - Use [ValidateOptions] to check options explicitly
 //   - Use [CompareE] for an error-returning variant that does not panic
 //

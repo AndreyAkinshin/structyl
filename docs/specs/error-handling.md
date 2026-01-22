@@ -229,6 +229,12 @@ structyl: failed to load configuration: project.name: required
 
 Exit code: `2`
 
+### Error Aggregation
+
+When `.structyl/config.json` contains multiple validation errors, Structyl reports errors one at a time. Users MUST fix the reported error and re-run to see subsequent validation errors.
+
+**Rationale:** This fail-fast approach simplifies implementation and encourages incremental fixes. Future versions MAY aggregate validation errors.
+
 ### Toolchain Validation
 
 Toolchain references are validated at configuration load time, not at command execution time. This ensures early detection of configuration errors.

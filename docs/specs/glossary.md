@@ -6,6 +6,10 @@ This document defines key terms used throughout the Structyl specification.
 
 ## Terms
 
+### Argument Forwarding
+
+The mechanism by which command-line arguments after the command name (or after `--`) are passed to the underlying shell command. In [composite commands](#command-composition), forwarded arguments apply only to the final leaf command. See [commands.md](commands.md#argument-forwarding) for complete semantics.
+
 ### Artifact
 
 A file or directory produced by a build process. Examples: compiled binaries, packaged libraries (`.nupkg`, `.whl`, `.crate`), documentation files.

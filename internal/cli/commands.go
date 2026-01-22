@@ -221,8 +221,8 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 	targetName, passthruArgs := extractTargetArg(remaining, registry)
 
 	// Ensure mise is ready (installed and mise.toml up-to-date)
-	if exitCode := ensureMiseReady(proj); exitCode != 0 {
-		return exitCode
+	if code := ensureMiseReady(proj); code != 0 {
+		return code
 	}
 
 	// If --type is specified and no specific target given, filter targets by type
@@ -456,8 +456,8 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 	}
 
 	// Ensure mise is ready (installed and mise.toml up-to-date)
-	if exitCode := ensureMiseReady(proj); exitCode != 0 {
-		return exitCode
+	if code := ensureMiseReady(proj); code != 0 {
+		return code
 	}
 
 	return runViaMise(proj, cmd, targetName, passthruArgs, opts, registry)

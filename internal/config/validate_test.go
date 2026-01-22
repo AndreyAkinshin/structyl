@@ -10,6 +10,37 @@ import (
 // ptr returns a pointer to the given value.
 func ptr[T any](v T) *T { return &v }
 
+// testLengthBoundary tests that a validator correctly enforces a max length boundary.
+// It tests: one below max (should pass), exactly max (should pass), one above (should fail).
+func testLengthBoundary(t *testing.T, maxLen int, validate func(string) error, validatorName string) {
+	t.Helper()
+
+	tests := []struct {
+		length  int
+		wantErr bool
+		desc    string
+	}{
+		{maxLen - 1, false, "one below max"},
+		{maxLen, false, "exactly max"},
+		{maxLen + 1, true, "one above max"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			t.Parallel()
+
+			name := strings.Repeat("a", tt.length)
+			err := validate(name)
+			if tt.wantErr && err == nil {
+				t.Errorf("%s(%d chars) = nil, want error", validatorName, tt.length)
+			}
+			if !tt.wantErr && err != nil {
+				t.Errorf("%s(%d chars) = %v, want nil", validatorName, tt.length, err)
+			}
+		})
+	}
+}
+
 func TestValidateProjectName_Valid(t *testing.T) {
 	t.Parallel()
 	tests := []string{
@@ -46,6 +77,9 @@ func TestValidateProjectName_Invalid(t *testing.T) {
 		{"my-project-", "trailing hyphen"},
 		{"-myproject", "leading hyphen"},
 		{"my project", "space"},
+		{"проект", "unicode cyrillic"},
+		{"项目", "unicode chinese"},
+		{"プロジェクト", "unicode japanese"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
@@ -59,32 +93,7 @@ func TestValidateProjectName_Invalid(t *testing.T) {
 
 func TestValidateProjectName_LengthBoundaries(t *testing.T) {
 	t.Parallel()
-
-	tests := []struct {
-		length  int
-		wantErr bool
-		desc    string
-	}{
-		{127, false, "one below max"},
-		{128, false, "exactly max"},
-		{129, true, "one above max"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.desc, func(t *testing.T) {
-			t.Parallel()
-
-			name := strings.Repeat("a", tt.length)
-
-			err := ValidateProjectName(name)
-			if tt.wantErr && err == nil {
-				t.Errorf("ValidateProjectName(%d chars) = nil, want error", tt.length)
-			}
-			if !tt.wantErr && err != nil {
-				t.Errorf("ValidateProjectName(%d chars) = %v, want nil", tt.length, err)
-			}
-		})
-	}
+	testLengthBoundary(t, 128, ValidateProjectName, "ValidateProjectName")
 }
 
 func TestValidateTargetName_Valid(t *testing.T) {
@@ -323,40 +332,7 @@ func TestValidateTargetName_AllowsTrailingHyphen(t *testing.T) {
 
 func TestValidateTargetName_LengthBoundaries(t *testing.T) {
 	t.Parallel()
-
-	// Generate names of specific lengths (all 'a' characters)
-	makeName := func(length int) string {
-		name := make([]byte, length)
-		for i := range name {
-			name[i] = 'a'
-		}
-		return string(name)
-	}
-
-	tests := []struct {
-		length  int
-		wantErr bool
-		desc    string
-	}{
-		{63, false, "one below max"},
-		{64, false, "exactly max"},
-		{65, true, "one above max"},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.desc, func(t *testing.T) {
-			t.Parallel()
-
-			name := makeName(tt.length)
-			err := ValidateTargetName(name)
-			if tt.wantErr && err == nil {
-				t.Errorf("ValidateTargetName(%d chars) = nil, want error", tt.length)
-			}
-			if !tt.wantErr && err != nil {
-				t.Errorf("ValidateTargetName(%d chars) = %v, want nil", tt.length, err)
-			}
-		})
-	}
+	testLengthBoundary(t, 64, ValidateTargetName, "ValidateTargetName")
 }
 
 func TestValidate_EmptyTargetType(t *testing.T) {
@@ -1177,7 +1153,7 @@ func TestValidate_CommandCycle_ReturnsError(t *testing.T) {
 				t.Fatal("Validate() expected error for command cycle")
 			}
 
-			if !containsSubstring(err.Error(), tt.wantErr) {
+			if !strings.Contains(err.Error(), tt.wantErr) {
 				t.Errorf("error = %q, want to contain %q", err.Error(), tt.wantErr)
 			}
 		})
@@ -1228,21 +1204,7 @@ func TestValidate_CommandList_UndefinedReference_ReturnsError(t *testing.T) {
 		t.Fatal("Validate() expected error for undefined command reference")
 	}
 
-	if !containsSubstring(err.Error(), "undefined") && !containsSubstring(err.Error(), "not found") {
+	if !strings.Contains(err.Error(), "undefined") && !strings.Contains(err.Error(), "not found") {
 		t.Errorf("error = %q, want to mention 'undefined' or 'not found'", err.Error())
 	}
-}
-
-func containsSubstring(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
-		(len(s) > 0 && len(substr) > 0 && contains(s, substr)))
-}
-
-func contains(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
 }

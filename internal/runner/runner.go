@@ -18,12 +18,19 @@ import (
 // out is the shared output writer for runner messages.
 var out = output.New()
 
-// maxParallelWorkers caps STRUCTYL_PARALLEL at 256 workers. Beyond this limit,
-// goroutine scheduling overhead typically outweighs parallelism benefits for
-// structyl's I/O-bound target execution (subprocess spawning, file system ops).
-// On typical systems (16-128 cores), 256 provides ample headroom without
-// risking scheduler thrashing or excessive memory usage from blocked goroutines.
-const maxParallelWorkers = 256
+const (
+	// minParallelWorkers ensures at least one worker to prevent semaphore deadlock,
+	// even if runtime.NumCPU() returns 0 (which can happen in containerized or
+	// restricted environments where CPU detection fails).
+	minParallelWorkers = 1
+
+	// maxParallelWorkers caps STRUCTYL_PARALLEL at 256 workers. Beyond this limit,
+	// goroutine scheduling overhead typically outweighs parallelism benefits for
+	// structyl's I/O-bound target execution (subprocess spawning, file system ops).
+	// On typical systems (16-128 cores), 256 provides ample headroom without
+	// risking scheduler thrashing or excessive memory usage from blocked goroutines.
+	maxParallelWorkers = 256
+)
 
 // Runner orchestrates command execution across multiple targets.
 // It handles dependency ordering for sequential runs and parallel
@@ -260,19 +267,23 @@ func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd s
 // and fall back to runtime.NumCPU(). The result is always at least 1
 // to prevent blocking on semaphore acquisition.
 func getParallelWorkers() int {
-	if env := os.Getenv("STRUCTYL_PARALLEL"); env != "" {
-		n, err := strconv.Atoi(env)
-		if err != nil {
-			out.WarningSimple("invalid STRUCTYL_PARALLEL value %q (not a number), using default", env)
-		} else if n < 1 || n > maxParallelWorkers {
-			out.WarningSimple("STRUCTYL_PARALLEL=%d out of range [1-%d], using default", n, maxParallelWorkers)
-		} else {
-			return n
-		}
+	env := os.Getenv("STRUCTYL_PARALLEL")
+	if env == "" {
+		return max(minParallelWorkers, runtime.NumCPU())
 	}
-	// Ensure at least 1 worker even if runtime.NumCPU() returns 0 (which can happen
-	// in containerized or restricted environments where CPU detection fails).
-	return max(1, runtime.NumCPU())
+
+	n, err := strconv.Atoi(env)
+	if err != nil {
+		out.WarningSimple("invalid STRUCTYL_PARALLEL value %q (not a number), using default", env)
+		return max(minParallelWorkers, runtime.NumCPU())
+	}
+
+	if n < minParallelWorkers || n > maxParallelWorkers {
+		out.WarningSimple("STRUCTYL_PARALLEL=%d out of range [%d-%d], using default", n, minParallelWorkers, maxParallelWorkers)
+		return max(minParallelWorkers, runtime.NumCPU())
+	}
+
+	return n
 }
 
 // shouldContinueAfterError checks if execution should continue after an error.

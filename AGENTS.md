@@ -712,18 +712,23 @@ mise run test:cover
 
 For detailed behavior specifications, see `docs/specs/`:
 
-| Document                | Content                          |
-| ----------------------- | -------------------------------- |
-| `configuration.md`      | `.structyl/config.json` format   |
-| `commands.md`           | Command vocabulary and semantics |
-| `toolchains.md`         | Built-in toolchain definitions   |
-| `targets.md`            | Target types and properties      |
-| `test-system.md`        | Reference test JSON format       |
-| `version-management.md` | Version propagation              |
-| `docker.md`             | Docker integration               |
-| `error-handling.md`     | Exit codes and error messages    |
-| `cross-platform.md`     | Windows/Unix compatibility       |
-| `go-architecture.md`    | Internal implementation notes    |
+| Document                | Content                            |
+| ----------------------- | ---------------------------------- |
+| `index.md`              | Specification overview and design  |
+| `glossary.md`           | Term definitions and abbreviations |
+| `configuration.md`      | `.structyl/config.json` format     |
+| `commands.md`           | Command vocabulary and semantics   |
+| `toolchains.md`         | Built-in toolchain definitions     |
+| `targets.md`            | Target types and properties        |
+| `test-system.md`        | Reference test JSON format         |
+| `version-management.md` | Version propagation                |
+| `docker.md`             | Docker integration                 |
+| `ci-integration.md`     | Local CI simulation                |
+| `error-handling.md`     | Exit codes and error messages      |
+| `cross-platform.md`     | Windows/Unix compatibility         |
+| `project-structure.md`  | Directory layout conventions       |
+| `stability.md`          | Versioning and compatibility       |
+| `go-architecture.md`    | Internal implementation notes      |
 
 > **Note:** Spec files may contain VitePress component tags (e.g., `<ToolchainCommands />`)
 > that render as tables on the documentation site. These can be ignored when reading

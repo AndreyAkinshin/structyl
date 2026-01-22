@@ -29,6 +29,17 @@
 //     additional context. Use [errors.Is] to match. Appropriate when the error
 //     condition is self-explanatory and no additional context would help.
 //
+// Error Hierarchy:
+//
+//	[ErrProjectNotFound]     ← [ProjectNotFoundError] (carries Path)
+//	[ErrSuiteNotFound]       ← [SuiteNotFoundError] (carries Name, ProjectRoot)
+//	[ErrTestCaseNotFound]    ← [TestCaseNotFoundError] (carries Name, Suite, ProjectRoot)
+//	[ErrInvalidSuiteName]    ← [InvalidSuiteNameError] (carries Name, Reason)
+//	[ErrInvalidTestCaseName] ← [InvalidTestCaseNameError] (carries Name, Reason)
+//	[ErrEmptySuiteName]      (sentinel only)
+//	[ErrEmptyTestCaseName]   (sentinel only)
+//	[ErrFileReferenceNotSupported] (sentinel only)
+//
 // # Filesystem Conventions
 //
 // All path parameters use the host operating system's path separator.

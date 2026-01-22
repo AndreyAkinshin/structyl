@@ -2118,6 +2118,62 @@ func TestTestCase_ValidateDeep(t *testing.T) {
 	})
 }
 
+func TestNewTestCase(t *testing.T) {
+	t.Parallel()
+
+	t.Run("valid", func(t *testing.T) {
+		t.Parallel()
+		tc, err := NewTestCase("test-name", map[string]interface{}{"x": 1.0}, "output")
+		if err != nil {
+			t.Fatalf("NewTestCase() error = %v", err)
+		}
+		if tc.Name != "test-name" {
+			t.Errorf("Name = %q, want %q", tc.Name, "test-name")
+		}
+		if tc.Input["x"] != 1.0 {
+			t.Errorf("Input[x] = %v, want 1.0", tc.Input["x"])
+		}
+		if tc.Output != "output" {
+			t.Errorf("Output = %v, want %q", tc.Output, "output")
+		}
+	})
+
+	t.Run("empty_name", func(t *testing.T) {
+		t.Parallel()
+		_, err := NewTestCase("", map[string]interface{}{}, "output")
+		if err == nil {
+			t.Error("NewTestCase() = nil error, want error for empty name")
+		}
+	})
+
+	t.Run("nil_input", func(t *testing.T) {
+		t.Parallel()
+		_, err := NewTestCase("test", nil, "output")
+		if err == nil {
+			t.Error("NewTestCase() = nil error, want error for nil input")
+		}
+	})
+
+	t.Run("nil_output", func(t *testing.T) {
+		t.Parallel()
+		_, err := NewTestCase("test", map[string]interface{}{}, nil)
+		if err == nil {
+			t.Error("NewTestCase() = nil error, want error for nil output")
+		}
+	})
+
+	t.Run("empty_input_valid", func(t *testing.T) {
+		t.Parallel()
+		tc, err := NewTestCase("test", map[string]interface{}{}, "output")
+		if err != nil {
+			t.Fatalf("NewTestCase() error = %v; empty input should be valid", err)
+		}
+		if len(tc.Input) != 0 {
+			t.Errorf("Input = %v, want empty map", tc.Input)
+		}
+	})
+}
+
 func TestTestCase_Clone(t *testing.T) {
 	t.Parallel()
 

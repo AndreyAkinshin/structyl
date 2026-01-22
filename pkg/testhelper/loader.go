@@ -510,6 +510,29 @@ func (tc TestCase) WithOutput(output interface{}) TestCase {
 	return clone
 }
 
+// NewTestCase creates a TestCase with required fields validated.
+// This constructor provides a pit-of-success for programmatic TestCase creation
+// by ensuring all required fields are provided and valid.
+//
+// Returns an error if:
+//   - name is empty
+//   - input is nil (empty map {} is valid)
+//   - output is nil
+//
+// Example:
+//
+//	tc, err := testhelper.NewTestCase("my-test", map[string]interface{}{"x": 1.0}, "expected")
+//	if err != nil {
+//	    return err
+//	}
+func NewTestCase(name string, input map[string]interface{}, output interface{}) (TestCase, error) {
+	tc := TestCase{Name: name, Input: input, Output: output}
+	if err := tc.Validate(); err != nil {
+		return TestCase{}, err
+	}
+	return tc, nil
+}
+
 // Validate checks that TestCase fields satisfy basic structural requirements.
 // Returns nil if valid, or an error describing the first validation failure.
 //

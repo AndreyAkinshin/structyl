@@ -4,6 +4,20 @@ Structyl is a build orchestration CLI for polyglot codebases. It provides a unif
 
 ## Installation
 
+**macOS / Linux:**
+
+```bash
+curl -fsSL https://structyl.akinshin.dev/install.sh | sh
+```
+
+**Windows (PowerShell):**
+
+```powershell
+irm https://structyl.akinshin.dev/install.ps1 | iex
+```
+
+**With Go:**
+
 ```bash
 go install github.com/AndreyAkinshin/structyl/cmd/structyl@latest
 ```

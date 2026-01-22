@@ -142,7 +142,7 @@ structyl/
 
 ## Key Interfaces
 
-> **Note:** The interfaces below are in `internal/` packages and are **not part of the public API**. They are documented here for contributor reference only. External tools should integrate via the CLI or configuration schema, not by importing internal packages.
+> **Note:** The interfaces below are in `internal/` packages and are **not part of the public API**. External tools MUST integrate via the CLI or configuration schema, not by importing internal packages. The signatures shown are for contributor reference and may change without notice between minor releases.
 
 ### Target Interface
 
@@ -754,6 +754,6 @@ Current code quality:
 
 See [Known Limitation: Parallel Execution and Dependencies](docs/specs/targets.md#known-limitation-parallel-execution-and-dependencies) for the formal specification and recommended workarounds.
 
-**Implementation:** `internal/runner/runner.go:152-211` (`runParallel()`).
+**Implementation:** `internal/runner/runner.go` (`runParallel()`).
 
 A proper fix would require implementing a dependency-tracking scheduler that only allows targets to start once all their dependencies have completed successfully.

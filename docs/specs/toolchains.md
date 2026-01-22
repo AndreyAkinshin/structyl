@@ -917,3 +917,12 @@ Example:
 ```
 
 In this example, the `rs` target uses Rust `1.80.0` (from `toolchain_version`), not `1.79.0`.
+
+---
+
+## Maintenance
+
+> **Toolchain count maintenance:** When adding or removing built-in toolchains, update the count in:
+> - `README.md` feature description
+> - `docs/index.md` features section (if applicable)
+> - This document's [Overview](#overview) section

@@ -61,9 +61,6 @@ func Run(args []string) int {
 	cmd = remaining[0]
 	cmdArgs := remaining[1:]
 
-	// Update check: NewUpdateChecker initializes the check and returns a type that
-	// encapsulates the notification logic. This design enforces correct usage -
-	// ShowNotification can only be called on an initialized checker instance.
 	updateChecker := NewUpdateChecker(opts.Quiet)
 	defer updateChecker.ShowNotification()
 

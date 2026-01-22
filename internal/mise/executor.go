@@ -71,11 +71,6 @@ func NewExecutorWithRunner(projectRoot string, runner CommandRunner) *Executor {
 
 // SetVerbose enables verbose logging for subsequent task executions.
 // Must be called before RunTask or RunTaskWithCapture to take effect.
-//
-// Design note: This uses configuration after construction (temporal coupling)
-// rather than a functional option at construction time. This is acceptable for
-// CLI usage where the Executor is created once and configured before use.
-// The pattern trades immutability for simplicity in sequential CLI code.
 func (e *Executor) SetVerbose(v bool) {
 	e.verbose = v
 }

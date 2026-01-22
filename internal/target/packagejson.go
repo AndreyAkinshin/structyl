@@ -232,6 +232,8 @@ func extractNpmScriptName(cmdStr string) (packageManager string, scriptName stri
 		return pm, subCmd
 	}
 
+	// Fallback for npm: subcommand is neither a builtin, nor "run", nor a lifecycle script.
+	// This handles cases like "npm -v" or "npm unknown" - return pm but no script name.
 	return pm, ""
 }
 

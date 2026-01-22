@@ -669,6 +669,8 @@ func compareSpecialFloat(expected string, actual interface{}, opts CompareOption
 		}
 		return false, fmt.Sprintf("%s: expected NaN, got %v", pathStr(path), a)
 	case SpecialFloatInfinity, SpecialFloatPosInfinity:
+		// Both constants match positive infinity; they are equivalent.
+		// SpecialFloatPosInfinity is deprecated but handled for backwards compatibility.
 		if math.IsInf(a, 1) {
 			return true, ""
 		}

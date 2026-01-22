@@ -53,7 +53,8 @@ The `test:coverage` command is part of the standard vocabulary but **no built-in
 - Output format: implementation-defined
 - Exit code: MUST be 0 if all tests pass, non-zero if any test fails. Coverage percentage MUST NOT affect exit code
 - Coverage threshold enforcement is NOT part of Structyl's contract; use CI tooling if required
-  :::
+
+:::
 
 ### Command Semantics
 
@@ -433,17 +434,16 @@ This command only supports Go's JSON test output format (`go test -json`). Other
 
 **Exit codes:**
 
-| Code | Condition                                  |
-| ---- | ------------------------------------------ |
-| 0    | All tests passed                           |
-| 1    | One or more tests failed, or input invalid |
+| Code | Condition                                                   |
+| ---- | ----------------------------------------------------------- |
+| 0    | All tests passed                                            |
+| 1    | File not found, no valid test results parsed, or any failed |
 
 **Input format requirements:**
 
 - Input MUST be newline-delimited JSON (one JSON object per line)
 - Each line is parsed independently
 - Lines that are empty or not valid JSON are silently skipped
-- Exit code 1 when: file not found, no valid test results parsed, or any test failed
 
 **Examples:**
 
@@ -1049,7 +1049,9 @@ See [error-handling.md](error-handling.md) for exit code definitions.
 
 ### Runtime Errors (Exit Code 1)
 
-| Error             | Message                                             | Exit Code |
-| ----------------- | --------------------------------------------------- | --------- |
-| Command failed    | `[{target}] {command} failed with exit code {code}` | 1         |
-| Command not found | `[{target}] command "{cmd}" not defined`            | 1         |
+| Error             | Message Format                                         | Exit Code |
+| ----------------- | ------------------------------------------------------ | --------- |
+| Command failed    | `[{target}] {cmd}: failed with exit code {code}`       | 1         |
+| Command not found | `[{target}] {cmd}: command "{cmd}" not defined for...` | 1         |
+
+The "Command not found" message continues with `...target "{target}"`. See [error-handling.md](error-handling.md#missing-command-definition) for full examples.

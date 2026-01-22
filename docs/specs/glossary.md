@@ -168,9 +168,7 @@ A short identifier for a target (e.g., `rs`, `py`, `cs`). Synonymous with [Targe
 
 ### Standard Command
 
-One of Structyl's predefined command names that toolchains SHOULD implement. The standard command vocabulary is: `clean`, `restore`, `build`, `build:release`, `test`, `test:coverage`, `check`, `check:fix`, `bench`, `demo`, `doc`, `pack`, `publish`, `publish:dry`.
-
-See [commands.md](commands.md#standard-commands) for semantics of each command.
+One of Structyl's predefined command names that toolchains SHOULD implement. See [commands.md](commands.md#standard-commands) for the complete vocabulary and semantics of each command.
 
 ### Suite
 

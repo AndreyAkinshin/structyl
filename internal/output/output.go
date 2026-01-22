@@ -228,7 +228,8 @@ func (w *Writer) Table(headers []string, rows [][]string) {
 
 // isTerminal returns true if stdout is a terminal.
 func isTerminal() bool {
-	// Simple check - could be enhanced with golang.org/x/term
+	// Simple check - could be enhanced with golang.org/x/term.
+	// Error is intentionally ignored: if Stat fails (e.g., fd corruption), assume non-terminal.
 	if fi, _ := os.Stdout.Stat(); fi != nil {
 		return (fi.Mode() & os.ModeCharDevice) != 0
 	}

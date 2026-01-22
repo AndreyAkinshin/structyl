@@ -91,6 +91,10 @@ Structyl logs warnings when deprecated features are used.
 | `SpecialFloatPosInfinity` constant | v1.0.0        | v2.0.0         | `SpecialFloatInfinity`     | Canonical form preferred (`"Infinity"` vs `"+Infinity"`)   |
 | `new` command (alias)              | v1.0.0        | v2.0.0         | `init`                     | Standardize on `init` for initialization                   |
 
+::: info Maintenance Note
+This table is synchronized with `// Deprecated:` comments in Go source code. If discrepancies arise between this table and the code comments, the code comments are authoritative.
+:::
+
 ## Public API Surface
 
 ### Stable (Covered by Guarantees)

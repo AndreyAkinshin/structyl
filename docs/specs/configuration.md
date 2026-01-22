@@ -333,7 +333,7 @@ Mise build tool integration configuration.
   - Project initialization: `init`
   - Upgrade: `upgrade`
 
-  > **Implementation reference:** For the authoritative source, see `internal/cli/cli.go`.
+  > **Note:** This command list is informative and subject to change. Future versions MAY add new commands to either category.
 
 - When `auto_generate: false` is explicitly set, Structyl does not auto-regenerate `mise.toml`. Use `structyl mise sync` to manually regenerate when needed.
 - `extra_tools` entries are merged with toolchain-detected tools and written to `mise.toml`. Keys are tool names, values are version specifiers (e.g., `"latest"`, `"1.54.0"`, `">=1.50"`).

@@ -180,6 +180,7 @@ These commands operate across all targets.
 | `restore`              | Run restore for all targets                                                            |
 | `check`                | Run check for all targets                                                              |
 | `ci`                   | Run full CI pipeline (see [ci-integration.md](ci-integration.md))                      |
+| `ci:release`           | Run CI pipeline with release builds (see [ci-integration.md](ci-integration.md))       |
 | `version`              | Show current project version (see [version-management.md](version-management.md))      |
 | `version set <ver>`    | Set project version (see [version-management.md](version-management.md#set-version))   |
 | `version bump <level>` | Bump version (see [version-management.md](version-management.md#bump-version))         |

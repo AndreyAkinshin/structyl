@@ -300,7 +300,11 @@ This file complements the root `AGENTS.md` with project-specific context.
 | `--mise`     | Generate/regenerate `mise.toml` configuration |
 | `-h, --help` | Show help                                     |
 
-When `--mise` is passed, the `mise.toml` file is generated after all other initialization steps complete. Without `--mise`, no `mise.toml` is created; use `structyl mise sync` separately if needed.
+When `--mise` is passed, the `mise.toml` file is generated after all other initialization steps complete. The generated `mise.toml` includes:
+- **Tool versions** from toolchain definitions (e.g., `go`, `node`, `python`)
+- **Tasks** for each target command (e.g., `build:go`, `test:rs`, `ci`)
+
+Without `--mise`, no `mise.toml` is created; use `structyl mise sync` separately if needed.
 
 **Exit codes:**
 

@@ -96,7 +96,7 @@ Structyl logs warnings when deprecated features are used.
 ### Stable (Covered by Guarantees)
 
 - `pkg/structyl`: Exit code constants
-- `pkg/testhelper`: Test loading and comparison functions
+- `pkg/testhelper`: Test loading and comparison functions (including error-returning variants: `EqualE`, `CompareE`, `FormatComparisonResultE`)
 - CLI commands and flags documented in [commands.md](commands.md)
 - Configuration schema documented in [configuration.md](configuration.md)
 - Exit codes documented in [error-handling.md](error-handling.md)

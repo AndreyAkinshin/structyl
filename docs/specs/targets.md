@@ -8,7 +8,7 @@ This document describes the target system in Structyl.
 
 A **target** is a buildable unit in a Structyl project. Targets are unified—both language implementations and auxiliary tools use the same configuration model.
 
-**Empty targets configuration:** When `targets` is absent or empty (`{}`), Structyl uses auto-discovery mode to scan for toolchain marker files. See [project-structure.md](project-structure.md#target-discovery-modes) for details.
+**Empty targets configuration:** When `targets` is absent or empty (`{}`), Structyl uses auto-discovery mode to scan for toolchain marker files. See [project-structure.md](project-structure.md#auto-discovery-mode) for details.
 
 ### Target Name Constraints
 

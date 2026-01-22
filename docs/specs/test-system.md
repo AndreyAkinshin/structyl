@@ -79,6 +79,41 @@ structyl: test suite "{suite}": {reason}
   file: {path}
 ```
 
+### Error Types (pkg/testhelper)
+
+The `pkg/testhelper` package returns specific error types for programmatic handling:
+
+| Error Type               | Sentinel                  | Condition                                    |
+| ------------------------ | ------------------------- | -------------------------------------------- |
+| `ProjectNotFoundError`   | `ErrProjectNotFound`      | No `.structyl/config.json` found in ancestors |
+| `SuiteNotFoundError`     | `ErrSuiteNotFound`        | Test suite directory does not exist          |
+| `TestCaseNotFoundError`  | `ErrTestCaseNotFound`     | Test case file does not exist                |
+| `InvalidSuiteNameError`  | `ErrInvalidSuiteName`     | Suite name contains `..`, `/`, `\`, or `\0`  |
+| `InvalidTestCaseNameError`| `ErrInvalidTestCaseName` | Test case name contains invalid characters   |
+
+**Additional sentinels (no struct type):**
+
+| Sentinel                       | Condition                             |
+| ------------------------------ | ------------------------------------- |
+| `ErrEmptySuiteName`            | Empty suite name provided             |
+| `ErrEmptyTestCaseName`         | Empty test case name provided         |
+| `ErrFileReferenceNotSupported` | `$file` reference in test case        |
+
+**Usage:**
+
+```go
+tc, err := testhelper.LoadTestCase(path)
+if err != nil {
+    if errors.Is(err, testhelper.ErrTestCaseNotFound) {
+        // Handle missing file
+    }
+    var suiteErr *testhelper.SuiteNotFoundError
+    if errors.As(err, &suiteErr) {
+        // Access suiteErr.Suite for context
+    }
+}
+```
+
 ### Input Structure
 
 Input MUST be a JSON object (map). The object MAY be empty (`{}`). Scalar values and arrays as the top-level input MUST NOT be used; the loader MUST reject such inputs with exit code 2 (Configuration Error).
@@ -393,6 +428,41 @@ All loader and comparison functions in `pkg/testhelper` are safe for concurrent 
 - **Loader functions** (`LoadTestSuite`, `LoadTestCase`, etc.) perform read-only filesystem operations and can be called concurrently.
 - **Comparison functions** (`Equal`, `Compare`, `FormatComparisonResult`) are pure functions with no shared state.
 - The `TestCase` type is safe to read concurrently, but callers MUST NOT modify a `TestCase` while other goroutines are reading it.
+
+### TestCase Validation Methods
+
+The `TestCase` type provides three validation methods forming a hierarchy of increasing strictness:
+
+| Method           | Checks                                           | Use Case                           |
+| ---------------- | ------------------------------------------------ | ---------------------------------- |
+| `Validate()`     | Name, Input, Output non-nil                      | Basic structural validation        |
+| `ValidateStrict()`| Above + top-level Output type                   | Programmatic TestCase construction |
+| `ValidateDeep()` | Above + recursive type validation for all values | Complex nested structures          |
+
+**When to use each method:**
+
+- **`Validate()`**: Default choice for programmatically-created TestCase instances. Ensures required fields are present.
+- **`ValidateStrict()`**: Use when Output comes from non-JSON sources (e.g., computed values) to verify the top-level type is JSON-compatible.
+- **`ValidateDeep()`**: Use for deeply nested structures to ensure all values (including nested maps and arrays) contain only JSON-compatible types.
+
+Loader functions (`LoadTestCase`, `LoadTestSuite`) already validate these requirements, so calling validation methods after loading is unnecessary.
+
+```go
+// Programmatic TestCase creation
+tc := testhelper.TestCase{
+    Name:   "my-test",
+    Input:  map[string]interface{}{"x": 1.0},
+    Output: map[string]interface{}{"result": 2.0},
+}
+
+// Choose validation level based on needs
+if err := tc.Validate(); err != nil {      // structural only
+    return err
+}
+if err := tc.ValidateDeep(); err != nil {  // recursive type check
+    return err
+}
+```
 
 ### Panic Behavior
 

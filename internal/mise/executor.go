@@ -69,7 +69,8 @@ func NewExecutorWithRunner(projectRoot string, runner CommandRunner) *Executor {
 	}
 }
 
-// SetVerbose enables verbose output.
+// SetVerbose enables verbose logging for subsequent task executions.
+// Must be called before RunTask or RunTaskWithCapture to take effect.
 func (e *Executor) SetVerbose(v bool) {
 	e.verbose = v
 }

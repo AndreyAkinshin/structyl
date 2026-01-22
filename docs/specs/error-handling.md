@@ -289,6 +289,8 @@ Invalid flag values cause immediate errors:
 | ------------------------------------ | ------------------------------------------------------- | --------- |
 | `bump prerelease` on release version | `cannot bump prerelease on release version "{version}"` | 2         |
 
+A **release version** is one without a prerelease identifier (e.g., `1.2.3` is a release version; `1.2.3-alpha` is not). The `bump prerelease` operation requires an existing prerelease suffix to increment.
+
 ## Dependency Checks
 
 Before running commands, Structyl checks dependencies:

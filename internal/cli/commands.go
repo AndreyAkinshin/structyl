@@ -706,7 +706,7 @@ func printUnifiedUsage(cmd string) {
 	out.HelpFlag("--docker", "Run in Docker container", widthFlagWithValue)
 	out.HelpFlag("--no-docker", "Disable Docker mode", widthFlagWithValue)
 	out.Println("                  (precedence: --no-docker > --docker > STRUCTYL_DOCKER > default)")
-	out.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", widthFlagWithValue)
+	out.HelpFlag("--type=<type>", `Filter targets by type ("language" or "auxiliary")`, widthFlagWithValue)
 	out.HelpFlag("-h, --help", "Show this help", widthFlagWithValue)
 
 	out.HelpSection("Examples:")
@@ -774,7 +774,7 @@ func printCIUsage(cmd string) {
 	out.HelpFlag("--docker", "Run in Docker container", widthFlagWithValue)
 	out.HelpFlag("--no-docker", "Disable Docker mode", widthFlagWithValue)
 	out.Println("                  (precedence: --no-docker > --docker > STRUCTYL_DOCKER > default)")
-	out.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", widthFlagWithValue)
+	out.HelpFlag("--type=<type>", `Filter targets by type ("language" or "auxiliary")`, widthFlagWithValue)
 	out.HelpFlag("-h, --help", "Show this help", widthFlagWithValue)
 
 	out.HelpSection("Examples:")
@@ -895,7 +895,7 @@ func printTargetsUsage() {
 
 	out.HelpSection("Options:")
 	out.HelpFlag("--json", "Output in machine-readable JSON format", widthFlagWithValue)
-	out.HelpFlag("--type=<type>", "Filter targets by type (language or auxiliary)", widthFlagWithValue)
+	out.HelpFlag("--type=<type>", `Filter targets by type ("language" or "auxiliary")`, widthFlagWithValue)
 	out.HelpFlag("-h, --help", "Show this help", widthFlagWithValue)
 
 	out.HelpSection("Examples:")

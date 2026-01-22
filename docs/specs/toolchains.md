@@ -167,6 +167,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `cargo publish`                                     |
 | `publish:dry`   | `cargo publish --dry-run`                           |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="cargo" variant="spec" />
 
 ---
@@ -191,6 +192,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `dotnet nuget push`                 |
 | `publish:dry`   | —                                   |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="dotnet" variant="spec" />
 
 ---
@@ -214,6 +216,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`     | —                                                                |
 | `publish:dry` | —                                                                |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="go" variant="spec" />
 
 - Note: `lint` requires `golangci-lint` to be installed
@@ -242,6 +245,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `npm publish`                                                 |
 | `publish:dry`   | `npm publish --dry-run`                                       |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="npm" variant="spec" />
 
 ---
@@ -266,6 +270,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `pnpm publish`                                       |
 | `publish:dry`   | `pnpm publish --dry-run`                             |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="pnpm" variant="spec" />
 
 ---
@@ -290,6 +295,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `yarn npm publish`                                   |
 | `publish:dry`   | `yarn npm publish --dry-run`                         |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="yarn" variant="spec" />
 
 ---
@@ -314,6 +320,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `bun publish`                                                 |
 | `publish:dry`   | `bun publish --dry-run`                                       |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="bun" variant="spec" />
 
 ---
@@ -338,6 +345,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `twine upload dist/*`                               |
 | `publish:dry`   | —                                                   |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="python" variant="spec" />
 
 - Note: Assumes `ruff` and `mypy` are installed
@@ -364,6 +372,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `uv publish`                                                             |
 | `publish:dry`   | —                                                                        |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="uv" variant="spec" />
 
 ---
@@ -388,6 +397,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `poetry publish`                                                                     |
 | `publish:dry`   | `poetry publish --dry-run`                                                           |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="poetry" variant="spec" />
 
 ---
@@ -412,6 +422,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `gradle publish`                                |
 | `publish:dry`   | —                                               |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="gradle" variant="spec" />
 
 - Note: Use `./gradlew` if wrapper present
@@ -438,6 +449,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `mvn deploy`                                  |
 | `publish:dry`   | —                                             |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="maven" variant="spec" />
 
 - Note: `format` and `format-check` require the Spotless Maven plugin
@@ -464,6 +476,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `make publish`     |
 | `publish:dry`   | `make publish-dry` |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="make" variant="spec" />
 
 - Note: Assumes Makefile defines corresponding targets
@@ -490,6 +503,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | —                                                                                 |
 | `publish:dry`   | —                                                                                 |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="cmake" variant="spec" />
 
 - Note: `lint`, `format`, and `format-check` require corresponding CMake targets to be defined
@@ -516,6 +530,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | —                                    |
 | `publish:dry`   | —                                    |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="swift" variant="spec" />
 
 ---
@@ -540,6 +555,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `deno publish`                                          |
 | `publish:dry`   | `deno publish --dry-run`                                |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="deno" variant="spec" />
 
 ---
@@ -564,6 +580,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `Rscript -e "devtools::release()"`                                                |
 | `publish:dry`   | —                                                                                 |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="r" variant="spec" />
 
 - Note: Requires `devtools`, `lintr`, `styler`, and `roxygen2` packages
@@ -590,6 +607,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `gem push *.gem`           |
 | `publish:dry`   | —                          |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="bundler" variant="spec" />
 
 ---
@@ -614,6 +632,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | —                                                               |
 | `publish:dry`   | —                                                               |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="composer" variant="spec" />
 
 - Note: Assumes `composer.json` defines corresponding scripts
@@ -640,6 +659,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `mix hex.publish`                                             |
 | `publish:dry`   | `mix hex.publish --dry-run`                                   |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="mix" variant="spec" />
 
 ---
@@ -664,6 +684,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `sbt publish`       |
 | `publish:dry`   | —                   |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="sbt" variant="spec" />
 
 ---
@@ -688,6 +709,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `cabal upload`                                                           |
 | `publish:dry`   | `cabal upload --candidate`                                               |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="cabal" variant="spec" />
 
 - Note: `lint` requires `hlint`, `format` requires `ormolu`
@@ -714,6 +736,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `stack upload`                                                                       |
 | `publish:dry`   | `stack upload --candidate`                                                           |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="stack" variant="spec" />
 
 ---
@@ -738,6 +761,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `opam publish`               |
 | `publish:dry`   | —                            |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="dune" variant="spec" />
 
 ---
@@ -762,6 +786,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `lein deploy clojars`                                |
 | `publish:dry`   | —                                                    |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="lein" variant="spec" />
 
 - Note: `lint` requires `eastwood`, `format` requires `cljfmt`, `doc` requires `codox`
@@ -788,6 +813,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | —                                  |
 | `publish:dry`   | —                                  |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="zig" variant="spec" />
 
 ---
@@ -812,6 +838,7 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 | `publish`       | `rebar3 hex publish`              |
 | `publish:dry`   | `rebar3 hex publish --dry-run`    |
 
+<!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="rebar3" variant="spec" />
 
 ---

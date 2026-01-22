@@ -38,6 +38,8 @@ These commands form the standard vocabulary. Toolchains provide default implemen
 <!-- VitePress component: Renders standard command reference table in docs site (non-normative) -->
 <StandardCommands />
 
+> **Vocabulary vs Implementation:** Standard commands define the semantic contract for what operations mean. Toolchains implement a subset of the vocabulary; commands without toolchain implementation return [skip errors](error-handling.md#skip-errors) unless overridden in target configuration.
+
 For standard command definitions per toolchain, see [toolchains.md](toolchains.md).
 
 ::: info test:coverage Command

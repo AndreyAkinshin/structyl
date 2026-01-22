@@ -156,6 +156,7 @@ structyl: <message>
 ```
 cli_error := "structyl: " message LF
 target_error := "[" target "] " command ": " message LF
+warning := "warning: " message LF
 
 target := [a-z][a-z0-9-]*
 command := [a-z]+

@@ -14,6 +14,9 @@ type PackageJSON struct {
 }
 
 // packageJSONCache provides thread-safe caching of package.json files.
+// This cache has no size limit, which is safe because structyl is a short-lived
+// CLI process that exits after command completion. For long-running processes,
+// consider adding an LRU eviction policy.
 var packageJSONCache = struct {
 	sync.RWMutex
 	data map[string]*PackageJSON

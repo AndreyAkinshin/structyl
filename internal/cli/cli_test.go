@@ -384,6 +384,7 @@ type testProjectOptions struct {
 
 // createTestProject creates a temporary project for testing CLI commands.
 func createTestProject(t *testing.T) string {
+	t.Helper()
 	return createTestProjectWithOptions(t, testProjectOptions{IncludeAuxiliaryTarget: true})
 }
 
@@ -1424,6 +1425,7 @@ func TestCmdCI_ReleaseMode_UsesBuildRelease(t *testing.T) {
 
 // createTestProjectWithDocker creates a test project with docker configuration.
 func createTestProjectWithDocker(t *testing.T) string {
+	t.Helper()
 	return createTestProjectWithOptions(t, testProjectOptions{IncludeDocker: true})
 }
 

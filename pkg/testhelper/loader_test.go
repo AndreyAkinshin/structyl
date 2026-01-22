@@ -3422,3 +3422,32 @@ func TestLoadAllSuites_Concurrent(t *testing.T) {
 		}
 	}
 }
+
+// TestWithOutput_ReferenceSemantics documents that WithOutput stores by reference.
+// This test verifies the documented behavior that modifications to the provided
+// output value after calling WithOutput affect the TestCase's Output field.
+// This is intentional—see Clone documentation for rationale.
+func TestWithOutput_ReferenceSemantics(t *testing.T) {
+	t.Parallel()
+
+	output := map[string]interface{}{"key": "original"}
+	tc := TestCase{
+		Name:  "test",
+		Input: map[string]interface{}{},
+	}
+
+	tc = tc.WithOutput(output)
+
+	// Modify the original output AFTER WithOutput was called
+	output["key"] = "modified"
+
+	// Verify that tc.Output reflects the modification (reference semantics)
+	gotOutput, ok := tc.Output.(map[string]interface{})
+	if !ok {
+		t.Fatalf("Output type = %T, want map[string]interface{}", tc.Output)
+	}
+
+	if gotOutput["key"] != "modified" {
+		t.Errorf("Output[key] = %q, want %q (WithOutput should store by reference)", gotOutput["key"], "modified")
+	}
+}

@@ -592,3 +592,111 @@ func TestGetResolvedCommands_WithExtends(t *testing.T) {
 		t.Errorf("expected clean command from base cargo, got %v", commands["clean"])
 	}
 }
+
+func TestWriteMiseTomlWithToolchains_WriteIfMissing_FileExists(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	// Create existing mise.toml with known content
+	existingContent := "# existing content"
+	existingPath := filepath.Join(tmpDir, "mise.toml")
+	if err := os.WriteFile(existingPath, []byte(existingContent), 0644); err != nil {
+		t.Fatalf("WriteFile error = %v", err)
+	}
+
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"rs": {Toolchain: "cargo"},
+		},
+	}
+
+	// Write with WriteIfMissing mode (file exists, should not overwrite)
+	created, err := WriteMiseTomlWithToolchains(tmpDir, cfg, nil, WriteIfMissing)
+	if err != nil {
+		t.Fatalf("WriteMiseTomlWithToolchains() error = %v", err)
+	}
+	if created {
+		t.Error("WriteMiseTomlWithToolchains(WriteIfMissing) = true, want false (file exists)")
+	}
+
+	// Verify file was not overwritten
+	content, err := os.ReadFile(existingPath)
+	if err != nil {
+		t.Fatalf("ReadFile error = %v", err)
+	}
+	if string(content) != existingContent {
+		t.Errorf("file was overwritten: got %q, want %q", string(content), existingContent)
+	}
+}
+
+func TestWriteMiseTomlWithToolchains_WriteAlways_OverwritesExisting(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+
+	// Create existing mise.toml with known content
+	existingContent := "# existing content"
+	existingPath := filepath.Join(tmpDir, "mise.toml")
+	if err := os.WriteFile(existingPath, []byte(existingContent), 0644); err != nil {
+		t.Fatalf("WriteFile error = %v", err)
+	}
+
+	cfg := &config.Config{
+		Targets: map[string]config.TargetConfig{
+			"rs": {Toolchain: "cargo"},
+		},
+	}
+
+	// Write with WriteAlways mode (should overwrite)
+	created, err := WriteMiseTomlWithToolchains(tmpDir, cfg, nil, WriteAlways)
+	if err != nil {
+		t.Fatalf("WriteMiseTomlWithToolchains() error = %v", err)
+	}
+	if !created {
+		t.Error("WriteMiseTomlWithToolchains(WriteAlways) = false, want true")
+	}
+
+	// Verify file was overwritten with new content
+	content, err := os.ReadFile(existingPath)
+	if err != nil {
+		t.Fatalf("ReadFile error = %v", err)
+	}
+	if string(content) == existingContent {
+		t.Error("file was not overwritten")
+	}
+	if !strings.Contains(string(content), "[tools]") {
+		t.Error("new content missing [tools] section")
+	}
+}
+
+func TestGenerateMiseToml_RunSequenceWithParallelTasks(t *testing.T) {
+	t.Parallel()
+
+	// Test the RunStep.Tasks branch (parallel task execution within a sequence)
+	tasks := map[string]MiseTask{
+		"parallel-step": {
+			Description: "Task with parallel steps",
+			RunSequence: []RunStep{
+				{Task: "setup"},
+				{Tasks: []string{"build:rs", "build:go", "build:ts"}}, // parallel execution
+				{Task: "finalize"},
+			},
+		},
+	}
+
+	var b strings.Builder
+	writeTasks(&b, tasks)
+	content := b.String()
+
+	// Verify sequential task reference
+	if !strings.Contains(content, `{ task = "setup" }`) {
+		t.Error("missing sequential task reference for setup")
+	}
+	if !strings.Contains(content, `{ task = "finalize" }`) {
+		t.Error("missing sequential task reference for finalize")
+	}
+
+	// Verify parallel tasks array
+	if !strings.Contains(content, `{ tasks = ["build:rs", "build:go", "build:ts"] }`) {
+		t.Errorf("missing parallel tasks array, got:\n%s", content)
+	}
+}

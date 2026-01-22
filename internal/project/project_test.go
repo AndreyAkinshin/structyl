@@ -384,3 +384,107 @@ func TestLoadProjectFrom_InvalidVersionFile(t *testing.T) {
 // LoadProject) are thin wrappers that add only os.Getwd() behavior.
 //
 // TestFindRoot_FromProjectRoot is retained to verify the os.Getwd() integration works.
+
+func TestLoadProjectFrom_WithConfigWarnings(t *testing.T) {
+	root := t.TempDir()
+
+	// Create .structyl directory
+	structylDir := filepath.Join(root, ".structyl")
+	if err := os.MkdirAll(structylDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create config with unknown field that triggers warning
+	configPath := filepath.Join(structylDir, "config.json")
+	config := `{
+		"project": {"name": "myproject"},
+		"unknown_field": "should produce warning"
+	}`
+	if err := os.WriteFile(configPath, []byte(config), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	proj, err := LoadProjectFrom(root)
+	if err != nil {
+		t.Fatalf("LoadProjectFrom() error = %v", err)
+	}
+
+	// Verify warnings were captured
+	if len(proj.Warnings) == 0 {
+		t.Error("LoadProjectFrom() should return warnings for unknown field")
+	}
+
+	// Verify at least one warning mentions the unknown field
+	found := false
+	for _, w := range proj.Warnings {
+		if strings.Contains(w, "unknown_field") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("warnings should mention 'unknown_field', got %v", proj.Warnings)
+	}
+}
+
+func TestLoadProjectFrom_EmptyVersionFile(t *testing.T) {
+	root := t.TempDir()
+
+	// Create .structyl directory
+	structylDir := filepath.Join(root, ".structyl")
+	if err := os.MkdirAll(structylDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create valid config.json
+	configPath := filepath.Join(structylDir, "config.json")
+	config := `{"project": {"name": "myproject"}}`
+	if err := os.WriteFile(configPath, []byte(config), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create empty VERSION file
+	versionPath := filepath.Join(structylDir, "PROJECT_VERSION")
+	if err := os.WriteFile(versionPath, []byte(""), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadProjectFrom(root)
+	if err == nil {
+		t.Fatal("LoadProjectFrom() expected error for empty VERSION file")
+	}
+	if !strings.Contains(err.Error(), "version validation failed") {
+		t.Errorf("error = %q, want error containing 'version validation failed'", err)
+	}
+}
+
+func TestLoadProjectFrom_VersionFileWhitespaceOnly(t *testing.T) {
+	root := t.TempDir()
+
+	// Create .structyl directory
+	structylDir := filepath.Join(root, ".structyl")
+	if err := os.MkdirAll(structylDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create valid config.json
+	configPath := filepath.Join(structylDir, "config.json")
+	config := `{"project": {"name": "myproject"}}`
+	if err := os.WriteFile(configPath, []byte(config), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create VERSION file with only whitespace
+	versionPath := filepath.Join(structylDir, "PROJECT_VERSION")
+	if err := os.WriteFile(versionPath, []byte("   \n  \t  \n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadProjectFrom(root)
+	if err == nil {
+		t.Fatal("LoadProjectFrom() expected error for whitespace-only VERSION file")
+	}
+	if !strings.Contains(err.Error(), "version validation failed") {
+		t.Errorf("error = %q, want error containing 'version validation failed'", err)
+	}
+}

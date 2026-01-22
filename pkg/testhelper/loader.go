@@ -99,6 +99,18 @@
 //   - [TestCase.DeepClone] creates a fully independent copy via JSON round-trip.
 //     Use this when you need to mutate Output or nested Input values.
 //
+// # Clone vs DeepClone Decision Tree
+//
+// Use this table to choose the appropriate method:
+//
+//	| Use Case                                    | Method                       |
+//	|---------------------------------------------|------------------------------|
+//	| Read-only test execution                    | Clone or original            |
+//	| Modify Name, Suite, Skip, Description       | Clone (or With* methods)     |
+//	| Modify Input top-level keys                 | Clone (or WithInput)         |
+//	| Modify Input nested values                  | DeepClone                    |
+//	| Modify Output (any level)                   | DeepClone                    |
+//
 // All builder methods ([TestCase.WithSuite], [TestCase.WithInput], [TestCase.WithTags],
 // [TestCase.WithSkip], [TestCase.WithOutput], [TestCase.WithDescription]) use Clone
 // internally, so they inherit its shallow copy semantics.

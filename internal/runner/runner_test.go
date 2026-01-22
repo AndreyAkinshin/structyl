@@ -809,10 +809,13 @@ func TestRunParallel_AllFail_WithoutContinue_StopsOnFirstError(t *testing.T) {
 		t.Fatal("expected error when targets fail")
 	}
 
-	// The key behavior: we get an error. The exact count depends on timing.
+	// The key behavior: we get an error with at least one target failure reported.
+	// The exact target depends on goroutine scheduling, but we must get a valid error.
 	errMsg := err.Error()
-	if !strings.Contains(errMsg, "failed") {
-		t.Errorf("error should mention failure, got %q", errMsg)
+	hasT1 := strings.Contains(errMsg, "t1")
+	hasT2 := strings.Contains(errMsg, "t2")
+	if !hasT1 && !hasT2 {
+		t.Errorf("error must include at least one target failure, got %q", errMsg)
 	}
 }
 

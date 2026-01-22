@@ -539,6 +539,8 @@ mise tasks
 
 > **Note:** `internal/toolchain/builtin.go` is a legacy fallback that mirrors this JSON and is marked deprecated. When adding or modifying toolchains, edit only `internal/cli/toolchains_template.json`—the Go file should not be edited directly and will be removed in a future version.
 
+> **Terminology:** `internal/cli/toolchains_template.json` defines the **built-in** toolchains that ship with Structyl. The separate `schema/toolchains.schema.json` is a JSON Schema for validating **custom** toolchain definitions in user configuration. They serve different purposes: the template is the source-of-truth for built-in presets; the schema is for IDE validation of user customizations.
+
 2. Add marker file detection in `internal/toolchain/detect.go`:
 
 ```go

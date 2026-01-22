@@ -176,6 +176,41 @@ Invalid title values cause exit code 2 with message: `targets.{name}: title must
 | `depends_on` | array  | `[]`           | Targets that must build first              |
 | `demo_path`  | string | None           | Path to demo source (for doc generation)   |
 
+### Demo Path Configuration
+
+The `demo_path` field specifies a custom path to the demo source file used by the `$DEMO$` placeholder during documentation generation. When not specified, Structyl looks for a demo file at the conventional location `<target_directory>/demo.<extension>`.
+
+**Example — custom demo path:**
+
+```json
+{
+  "targets": {
+    "py": {
+      "type": "language",
+      "title": "Python",
+      "toolchain": "uv",
+      "demo_path": "py/examples/quickstart.py"
+    }
+  }
+}
+```
+
+With this configuration, the `$DEMO$` placeholder in README templates resolves to the content of `py/examples/quickstart.py` instead of the default `py/demo.py`.
+
+**Demo file markers:** If the demo file contains `structyl:demo:begin` and `structyl:demo:end` markers, only the content between these markers is extracted:
+
+```python
+# Full example with setup code
+import mylib
+
+# structyl:demo:begin
+result = mylib.calculate([1, 2, 3, 4, 5])
+print(f"Result: {result}")
+# structyl:demo:end
+
+# Cleanup code...
+```
+
 ## Toolchains
 
 Toolchains provide default command implementations. See [toolchains.md](toolchains.md) for the full reference.

@@ -371,7 +371,7 @@ func cmdConfigValidate() int {
 	configData, err := os.ReadFile(configPath)
 	if err != nil {
 		out.ErrorPrefix("failed to read config for schema validation: %v", err)
-		return internalerrors.ExitRuntimeError
+		return internalerrors.ExitConfigError
 	}
 
 	if err := schema.ValidateConfig(configData); err != nil {

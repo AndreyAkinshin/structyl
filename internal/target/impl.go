@@ -232,7 +232,7 @@ func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) 
 		// Unreachable: config validation in internal/config/validate.go ensures only
 		// nil, string, or []interface{} types reach here. This error indicates a bug
 		// in validation or a new type was added without updating this switch.
-		return fmt.Errorf("BUG: invalid command type %T (should be caught by config validation)", cmdDef)
+		return fmt.Errorf("BUG: invalid command type %T (should be caught by config validation)", cmdVal)
 	}
 
 	cmdStr = t.interpolateVars(cmdStr)

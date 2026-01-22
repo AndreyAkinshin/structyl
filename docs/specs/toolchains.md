@@ -153,7 +153,39 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 > **Note:** The `test:coverage` command (marked with ‡ in the vocabulary table) is intentionally omitted from this composition table. No built-in toolchain provides `test:coverage`—projects MUST define custom implementations using language-specific coverage tools (e.g., `cargo-tarpaulin`, `go test -cover`, `coverage.py`).
 
-> **Note:** For `check:fix` compositions (auto-fix behavior), see individual toolchain sections. Most toolchains run lint with `--fix` flags as part of `check:fix`, but specific flags and behaviors vary by ecosystem.
+> **Note:** For `check:fix` compositions (auto-fix behavior), see the summary table below. Most toolchains run format commands as part of `check:fix`, with some also including lint auto-fix.
+
+### `check:fix` Composition Summary
+
+| Toolchain  | Auto-fix Components                              |
+| ---------- | ------------------------------------------------ |
+| `cargo`    | `cargo fmt`                                      |
+| `dotnet`   | `dotnet format`                                  |
+| `go`       | `go fmt ./...`                                   |
+| `npm`      | `npm run lint -- --fix` + `npm run format`       |
+| `pnpm`     | `pnpm lint --fix` + `pnpm format`                |
+| `yarn`     | `yarn lint --fix` + `yarn format`                |
+| `bun`      | `bun run lint --fix` + `bun run format`          |
+| `python`   | `ruff check --fix .` + `ruff format .`           |
+| `uv`       | `uv run ruff check --fix .` + `uv run ruff format .` |
+| `poetry`   | `poetry run ruff check --fix .` + `poetry run ruff format .` |
+| `gradle`   | `gradle spotlessApply`                           |
+| `maven`    | `mvn spotless:apply`                             |
+| `make`     | `make fix`                                       |
+| `cmake`    | `cmake --build build --target format`            |
+| `swift`    | `swiftlint --fix` + `swiftformat .`              |
+| `deno`     | `deno fmt`                                       |
+| `r`        | `Rscript -e "styler::style_pkg()"`               |
+| `bundler`  | `bundle exec rubocop -a`                         |
+| `composer` | `composer run-script format`                     |
+| `mix`      | `mix format`                                     |
+| `sbt`      | `sbt scalafmt`                                   |
+| `cabal`    | `ormolu --mode inplace $(find . -name '*.hs')`   |
+| `stack`    | `stack exec -- ormolu --mode inplace $(find . -name '*.hs')` |
+| `dune`     | `dune fmt`                                       |
+| `lein`     | `lein cljfmt fix`                                |
+| `zig`      | `zig fmt .`                                      |
+| `rebar3`   | `rebar3 format`                                  |
 
 > **Execution order:** When commands are composed from multiple operations (e.g., `check` = lint + format-check), they execute left-to-right as listed in the Implementation column. For `check:fix`, this typically means lint auto-fix runs before formatting.
 

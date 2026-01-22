@@ -436,6 +436,30 @@ func TestErrorChain_MultiLevel(t *testing.T) {
 	}
 }
 
+func TestStructylError_EmptyMessage(t *testing.T) {
+	t.Parallel()
+	err := &StructylError{Message: ""}
+	if err.Error() != "" {
+		t.Errorf("Error() = %q, want empty string", err.Error())
+	}
+
+	// With target but empty message
+	errWithTarget := &StructylError{Target: "rs", Message: ""}
+	expected := "[rs] "
+	if errWithTarget.Error() != expected {
+		t.Errorf("Error() = %q, want %q", errWithTarget.Error(), expected)
+	}
+}
+
+func TestExitCode_UnknownKind(t *testing.T) {
+	t.Parallel()
+	// Unknown ErrorKind should default to runtime error (exit code 1)
+	err := &StructylError{Kind: ErrorKind(999), Message: "unknown kind"}
+	if err.ExitCode() != ExitRuntimeError {
+		t.Errorf("ExitCode() = %d, want %d (should default to runtime error)", err.ExitCode(), ExitRuntimeError)
+	}
+}
+
 // TestErrorChain_CauseAccessible verifies that wrapped error causes can be accessed
 // for debugging and diagnostic purposes via the standard Go error chain pattern.
 func TestErrorChain_CauseAccessible(t *testing.T) {

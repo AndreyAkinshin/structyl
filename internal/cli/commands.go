@@ -29,14 +29,13 @@ import (
 
 var out = output.New()
 
-// Help text alignment widths for consistent formatting.
-// These values align the flag/command names with their descriptions.
-// Each width accommodates the longest string in its category plus padding.
+// Help text column widths for consistent formatting across all usage output.
+// Values are derived from the longest item in each category plus 2 chars padding.
 const (
-	widthFlagShort      = 10 // "-h, --help"
-	widthArgPlaceholder = 12 // "[services]"
-	widthFlagWithValue  = 14 // "--type=<type>"
-	widthSubcommand     = 6  // "sync"
+	widthFlagShort      = 10 // longest: "-h, --help" (10 chars)
+	widthArgPlaceholder = 12 // longest: "[services]" (10 chars) + 2 padding
+	widthFlagWithValue  = 14 // longest: "--type=<type>" (13 chars) + 1 padding
+	widthSubcommand     = 6  // longest: "sync" (4 chars) + 2 padding
 )
 
 // applyVerbosityToOutput configures the output writer based on verbosity settings.

@@ -246,7 +246,7 @@ func TestGenerateMiseToml_WithEnvVars(t *testing.T) {
 	}
 }
 
-func TestCapitalizeASCII(t *testing.T) {
+func TestCapitalize(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		input    string
@@ -262,9 +262,9 @@ func TestCapitalizeASCII(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
-			result := capitalizeASCII(tt.input)
+			result := capitalize(tt.input)
 			if result != tt.expected {
-				t.Errorf("capitalizeASCII(%q) = %q, want %q", tt.input, result, tt.expected)
+				t.Errorf("capitalize(%q) = %q, want %q", tt.input, result, tt.expected)
 			}
 		})
 	}

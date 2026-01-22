@@ -183,7 +183,7 @@ func generateTasksWithToolchains(cfg *config.Config, loaded *toolchain.Toolchain
 			case string:
 				// Direct shell command
 				task := MiseTask{
-					Description: fmt.Sprintf("%s for %s target", capitalizeASCII(cmdName), targetName),
+					Description: fmt.Sprintf("%s for %s target", capitalize(cmdName), targetName),
 					Run:         v,
 				}
 				if dir != "" {
@@ -205,7 +205,7 @@ func generateTasksWithToolchains(cfg *config.Config, loaded *toolchain.Toolchain
 				}
 				if len(steps) > 0 {
 					task := MiseTask{
-						Description: fmt.Sprintf("%s for %s target", capitalizeASCII(cmdName), targetName),
+						Description: fmt.Sprintf("%s for %s target", capitalize(cmdName), targetName),
 						RunSequence: steps,
 					}
 					if dir != "" {
@@ -254,7 +254,7 @@ func generateTasksWithToolchains(cfg *config.Config, loaded *toolchain.Toolchain
 		}
 
 		tasks[cmdName] = MiseTask{
-			Description: fmt.Sprintf("%s all targets", capitalizeASCII(cmdName)),
+			Description: fmt.Sprintf("%s all targets", capitalize(cmdName)),
 			DependsOn:   deps,
 		}
 	}
@@ -318,9 +318,10 @@ func getResolvedCommandsForTargetWithToolchains(targetCfg config.TargetConfig, c
 	return commands
 }
 
-// capitalizeASCII returns a string with the first ASCII letter capitalized.
-// Only handles ASCII; sufficient for command names used in this codebase.
-func capitalizeASCII(s string) string {
+// capitalize returns a string with the first character uppercased.
+// Uses byte slicing, which is correct for ASCII strings. Command names in
+// Structyl are always ASCII (build, test, clean, etc.), so this is safe.
+func capitalize(s string) string {
 	if s == "" {
 		return s
 	}

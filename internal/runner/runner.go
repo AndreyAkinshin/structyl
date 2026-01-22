@@ -164,10 +164,7 @@ func (r *Runner) runSequential(ctx context.Context, targets []target.Target, cmd
 		}
 	}
 
-	if len(errs) > 0 {
-		return combineErrors(errs)
-	}
-	return nil
+	return combineErrors(errs)
 }
 
 // hasDependencies returns true if any target has depends_on configured.

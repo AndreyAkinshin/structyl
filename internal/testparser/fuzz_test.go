@@ -29,6 +29,10 @@ func FuzzGoParser(f *testing.F) {
 		"--- PASS:",
 		"--- FAIL: (0.00s)",
 		"ok  \t",
+		// Edge cases: very long test names
+		"=== RUN   " + strings.Repeat("x", 10000) + "\n--- PASS: " + strings.Repeat("x", 10000) + " (0.00s)\nPASS",
+		// Edge cases: binary-like prefix before valid output
+		"\x00\x01\x02=== RUN   TestWithBinaryPrefix\n--- PASS: TestWithBinaryPrefix (0.00s)\nPASS",
 	}
 
 	for _, seed := range seeds {
@@ -407,6 +411,10 @@ func FuzzJSONParser(f *testing.F) {
 		`{Action: pass}`,
 		// Invalid actions
 		`{"Action":"unknown","Test":"Test"}`,
+		// Edge case: deeply nested JSON (not typical but should not panic)
+		`{"Action":"pass","Test":"Test","Extra":{"nested":{"deep":{"value":"test"}}}}`,
+		// Edge case: very large output field
+		`{"Action":"output","Test":"Test","Output":"` + strings.Repeat("x", 10000) + `"}`,
 	}
 
 	for _, seed := range seeds {

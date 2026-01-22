@@ -218,10 +218,10 @@ warning: unknown field "foo" in targets.cs
 
 The `test-summary` command parses `go test -json` output and returns:
 
-| Exit Code | Condition                |
-| --------- | ------------------------ |
-| 0         | All tests passed         |
-| 1         | One or more tests failed |
+| Exit Code | Condition                                                   |
+| --------- | ----------------------------------------------------------- |
+| 0         | All tests passed                                            |
+| 1         | File not found, no valid test results parsed, or any failed |
 
 ### Target Command Normalization
 
@@ -380,6 +380,31 @@ When `STRUCTYL_PARALLEL > 1`, dependency ordering is NOT guaranteed. If a target
 1. Set `STRUCTYL_PARALLEL=1` for targets with strict ordering requirements
 2. Ensure dependencies are declared correctly in `depends_on`
 3. Use explicit synchronization in build scripts if needed
+
+### STRUCTYL_PARALLEL Validation
+
+The `STRUCTYL_PARALLEL` environment variable controls concurrent target execution when using Structyl's internal runner (not mise).
+
+| Value               | Behavior                                    |
+| ------------------- | ------------------------------------------- |
+| Unset or empty      | Defaults to `runtime.NumCPU()` (minimum 1)  |
+| Positive integer 1-256 | Run up to N targets concurrently         |
+| Invalid value       | Warning logged, falls back to default       |
+
+**Invalid values that trigger warnings:**
+
+- Non-integer: `"invalid"`, `"4.0"`, `" 4"` (leading/trailing whitespace)
+- Out of range: `"0"`, `"-1"`, `"257"` (values outside 1-256)
+- Overflow: values exceeding int64 max
+
+**Warning messages** (wording is unstable per [stability.md](stability.md)):
+
+```
+warning: invalid STRUCTYL_PARALLEL value "<value>" (not a number), using default
+warning: STRUCTYL_PARALLEL=<n> out of range [1-256], using default
+```
+
+Validation warnings do NOT cause non-zero exit codes—the command proceeds with the default worker count.
 
 ### Command Not Found Skip Errors
 

@@ -116,3 +116,19 @@ func TestRegistryCaseInsensitive(t *testing.T) {
 		}
 	}
 }
+
+func TestBuiltinParsers_AliasesUnique(t *testing.T) {
+	t.Parallel()
+	// Verify that all aliases in builtinParsers are unique.
+	// Duplicate aliases would silently overwrite earlier registrations.
+	seen := make(map[string]string) // alias -> parser name that first registered it
+	for _, entry := range builtinParsers {
+		parserName := entry.parser.Name()
+		for _, alias := range entry.aliases {
+			if existingParser, exists := seen[alias]; exists {
+				t.Errorf("duplicate alias %q: registered by both %q and %q", alias, existingParser, parserName)
+			}
+			seen[alias] = parserName
+		}
+	}
+}

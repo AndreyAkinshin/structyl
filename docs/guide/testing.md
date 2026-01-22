@@ -116,14 +116,21 @@ Configure tolerance in `.structyl/config.json`:
 
 ### Common Configurations
 
+**Financial calculations** (exact decimal matching):
+
 ```json
-// Financial calculations (exact decimal matching)
 { "float_tolerance": 0, "tolerance_mode": "absolute" }
+```
 
-// Scientific computing (relative precision)
+**Scientific computing** (relative precision):
+
+```json
 { "float_tolerance": 1e-9, "tolerance_mode": "relative" }
+```
 
-// IEEE 754 strict comparison (10 ULPs tolerance)
+**IEEE 754 strict comparison** (10 ULPs tolerance):
+
+```json
 { "float_tolerance": 10, "tolerance_mode": "ulp" }
 ```
 
@@ -271,7 +278,7 @@ fn load_tests(suite: &str) -> Vec<TestCase> {
 
 The reference test system is designed for cross-language consistency verification, not as a full-featured test framework. The following are explicitly out of scope:
 
-- **Coverage measurement** — Use language-specific coverage tools (e.g., `cargo tpcc`, `coverage.py`, `go test -cover`)
+- **Coverage measurement** — Use language-specific coverage tools (e.g., `cargo-tarpaulin`, `coverage.py`, `go test -cover`)
 - **Parallel test execution** — Tests run sequentially within each target; parallelism is at the target level only
 - **Fuzzy binary comparison** — Binary outputs (via `$file`) are compared byte-for-byte exactly
 
@@ -279,5 +286,5 @@ For detailed limitations, see the [Test System Specification](../specs/test-syst
 
 ## Next Steps
 
-- [Configuration](./configuration) - Full configuration reference
-- [Commands](./commands) - Running tests and other commands
+- [Configuration](./configuration.md) - Full configuration reference
+- [Commands](./commands.md) - Running tests and other commands

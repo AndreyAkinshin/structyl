@@ -178,7 +178,7 @@ Invalid title values cause exit code 2 with message: `targets.{name}: title must
 
 ### Demo Path Configuration
 
-The `demo_path` field specifies a custom path to the demo source file used by the `$DEMO$` placeholder during documentation generation. When not specified, Structyl looks for a demo file at the conventional location `<target_directory>/demo.<extension>`.
+The `demo_path` field specifies a custom path to the demo source file used by the `$DEMO$` placeholder during documentation generation. When not specified, Structyl looks for a demo file at the conventional location `<target_directory>/demo.<extension>`, where the extension is determined by the target's toolchain (e.g., `.py` for Python toolchains, `.go` for Go, `.rs` for Cargo).
 
 **Example — custom demo path:**
 

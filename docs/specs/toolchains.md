@@ -142,6 +142,8 @@ All toolchains implement this vocabulary:
 
 Commands not applicable to a toolchain are set to `null` (skipped).
 
+> **Note:** The `test:coverage` command (marked with ‡ in the vocabulary table) is intentionally omitted from this composition table. No built-in toolchain provides `test:coverage`—projects MUST define custom implementations using language-specific coverage tools (e.g., `cargo-tarpaulin`, `go test -cover`, `coverage.py`).
+
 > **Note:** For `check:fix` compositions (auto-fix behavior), see individual toolchain sections. Most toolchains run lint with `--fix` flags as part of `check:fix`, but specific flags and behaviors vary by ecosystem.
 
 ---

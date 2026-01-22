@@ -975,7 +975,7 @@ Example:
 
 Output: `Version is ${version}` followed by `Actual: 1.2.3`
 
-> **Note:** Commands use `${var}` syntax. Version file replacements use `{var}` syntax (without `$`). See [configuration.md](configuration.md#version-files) for details on version file placeholder syntax.
+> **Note:** Commands use `${var}` syntax. Version file replacements use `{var}` syntax (without `$`). See [configuration.md](configuration.md#variable-syntax) for details on version file placeholder syntax.
 
 ### Argument Interpretation
 

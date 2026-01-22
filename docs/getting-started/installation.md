@@ -1,5 +1,16 @@
 # Installation
 
+## Prerequisites
+
+Structyl delegates task execution to [mise](https://mise.jdx.dev/). Ensure mise is installed before using Structyl:
+
+```bash
+# Install mise (see https://mise.jdx.dev/ for all methods)
+curl https://mise.run | sh
+```
+
+## Install Structyl
+
 <InstallTabs />
 
 ::: details Manual Installation (if tabs don't render)

@@ -704,3 +704,94 @@ func TestSort_PropertyIdempotent(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+// TestSort_PropertyMinimality verifies that when sorting with specified roots,
+// the result contains exactly the reachable nodes (no extras, no missing).
+func TestSort_PropertyMinimality(t *testing.T) {
+	t.Parallel()
+
+	// computeReachable computes all nodes reachable from roots via dependencies
+	computeReachable := func(g Graph, roots []string) map[string]bool {
+		reachable := make(map[string]bool)
+		var visit func(name string)
+		visit = func(name string) {
+			if reachable[name] {
+				return
+			}
+			reachable[name] = true
+			for _, dep := range g[name] {
+				visit(dep)
+			}
+		}
+		for _, root := range roots {
+			visit(root)
+		}
+		return reachable
+	}
+
+	property := func(nodeCount uint8, seed uint64, rootMask uint8) bool {
+		n := int(nodeCount%15) + 2 // At least 2 nodes to have interesting root selection
+
+		// Generate a valid DAG (edges only from higher to lower indices)
+		g := make(Graph, n)
+		for i := 0; i < n; i++ {
+			name := fmt.Sprintf("n%d", i)
+			var deps []string
+			for j := 0; j < i; j++ {
+				if (seed>>(uint(j)%64))&1 == 1 {
+					deps = append(deps, fmt.Sprintf("n%d", j))
+				}
+			}
+			g[name] = deps
+		}
+
+		// Select roots based on rootMask (use some nodes as roots)
+		var roots []string
+		for i := 0; i < n; i++ {
+			if (rootMask>>(uint(i)%8))&1 == 1 {
+				roots = append(roots, fmt.Sprintf("n%d", i))
+			}
+		}
+		if len(roots) == 0 {
+			// Ensure at least one root
+			roots = []string{"n0"}
+		}
+
+		result, err := Sort(g, roots)
+		if err != nil {
+			return false
+		}
+
+		// Compute expected reachable nodes
+		expected := computeReachable(g, roots)
+
+		// Property 1: result contains exactly len(expected) nodes
+		if len(result) != len(expected) {
+			return false
+		}
+
+		// Property 2: every node in result is in expected (no extras)
+		for _, name := range result {
+			if !expected[name] {
+				return false
+			}
+		}
+
+		// Property 3: every node in expected is in result (no missing)
+		resultSet := make(map[string]bool, len(result))
+		for _, name := range result {
+			resultSet[name] = true
+		}
+		for name := range expected {
+			if !resultSet[name] {
+				return false
+			}
+		}
+
+		return true
+	}
+
+	if err := quick.Check(property, nil); err != nil {
+		t.Error(err)
+	}
+}

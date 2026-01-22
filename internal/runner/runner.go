@@ -17,6 +17,10 @@ import (
 
 var out = output.New()
 
+// parallelDepsWarningOnce ensures the parallel mode dependency warning is only shown once per process.
+// This prevents repetitive warnings when runParallel is called multiple times.
+var parallelDepsWarningOnce sync.Once
+
 const (
 	// minParallelWorkers ensures at least one worker to prevent semaphore deadlock,
 	// even if runtime.NumCPU() returns 0 (which can happen in containerized or
@@ -195,7 +199,9 @@ func hasDependencies(targets []target.Target) bool {
 // See docs/specs/targets.md#known-limitation-parallel-execution-and-dependencies.
 func (r *Runner) runParallel(ctx context.Context, targets []target.Target, cmd string, opts RunOptions) error {
 	if hasDependencies(targets) {
-		out.WarningSimple("parallel mode does not respect depends_on ordering; targets may execute before dependencies complete")
+		parallelDepsWarningOnce.Do(func() {
+			out.WarningSimple("parallel mode does not respect depends_on ordering; targets may execute before dependencies complete")
+		})
 	}
 	workers := getParallelWorkers()
 

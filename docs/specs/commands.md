@@ -576,11 +576,12 @@ The `--type` flag accepts these values:
 
 These values are part of the stable public CLI contract. Invalid values cause exit code 2 (configuration error).
 
-Example usage:
+Both `--type=<value>` and `--type <value>` (space-separated) forms are accepted:
 
 ```bash
 # Build only language targets
 structyl build --type=language
+structyl build --type language
 
 # Test only auxiliary targets
 structyl test --type=auxiliary

@@ -133,7 +133,7 @@ func writeMiseConfig(proj *project.Project) error {
 // This function consolidates the common pattern of checking mise availability
 // and regenerating mise.toml before running commands.
 func ensureMiseReady(proj *project.Project) int {
-	if err := EnsureMise(true); err != nil {
+	if err := EnsureMise(MiseInteractive); err != nil {
 		out.ErrorPrefix("%v", err)
 		PrintMiseInstallInstructions()
 		return internalerrors.ExitEnvError

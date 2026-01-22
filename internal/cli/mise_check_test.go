@@ -132,15 +132,15 @@ func TestEnsureMise_NonInteractive_ReturnsMiseNotInstalled(t *testing.T) {
 	}
 
 	// In non-interactive mode, should return error immediately
-	err := EnsureMise(false)
+	err := EnsureMise(MiseNonInteractive)
 	if err == nil {
-		t.Error("EnsureMise(false) should return error when mise not installed")
+		t.Error("EnsureMise(MiseNonInteractive) should return error when mise not installed")
 		return
 	}
 
 	expectedMsg := "mise is not installed. Install it from https://mise.jdx.dev"
 	if err.Error() != expectedMsg {
-		t.Errorf("EnsureMise(false) error = %q, want %q", err.Error(), expectedMsg)
+		t.Errorf("EnsureMise(MiseNonInteractive) error = %q, want %q", err.Error(), expectedMsg)
 	}
 }
 
@@ -154,13 +154,13 @@ func TestEnsureMise_Interactive_WhenInstalled(t *testing.T) {
 	}
 
 	// When mise is installed, should return nil regardless of interactive mode
-	err := EnsureMise(false)
+	err := EnsureMise(MiseNonInteractive)
 	if err != nil {
-		t.Errorf("EnsureMise(false) with mise installed = %v, want nil", err)
+		t.Errorf("EnsureMise(MiseNonInteractive) with mise installed = %v, want nil", err)
 	}
 
-	err = EnsureMise(true)
+	err = EnsureMise(MiseInteractive)
 	if err != nil {
-		t.Errorf("EnsureMise(true) with mise installed = %v, want nil", err)
+		t.Errorf("EnsureMise(MiseInteractive) with mise installed = %v, want nil", err)
 	}
 }

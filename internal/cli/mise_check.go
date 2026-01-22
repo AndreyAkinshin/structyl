@@ -10,6 +10,14 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/output"
 )
 
+// Constants for EnsureMise interactive mode parameter.
+const (
+	// MiseInteractive enables interactive prompts (ask user to install mise).
+	MiseInteractive = true
+	// MiseNonInteractive disables interactive prompts (return error if mise not found).
+	MiseNonInteractive = false
+)
+
 // Error constructors for mise-related errors.
 func errMiseNotInstalled() error {
 	return fmt.Errorf("mise is not installed. Install it from https://mise.jdx.dev")

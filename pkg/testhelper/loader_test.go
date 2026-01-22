@@ -10,6 +10,7 @@ import (
 )
 
 func TestLoadTestCase(t *testing.T) {
+	t.Parallel()
 	// Create temp file
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test1.json")
@@ -41,6 +42,7 @@ func TestLoadTestCase(t *testing.T) {
 }
 
 func TestLoadTestCaseWithSuite(t *testing.T) {
+	t.Parallel()
 	// Create temp file
 	tmpDir := t.TempDir()
 	testFile := filepath.Join(tmpDir, "test1.json")
@@ -1580,6 +1582,51 @@ func TestLoadTestCaseWithSuite_EmptySuite_ReturnsError(t *testing.T) {
 
 	if !errors.Is(err, ErrEmptySuiteName) {
 		t.Errorf("error should be ErrEmptySuiteName, got: %v", err)
+	}
+}
+
+func TestLoadTestCaseWithSuite_NotFound(t *testing.T) {
+	t.Parallel()
+	_, err := LoadTestCaseWithSuite("/nonexistent/path/test.json", "suite")
+	if err == nil {
+		t.Fatal("expected error for nonexistent file")
+	}
+	if !errors.Is(err, ErrTestCaseNotFound) {
+		t.Errorf("expected ErrTestCaseNotFound, got: %v", err)
+	}
+}
+
+func TestLoadTestCaseWithSuite_InvalidJSON(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "invalid.json")
+	if err := os.WriteFile(testFile, []byte("{invalid json"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadTestCaseWithSuite(testFile, "suite")
+	if err == nil {
+		t.Fatal("expected error for invalid JSON")
+	}
+	if !strings.Contains(err.Error(), "invalid JSON") {
+		t.Errorf("expected error to mention 'invalid JSON', got: %v", err)
+	}
+}
+
+func TestLoadTestCaseWithSuite_InvalidSuiteName(t *testing.T) {
+	t.Parallel()
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "test.json")
+	if err := os.WriteFile(testFile, []byte(`{"input": {}, "output": 1}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := LoadTestCaseWithSuite(testFile, "../escape")
+	if err == nil {
+		t.Fatal("expected error for invalid suite name")
+	}
+	if !errors.Is(err, ErrInvalidSuiteName) {
+		t.Errorf("expected ErrInvalidSuiteName, got: %v", err)
 	}
 }
 

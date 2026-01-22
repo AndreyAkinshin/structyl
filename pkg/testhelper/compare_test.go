@@ -1389,7 +1389,6 @@ func TestEqual_UlpTolerance_Truncation(t *testing.T) {
 	a := 1.0
 	b := math.Nextafter(a, math.Inf(1)) // 1 ULP away
 	c := math.Nextafter(b, math.Inf(1)) // 2 ULPs away
-	_ = math.Nextafter(c, math.Inf(1))  // 3 ULPs away (unused)
 
 	// With tolerance 1.9, truncated to 1, should pass for 1 ULP
 	opts := CompareOptions{

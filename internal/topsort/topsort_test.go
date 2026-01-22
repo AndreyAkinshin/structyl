@@ -457,3 +457,30 @@ func TestSort_LargeGraph(t *testing.T) {
 		}
 	}
 }
+
+func TestSort_Deterministic(t *testing.T) {
+	t.Parallel()
+	// Graph with multiple valid orderings (a, b, c are independent)
+	g := Graph{
+		"a": nil,
+		"b": nil,
+		"c": nil,
+		"d": {"a", "b", "c"},
+	}
+
+	// Run Sort multiple times and verify identical results
+	result1, err1 := Sort(g, nil)
+	if err1 != nil {
+		t.Fatalf("Sort() error = %v", err1)
+	}
+
+	for i := 0; i < 10; i++ {
+		result2, err2 := Sort(g, nil)
+		if err2 != nil {
+			t.Fatalf("Sort() iteration %d error = %v", i, err2)
+		}
+		if !reflect.DeepEqual(result1, result2) {
+			t.Errorf("Sort() is non-deterministic: iteration %d got %v, want %v", i, result2, result1)
+		}
+	}
+}

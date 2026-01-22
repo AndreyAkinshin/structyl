@@ -402,7 +402,6 @@ complete -c %s -f
 	sb.WriteString("\n# Global flags\n")
 	sb.WriteString(fmt.Sprintf("complete -c %s -l docker -d 'Run in Docker container'\n", cmdName))
 	sb.WriteString(fmt.Sprintf("complete -c %s -l no-docker -d 'Disable Docker mode'\n", cmdName))
-	sb.WriteString(fmt.Sprintf("complete -c %s -l continue -d 'Continue on error'\n", cmdName))
 	sb.WriteString(fmt.Sprintf("complete -c %s -l type -d 'Filter targets by type' -xa 'language auxiliary'\n", cmdName))
 	sb.WriteString(fmt.Sprintf("complete -c %s -l help -d 'Show help'\n", cmdName))
 	sb.WriteString(fmt.Sprintf("complete -c %s -l version -d 'Show version'\n", cmdName))

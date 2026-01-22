@@ -298,7 +298,6 @@ func TestGenerateFishCompletion_ContainsRequiredElements(t *testing.T) {
 		"complete -c structyl -n '__fish_use_subcommand' -a 'init'",
 		"complete -c structyl -l docker -d 'Run in Docker container'",
 		"complete -c structyl -l no-docker",
-		"complete -c structyl -l continue",
 		"complete -c structyl -l type",
 		"complete -c structyl -n '__fish_seen_subcommand_from config' -a 'validate'",
 		"complete -c structyl -n '__fish_seen_subcommand_from completion' -a 'bash'",

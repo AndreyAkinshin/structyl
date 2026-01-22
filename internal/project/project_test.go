@@ -488,3 +488,54 @@ func TestLoadProjectFrom_VersionFileWhitespaceOnly(t *testing.T) {
 		t.Errorf("error = %q, want error containing 'version validation failed'", err)
 	}
 }
+
+func TestLoadProject_Success(t *testing.T) {
+	// Note: NOT parallel because os.Chdir modifies process-global state.
+
+	// Create temp project structure
+	tmpDir := t.TempDir()
+	// Resolve symlinks (macOS /var -> /private/var)
+	root, err := filepath.EvalSymlinks(tmpDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create .structyl directory
+	structylDir := filepath.Join(root, ".structyl")
+	if err := os.MkdirAll(structylDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	configPath := filepath.Join(structylDir, "config.json")
+	if err := os.WriteFile(configPath, []byte(`{"project":{"name":"test-load-project"}}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Save current working directory
+	originalWd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Change to project root
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	// Restore working directory after test
+	t.Cleanup(func() {
+		os.Chdir(originalWd)
+	})
+
+	// Call LoadProject (the wrapper we want to cover)
+	proj, err := LoadProject()
+	if err != nil {
+		t.Fatalf("LoadProject() error = %v", err)
+	}
+	if proj.Root != root {
+		t.Errorf("Project.Root = %q, want %q", proj.Root, root)
+	}
+	if proj.Config.Project.Name != "test-load-project" {
+		t.Errorf("Project.Config.Project.Name = %q, want %q", proj.Config.Project.Name, "test-load-project")
+	}
+}

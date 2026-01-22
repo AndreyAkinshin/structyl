@@ -1,6 +1,7 @@
 package testparser
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -43,6 +44,12 @@ func FuzzGoParser(f *testing.F) {
 	f.Fuzz(func(t *testing.T, input string) {
 		// The parser should never panic on any input
 		result := parser.Parse(input)
+
+		// Determinism: parsing the same input twice must produce identical results
+		result2 := parser.Parse(input)
+		if !reflect.DeepEqual(result, result2) {
+			t.Errorf("non-deterministic parsing: first=%+v, second=%+v", result, result2)
+		}
 
 		// Basic invariants that must hold for any input
 		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
@@ -122,6 +129,12 @@ func FuzzCargoParser(f *testing.F) {
 		// The parser should never panic on any input
 		result := parser.Parse(input)
 
+		// Determinism: parsing the same input twice must produce identical results
+		result2 := parser.Parse(input)
+		if !reflect.DeepEqual(result, result2) {
+			t.Errorf("non-deterministic parsing: first=%+v, second=%+v", result, result2)
+		}
+
 		// Basic invariants
 		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
 			t.Errorf("negative count: passed=%d failed=%d skipped=%d total=%d",
@@ -187,6 +200,12 @@ func FuzzDotnetParser(f *testing.F) {
 		// The parser should never panic on any input
 		result := parser.Parse(input)
 
+		// Determinism: parsing the same input twice must produce identical results
+		result2 := parser.Parse(input)
+		if !reflect.DeepEqual(result, result2) {
+			t.Errorf("non-deterministic parsing: first=%+v, second=%+v", result, result2)
+		}
+
 		// Basic invariants
 		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
 			t.Errorf("negative count: passed=%d failed=%d skipped=%d total=%d",
@@ -249,6 +268,12 @@ func FuzzPytestParser(f *testing.F) {
 		// The parser should never panic on any input
 		result := parser.Parse(input)
 
+		// Determinism: parsing the same input twice must produce identical results
+		result2 := parser.Parse(input)
+		if !reflect.DeepEqual(result, result2) {
+			t.Errorf("non-deterministic parsing: first=%+v, second=%+v", result, result2)
+		}
+
 		// Basic invariants
 		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
 			t.Errorf("negative count: passed=%d failed=%d skipped=%d total=%d",
@@ -307,6 +332,12 @@ func FuzzBunParser(f *testing.F) {
 	f.Fuzz(func(t *testing.T, input string) {
 		// The parser should never panic on any input
 		result := parser.Parse(input)
+
+		// Determinism: parsing the same input twice must produce identical results
+		result2 := parser.Parse(input)
+		if !reflect.DeepEqual(result, result2) {
+			t.Errorf("non-deterministic parsing: first=%+v, second=%+v", result, result2)
+		}
 
 		// Basic invariants
 		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
@@ -367,6 +398,12 @@ func FuzzDenoParser(f *testing.F) {
 	f.Fuzz(func(t *testing.T, input string) {
 		// The parser should never panic on any input
 		result := parser.Parse(input)
+
+		// Determinism: parsing the same input twice must produce identical results
+		result2 := parser.Parse(input)
+		if !reflect.DeepEqual(result, result2) {
+			t.Errorf("non-deterministic parsing: first=%+v, second=%+v", result, result2)
+		}
 
 		// Basic invariants
 		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {
@@ -436,6 +473,12 @@ func FuzzJSONParser(f *testing.F) {
 	f.Fuzz(func(t *testing.T, input string) {
 		// The parser should never panic on any input
 		result := parser.ParseJSON(strings.NewReader(input))
+
+		// Determinism: parsing the same input twice must produce identical results
+		result2 := parser.ParseJSON(strings.NewReader(input))
+		if !reflect.DeepEqual(result, result2) {
+			t.Errorf("non-deterministic parsing: first=%+v, second=%+v", result, result2)
+		}
 
 		// Basic invariants
 		if result.Passed < 0 || result.Failed < 0 || result.Skipped < 0 || result.Total < 0 {

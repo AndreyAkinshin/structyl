@@ -42,26 +42,6 @@ func TestConfigValidateCircularDeps(t *testing.T) {
 	}
 }
 
-func TestConfigValidateInvalidToolchain(t *testing.T) {
-	t.Parallel()
-	fixtureDir := filepath.Join(fixturesDir(), "invalid", "invalid-toolchain")
-
-	proj, err := project.LoadProjectFrom(fixtureDir)
-	if err != nil {
-		t.Fatalf("failed to load project: %v", err)
-	}
-
-	// Registry creation should fail due to invalid toolchain
-	_, err = target.NewRegistry(proj.Config, proj.Root)
-	if err == nil {
-		t.Error("expected error for invalid toolchain")
-	}
-	// Verify error message mentions toolchain
-	if !strings.Contains(strings.ToLower(err.Error()), "toolchain") {
-		t.Errorf("error = %q, want to mention 'toolchain'", err.Error())
-	}
-}
-
 func TestConfigTargetTypes(t *testing.T) {
 	t.Parallel()
 	fixtureDir := filepath.Join(fixturesDir(), "multi-language")

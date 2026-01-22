@@ -39,6 +39,15 @@ test result: ok. 27 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; fin
 			expected: TestCounts{Passed: 47, Failed: 0, Skipped: 3, Total: 50, Parsed: true},
 		},
 		{
+			name: "multiple binaries with mixed failures",
+			output: `running 10 tests
+test result: FAILED. 8 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+running 20 tests
+test result: ok. 17 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.20s`,
+			expected: TestCounts{Passed: 25, Failed: 2, Skipped: 3, Total: 30, Parsed: true},
+		},
+		{
 			name:     "empty output",
 			output:   "",
 			expected: TestCounts{Parsed: false},

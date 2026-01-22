@@ -295,6 +295,12 @@ func FuzzBunParser(f *testing.F) {
 		"pass",
 		"0 pass",
 		"fail",
+		// ANSI color codes (common in terminal output)
+		"\x1b[32m5 pass\x1b[0m\n\x1b[31m0 fail\x1b[0m",
+		// Unicode in output
+		"5 pass ✓\n0 fail ✗",
+		// Large numbers (potential overflow boundary)
+		"999999999 pass\n0 fail",
 	}
 
 	for _, seed := range seeds {

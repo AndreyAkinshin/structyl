@@ -809,11 +809,10 @@ func TestValidate_Tests_NilComparison_Succeeds(t *testing.T) {
 	}
 }
 
-// TestValidate_TargetNames_CaseSensitive verifies that target names differing
-// only by case are both valid (the validator doesn't reject case variants).
-// Note: Target names must be lowercase per the validation regex, so "Rs" and "RS"
-// are invalid anyway. This test documents the expected behavior.
-func TestValidate_TargetNames_CaseSensitive(t *testing.T) {
+// TestValidate_TargetNames_CaseRejection verifies that the full config validation
+// rejects uppercase and mixed-case target names. This complements TestValidateTargetName_Invalid
+// by testing the integration with Validate() rather than ValidateTargetName() directly.
+func TestValidate_TargetNames_CaseRejection(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {

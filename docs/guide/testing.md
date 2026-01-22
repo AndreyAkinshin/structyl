@@ -267,6 +267,16 @@ fn load_tests(suite: &str) -> Vec<TestCase> {
 4. **Keep tests small**: One concept per test file
 5. **Version control tests**: Track changes in git
 
+## Limitations
+
+The reference test system is designed for cross-language consistency verification, not as a full-featured test framework. The following are explicitly out of scope:
+
+- **Coverage measurement** — Use language-specific coverage tools (e.g., `cargo tpcc`, `coverage.py`, `go test -cover`)
+- **Parallel test execution** — Tests run sequentially within each target; parallelism is at the target level only
+- **Fuzzy binary comparison** — Binary outputs (via `$file`) are compared byte-for-byte exactly
+
+For detailed limitations, see the [Test System Specification](../specs/test-system.md#non-goals).
+
 ## Next Steps
 
 - [Configuration](./configuration) - Full configuration reference

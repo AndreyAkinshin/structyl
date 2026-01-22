@@ -759,7 +759,9 @@ func (c *outputPresenceChecker) hasOutputField(data []byte) bool {
 func validateInputFieldType(data []byte) error {
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
-		// Let the main unmarshal handle JSON syntax errors
+		// Return nil to let the caller's json.Unmarshal produce the syntax error.
+		// This function only validates input field TYPE; syntax errors are handled
+		// by loadTestCaseInternal's main unmarshal call with a clearer error path.
 		return nil
 	}
 

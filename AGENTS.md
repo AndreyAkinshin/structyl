@@ -543,6 +543,8 @@ mise tasks
 
 > **Terminology:** `internal/cli/toolchains_template.json` defines the **built-in** toolchains that ship with Structyl. The separate `schema/toolchains.schema.json` is a JSON Schema for validating **custom** toolchain definitions in user configuration. They serve different purposes: the template is the source-of-truth for built-in presets; the schema is for IDE validation of user customizations.
 
+> **Project-local copy:** When `structyl init` runs, it copies the built-in toolchain definitions to `.structyl/toolchains.json` in the project directory. This project-local file serves as a reference for users and enables IDE autocompletion for toolchain names. Changes to the local copy do not affect Structyl's behavior—the internal template remains the source of truth for built-in toolchains.
+
 2. Add marker file detection in `internal/toolchain/detect.go`:
 
 ```go

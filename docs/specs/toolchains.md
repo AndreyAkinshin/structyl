@@ -95,7 +95,7 @@ All toolchains implement this vocabulary:
 | `build`         | Build targets                                         |
 | `build:release` | Build targets (release mode)†                         |
 | `test`          | Run tests                                             |
-| `test:coverage` | Run tests with coverage‡                              |
+| `test:coverage` | Run tests with coverage (optional, see ‡)             |
 | `check`         | Run static analysis (lint, typecheck, format-check)\* |
 | `check:fix`     | Auto-fix static analysis issues                       |
 | `bench`         | Run benchmarks                                        |

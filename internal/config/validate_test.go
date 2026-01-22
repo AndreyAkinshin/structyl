@@ -483,6 +483,8 @@ func TestValidate_ValidCommandTypes_Succeeds(t *testing.T) {
 					"build":   "cargo build",                // string
 					"restore": nil,                          // nil (disabled)
 					"check":   []interface{}{"lint", "vet"}, // array of strings
+					"lint":    "cargo clippy",               // referenced by check
+					"vet":     "cargo fmt --check",          // referenced by check
 				},
 			},
 		},
@@ -1117,4 +1119,130 @@ func TestValidate_CIStepDAG_Succeeds(t *testing.T) {
 	if err != nil {
 		t.Errorf("Validate() error = %v, want nil for valid DAG", err)
 	}
+}
+
+func TestValidate_CommandCycle_ReturnsError(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		commands map[string]interface{}
+		wantErr  string
+	}{
+		{
+			name: "self_reference",
+			commands: map[string]interface{}{
+				"ci": []interface{}{"ci"},
+			},
+			wantErr: "depends on itself",
+		},
+		{
+			name: "two_node_cycle",
+			commands: map[string]interface{}{
+				"ci":    []interface{}{"build"},
+				"build": []interface{}{"ci"},
+			},
+			wantErr: "circular",
+		},
+		{
+			name: "three_node_cycle",
+			commands: map[string]interface{}{
+				"ci":    []interface{}{"build"},
+				"build": []interface{}{"test"},
+				"test":  []interface{}{"ci"},
+			},
+			wantErr: "circular",
+		},
+		{
+			name: "indirect_self_reference",
+			commands: map[string]interface{}{
+				"ci":    []interface{}{"build", "ci"},
+				"build": "cargo build",
+			},
+			wantErr: "depends on itself",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			cfg := &Config{
+				Project: ProjectConfig{Name: "myproject"},
+				Targets: map[string]TargetConfig{
+					"rs": {Type: "language", Title: "Rust", Commands: tt.commands},
+				},
+			}
+
+			_, err := Validate(cfg)
+			if err == nil {
+				t.Fatal("Validate() expected error for command cycle")
+			}
+
+			if !containsSubstring(err.Error(), tt.wantErr) {
+				t.Errorf("error = %q, want to contain %q", err.Error(), tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestValidate_CommandDAG_Succeeds(t *testing.T) {
+	t.Parallel()
+	// Valid DAG: ci -> [build, test] -> shell commands (no cycle)
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Targets: map[string]TargetConfig{
+			"rs": {
+				Type:  "language",
+				Title: "Rust",
+				Commands: map[string]interface{}{
+					"ci":    []interface{}{"build", "test"},
+					"build": "cargo build",
+					"test":  "cargo test",
+				},
+			},
+		},
+	}
+
+	_, err := Validate(cfg)
+	if err != nil {
+		t.Errorf("Validate() error = %v, want nil for valid command DAG", err)
+	}
+}
+
+func TestValidate_CommandList_UndefinedReference_ReturnsError(t *testing.T) {
+	t.Parallel()
+	cfg := &Config{
+		Project: ProjectConfig{Name: "myproject"},
+		Targets: map[string]TargetConfig{
+			"rs": {
+				Type:  "language",
+				Title: "Rust",
+				Commands: map[string]interface{}{
+					"ci": []interface{}{"build", "nonexistent"},
+				},
+			},
+		},
+	}
+
+	_, err := Validate(cfg)
+	if err == nil {
+		t.Fatal("Validate() expected error for undefined command reference")
+	}
+
+	if !containsSubstring(err.Error(), "undefined") && !containsSubstring(err.Error(), "not found") {
+		t.Errorf("error = %q, want to mention 'undefined' or 'not found'", err.Error())
+	}
+}
+
+func containsSubstring(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
+		(len(s) > 0 && len(substr) > 0 && contains(s, substr)))
+}
+
+func contains(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }

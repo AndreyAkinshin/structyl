@@ -156,6 +156,9 @@ func validateTargets(cfg *Config) error {
 		if err := validateTargetConfig(name, target); err != nil {
 			return err
 		}
+		if err := validateCommandCycles(name, target.Commands); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -234,10 +237,8 @@ func validateTargetConfig(name string, target TargetConfig) error {
 // Supported: string, nil, []interface{} (command list).
 // NOT supported: map/object form (e.g., {run, cwd, env}) - reject at load time.
 //
-// Note: This function validates command types and structure only. Command list
-// cycle detection (e.g., "ci" -> "build" -> "ci") is performed separately during
-// registry creation in target.NewRegistry. The split is intentional: type validation
-// happens at config load time, while cycle detection requires the full command graph.
+// This function validates command types and structure only. For cycle detection
+// in command lists (e.g., "ci" -> "build" -> "ci"), see [validateCommandCycles].
 func validateCommands(targetName string, commands map[string]interface{}) error {
 	for cmdName, cmdDef := range commands {
 		if err := validateCommandDef(targetName, cmdName, cmdDef); err != nil {
@@ -281,6 +282,62 @@ func validateCommandDef(targetName, cmdName string, cmdDef interface{}) error {
 			Field:   fieldPath,
 			Message: fmt.Sprintf("invalid command type %T; must be string, null, or array", cmdDef),
 		}
+	}
+}
+
+// validateCommandCycles checks for circular dependencies in command lists.
+// A cycle occurs when command A references command B (directly or transitively)
+// and command B references back to A. This function also validates that all
+// command references in lists are defined within the same target.
+//
+// This is called after validateCommands to ensure all command types are valid.
+func validateCommandCycles(targetName string, commands map[string]interface{}) error {
+	// Build a dependency graph: each command maps to commands it references
+	graph := make(topsort.Graph)
+
+	for cmdName, cmdDef := range commands {
+		deps := extractCommandDeps(cmdDef)
+		graph[cmdName] = deps
+	}
+
+	// Validate all referenced commands exist
+	for cmdName, deps := range graph {
+		for _, dep := range deps {
+			if _, ok := graph[dep]; !ok {
+				return &ValidationError{
+					Field:   commandFieldPath(targetName, cmdName),
+					Message: fmt.Sprintf("references undefined command %q", dep),
+				}
+			}
+		}
+	}
+
+	// Check for cycles using topological sort
+	if err := topsort.Validate(graph); err != nil {
+		return &ValidationError{
+			Field:   fmt.Sprintf("targets.%s.commands", targetName),
+			Message: fmt.Sprintf("command cycle: %v", err),
+		}
+	}
+
+	return nil
+}
+
+// extractCommandDeps returns the list of commands referenced by a command definition.
+// For string commands (shell commands), returns nil (no command dependencies).
+// For command lists, returns the list of referenced command names.
+func extractCommandDeps(cmdDef interface{}) []string {
+	switch v := cmdDef.(type) {
+	case []interface{}:
+		deps := make([]string, 0, len(v))
+		for _, elem := range v {
+			if s, ok := elem.(string); ok {
+				deps = append(deps, s)
+			}
+		}
+		return deps
+	default:
+		return nil
 	}
 }
 

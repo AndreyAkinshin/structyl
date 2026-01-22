@@ -207,7 +207,7 @@ func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) 
 	case []interface{}:
 		// Handle []interface{} (JSON unmarshals arrays as []interface{}).
 		// Recursively execute each command in the list. Cycles are prevented
-		// by config validation at registry creation time; see registry.go.
+		// by config validation at load time; see internal/config/validate.go.
 		for _, subCmd := range cmdVal {
 			// Check for cancellation between commands
 			if err := ctx.Err(); err != nil {

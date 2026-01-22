@@ -315,8 +315,6 @@ func shouldContinueAfterError(err error) bool {
 	return false
 }
 
-// combineErrors combines multiple errors into one.
-// Returns an error that supports errors.Is and errors.As for each individual error.
 func combineErrors(errs []error) error {
 	if len(errs) == 0 {
 		return nil

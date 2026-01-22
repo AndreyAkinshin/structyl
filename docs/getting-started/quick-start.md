@@ -31,7 +31,7 @@ structyl init
 This creates:
 
 - `.structyl/config.json` — project configuration
-- `.structyl/PROJECT_VERSION` — version file (initialized to `0.1.0`)
+- `.structyl/PROJECT_VERSION` — project version file (initialized to `0.1.0`). Named `PROJECT_VERSION` to distinguish it from `.structyl/version` which pins the CLI version.
 - `.structyl/version` — pinned CLI version
 - `.structyl/setup.sh` and `.structyl/setup.ps1` — bootstrap scripts
 - `.structyl/toolchains.json` — toolchain definitions

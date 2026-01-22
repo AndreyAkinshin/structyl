@@ -137,7 +137,7 @@ structyl: configuration file not found
 **Example - Target failure:**
 
 ```
-[cs] build: command failed with exit code 1
+[cs] build: failed with exit code 1
 ```
 
 **Example - Configuration error:**

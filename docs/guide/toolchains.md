@@ -277,7 +277,7 @@ If you don't specify a toolchain, Structyl detects it from marker files:
 
 ## Custom Toolchains
 
-Structyl follows a declarative approach to extensibility: all custom toolchains MUST be defined in the configuration file. There is no plugin system or external toolchain discovery. This design ensures that toolchain definitions are explicit, version-controlled, and portable across environments.
+Structyl follows a declarative approach to extensibility: all custom toolchains must be defined in the configuration file (see [Toolchains Specification](../specs/toolchains.md) for normative requirements). There is no plugin system or external toolchain discovery. This design ensures that toolchain definitions are explicit, version-controlled, and portable across environments.
 
 Create your own toolchain:
 

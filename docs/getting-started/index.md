@@ -50,7 +50,7 @@ A **toolchain** maps standard commands (build, test, clean) to language-specific
 
 ### Commands
 
-Structyl provides 14 standard commands that work across all toolchains:
+Structyl provides 14 standard commands. Availability per toolchain varies:
 
 - `clean` - Remove build artifacts
 - `restore` - Install dependencies

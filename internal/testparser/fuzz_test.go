@@ -94,8 +94,14 @@ func FuzzCargoParser(f *testing.F) {
 		// Valid Cargo test output
 		"running 47 tests\ntest test_foo ... ok\ntest result: ok. 47 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s",
 		"test result: FAILED. 45 passed; 2 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.15s",
-		// Multiple test binaries
+		// Multiple test binaries (sequential)
 		"running 20 tests\ntest result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s\n\nrunning 30 tests\ntest result: ok. 27 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.08s",
+		// Doc test output format (cargo test --doc)
+		"running 5 doc tests from `src/lib.rs`\ntest src/lib.rs - example (line 42) ... ok\ntest src/lib.rs - example2 (line 50) ... ok\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.23s",
+		// ANSI color codes (common in terminal output)
+		"\x1b[32m   Compiling\x1b[0m example v0.1.0\n\x1b[32m    Finished\x1b[0m test [unoptimized + debuginfo] target(s)\ntest result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s",
+		// Mixed test types (unit + integration + doc)
+		"running 15 tests\ntest result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s\n\nrunning 3 tests\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.50s\n\nDoc-tests example\nrunning 2 doc tests\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s",
 		// Empty and edge cases
 		"",
 		"\n",

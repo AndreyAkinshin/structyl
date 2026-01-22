@@ -123,6 +123,42 @@ PASS
 ok  	example.com/pkg	0.001s`,
 			expected: TestCounts{Passed: 1, Failed: 0, Skipped: 0, Total: 1, Parsed: true},
 		},
+		{
+			// Edge case: Unicode test names (e.g., internationalization tests)
+			name: "unicode_test_name",
+			output: `=== RUN   Test日本語
+--- PASS: Test日本語 (0.00s)
+=== RUN   TestÜnicode_名前
+--- PASS: TestÜnicode_名前 (0.01s)
+PASS
+ok  	example.com/pkg	0.012s`,
+			expected: TestCounts{Passed: 2, Failed: 0, Skipped: 0, Total: 2, Parsed: true},
+		},
+		{
+			// Edge case: ANSI color codes at line start break parsing.
+			// The parser regex expects "=== RUN" at line start, so ANSI
+			// prefix codes prevent matching. Callers should strip ANSI codes
+			// before parsing if needed.
+			name:     "ansi_prefix_breaks_parsing",
+			output:   "\x1b[32m=== RUN   TestFoo\x1b[0m\n\x1b[32m--- PASS: TestFoo (0.00s)\x1b[0m\nPASS",
+			expected: TestCounts{Parsed: false},
+		},
+		{
+			// Edge case: ANSI codes after keywords still parse.
+			// When ANSI codes appear after "--- FAIL:" they don't break regex.
+			name:     "ansi_suffix_parses",
+			output:   "=== RUN   TestFail\n--- FAIL: TestFail (0.01s)\x1b[0m\n    test.go:10: assertion failed\nFAIL",
+			expected: TestCounts{Passed: 0, Failed: 1, Skipped: 0, Total: 1, Parsed: true},
+		},
+		{
+			// Edge case: Extremely long test name (stress test for parsing)
+			name: "long_test_name",
+			output: `=== RUN   TestVeryLongTestNameThatExceedsNormalLengthLimitsAndMightCauseBufferIssuesInSomeImplementations_WithSubtest/AnotherLongSubtestNameHere
+--- PASS: TestVeryLongTestNameThatExceedsNormalLengthLimitsAndMightCauseBufferIssuesInSomeImplementations_WithSubtest/AnotherLongSubtestNameHere (0.00s)
+PASS
+ok  	example.com/pkg	0.001s`,
+			expected: TestCounts{Passed: 1, Failed: 0, Skipped: 0, Total: 1, Parsed: true},
+		},
 	}
 
 	for _, tt := range tests {

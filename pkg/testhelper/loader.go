@@ -436,11 +436,11 @@ func (tc TestCase) Validate() error {
 //
 // The validation methods form a hierarchy of increasing strictness:
 //
-//	[Validate] < [ValidateStrict] < [ValidateDeep]
+//		[Validate] < [ValidateStrict] < [ValidateDeep]
 //
-//   - Validate: structural checks only (Name, Input, Output non-nil)
-//   - ValidateStrict: adds top-level Output type check
-//   - ValidateDeep: adds recursive type validation for all nested values
+//	  - Validate: structural checks only (Name, Input, Output non-nil)
+//	  - ValidateStrict: adds top-level Output type check
+//	  - ValidateDeep: adds recursive type validation for all nested values
 //
 // In addition to Validate() checks, ValidateStrict verifies that Output is one of:
 //   - float64 (JSON numbers)

@@ -160,24 +160,32 @@ func validateTargets(cfg *Config) error {
 	return nil
 }
 
-func validateTargetName(name string) error {
+// targetNameValidationReason returns a validation error message if the name is invalid,
+// or empty string if valid. This is the core validation logic shared between
+// validateTargetName (used during config loading) and ValidateTargetName (public API).
+//
+// Note: Empty name check is intentionally omitted here because:
+// - During config loading (validateTargetName), empty JSON keys are impossible
+// - The public API (ValidateTargetName) adds an explicit empty check
+func targetNameValidationReason(name string) string {
 	if len(name) > maxTargetNameLength {
-		return &ValidationError{
-			Field:   fmt.Sprintf("targets.%s", name),
-			Message: fmt.Sprintf("target name must be %d characters or less", maxTargetNameLength),
-		}
+		return fmt.Sprintf("must be %d characters or less", maxTargetNameLength)
 	}
 	if !targetNamePattern.MatchString(name) {
-		return &ValidationError{
-			Field:   fmt.Sprintf("targets.%s", name),
-			Message: "target name must match pattern ^[a-z][a-z0-9-]*$ (lowercase letters, digits, hyphens)",
-		}
+		return "must match pattern ^[a-z][a-z0-9-]*$ (lowercase letters, digits, hyphens)"
 	}
 	// "all" is reserved for CI configuration to mean "all targets"
 	if name == TargetAll {
+		return fmt.Sprintf("%q is a reserved name", name)
+	}
+	return ""
+}
+
+func validateTargetName(name string) error {
+	if reason := targetNameValidationReason(name); reason != "" {
 		return &ValidationError{
 			Field:   fmt.Sprintf("targets.%s", name),
-			Message: fmt.Sprintf("%q is a reserved name", name),
+			Message: reason,
 		}
 	}
 	return nil
@@ -290,27 +298,15 @@ func ValidateProjectName(name string) error {
 }
 
 // ValidateTargetName checks if a target name is valid.
+// This is the public API for validating target names outside of config loading.
 func ValidateTargetName(name string) error {
 	if name == "" {
 		return &ValidationError{Field: "target name", Message: "required"}
 	}
-	if len(name) > maxTargetNameLength {
+	if reason := targetNameValidationReason(name); reason != "" {
 		return &ValidationError{
 			Field:   "target name",
-			Message: fmt.Sprintf("must be %d characters or less", maxTargetNameLength),
-		}
-	}
-	if !targetNamePattern.MatchString(name) {
-		return &ValidationError{
-			Field:   "target name",
-			Message: "must match pattern ^[a-z][a-z0-9-]*$",
-		}
-	}
-	// "all" is reserved for CI configuration to mean "all targets"
-	if name == TargetAll {
-		return &ValidationError{
-			Field:   "target name",
-			Message: fmt.Sprintf("%q is a reserved name", name),
+			Message: reason,
 		}
 	}
 	return nil

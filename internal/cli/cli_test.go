@@ -15,7 +15,9 @@ import (
 )
 
 func TestParseGlobalFlags(t *testing.T) {
-	t.Parallel()
+	// Note: subtests are NOT parallel because parseGlobalFlags calls applyVerbosityToOutput
+	// which modifies the global output writer. Running subtests in parallel would cause
+	// concurrent writes to this shared state.
 	tests := []struct {
 		name           string
 		args           []string
@@ -140,7 +142,6 @@ func TestParseGlobalFlags(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			opts, remaining, err := parseGlobalFlags(tt.args)
 
 			if tt.wantErr {
@@ -185,7 +186,8 @@ func TestParseGlobalFlags(t *testing.T) {
 }
 
 func TestParseGlobalFlags_TypeMissingValue(t *testing.T) {
-	t.Parallel()
+	// Note: subtests are NOT parallel because parseGlobalFlags calls applyVerbosityToOutput
+	// which modifies the global output writer.
 	tests := []struct {
 		name string
 		args []string
@@ -196,7 +198,6 @@ func TestParseGlobalFlags_TypeMissingValue(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			_, _, err := parseGlobalFlags(tt.args)
 			if err == nil {
 				t.Error("parseGlobalFlags() expected error for --type without value")
@@ -211,7 +212,8 @@ func TestParseGlobalFlags_TypeMissingValue(t *testing.T) {
 func TestParseGlobalFlags_UnknownFlagsPassThrough(t *testing.T) {
 	// Unknown flags are passed through to commands (not rejected at global level)
 	// This allows command-specific flags like "build --release"
-	t.Parallel()
+	// Note: subtests are NOT parallel because parseGlobalFlags calls applyVerbosityToOutput
+	// which modifies the global output writer.
 	tests := []struct {
 		name       string
 		args       []string
@@ -224,7 +226,6 @@ func TestParseGlobalFlags_UnknownFlagsPassThrough(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
 			_, remaining, err := parseGlobalFlags(tt.args)
 			if err != nil {
 				t.Errorf("parseGlobalFlags(%v) unexpected error: %v", tt.args, err)
@@ -237,7 +238,7 @@ func TestParseGlobalFlags_UnknownFlagsPassThrough(t *testing.T) {
 }
 
 func TestRun_Help(t *testing.T) {
-	t.Parallel()
+	// Note: subtests are NOT parallel because Run() uses global output writer.
 	tests := []struct {
 		name string
 		args []string
@@ -258,7 +259,7 @@ func TestRun_Help(t *testing.T) {
 }
 
 func TestRun_Version(t *testing.T) {
-	t.Parallel()
+	// Note: subtests are NOT parallel because Run() uses global output writer.
 	tests := []struct {
 		name string
 		args []string
@@ -278,7 +279,7 @@ func TestRun_Version(t *testing.T) {
 }
 
 func TestRun_EmptyArgs(t *testing.T) {
-	t.Parallel()
+	// Note: NOT parallel because Run() uses global output writer.
 	exitCode := Run([]string{})
 	if exitCode != 0 {
 		t.Errorf("Run([]) = %d, want 0", exitCode)
@@ -459,7 +460,9 @@ func buildTestProjectConfig(opts testProjectOptions) string {
 	}`
 }
 
-// withWorkingDir changes to dir, runs fn, then restores original directory
+// withWorkingDir changes to dir, runs fn, then restores original directory.
+// IMPORTANT: Tests using this helper should NOT use t.Parallel() because
+// os.Chdir() modifies process-global state (working directory).
 func withWorkingDir(t *testing.T, dir string, fn func()) {
 	t.Helper()
 	originalWd, err := os.Getwd()

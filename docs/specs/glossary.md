@@ -202,6 +202,16 @@ A single test defined in a JSON file. Contains `input` (parameters) and `output`
 
 A preset that provides default command implementations for a specific build ecosystem. Examples: `cargo` (Rust), `dotnet` (C#), `npm` (Node.js). Toolchains map Structyl's standard commands to ecosystem-specific invocations.
 
+### toolchains.json
+
+A project-local file created by `structyl init` at `.structyl/toolchains.json` containing a copy of built-in toolchain definitions. This file:
+
+- Enables IDE autocompletion for toolchain names in `config.json`
+- Serves as documentation for available toolchains and their default commands
+- Is NOT read by Structyl at runtime (internal definitions are canonical)
+
+The file is regenerated on each `structyl init` invocation but is not automatically updated when Structyl is upgraded. Users MAY delete this file without affecting Structyl behavior.
+
 ### Toolchain Version
 
 The version of the underlying tool managed by a toolchain. Used by mise to determine which tool version to install.

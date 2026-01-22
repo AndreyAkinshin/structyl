@@ -264,6 +264,8 @@ structyl docker-clean        # Remove containers, images, volumes
 
 ## Example Dockerfiles
 
+> **Note:** The Docker image versions shown below (`:8.0`, `:3.12-slim`, `:1.75`, `:1.23`) are illustrative examples. Actual versions are derived from your toolchain configuration in `.structyl/config.json`. See [toolchains.md](toolchains.md#mise-integration) for how mise tool versions map to Docker base images.
+
 ### C# (.NET)
 
 ```dockerfile
@@ -301,8 +303,6 @@ WORKDIR /workspace/go
 ENV GOCACHE=/tmp/.cache
 ENV GOPATH=/tmp/go
 ```
-
-> **Note:** The Docker image versions shown above are illustrative examples. Actual versions are derived from your toolchain configuration in `.structyl/config.json`. See [toolchains.md](toolchains.md#mise-integration) for how mise tool versions map to Docker base images.
 
 ## `services` vs `targets` Configuration
 

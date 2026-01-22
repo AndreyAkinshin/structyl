@@ -83,6 +83,7 @@ export default defineConfig({
             { text: 'Error Handling', link: '/specs/error-handling' },
             { text: 'Go Architecture', link: '/specs/go-architecture' },
             { text: 'Glossary', link: '/specs/glossary' },
+            { text: 'Stability', link: '/specs/stability' },
           ],
         },
       ],

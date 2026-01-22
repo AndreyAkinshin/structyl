@@ -20,6 +20,13 @@ var (
 )
 
 // compileSchemas compiles all embedded schemas once.
+//
+// Coverage note: This function has ~51% coverage because error paths cannot be
+// triggered without modifying embedded files at runtime. The embedded schema
+// files (config.schema.json, toolchains.schema.json) are compiled into the
+// binary and always exist with valid JSON content. Error paths for ReadFile,
+// UnmarshalJSON, AddResource, and Compile failures are defensive programming
+// for conditions that are impossible with correctly embedded resources.
 func compileSchemas() error {
 	compileOnce.Do(func() {
 		compiler := jsonschema.NewCompiler()

@@ -1,18 +1,5 @@
 package schema
 
-// Coverage notes:
-// The compileSchemas function has ~51% coverage because error paths cannot be
-// triggered without modifying embedded files at runtime. The embedded schema
-// files (config.schema.json, toolchains.schema.json) are compiled into the
-// binary and always exist with valid JSON content. Error paths for:
-//   - ReadFile failures (lines 27-31, 33-37)
-//   - UnmarshalJSON failures (lines 39-43, 45-49)
-//   - AddResource failures (lines 51-54, 56-59)
-//   - Compile failures (lines 61-65, 67-71)
-// are unreachable in normal execution and would require mocking embed.FS,
-// which adds complexity without meaningful benefit. These paths are defensive
-// programming for impossible conditions with embedded resources.
-
 import (
 	"os"
 	"path/filepath"

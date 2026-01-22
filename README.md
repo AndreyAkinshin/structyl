@@ -50,6 +50,11 @@ structyl ci
 
 For development setup and contribution guidelines, see [AGENTS.md](AGENTS.md).
 
+## Documentation
+
+- [Getting Started](https://structyl.akinshin.dev/getting-started/) — Installation and quickstart
+- [Specifications](https://structyl.akinshin.dev/specs/) — Formal behavior specifications
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) for details.

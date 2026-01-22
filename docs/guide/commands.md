@@ -132,7 +132,7 @@ See [CI Integration](./ci-integration) for details.
 | `structyl new`                | **Deprecated:** Alias for `init`            |
 | `structyl targets`            | List configured targets                     |
 | `structyl release <version>`  | Set version and release                     |
-| `structyl upgrade [version]`  | Manage pinned CLI version                   |
+| `structyl upgrade [version]`  | Manage pinned CLI version (`--check` for status) |
 | `structyl config validate`    | Validate configuration                      |
 | `structyl completion <shell>` | Generate shell completion (bash, zsh, fish) |
 | `structyl test-summary`       | Parse and summarize `go test -json` output  |
@@ -271,7 +271,7 @@ Running a null command succeeds with a warning.
 | `--version`     | Show Structyl version        |
 
 ::: info Docker Mode Precedence
-`--no-docker` overrides `--docker` and `STRUCTYL_DOCKER`. See [Commands Specification](../specs/commands#docker-mode-precedence) for full precedence rules.
+`--no-docker` overrides `--docker` and `STRUCTYL_DOCKER`. See [Commands Specification](../specs/commands.md#docker-mode-precedence) for full precedence rules.
 :::
 
 ## Removed Flags (Migration)

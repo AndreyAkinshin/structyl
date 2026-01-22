@@ -2427,6 +2427,386 @@ func TestTestCase_WithSuite(t *testing.T) {
 	})
 }
 
+func TestTestCase_WithInput(t *testing.T) {
+	t.Parallel()
+
+	t.Run("sets_input", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{"old": "value"},
+			Output: "result",
+		}
+
+		newInput := map[string]interface{}{"new": "input"}
+		result := original.WithInput(newInput)
+
+		if result.Input["new"] != "input" {
+			t.Errorf("Input: got %v, want %v", result.Input, newInput)
+		}
+	})
+
+	t.Run("original_unchanged", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{"key": "original"},
+			Output: "result",
+		}
+
+		_ = original.WithInput(map[string]interface{}{"key": "new"})
+
+		if original.Input["key"] != "original" {
+			t.Errorf("original Input changed: got %v", original.Input)
+		}
+	})
+
+	t.Run("preserves_other_fields", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:        "test-name",
+			Suite:       "suite",
+			Description: "description",
+			Input:       map[string]interface{}{"old": "value"},
+			Output:      "output",
+			Tags:        []string{"tag1"},
+			Skip:        true,
+		}
+
+		result := original.WithInput(map[string]interface{}{"new": "value"})
+
+		if result.Name != original.Name {
+			t.Errorf("Name: got %q, want %q", result.Name, original.Name)
+		}
+		if result.Suite != original.Suite {
+			t.Errorf("Suite: got %q, want %q", result.Suite, original.Suite)
+		}
+		if result.Description != original.Description {
+			t.Errorf("Description: got %q, want %q", result.Description, original.Description)
+		}
+		if result.Skip != original.Skip {
+			t.Errorf("Skip: got %v, want %v", result.Skip, original.Skip)
+		}
+	})
+
+	t.Run("result_input_independent", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{"key": "value"},
+			Output: "result",
+		}
+
+		newInput := map[string]interface{}{"new": "value"}
+		result := original.WithInput(newInput)
+		result.Input["added"] = "modified"
+
+		if _, exists := newInput["added"]; exists {
+			t.Error("modifying result's Input affected the passed input map")
+		}
+	})
+
+	t.Run("nil_input", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{"key": "value"},
+			Output: "result",
+		}
+
+		result := original.WithInput(nil)
+
+		if result.Input != nil {
+			t.Errorf("Input: got %v, want nil", result.Input)
+		}
+	})
+}
+
+func TestTestCase_WithTags(t *testing.T) {
+	t.Parallel()
+
+	t.Run("sets_tags", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "result",
+			Tags:   []string{"old"},
+		}
+
+		result := original.WithTags([]string{"new", "tags"})
+
+		if len(result.Tags) != 2 || result.Tags[0] != "new" || result.Tags[1] != "tags" {
+			t.Errorf("Tags: got %v, want [new tags]", result.Tags)
+		}
+	})
+
+	t.Run("original_unchanged", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "result",
+			Tags:   []string{"original"},
+		}
+
+		_ = original.WithTags([]string{"new"})
+
+		if len(original.Tags) != 1 || original.Tags[0] != "original" {
+			t.Errorf("original Tags changed: got %v", original.Tags)
+		}
+	})
+
+	t.Run("preserves_other_fields", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:        "test-name",
+			Suite:       "suite",
+			Description: "description",
+			Input:       map[string]interface{}{"key": "value"},
+			Output:      "output",
+			Tags:        []string{"old"},
+			Skip:        true,
+		}
+
+		result := original.WithTags([]string{"new"})
+
+		if result.Name != original.Name {
+			t.Errorf("Name: got %q, want %q", result.Name, original.Name)
+		}
+		if result.Suite != original.Suite {
+			t.Errorf("Suite: got %q, want %q", result.Suite, original.Suite)
+		}
+		if result.Input["key"] != original.Input["key"] {
+			t.Errorf("Input: got %v, want %v", result.Input, original.Input)
+		}
+	})
+
+	t.Run("result_tags_independent", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "result",
+			Tags:   []string{"old"},
+		}
+
+		newTags := []string{"new"}
+		result := original.WithTags(newTags)
+		result.Tags[0] = "modified"
+
+		if newTags[0] != "new" {
+			t.Error("modifying result's Tags affected the passed tags slice")
+		}
+	})
+
+	t.Run("nil_tags", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "result",
+			Tags:   []string{"old"},
+		}
+
+		result := original.WithTags(nil)
+
+		if result.Tags != nil {
+			t.Errorf("Tags: got %v, want nil", result.Tags)
+		}
+	})
+
+	t.Run("empty_tags", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "result",
+			Tags:   []string{"old"},
+		}
+
+		result := original.WithTags([]string{})
+
+		if result.Tags == nil || len(result.Tags) != 0 {
+			t.Errorf("Tags: got %v, want empty slice", result.Tags)
+		}
+	})
+}
+
+func TestTestCase_WithSkip(t *testing.T) {
+	t.Parallel()
+
+	t.Run("sets_skip_true", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "result",
+			Skip:   false,
+		}
+
+		result := original.WithSkip(true)
+
+		if !result.Skip {
+			t.Error("Skip: got false, want true")
+		}
+	})
+
+	t.Run("sets_skip_false", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "result",
+			Skip:   true,
+		}
+
+		result := original.WithSkip(false)
+
+		if result.Skip {
+			t.Error("Skip: got true, want false")
+		}
+	})
+
+	t.Run("original_unchanged", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "result",
+			Skip:   true,
+		}
+
+		_ = original.WithSkip(false)
+
+		if !original.Skip {
+			t.Error("original Skip changed: got false, want true")
+		}
+	})
+
+	t.Run("preserves_other_fields", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:        "test-name",
+			Suite:       "suite",
+			Description: "description",
+			Input:       map[string]interface{}{"key": "value"},
+			Output:      "output",
+			Tags:        []string{"tag"},
+			Skip:        false,
+		}
+
+		result := original.WithSkip(true)
+
+		if result.Name != original.Name {
+			t.Errorf("Name: got %q, want %q", result.Name, original.Name)
+		}
+		if result.Suite != original.Suite {
+			t.Errorf("Suite: got %q, want %q", result.Suite, original.Suite)
+		}
+		if result.Description != original.Description {
+			t.Errorf("Description: got %q, want %q", result.Description, original.Description)
+		}
+		if len(result.Tags) != len(original.Tags) {
+			t.Errorf("Tags: got %v, want %v", result.Tags, original.Tags)
+		}
+	})
+}
+
+func TestTestCase_WithOutput(t *testing.T) {
+	t.Parallel()
+
+	t.Run("sets_output", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "old",
+		}
+
+		result := original.WithOutput("new")
+
+		if result.Output != "new" {
+			t.Errorf("Output: got %v, want %v", result.Output, "new")
+		}
+	})
+
+	t.Run("original_unchanged", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "original",
+		}
+
+		_ = original.WithOutput("new")
+
+		if original.Output != "original" {
+			t.Errorf("original Output changed: got %v", original.Output)
+		}
+	})
+
+	t.Run("preserves_other_fields", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:        "test-name",
+			Suite:       "suite",
+			Description: "description",
+			Input:       map[string]interface{}{"key": "value"},
+			Output:      "old",
+			Tags:        []string{"tag"},
+			Skip:        true,
+		}
+
+		result := original.WithOutput("new")
+
+		if result.Name != original.Name {
+			t.Errorf("Name: got %q, want %q", result.Name, original.Name)
+		}
+		if result.Suite != original.Suite {
+			t.Errorf("Suite: got %q, want %q", result.Suite, original.Suite)
+		}
+		if result.Skip != original.Skip {
+			t.Errorf("Skip: got %v, want %v", result.Skip, original.Skip)
+		}
+	})
+
+	t.Run("nil_output", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "old",
+		}
+
+		result := original.WithOutput(nil)
+
+		if result.Output != nil {
+			t.Errorf("Output: got %v, want nil", result.Output)
+		}
+	})
+
+	t.Run("complex_output", func(t *testing.T) {
+		t.Parallel()
+		original := TestCase{
+			Name:   "test",
+			Input:  map[string]interface{}{},
+			Output: "old",
+		}
+
+		newOutput := map[string]interface{}{"key": "value"}
+		result := original.WithOutput(newOutput)
+
+		resultMap, ok := result.Output.(map[string]interface{})
+		if !ok {
+			t.Fatal("Output not a map")
+		}
+		if resultMap["key"] != "value" {
+			t.Errorf("Output: got %v, want map with key=value", result.Output)
+		}
+	})
+}
+
 // =============================================================================
 // SuiteExistsErr and TestCaseExistsErr validation tests
 // =============================================================================

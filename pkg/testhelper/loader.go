@@ -387,6 +387,65 @@ func (tc TestCase) WithSuite(suite string) TestCase {
 	return clone
 }
 
+// WithInput returns a copy of the TestCase with the Input field replaced.
+// The provided input map is shallow-copied to prevent external modifications.
+//
+// Note: This performs a shallow copy like [Clone]; see Clone documentation for
+// details on which fields are deep-copied.
+func (tc TestCase) WithInput(input map[string]interface{}) TestCase {
+	clone := tc.Clone()
+	if input == nil {
+		clone.Input = nil
+	} else {
+		clone.Input = make(map[string]interface{}, len(input))
+		for k, v := range input {
+			clone.Input[k] = v
+		}
+	}
+	return clone
+}
+
+// WithTags returns a copy of the TestCase with the Tags field replaced.
+// The provided tags slice is copied to prevent external modifications.
+//
+// Note: This performs a shallow copy like [Clone]; see Clone documentation for
+// details on which fields are deep-copied.
+func (tc TestCase) WithTags(tags []string) TestCase {
+	clone := tc.Clone()
+	if tags == nil {
+		clone.Tags = nil
+	} else {
+		clone.Tags = make([]string, len(tags))
+		copy(clone.Tags, tags)
+	}
+	return clone
+}
+
+// WithSkip returns a copy of the TestCase with the Skip field set.
+//
+// Note: This performs a shallow copy like [Clone]; see Clone documentation for
+// details on which fields are deep-copied.
+func (tc TestCase) WithSkip(skip bool) TestCase {
+	clone := tc.Clone()
+	clone.Skip = skip
+	return clone
+}
+
+// WithOutput returns a copy of the TestCase with the Output field replaced.
+//
+// IMPORTANT: This method does NOT deep-copy the output value. If output contains
+// nested maps or slices, modifications to the copy's Output will affect the
+// original value passed to this method. For complete isolation, use [DeepClone]
+// or ensure output is an immutable value (string, float64, bool).
+//
+// Note: This performs a shallow copy like [Clone]; see Clone documentation for
+// details on which fields are deep-copied.
+func (tc TestCase) WithOutput(output interface{}) TestCase {
+	clone := tc.Clone()
+	clone.Output = output
+	return clone
+}
+
 // Validate checks that TestCase fields satisfy basic structural requirements.
 // Returns nil if valid, or an error describing the first validation failure.
 //

@@ -206,8 +206,11 @@ func (t *targetImpl) Execute(ctx context.Context, cmd string, opts ExecOptions) 
 
 	case []interface{}:
 		// Handle []interface{} (JSON unmarshals arrays as []interface{}).
-		// Recursively execute each command in the list. Cycles are prevented
-		// by config validation at load time; see internal/config/validate.go.
+		// NOTE: In impl.go, []interface{} contains sub-command NAMES that are resolved
+		// recursively via Execute(). This differs from mise.go where []interface{}
+		// contains raw shell command strings executed directly. The semantic difference
+		// exists because impl.go handles runtime resolution while mise generates static tasks.
+		// Cycles are prevented by config validation at load time; see internal/config/validate.go.
 		for _, subCmd := range cmdVal {
 			// Check for cancellation between commands
 			if err := ctx.Err(); err != nil {
@@ -417,45 +420,60 @@ func isCommandAvailable(cmdName string) bool {
 
 // shellBuiltins is the set of common shell builtins that don't exist as
 // external commands in PATH but are always available via sh -c.
-// Reference: IEEE Std 1003.1-2017 (POSIX.1-2017) and common shell implementations.
+//
+// This is a union of POSIX-required builtins and common bash/zsh extensions:
+//   - POSIX.1-2017 required: . : break cd continue eval exec exit export
+//     readonly return set shift times trap unset (IEEE Std 1003.1-2017 §2.14)
+//   - POSIX special built-ins: break : continue . eval exec exit export
+//     readonly return set shift times trap unset
+//   - Bash/Zsh extensions: alias builtin command declare hash kill local
+//     source type typeset ulimit umask unalias
+//
+// The union approach ensures commands work across sh, bash, and zsh without
+// false "command not found" warnings during validation.
 var shellBuiltins = map[string]struct{}{
+	// POSIX special built-ins (§2.14)
 	"exit":     {},
-	"test":     {},
-	"[":        {},
-	"echo":     {},
-	"cd":       {},
-	"pwd":      {},
-	"export":   {},
-	"unset":    {},
-	"set":      {},
-	"true":     {},
-	"false":    {},
-	"read":     {},
-	"eval":     {},
-	"exec":     {},
-	"source":   {},
-	".":        {},
 	"return":   {},
 	"break":    {},
 	"continue": {},
-	"shift":    {},
-	"trap":     {},
-	"wait":     {},
-	"kill":     {},
-	"type":     {},
-	"alias":    {},
-	"unalias":  {},
-	"command":  {},
-	"builtin":  {},
-	"local":    {},
-	"declare":  {},
-	"typeset":  {},
+	".":        {},
+	"eval":     {},
+	"exec":     {},
+	"export":   {},
 	"readonly": {},
-	"getopts":  {},
-	"hash":     {},
+	"set":      {},
+	"shift":    {},
 	"times":    {},
-	"umask":    {},
-	"ulimit":   {},
+	"trap":     {},
+	"unset":    {},
+
+	// POSIX regular built-ins
+	"cd":      {},
+	"pwd":     {},
+	"read":    {},
+	"test":    {},
+	"[":       {},
+	"true":    {},
+	"false":   {},
+	"echo":    {},
+	"getopts": {},
+	"umask":   {},
+	"wait":    {},
+
+	// Bash/Zsh extensions (commonly available)
+	"source":  {}, // bash synonym for .
+	"alias":   {},
+	"unalias": {},
+	"command": {},
+	"builtin": {},
+	"type":    {},
+	"hash":    {},
+	"kill":    {},
+	"local":   {},
+	"declare": {},
+	"typeset": {},
+	"ulimit":  {},
 }
 
 // isShellBuiltin returns true if the command is a shell builtin.

@@ -201,7 +201,12 @@ func generateTasksWithToolchains(cfg *config.Config, loaded *toolchain.Toolchain
 				commandTargets[cmdName] = append(commandTargets[cmdName], targetName)
 
 			case []interface{}:
-				// List of shell commands to run sequentially
+				// List of shell commands to run sequentially.
+				// NOTE: In mise.go, []interface{} contains raw shell command strings that
+				// are executed directly. This differs from impl.go where []interface{}
+				// contains sub-command NAMES that are resolved recursively via Execute().
+				// The semantic difference exists because mise generates static task definitions,
+				// while impl.go handles runtime command resolution.
 				var steps []RunStep
 				for _, item := range v {
 					if cmdStr, ok := item.(string); ok {
@@ -220,6 +225,12 @@ func generateTasksWithToolchains(cfg *config.Config, loaded *toolchain.Toolchain
 
 			case nil:
 				// Command explicitly disabled, skip
+				continue
+
+			default:
+				// Unknown command type - skip silently.
+				// Type validation happens at config load time (internal/config/validate.go),
+				// so this branch should be unreachable for valid configurations.
 				continue
 			}
 		}

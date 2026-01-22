@@ -60,11 +60,11 @@ func NewRegistry(cfg *config.Config, rootDir string) (*Registry, error) {
 	}
 
 	for name, targetCfg := range cfg.Targets {
-		target, err := NewTarget(name, targetCfg, rootDir, projectVersion, resolver)
+		t, err := NewTarget(name, targetCfg, rootDir, projectVersion, resolver)
 		if err != nil {
 			return nil, fmt.Errorf("target %q: %w", name, err)
 		}
-		r.targets[name] = target
+		r.targets[name] = t
 	}
 
 	// Validate dependencies

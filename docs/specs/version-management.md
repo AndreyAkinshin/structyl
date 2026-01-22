@@ -104,6 +104,8 @@ structyl version bump prerelease  # 2.0.0-alpha.1 → 2.0.0-alpha.2
 | `1.0.0-rc.1`           | `1.0.0-rc.2`            | Works with any prerelease tag             |
 | `1.0.0-beta.2+build.5` | `1.0.0-beta.3+build.5`  | Build metadata preserved                  |
 
+> **Note:** The prerelease identifier before the numeric suffix (e.g., `alpha`, `beta`, `rc`) is preserved unchanged. Only the trailing numeric component is incremented or, if absent, `.1` is appended.
+
 Error case:
 
 ```bash

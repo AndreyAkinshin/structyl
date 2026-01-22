@@ -199,6 +199,8 @@ The `demo_path` field specifies a custom path to the demo source file used by th
 
 With this configuration, the `$DEMO$` placeholder in README templates resolves to the content of `py/examples/quickstart.py` instead of the default `py/demo.py`.
 
+**Missing demo file:** If no demo file exists at the default location and `demo_path` is not configured, the `$DEMO$` placeholder in README templates is replaced with an empty string. This is not an error condition.
+
 **Demo file markers:** If the demo file contains `structyl:demo:begin` and `structyl:demo:end` markers, only the content between these markers is extracted:
 
 ```python

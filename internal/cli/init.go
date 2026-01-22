@@ -34,6 +34,7 @@ var ToolchainsTemplate string
 // initOptions holds parsed init command options.
 type initOptions struct {
 	Mise bool // Generate/regenerate mise.toml
+	Yes  bool // Skip confirmation prompts (non-interactive mode)
 }
 
 // initResult holds the result of initialization operations.
@@ -51,6 +52,8 @@ func parseInitArgs(args []string) (*initOptions, error) {
 		switch arg {
 		case "--mise":
 			opts.Mise = true
+		case "-y", "--yes":
+			opts.Yes = true
 		default:
 			if strings.HasPrefix(arg, "-") {
 				return nil, errors.Configf("init: unknown option %q", arg)
@@ -92,7 +95,8 @@ func initializeNewProject(cwd, configPath string) (*config.Config, error) {
 }
 
 // setupStructylFiles creates the standard .structyl directory files.
-func setupStructylFiles(w *output.Writer, structylDir string, isNewProject bool) (created, updated []string) {
+// If skipPrompts is true, interactive prompts are skipped (non-interactive mode).
+func setupStructylFiles(w *output.Writer, structylDir string, isNewProject, skipPrompts bool) (created, updated []string) {
 	// Write .structyl/version (pinned CLI version) - only if missing
 	versionFilePath := filepath.Join(structylDir, project.VersionFileName)
 	if _, err := os.Stat(versionFilePath); os.IsNotExist(err) {
@@ -131,7 +135,7 @@ func setupStructylFiles(w *output.Writer, structylDir string, isNewProject bool)
 		} else {
 			created = append(created, ".structyl/AGENTS.md")
 		}
-	} else if !isNewProject {
+	} else if !isNewProject && !skipPrompts {
 		if promptConfirm("Update .structyl/AGENTS.md with latest template?") {
 			if err := os.WriteFile(agentsPath, []byte(AgentsPromptContent), 0644); err != nil {
 				w.WarningSimple("could not update AGENTS.md: %v", err)
@@ -149,7 +153,7 @@ func setupStructylFiles(w *output.Writer, structylDir string, isNewProject bool)
 		} else {
 			created = append(created, ".structyl/toolchains.json")
 		}
-	} else if !isNewProject {
+	} else if !isNewProject && !skipPrompts {
 		if promptConfirm("Update .structyl/toolchains.json with latest template?") {
 			if err := os.WriteFile(toolchainsPath, []byte(ToolchainsTemplate), 0644); err != nil {
 				w.WarningSimple("could not update toolchains.json: %v", err)
@@ -275,7 +279,7 @@ func cmdInit(args []string) int {
 	}
 
 	// Setup .structyl files
-	created, updated := setupStructylFiles(w, structylDir, result.isNewProject)
+	created, updated := setupStructylFiles(w, structylDir, result.isNewProject, opts.Yes)
 	result.created = append(result.created, created...)
 	result.updated = append(result.updated, updated...)
 
@@ -470,7 +474,7 @@ func printInitUsage() {
 	w.HelpTitle("structyl init - initialize a new structyl project")
 
 	w.HelpSection("Usage:")
-	w.HelpUsage("structyl init [--mise]")
+	w.HelpUsage("structyl init [--mise] [-y | --yes]")
 
 	w.HelpSection("Description:")
 	w.Println("  Initializes a new structyl project in the current directory.")
@@ -480,11 +484,13 @@ func printInitUsage() {
 
 	w.HelpSection("Options:")
 	w.HelpFlag("--mise", "Generate/regenerate mise.toml configuration", 10)
+	w.HelpFlag("-y, --yes", "Skip confirmation prompts (non-interactive mode)", 10)
 	w.HelpFlag("-h, --help", "Show this help", 10)
 
 	w.HelpSection("Examples:")
 	w.HelpExample("structyl init", "Initialize new project")
 	w.HelpExample("structyl init --mise", "Initialize with mise configuration")
+	w.HelpExample("structyl init -y", "Initialize without prompts (CI mode)")
 	w.Println("")
 }
 

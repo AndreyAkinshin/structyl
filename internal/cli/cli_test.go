@@ -960,6 +960,85 @@ func TestCmdInit_VersionFileExists_NotOverwritten(t *testing.T) {
 	})
 }
 
+func TestCmdInit_YesFlag_SkipsPrompts(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	root, err := filepath.EvalSymlinks(tmpDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create existing config and files that would trigger prompts
+	structylDir := filepath.Join(root, ".structyl")
+	if err := os.MkdirAll(structylDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	configPath := filepath.Join(structylDir, "config.json")
+	if err := os.WriteFile(configPath, []byte(`{"project":{"name":"existing"}}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+	agentsPath := filepath.Join(structylDir, "AGENTS.md")
+	if err := os.WriteFile(agentsPath, []byte("old content"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	toolchainsPath := filepath.Join(structylDir, "toolchains.json")
+	if err := os.WriteFile(toolchainsPath, []byte("{}"), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	withWorkingDir(t, root, func() {
+		// With --yes flag, init should complete without prompts
+		exitCode := cmdInit([]string{"--yes"})
+		if exitCode != 0 {
+			t.Errorf("cmdInit(--yes) = %d, want 0", exitCode)
+			return
+		}
+
+		// Verify AGENTS.md was NOT updated (prompts were skipped, not auto-yes)
+		content, err := os.ReadFile(agentsPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(content) != "old content" {
+			t.Error("AGENTS.md was updated when --yes should skip prompts")
+		}
+
+		// Verify toolchains.json was NOT updated
+		content, err = os.ReadFile(toolchainsPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if string(content) != "{}" {
+			t.Error("toolchains.json was updated when --yes should skip prompts")
+		}
+	})
+}
+
+func TestParseInitArgs_YesFlag(t *testing.T) {
+	tests := []struct {
+		args    []string
+		wantYes bool
+	}{
+		{[]string{}, false},
+		{[]string{"--mise"}, false},
+		{[]string{"-y"}, true},
+		{[]string{"--yes"}, true},
+		{[]string{"-y", "--mise"}, true},
+		{[]string{"--mise", "--yes"}, true},
+	}
+
+	for _, tt := range tests {
+		opts, err := parseInitArgs(tt.args)
+		if err != nil {
+			t.Errorf("parseInitArgs(%v) error = %v", tt.args, err)
+			continue
+		}
+		if opts.Yes != tt.wantYes {
+			t.Errorf("parseInitArgs(%v).Yes = %v, want %v", tt.args, opts.Yes, tt.wantYes)
+		}
+	}
+}
+
 // =============================================================================
 // Work Item 2: detectTargetDirectories Tests
 // =============================================================================

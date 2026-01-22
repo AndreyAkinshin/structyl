@@ -52,6 +52,11 @@ Examples:
 
 **Note:** Files containing only whitespace (spaces, tabs, newlines) are treated as empty after stripping, producing the same error as a truly empty file.
 
+**Placeholder definitions:**
+- `{os_error}`: The operating system's error message (e.g., `no such file or directory`, `permission denied`)
+- `{path}`: The file path that caused the error
+- `{validation_error}`: A description of why the version string is invalid
+
 ## Version Commands
 
 ### Get Current Version

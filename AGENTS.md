@@ -748,6 +748,21 @@ Current code quality:
 - **Dependencies**: 3 external dependencies (yaml.v3, golang.org/x/text, jsonschema/v6)
 - **No panics**: Zero panic() or log.Fatal() in production code
 
+### Design Decisions
+
+**Global output writer pattern**
+
+The `internal/output` package provides a `Writer` type for CLI output. Multiple packages create their own global `output.Writer` instances via `output.New()`:
+
+- `internal/cli/commands.go:30`
+- `internal/runner/runner.go:18`
+
+This is intentional for CLI applications—it simplifies output handling and allows consistent formatting without threading writers through the call chain. Implications:
+
+- Tests modifying output state cannot use `t.Parallel()` when sharing the global writer
+- The writer is singleton-like per package; multiple `output.New()` calls in the same package share state
+- For testability, consider passing writers explicitly in functions that need isolation
+
 ### Known Limitations
 
 **Parallel execution does not respect target dependencies**

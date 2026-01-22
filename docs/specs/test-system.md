@@ -93,7 +93,7 @@ The `pkg/testhelper` package returns specific error types for programmatic handl
 | `SuiteNotFoundError`     | `ErrSuiteNotFound`        | Test suite directory does not exist          |
 | `TestCaseNotFoundError`  | `ErrTestCaseNotFound`     | Test case file does not exist                |
 | `InvalidSuiteNameError`  | `ErrInvalidSuiteName`     | Suite name contains `..`, `/`, `\`, or `\0`  |
-| `InvalidTestCaseNameError`| `ErrInvalidTestCaseName` | Test case name contains invalid characters   |
+| `InvalidTestCaseNameError`| `ErrInvalidTestCaseName` | Test case name contains `..`, `/`, `\`, or `\0` |
 
 **Additional sentinels (no struct type):**
 

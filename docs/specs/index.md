@@ -8,6 +8,8 @@
 
 > **VitePress Components:** Some specification files include VitePress component tags (e.g., `<StandardCommands />`, `<ToolchainCommands />`) that render as formatted tables in the documentation site. When reading these files as raw markdown, these tags can be ignored—the surrounding prose contains the complete normative content.
 
+> **Specification Version:** v1.0 — This specification defines Structyl v1.0. The API is stable per the [Stability Policy](stability.md).
+
 ---
 
 ## What is Structyl?
@@ -109,7 +111,3 @@ The following are explicitly **out of scope** for v1.0:
 - Remote execution
 
 Note: Basic README templating via `documentation.readme_template` is supported. Full doc generation tooling is out of scope.
-
-## Status
-
-**v1.0** - This specification defines Structyl v1.0. The API is stable per the [Stability Policy](stability.md).

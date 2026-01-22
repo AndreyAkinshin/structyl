@@ -148,6 +148,14 @@ The directory containing `.structyl/config.json`. Structyl locates this by walki
 
 A test case defined in JSON format in the `tests/` directory. Reference tests are language-agnostic and shared across all language implementations. See [Test System Specification](test-system.md) for the test data format. The public Go API for loading and comparing test data is available in `pkg/testhelper` (see [limitations](test-system.md#test-loader-implementation) for differences between the public package and internal runner).
 
+### Release Artifact
+
+A packaged distribution of software ready for publication. Distinguished from [Build Artifact](#build-artifact) in that release artifacts are created by `pack` and distributed via `publish`. Release artifacts are the final distributable form of a library or application. Examples: `.nupkg` (NuGet), `.whl` (Python), `.crate` (Rust), `.tgz` (npm).
+
+### Semantic Equivalence
+
+The property that two implementation outputs are logically identical within configured tolerance. Two outputs are semantically equivalent if comparison using [Output Comparison](test-system.md#output-comparison) returns true. Byte-level identity is not required; floating-point values may differ within tolerance, and array ordering may be ignored when configured. This is the criterion by which multi-language implementations are validated against reference tests.
+
 ### Skip Error
 
 An informational error indicating a command was skipped (not failed).

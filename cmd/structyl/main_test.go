@@ -94,3 +94,42 @@ func TestCliRun_NoArgs(t *testing.T) {
 		t.Errorf("cli.Run([]) = %d, want 0", exitCode)
 	}
 }
+
+// TestCliRun_UnknownCommand verifies cli.Run returns non-zero for unknown commands.
+// When run outside a project, unknown commands return exit code 1 (failure).
+func TestCliRun_UnknownCommand(t *testing.T) {
+	t.Parallel()
+
+	exitCode := cli.Run([]string{"this-command-does-not-exist-xyz123"})
+	if exitCode == 0 {
+		t.Error("cli.Run([unknown]) = 0, want non-zero for unknown command")
+	}
+}
+
+// TestCliRun_InvalidGlobalFlag verifies cli.Run returns exit code 2 for invalid flags.
+func TestCliRun_InvalidGlobalFlag(t *testing.T) {
+	t.Parallel()
+
+	// --type with missing value should return exit code 2 (config error)
+	exitCode := cli.Run([]string{"--type"})
+	if exitCode != 2 {
+		t.Errorf("cli.Run([--type]) = %d, want 2 (config error)", exitCode)
+	}
+}
+
+// TestCliRun_MutuallyExclusiveFlags verifies cli.Run rejects conflicting flags.
+func TestCliRun_MutuallyExclusiveFlags(t *testing.T) {
+	t.Parallel()
+
+	// --docker and --no-docker are mutually exclusive
+	exitCode := cli.Run([]string{"--docker", "--no-docker", "build"})
+	if exitCode != 2 {
+		t.Errorf("cli.Run([--docker, --no-docker]) = %d, want 2", exitCode)
+	}
+
+	// --quiet and --verbose are mutually exclusive
+	exitCode = cli.Run([]string{"--quiet", "--verbose", "build"})
+	if exitCode != 2 {
+		t.Errorf("cli.Run([--quiet, --verbose]) = %d, want 2", exitCode)
+	}
+}

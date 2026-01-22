@@ -307,6 +307,8 @@ Exit code: `1` (Failure)
 
 This is a runtime failure, not a configuration error, because the target exists and the configuration is valid—the target simply doesn't support the requested command. Compare with toolchain validation errors (exit code 2), which are detected at configuration load time.
 
+> **Note:** This differs from [null commands](#skip-errors). A command explicitly set to `null` in configuration produces a [skip error](#skip-errors) (exit 0 with warning), not a failure. An undefined command (neither in target config nor inherited from toolchain) is an error (exit 1).
+
 ### Missing Docker
 
 ```

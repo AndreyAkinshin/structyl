@@ -44,6 +44,8 @@ func LoadAndValidate(path string) (*Config, []string, error) {
 		return nil, nil, err
 	}
 
+	// applyDefaults must run before Validate: validation rules depend on
+	// default values being present (e.g., tolerance mode checks, array order).
 	applyDefaults(cfg)
 
 	validationWarnings, err := Validate(cfg)

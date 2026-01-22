@@ -50,6 +50,20 @@ func ValidTargetTypes() []string {
 }
 
 // Target represents a build target (language or auxiliary).
+//
+// # Thread Safety
+//
+// Implementations must be safe for concurrent read access after construction.
+// All getter methods (Name, Title, Commands, GetCommand, etc.) may be called
+// concurrently from multiple goroutines.
+//
+// The Execute method may be called concurrently for different commands on the
+// same target. However, calling Execute for the same command concurrently on
+// the same target has undefined behavior (the underlying shell commands may
+// conflict on shared resources like files or ports).
+//
+// Modification of a Target after construction is undefined behavior. Targets
+// are expected to be immutable once created by the registry.
 type Target interface {
 	// Identification
 	Name() string      // Short name (e.g., "cs", "py")

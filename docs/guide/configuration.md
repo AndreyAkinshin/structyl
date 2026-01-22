@@ -151,6 +151,10 @@ Configure the reference test system.
 }
 ```
 
+::: info Pattern Support
+The `pattern` setting supports recursive patterns like `**/*.json` when using Structyl's internal test runner. The public `pkg/testhelper.LoadTestSuite` API only supports `*.json` (files in the immediate suite directory). See [test-system.md](../specs/test-system.md) for details.
+:::
+
 See [Testing](./testing) for details on cross-language testing.
 
 ### `mise`
@@ -202,7 +206,7 @@ Each target supports these options:
 | `type`              | string | Required       | `"language"` or `"auxiliary"`            |
 | `title`             | string | Required       | Display name                             |
 | `toolchain`         | string | Auto-detect    | Toolchain preset                         |
-| `toolchain_version` | string | From toolchain | Override mise tool version               |
+| `toolchain_version` | string | (toolchain default) | Override mise tool version (e.g., `"1.80.0"`, `"latest"`) |
 | `directory`         | string | Target key     | Directory path                           |
 | `cwd`               | string | `directory`    | Working directory                        |
 | `commands`          | object | From toolchain | Command overrides                        |

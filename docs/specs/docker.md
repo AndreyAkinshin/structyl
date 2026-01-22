@@ -293,6 +293,8 @@ ENV GOCACHE=/tmp/.cache
 ENV GOPATH=/tmp/go
 ```
 
+> **Note:** The Docker image versions shown above are illustrative examples. Actual versions are derived from your toolchain configuration in `.structyl/config.json`. See [toolchains.md](toolchains.md#mise-integration) for how mise tool versions map to Docker base images.
+
 ## `services` vs `targets` Configuration
 
 The Docker configuration has two per-target sections with distinct purposes:

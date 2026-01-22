@@ -45,6 +45,10 @@ func TestValidate_Invalid(t *testing.T) {
 		"1.2.3+",
 		"1.2.3-@",
 		"a.b.c",
+		// Negative numbers (semver rejects these)
+		"-1.0.0",
+		"1.-1.0",
+		"1.0.-1",
 	}
 
 	for _, v := range tests {

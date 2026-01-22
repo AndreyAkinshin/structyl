@@ -566,10 +566,7 @@ func (w *Writer) SummarySectionLabel(label string) {
 	}
 }
 
-// TaskResult is an alias for the shared model type.
 type TaskResult = model.TaskResult
-
-// TaskRunSummary is an alias for the shared model type.
 type TaskRunSummary = model.TaskRunSummary
 
 // FormatTestCounts formats test counts for display.

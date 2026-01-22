@@ -451,6 +451,19 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 // extractTargetArg extracts an optional target name from args if the first arg is a known target.
 // Returns (targetName, remaining args). If registry is nil or first arg is not a target,
 // returns empty targetName and all original args.
+//
+// # Heuristic Behavior
+//
+// This function uses a heuristic: if the first argument matches a registered target name,
+// it is interpreted as the target. Otherwise, it's treated as a command argument.
+//
+// This enables convenient syntax like "structyl build go" to build the "go" target.
+// However, it means that if a user wants to pass an argument that happens to match
+// a target name (e.g., passing "go" as an argument), they should use the explicit
+// separator: "structyl build -- go".
+//
+// The target interpretation always wins when ambiguous. This is intentional to
+// support the common case of targeting a specific implementation.
 func extractTargetArg(args []string, registry *target.Registry) (string, []string) {
 	if len(args) == 0 || registry == nil {
 		return "", args

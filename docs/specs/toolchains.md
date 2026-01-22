@@ -146,6 +146,8 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 > **Note:** For `check:fix` compositions (auto-fix behavior), see individual toolchain sections. Most toolchains run lint with `--fix` flags as part of `check:fix`, but specific flags and behaviors vary by ecosystem.
 
+> **Execution order:** When commands are composed from multiple operations (e.g., `check` = lint + format-check), they execute left-to-right as listed in the Implementation column. For `check:fix`, this typically means lint auto-fix runs before formatting.
+
 ---
 
 ## Built-in Toolchains

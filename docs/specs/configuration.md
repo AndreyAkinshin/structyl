@@ -320,6 +320,8 @@ Mise build tool integration configuration.
 
 - When `auto_generate: true` (or absent/omitted), Structyl regenerates `mise.toml` before executing target commands. This ensures mise tool versions stay synchronized with toolchain requirements.
 
+  > **⚠️ Warning:** Regeneration **overwrites** the entire `mise.toml` file. User-added tasks, environment variables, or custom sections are **NOT preserved**. For mixed usage (Structyl-managed tasks alongside custom mise tasks), set `auto_generate: false` and run `structyl mise sync` manually when toolchain configuration changes.
+
   **Commands that trigger regeneration:**
   - Standard commands: `clean`, `restore`, `build`, `test`, `check`, `check:fix`, `bench`, `demo`, `doc`, `pack`, `publish`
   - CI commands: `ci`, `ci:release`

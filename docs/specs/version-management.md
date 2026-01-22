@@ -462,6 +462,37 @@ Usage: structyl upgrade [version] [--check]
 
 **Cache Location:** Downloaded CLI versions are stored in `~/.structyl/versions/` on Unix/macOS and `%USERPROFILE%\.structyl\versions\` on Windows.
 
+### Check Mode (`--check`)
+
+The `--check` flag displays version information without modifying any files:
+
+```bash
+structyl upgrade --check
+```
+
+**Output format:**
+
+```
+  Current CLI version:  1.2.0
+  Pinned version:       1.1.0
+  Latest stable:        1.2.3
+
+A newer version is available. Run 'structyl upgrade' to update.
+```
+
+**Behavior:**
+
+- Prints the running CLI version, pinned project version (from `.structyl/version`), and latest available version
+- If no stable release exists, falls back to showing the latest nightly version
+- Does NOT modify `.structyl/version` or any other file
+- Exit code 0 on success (informational command)
+- Exit code 1 if network request fails or not in a project
+
+**Constraints:**
+
+- `--check` and a version argument are mutually exclusive
+- Requires a project context (must be inside a Structyl project directory)
+
 ### GitHub API Integration
 
 The `upgrade` command fetches the latest version from:

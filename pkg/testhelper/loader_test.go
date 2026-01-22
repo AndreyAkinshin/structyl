@@ -1067,6 +1067,55 @@ func TestTestCase_TagsContain(t *testing.T) {
 	}
 }
 
+func TestTestCase_ID(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		tc   TestCase
+		want string
+	}{
+		{
+			name: "name only",
+			tc: TestCase{
+				Name: "basic",
+			},
+			want: "basic",
+		},
+		{
+			name: "with suite",
+			tc: TestCase{
+				Name:  "addition",
+				Suite: "math",
+			},
+			want: "math/addition",
+		},
+		{
+			name: "empty name",
+			tc:   TestCase{},
+			want: "",
+		},
+		{
+			name: "empty suite non-empty name",
+			tc: TestCase{
+				Name:  "test",
+				Suite: "",
+			},
+			want: "test",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := tt.tc.ID()
+			if result != tt.want {
+				t.Errorf("ID() = %q, want %q", result, tt.want)
+			}
+		})
+	}
+}
+
 func TestTestCase_String(t *testing.T) {
 	t.Parallel()
 

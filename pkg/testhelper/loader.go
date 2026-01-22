@@ -262,6 +262,25 @@ func (tc TestCase) HasSuite() bool {
 	return tc.Suite != ""
 }
 
+// ID returns the fully qualified identifier for this test case.
+// If Suite is set, returns "Suite/Name"; otherwise returns just "Name".
+// This provides a canonical identifier for test cases that can be used in
+// logging, error messages, and test result reporting.
+//
+// Example:
+//
+//	tc := TestCase{Name: "addition", Suite: "math"}
+//	fmt.Println(tc.ID()) // Output: math/addition
+//
+//	tc2 := TestCase{Name: "basic"}
+//	fmt.Println(tc2.ID()) // Output: basic
+func (tc TestCase) ID() string {
+	if tc.Suite == "" {
+		return tc.Name
+	}
+	return tc.Suite + "/" + tc.Name
+}
+
 // TagsContain reports whether tc.Tags contains the given tag.
 // Comparison is exact and case-sensitive.
 // Returns false if tc.Tags is nil or empty.

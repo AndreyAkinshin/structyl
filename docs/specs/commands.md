@@ -196,7 +196,7 @@ These commands operate across all targets.
 | `version bump <level>` | Bump version (see [version-management.md](version-management.md#bump-version))         |
 | `version check`        | Verify version consistency across configured files                                     |
 
-> **Note:** `version check` returns exit code `1` on mismatch (runtime state check), not exit code `2` (configuration error). This follows the principle that valid configuration + unexpected state = runtime failure. See [version-management.md](version-management.md#check-version-consistency) for details.
+> **Note:** `version check` returns exit code `1` when files have mismatched versions. This is classified as a runtime failure (exit code 1), not a configuration error (exit code 2), because the configuration schema is valid—the project state simply doesn't match expected values. See [version-management.md](version-management.md#check-version-consistency) for details.
 
 ## Utility Commands
 

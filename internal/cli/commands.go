@@ -116,7 +116,7 @@ func ensureMiseConfig(proj *project.Project, mode MiseRegenerateMode) error {
 		}
 		return nil
 	default:
-		panic(fmt.Sprintf("BUG: invalid MiseRegenerateMode: %d", mode))
+		return fmt.Errorf("BUG: invalid MiseRegenerateMode: %d", mode)
 	}
 }
 

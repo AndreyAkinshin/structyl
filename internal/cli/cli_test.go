@@ -2103,30 +2103,21 @@ func TestIsMiseAutoGenerateEnabled(t *testing.T) {
 	}
 }
 
-func TestEnsureMiseConfig_InvalidMode_Panics(t *testing.T) {
+func TestEnsureMiseConfig_InvalidMode_ReturnsError(t *testing.T) {
 	t.Parallel()
 
-	defer func() {
-		r := recover()
-		if r == nil {
-			t.Error("expected panic for invalid MiseRegenerateMode")
-		}
-		// Verify panic message contains expected text
-		msg, ok := r.(string)
-		if !ok {
-			t.Errorf("panic value is not a string: %T", r)
-			return
-		}
-		if !strings.Contains(msg, "BUG: invalid MiseRegenerateMode") {
-			t.Errorf("panic message = %q, want to contain %q", msg, "BUG: invalid MiseRegenerateMode")
-		}
-	}()
-
-	// Create minimal project (won't be used since panic happens first)
+	// Create minimal project
 	proj := &project.Project{}
 
 	// Call with invalid mode value (not MiseForceRegenerate or MiseAutoRegenerate)
-	_ = ensureMiseConfig(proj, MiseRegenerateMode(99))
+	err := ensureMiseConfig(proj, MiseRegenerateMode(99))
+	if err == nil {
+		t.Error("expected error for invalid MiseRegenerateMode")
+	}
+	// Verify error message contains expected text
+	if !strings.Contains(err.Error(), "BUG: invalid MiseRegenerateMode") {
+		t.Errorf("error = %q, want to contain %q", err.Error(), "BUG: invalid MiseRegenerateMode")
+	}
 }
 
 // =============================================================================

@@ -54,7 +54,6 @@ func Run(args []string) int {
 		return errors.ExitConfigError
 	}
 
-	// Re-extract command after flag parsing
 	if len(remaining) == 0 {
 		printUsage()
 		return 0

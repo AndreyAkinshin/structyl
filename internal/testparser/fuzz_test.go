@@ -172,6 +172,9 @@ func FuzzCargoParser(f *testing.F) {
 		"test result: ok.",
 		"test result: ok. passed",
 		"test result: ok. 0 passed;",
+		// Edge cases: malformed numbers
+		"test result: ok. 9999999999999999999 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
+		"test result: ok. -5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s",
 	}
 
 	for _, seed := range seeds {
@@ -301,6 +304,11 @@ func FuzzBunParser(f *testing.F) {
 		"5 pass ✓\n0 fail ✗",
 		// Large numbers (potential overflow boundary)
 		"999999999 pass\n0 fail",
+		// Edge cases: malformed numbers (strconv.Atoi handles these gracefully)
+		"9999999999999999999 pass",   // Overflow: exceeds int64 max
+		"-5 pass",                    // Negative number
+		"3.5 pass",                   // Floating point (regex won't match decimal)
+		"1e10 pass",                  // Scientific notation
 	}
 
 	for _, seed := range seeds {
@@ -341,6 +349,10 @@ func FuzzDenoParser(f *testing.F) {
 		"ok |",
 		"passed",
 		"| 0 failed",
+		// Edge cases: malformed numbers
+		"9999999999999999999 passed; 0 failed",  // Overflow
+		"-5 passed; 0 failed",                   // Negative number
+		"3.5 passed; 0 failed",                  // Floating point
 	}
 
 	for _, seed := range seeds {

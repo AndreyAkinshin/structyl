@@ -233,6 +233,11 @@ func validateTargetConfig(name string, target TargetConfig) error {
 // validateCommands checks that all command definitions use supported types.
 // Supported: string, nil, []interface{} (command list).
 // NOT supported: map/object form (e.g., {run, cwd, env}) - reject at load time.
+//
+// Note: This function validates command types and structure only. Command list
+// cycle detection (e.g., "ci" -> "build" -> "ci") is performed separately during
+// registry creation in target.NewRegistry. The split is intentional: type validation
+// happens at config load time, while cycle detection requires the full command graph.
 func validateCommands(targetName string, commands map[string]interface{}) error {
 	for cmdName, cmdDef := range commands {
 		if err := validateCommandDef(targetName, cmdName, cmdDef); err != nil {
@@ -322,7 +327,7 @@ func validateTests(cfg *Config) error {
 
 	// Validate tolerance_mode
 	switch c.ToleranceMode {
-	case "", "relative", "absolute", "ulp":
+	case "", string(ToleranceModeRelative), string(ToleranceModeAbsolute), string(ToleranceModeULP):
 		// Valid values
 	default:
 		return &ValidationError{
@@ -333,7 +338,7 @@ func validateTests(cfg *Config) error {
 
 	// Validate array_order
 	switch c.ArrayOrder {
-	case "", "strict", "unordered":
+	case "", string(ArrayOrderStrict), string(ArrayOrderUnordered):
 		// Valid values
 	default:
 		return &ValidationError{
@@ -343,7 +348,7 @@ func validateTests(cfg *Config) error {
 	}
 
 	// ULP tolerance requires integer values (representing bit distance)
-	isULPMode := c.ToleranceMode == "ulp"
+	isULPMode := c.ToleranceMode == string(ToleranceModeULP)
 	hasNonIntegerTolerance := c.FloatTolerance != nil && *c.FloatTolerance != float64(int(*c.FloatTolerance))
 	if isULPMode && hasNonIntegerTolerance {
 		return &ValidationError{

@@ -1,10 +1,21 @@
 package testhelper
 
 // NOTE: These tests intentionally mirror internal/tests/compare_test.go.
-// Both packages provide comparison functionality but for different consumers:
-// - internal/tests: Internal test framework with ComparisonConfig
-// - pkg/testhelper: Public API for external test helpers with CompareOptions
-// Each package maintains its own tests to ensure independent correctness.
+//
+// WHY DUPLICATION EXISTS:
+// Both packages provide comparison functionality with different type signatures:
+// - internal/tests: Uses ComparisonConfig (internal test framework)
+// - pkg/testhelper: Uses CompareOptions (public API for external consumers)
+//
+// WHY NOT CONSOLIDATED:
+// The types have different fields and validation rules. Sharing tests would require
+// either a shared test package (adding coupling) or generics (adding complexity).
+// The current approach provides clear isolation between internal and public APIs.
+//
+// MAINTENANCE GUIDANCE:
+// When updating comparison logic, ensure both test files stay synchronized.
+// Core comparison semantics (float tolerance, NaN handling, array ordering) should
+// behave identically between packages.
 
 import (
 	"math"

@@ -118,6 +118,7 @@ func TestValidateTargetName_Invalid(t *testing.T) {
 		{"ABC", "uppercase"},
 		{"my_target", "underscore"},
 		{"-target", "leading hyphen"},
+		{"all", "reserved name"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {

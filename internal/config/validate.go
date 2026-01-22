@@ -173,6 +173,13 @@ func validateTargetName(name string) error {
 			Message: "target name must match pattern ^[a-z][a-z0-9-]*$ (lowercase letters, digits, hyphens)",
 		}
 	}
+	// "all" is reserved for CI configuration to mean "all targets"
+	if name == TargetAll {
+		return &ValidationError{
+			Field:   fmt.Sprintf("targets.%s", name),
+			Message: fmt.Sprintf("%q is a reserved name", name),
+		}
+	}
 	return nil
 }
 
@@ -291,6 +298,13 @@ func ValidateTargetName(name string) error {
 		return &ValidationError{
 			Field:   "target name",
 			Message: "must match pattern ^[a-z][a-z0-9-]*$",
+		}
+	}
+	// "all" is reserved for CI configuration to mean "all targets"
+	if name == TargetAll {
+		return &ValidationError{
+			Field:   "target name",
+			Message: fmt.Sprintf("%q is a reserved name", name),
 		}
 	}
 	return nil

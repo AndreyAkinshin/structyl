@@ -4,6 +4,8 @@ This document provides comprehensive information for AI agents and developers wo
 
 > **Note:** This document uses prescriptive language ("Always", "Do not") to indicate strong recommendations for maintaining consistency across the codebase. These are guidelines, not absolute requirements—deviations are acceptable with documented justification.
 
+> **Synchronization:** Exit codes, error handling, and specification details in this file must match the formal specifications in `docs/specs/`. If discrepancies arise, the specifications are authoritative.
+
 ## Project Overview
 
 **Structyl** is a multi-language build orchestration CLI written in Go. It provides unified commands (`build`, `test`, `clean`, etc.) that work across different programming language implementations in a monorepo.

@@ -267,6 +267,9 @@ func (tc TestCase) HasSuite() bool {
 // This provides a canonical identifier for test cases that can be used in
 // logging, error messages, and test result reporting.
 //
+// The forward slash (/) separator is used on all platforms, providing a
+// canonical, cross-platform identifier format independent of the filesystem.
+//
 // Example:
 //
 //	tc := TestCase{Name: "addition", Suite: "math"}
@@ -329,17 +332,29 @@ func (tc TestCase) String() string {
 //
 // # NOT Deep-Copied Fields (Shared References)
 //
-// Output is NOT deep-copied; both original and clone reference the same underlying
-// value. Modifying this field on the clone also modifies the original:
+// The following are NOT deep-copied:
+//
+//   - Output: both original and clone reference the same value
+//   - Input nested values: while the top-level map is copied, values within
+//     (nested maps, slices) are shared references
+//
+// Modifying Output on the clone also modifies the original:
 //
 //	original := TestCase{Output: map[string]interface{}{"key": "value"}}
 //	clone := original.Clone()
 //	clone.Output.(map[string]interface{})["key"] = "changed"
 //	// original.Output["key"] is now "changed" too!
 //
+// Similarly, modifying nested Input values affects the original:
+//
+//	original := TestCase{Input: map[string]interface{}{"nested": map[string]interface{}{"key": "value"}}}
+//	clone := original.Clone()
+//	clone.Input["nested"].(map[string]interface{})["key"] = "changed"
+//	// original.Input["nested"]["key"] is now "changed" too!
+//
 // # Design Rationale
 //
-// Output is not deep-copied because:
+// Output and nested Input values are not deep-copied because:
 //  1. Output is typically consumed read-only in test assertions
 //  2. Deep-copying arbitrary interface{} values safely is complex (cycles, non-clonable types)
 //  3. Performance: deep-copying large expected outputs would be wasteful

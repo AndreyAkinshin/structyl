@@ -516,6 +516,9 @@ func CompareE(expected, actual interface{}, opts CompareOptions) (bool, string, 
 // come from user input or external configuration where validation errors
 // should be handled gracefully rather than causing a panic.
 //
+// EqualE wraps [CompareE], discarding the diff string. If you need the diff
+// for diagnostic output, call CompareE directly.
+//
 // The return values are:
 //   - equal: true if expected and actual match according to opts
 //   - err: non-nil if opts is invalid

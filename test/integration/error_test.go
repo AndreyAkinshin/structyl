@@ -80,3 +80,45 @@ func TestInvalidToolchainReferenceError(t *testing.T) {
 		t.Errorf("expected error to mention toolchain name 'nonexistent-toolchain', got: %v", errMsg)
 	}
 }
+
+func TestRegistryCreation_PartialTargetFailure(t *testing.T) {
+	t.Parallel()
+	// When one target has an invalid toolchain, registry creation fails entirely.
+	// This tests that the error is reported clearly and doesn't cause panics.
+	fixtureDir := filepath.Join(fixturesDir(), "invalid", "invalid-toolchain")
+
+	proj, err := project.LoadProjectFrom(fixtureDir)
+	if err != nil {
+		t.Fatalf("LoadProjectFrom: %v", err)
+	}
+
+	_, err = target.NewRegistry(proj.Config, proj.Root)
+	if err == nil {
+		t.Fatal("expected error for invalid toolchain")
+	}
+
+	// Verify error is actionable (contains target name or toolchain name)
+	errMsg := err.Error()
+	if !strings.Contains(errMsg, "toolchain") {
+		t.Errorf("error should mention 'toolchain' for actionable diagnostics, got: %v", errMsg)
+	}
+}
+
+func TestProjectLoad_ValidConfigWithMissingOptionalDirs(t *testing.T) {
+	t.Parallel()
+	// Test graceful handling when optional directories (like tests/) don't exist
+	fixtureDir := filepath.Join(fixturesDir(), "minimal")
+
+	proj, err := project.LoadProjectFrom(fixtureDir)
+	if err != nil {
+		t.Fatalf("LoadProjectFrom: %v", err)
+	}
+
+	// Project should load successfully even without tests/ directory
+	if proj.Config == nil {
+		t.Error("expected non-nil config")
+	}
+	if proj.Root == "" {
+		t.Error("expected non-empty root path")
+	}
+}

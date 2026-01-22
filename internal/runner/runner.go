@@ -149,10 +149,9 @@ func (r *Runner) runSequential(ctx context.Context, targets []target.Target, cmd
 
 	var errs []error
 	for _, t := range targets {
-		select {
-		case <-ctx.Done():
+		// Early exit if context is canceled before starting the next target
+		if ctx.Err() != nil {
 			return ctx.Err()
-		default:
 		}
 
 		if err := t.Execute(ctx, cmd, execOpts); err != nil {

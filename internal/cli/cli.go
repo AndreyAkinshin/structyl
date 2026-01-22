@@ -48,7 +48,6 @@ func Run(args []string) int {
 		return 0
 	}
 
-	// Parse global flags
 	opts, remaining, err := parseGlobalFlags(args)
 	if err != nil {
 		out.ErrorPrefix("%v", err)
@@ -63,7 +62,6 @@ func Run(args []string) int {
 	cmd = remaining[0]
 	cmdArgs := remaining[1:]
 
-	// Start background update check (non-blocking)
 	initUpdateCheck(opts.Quiet)
 
 	// Show notification at the end of the run (unless skipped)

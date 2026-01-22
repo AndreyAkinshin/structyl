@@ -305,7 +305,9 @@ type TargetJSON struct {
 }
 
 // nonNilStrings ensures a string slice is never nil (returns empty slice instead).
-// Used to guarantee JSON output has [] rather than null for array fields.
+// This guarantees consistent JSON serialization: Go's encoding/json marshals
+// nil slices as null but non-nil empty slices as []. For machine-readable
+// output (--json flag), [] is more predictable for consumers parsing the output.
 func nonNilStrings(s []string) []string {
 	if s == nil {
 		return []string{}

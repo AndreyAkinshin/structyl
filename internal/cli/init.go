@@ -490,6 +490,12 @@ func printInitUsage() {
 // promptConfirm asks the user a yes/no question and returns true if they confirm.
 // The prompt is displayed on a single line with "[y/N]" suffix.
 // Uses output.Writer for consistent output handling.
+//
+// Testing note: This function reads directly from os.Stdin, making it difficult
+// to unit test without significant refactoring (injecting an io.Reader interface).
+// The function is tested manually during integration testing. The cost of adding
+// testability (interface injection, test complexity) outweighs the benefit for
+// this simple input function.
 func promptConfirm(question string) bool {
 	w := output.New()
 	w.Print("%s [y/N] ", question)

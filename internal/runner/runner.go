@@ -15,7 +15,6 @@ import (
 	"github.com/AndreyAkinshin/structyl/internal/target"
 )
 
-// out is the shared output writer for runner messages.
 var out = output.New()
 
 const (

@@ -44,9 +44,20 @@ A **target** is a buildable unit in your project. There are two types:
 
 A **toolchain** maps standard commands (build, test, clean) to language-specific tools:
 
-<!-- VitePress component: Renders toolchain overview table in docs site.
-     When viewing raw markdown, see docs/specs/toolchains.md for command mappings. -->
+<!-- VitePress component: Renders toolchain overview table in docs site. -->
 <ToolchainOverview :toolchains="['cargo', 'go', 'npm', 'uv']" />
+
+<!-- Fallback for raw markdown readers -->
+<!--
+| Toolchain | Build | Test | Clean |
+|-----------|-------|------|-------|
+| cargo | `cargo build` | `cargo test` | `cargo clean` |
+| go | `go build ./...` | `go test ./...` | `go clean` |
+| npm | `npm run build` | `npm test` | `rm -rf node_modules` |
+| uv | `uv build` | `uv run pytest` | `rm -rf dist/` |
+
+See [toolchains specification](../specs/toolchains.md) for complete mappings.
+-->
 
 ### Commands
 

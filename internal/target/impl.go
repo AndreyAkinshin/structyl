@@ -154,8 +154,11 @@ func (t *targetImpl) Cwd() string       { return t.cwd }
 
 // DependsOn returns a copy of the dependency list. The returned slice is safe
 // to modify without affecting the target's internal state.
-// Always returns a non-nil slice (empty slice for no dependencies).
+// Returns nil if there are no dependencies.
 func (t *targetImpl) DependsOn() []string {
+	if len(t.dependsOn) == 0 {
+		return nil
+	}
 	result := make([]string, len(t.dependsOn))
 	copy(result, t.dependsOn)
 	return result

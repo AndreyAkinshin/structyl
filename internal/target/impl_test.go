@@ -400,8 +400,8 @@ func TestTarget_DependsOn_Empty(t *testing.T) {
 	target, _ := NewTarget("lib", cfg, "/project", "", resolver)
 
 	deps := target.DependsOn()
-	if deps == nil {
-		t.Error("DependsOn() = nil, want empty slice")
+	if deps != nil {
+		t.Error("DependsOn() = non-nil, want nil for no dependencies")
 	}
 	if len(deps) != 0 {
 		t.Errorf("len(DependsOn()) = %d, want 0", len(deps))

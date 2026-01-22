@@ -296,6 +296,10 @@ Built-in variables:
 | `${root}`       | Project root directory         |
 | `${version}`    | Project version                |
 
+::: tip Variable Syntax
+Commands use `${var}` syntax (e.g., `${version}`), while version file replacements use `{var}` syntax (e.g., `{version}`). The distinction exists because version file patterns use regex where `$` has special meaning. See [Configuration Spec: Variable Syntax](../specs/configuration.md#variable-syntax) for details.
+:::
+
 ## Schema Validation
 
 Enable IDE autocomplete by adding a schema reference:

@@ -435,3 +435,29 @@ func TestErrorChain_MultiLevel(t *testing.T) {
 		t.Error("errors.Is(level3, level1) = false, want true")
 	}
 }
+
+// TestErrorChain_CauseAccessible verifies that wrapped error causes can be accessed
+// for debugging and diagnostic purposes via the standard Go error chain pattern.
+func TestErrorChain_CauseAccessible(t *testing.T) {
+	t.Parallel()
+	cause := errors.New("root cause")
+	wrapped := Wrap(cause, "operation failed")
+
+	// Verify the wrapper message is in Error()
+	if wrapped.Error() != "operation failed" {
+		t.Errorf("Error() = %q, want %q", wrapped.Error(), "operation failed")
+	}
+
+	// Verify the cause is accessible via Unwrap for debugging
+	if wrapped.Unwrap() == nil {
+		t.Error("Unwrap() = nil, want non-nil cause")
+	}
+	if wrapped.Unwrap().Error() != "root cause" {
+		t.Errorf("Unwrap().Error() = %q, want %q", wrapped.Unwrap().Error(), "root cause")
+	}
+
+	// Verify errors.Is can find the original cause
+	if !errors.Is(wrapped, cause) {
+		t.Error("errors.Is(wrapped, cause) = false, want true")
+	}
+}

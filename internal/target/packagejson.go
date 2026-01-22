@@ -169,6 +169,12 @@ var packageManagerBuiltins = map[string]map[string]bool{
 //   - "bun run dev" -> ("bun", "dev")
 //   - "npm install" -> ("npm", "") - builtin command
 //   - "go test" -> ("", "") - not a package manager
+//
+// Semantics by package manager:
+//   - npm:  "npm run <script>" OR "npm test/start/stop/restart"
+//   - pnpm: "pnpm <script>" (unless builtin)
+//   - yarn: "yarn <script>" (unless builtin)
+//   - bun:  "bun <script>" OR "bun run <script>"
 func extractNpmScriptName(cmdStr string) (packageManager string, scriptName string) {
 	fields := strings.Fields(cmdStr)
 	if len(fields) < 2 {

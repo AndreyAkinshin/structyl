@@ -280,15 +280,15 @@ func (tc TestCase) String() string {
 //
 // # Copy Semantics Summary
 //
-//	| Field       | Copy Type        | Modify Clone → Original? |
-//	|-------------|------------------|--------------------------|
-//	| Name        | value copy       | No                       |
-//	| Suite       | value copy       | No                       |
-//	| Input       | shallow map copy | No (top-level keys)      |
-//	| Output      | NOT copied       | Yes (shared reference)   |
-//	| Tags        | slice copy       | No                       |
-//	| Skip        | value copy       | No                       |
-//	| Description | value copy       | No                       |
+//	| Field       | Copy Type        | Modify Clone → Original?           |
+//	|-------------|------------------|------------------------------------|
+//	| Name        | value copy       | No                                 |
+//	| Suite       | value copy       | No                                 |
+//	| Input       | shallow map copy | Only at top level; nested shared   |
+//	| Output      | NOT copied       | Yes (shared reference)             |
+//	| Tags        | slice copy       | No                                 |
+//	| Skip        | value copy       | No                                 |
+//	| Description | value copy       | No                                 |
 //
 // # Deep-Copied Fields
 //

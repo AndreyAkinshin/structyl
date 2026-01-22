@@ -58,6 +58,8 @@ func createTestGitRepo(t *testing.T) string {
 }
 
 // captureStdout captures stdout during function execution.
+// Note: This helper modifies os.Stdout (process-wide state). Tests using this
+// helper MUST NOT use t.Parallel() to avoid output corruption with other tests.
 func captureStdout(t *testing.T, fn func()) string {
 	t.Helper()
 	old := os.Stdout
@@ -75,6 +77,7 @@ func captureStdout(t *testing.T, fn func()) string {
 }
 
 func TestNewReleaser(t *testing.T) {
+	t.Parallel()
 	cfg := &config.Config{
 		Project: config.ProjectConfig{Name: "test"},
 	}

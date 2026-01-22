@@ -1143,8 +1143,8 @@ func TestExecute_CompositeCommandWithInvalidItem_ReturnsError(t *testing.T) {
 	if err == nil {
 		t.Error("Execute() expected error for composite command with invalid item")
 	}
-	if !strings.Contains(err.Error(), "invalid command list item") {
-		t.Errorf("error = %q, want to contain 'invalid command list item'", err.Error())
+	if !strings.Contains(err.Error(), "command list item should be string") {
+		t.Errorf("error = %q, want to contain 'command list item should be string'", err.Error())
 	}
 }
 

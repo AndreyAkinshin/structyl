@@ -263,44 +263,30 @@ func TestHasNewerVersion(t *testing.T) {
 	}
 }
 
-func TestInitUpdateCheck_DevVersion(t *testing.T) {
+func TestNewUpdateChecker_DevVersion(t *testing.T) {
 	// Save original version
 	oldVersion := Version
 	Version = "dev"
 	t.Cleanup(func() { Version = oldVersion })
 
-	// Reset state
-	updateState.mu.Lock()
-	updateState.pendingNotification = ""
-	updateState.skip = false
-	updateState.quiet = false
-	updateState.mu.Unlock()
+	// Should return immediately for dev version with no notification
+	checker := NewUpdateChecker(false)
 
-	// Should return immediately for dev version
-	initUpdateCheck(false)
-
-	updateState.mu.Lock()
-	notification := updateState.pendingNotification
-	updateState.mu.Unlock()
-
-	if notification != "" {
-		t.Errorf("expected no notification for dev version, got %q", notification)
+	if checker.pendingNotification != "" {
+		t.Errorf("expected no notification for dev version, got %q", checker.pendingNotification)
 	}
 }
 
-func TestSkipUpdateNotification(t *testing.T) {
-	// Reset state
-	updateState.mu.Lock()
-	updateState.skip = false
-	updateState.mu.Unlock()
+func TestUpdateChecker_Skip(t *testing.T) {
+	checker := NewUpdateChecker(false)
 
-	skipUpdateNotification()
+	if checker.skip {
+		t.Error("expected skip to be false initially")
+	}
 
-	updateState.mu.Lock()
-	skipped := updateState.skip
-	updateState.mu.Unlock()
+	checker.Skip()
 
-	if !skipped {
-		t.Error("expected skip to be true after skipUpdateNotification()")
+	if !checker.skip {
+		t.Error("expected skip to be true after Skip()")
 	}
 }

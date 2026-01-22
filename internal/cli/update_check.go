@@ -16,15 +16,79 @@ type UpdateCache struct {
 	CheckedAt     time.Time `json:"checked_at"`
 }
 
-// updateCheckState holds the state for deferred notification.
-type updateCheckState struct {
+// UpdateChecker encapsulates the update check lifecycle.
+// It enforces correct temporal coupling: the notification can only be shown
+// after initialization, preventing bugs from misuse of separate init/show functions.
+//
+// Usage:
+//
+//	checker := NewUpdateChecker(quiet)
+//	defer checker.ShowNotification()
+//	// ... run command ...
+//	checker.Skip() // optional: suppress notification for this command
+type UpdateChecker struct {
 	mu                  sync.Mutex
 	pendingNotification string
 	quiet               bool
 	skip                bool
 }
 
-var updateState = &updateCheckState{}
+// NewUpdateChecker creates and initializes an UpdateChecker.
+// It reads the cache, prepares any pending notification, and starts a background check.
+// This function is non-blocking.
+func NewUpdateChecker(quiet bool) *UpdateChecker {
+	uc := &UpdateChecker{
+		quiet: quiet,
+	}
+
+	if isUpdateCheckDisabled() {
+		return uc
+	}
+
+	// Skip for dev builds
+	if Version == "dev" {
+		return uc
+	}
+
+	// Read cache and prepare notification (fast, ~1ms)
+	cache, _ := readUpdateCache()
+	if cache != nil && cache.LatestVersion != "" {
+		if hasNewerVersion(Version, cache.LatestVersion) {
+			uc.pendingNotification = cache.LatestVersion
+		}
+	}
+
+	// Start background check if needed
+	if shouldCheckForUpdate(cache) {
+		go backgroundUpdateCheck()
+	}
+
+	return uc
+}
+
+// Skip marks that the notification should be skipped for this run.
+// Call this for commands like upgrade and completion that should not show notifications.
+func (uc *UpdateChecker) Skip() {
+	uc.mu.Lock()
+	uc.skip = true
+	uc.mu.Unlock()
+}
+
+// ShowNotification displays the update notification if available.
+// This should be called at the end of Run() via defer.
+func (uc *UpdateChecker) ShowNotification() {
+	uc.mu.Lock()
+	notification := uc.pendingNotification
+	quiet := uc.quiet
+	skip := uc.skip
+	uc.mu.Unlock()
+
+	if notification == "" || quiet || skip {
+		return
+	}
+
+	out.UpdateNotification(notification)
+}
 
 // updateCacheFileName is the name of the update cache file.
 const updateCacheFileName = ".update_cache"
@@ -40,65 +104,6 @@ var fetchLatestVersionFunc = fetchLatestVersion
 
 // timeNowFunc allows tests to override time.Now().
 var timeNowFunc = time.Now
-
-// initUpdateCheck initializes the update check system.
-// It reads the cache, prepares any pending notification, and starts a background check.
-// This function is non-blocking.
-func initUpdateCheck(quiet bool) {
-	updateState.mu.Lock()
-	updateState.quiet = quiet
-	updateState.skip = false
-	updateState.pendingNotification = ""
-	updateState.mu.Unlock()
-
-	if isUpdateCheckDisabled() {
-		return
-	}
-
-	// Skip for dev builds
-	if Version == "dev" {
-		return
-	}
-
-	// Read cache and prepare notification (fast, ~1ms)
-	cache, _ := readUpdateCache()
-	if cache != nil && cache.LatestVersion != "" {
-		if hasNewerVersion(Version, cache.LatestVersion) {
-			updateState.mu.Lock()
-			updateState.pendingNotification = cache.LatestVersion
-			updateState.mu.Unlock()
-		}
-	}
-
-	// Start background check if needed
-	if shouldCheckForUpdate(cache) {
-		go backgroundUpdateCheck()
-	}
-}
-
-// skipUpdateNotification marks that the notification should be skipped for this run.
-// Call this for commands like upgrade and completion that should not show notifications.
-func skipUpdateNotification() {
-	updateState.mu.Lock()
-	updateState.skip = true
-	updateState.mu.Unlock()
-}
-
-// showUpdateNotification displays the update notification if available.
-// This should be called at the end of Run() via defer.
-func showUpdateNotification() {
-	updateState.mu.Lock()
-	notification := updateState.pendingNotification
-	quiet := updateState.quiet
-	skip := updateState.skip
-	updateState.mu.Unlock()
-
-	if notification == "" || quiet || skip {
-		return
-	}
-
-	out.UpdateNotification(notification)
-}
 
 // backgroundUpdateCheck fetches the latest version and updates the cache.
 // This runs in a goroutine and silently ignores all errors.

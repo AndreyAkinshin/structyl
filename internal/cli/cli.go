@@ -62,12 +62,11 @@ func Run(args []string) int {
 	cmd = remaining[0]
 	cmdArgs := remaining[1:]
 
-	// Update check flow: initUpdateCheck starts a background goroutine that checks
-	// for new versions. showUpdateNotification displays the result if one is available.
-	// TEMPORAL COUPLING: initUpdateCheck MUST be called before showUpdateNotification
-	// is deferred, as it initializes the channel that showUpdateNotification reads from.
-	initUpdateCheck(opts.Quiet)
-	defer showUpdateNotification()
+	// Update check: NewUpdateChecker initializes the check and returns a type that
+	// encapsulates the notification logic. This design enforces correct usage -
+	// ShowNotification can only be called on an initialized checker instance.
+	updateChecker := NewUpdateChecker(opts.Quiet)
+	defer updateChecker.ShowNotification()
 
 	// Route to command handler
 	switch cmd {
@@ -118,10 +117,10 @@ func Run(args []string) int {
 	case "config":
 		return cmdConfig(cmdArgs)
 	case "upgrade":
-		skipUpdateNotification()
+		updateChecker.Skip()
 		return cmdUpgrade(cmdArgs)
 	case "completion":
-		skipUpdateNotification()
+		updateChecker.Skip()
 		return cmdCompletion(cmdArgs)
 
 	default:

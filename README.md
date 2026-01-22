@@ -29,8 +29,6 @@ structyl check
 structyl ci
 ```
 
-See the [documentation](https://structyl.akinshin.dev) for installation instructions and detailed usage.
-
 For development setup and contribution guidelines, see [AGENTS.md](AGENTS.md).
 
 ## License

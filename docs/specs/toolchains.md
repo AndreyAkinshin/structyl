@@ -4,6 +4,15 @@
 
 This document defines the built-in toolchain presets for Structyl.
 
+## Non-Goals
+
+This specification does **not** cover:
+
+- **Build tool installation**: Toolchains assume tools are already installed. Use mise for tool version management.
+- **Custom build pipelines**: Toolchains provide standard command mappings; complex orchestration belongs in target configuration.
+- **IDE integration**: Toolchain definitions are for CLI execution, not IDE project files.
+- **Dependency resolution**: Toolchains invoke package managers but don't manage transitive dependencies.
+
 ## Overview
 
 A **toolchain** is a preset that provides default commands for a specific build ecosystem. Toolchains eliminate boilerplate by mapping Structyl's standard command vocabulary to ecosystem-specific invocations.
@@ -206,20 +215,21 @@ Commands not applicable to a toolchain are set to `null` (skipped).
 
 **Ecosystem:** Go
 
-| Command       | Implementation                                                   |
-| ------------- | ---------------------------------------------------------------- |
-| `clean`       | `go clean`                                                       |
-| `restore`     | `go mod download`                                                |
-| `build`       | `go build ./...`                                                 |
-| `test`        | `go test ./...`                                                  |
-| `check`       | `golangci-lint run` + `go vet ./...` + `test -z "$(gofmt -l .)"` |
-| `check:fix`   | `go fmt ./...`                                                   |
-| `bench`       | `go test -bench=. ./...`                                         |
-| `demo`        | `go run ./cmd/demo`                                              |
-| `doc`         | `go doc ./...`                                                   |
-| `pack`        | —                                                                |
-| `publish`     | —                                                                |
-| `publish:dry` | —                                                                |
+| Command         | Implementation                                                   |
+| --------------- | ---------------------------------------------------------------- |
+| `clean`         | `go clean`                                                       |
+| `restore`       | `go mod download`                                                |
+| `build`         | `go build ./...`                                                 |
+| `build:release` | —                                                                |
+| `test`          | `go test ./...`                                                  |
+| `check`         | `golangci-lint run` + `go vet ./...` + `test -z "$(gofmt -l .)"` |
+| `check:fix`     | `go fmt ./...`                                                   |
+| `bench`         | `go test -bench=. ./...`                                         |
+| `demo`          | `go run ./cmd/demo`                                              |
+| `doc`           | `go doc ./...`                                                   |
+| `pack`          | —                                                                |
+| `publish`       | —                                                                |
+| `publish:dry`   | —                                                                |
 
 <!-- Non-normative: table above contains all normative command definitions -->
 <ToolchainCommands name="go" variant="spec" />

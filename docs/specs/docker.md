@@ -4,6 +4,15 @@
 
 This document describes Structyl's Docker integration.
 
+## Non-Goals
+
+This specification does **not** cover:
+
+- **Container orchestration**: Structyl uses Docker for builds only, not production deployment.
+- **Multi-stage builds**: Generated Dockerfiles are for development/CI, not optimized production images.
+- **Docker Swarm/Kubernetes**: Only Docker Compose is supported; orchestrators are out of scope.
+- **Image publishing**: Building and pushing images to registries is not managed by Structyl.
+
 ## Overview
 
 Structyl supports running builds inside Docker containers, providing:

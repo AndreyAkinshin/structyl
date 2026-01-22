@@ -129,6 +129,23 @@ func writeMiseConfig(proj *project.Project) error {
 	return nil
 }
 
+// ensureMiseReady ensures mise is installed and mise.toml is up-to-date.
+// Returns 0 on success, or an appropriate exit code on failure.
+// This function consolidates the common pattern of checking mise availability
+// and regenerating mise.toml before running commands.
+func ensureMiseReady(proj *project.Project) int {
+	if err := EnsureMise(true); err != nil {
+		out.ErrorPrefix("%v", err)
+		PrintMiseInstallInstructions()
+		return internalerrors.ExitEnvError
+	}
+	if err := ensureMiseConfig(proj, MiseAutoRegenerate); err != nil {
+		out.ErrorPrefix("%v", err)
+		return internalerrors.ExitRuntimeError
+	}
+	return 0
+}
+
 // formatMiseTaskName converts a structyl command and optional target to a mise task name.
 // Examples:
 //   - ("build", "") → "build"
@@ -204,17 +221,9 @@ func cmdUnified(args []string, opts *GlobalOptions) int {
 	// Determine target name (if specified)
 	targetName, cmdArgs := extractTargetArg(remaining, registry)
 
-	// Check mise is installed
-	if err := EnsureMise(true); err != nil {
-		out.ErrorPrefix("%v", err)
-		PrintMiseInstallInstructions()
-		return internalerrors.ExitEnvError
-	}
-
-	// Ensure mise.toml is up-to-date
-	if err := ensureMiseConfig(proj, MiseAutoRegenerate); err != nil {
-		out.ErrorPrefix("%v", err)
-		return internalerrors.ExitRuntimeError
+	// Ensure mise is ready (installed and mise.toml up-to-date)
+	if exitCode := ensureMiseReady(proj); exitCode != 0 {
+		return exitCode
 	}
 
 	// If --type is specified and no specific target given, filter targets by type
@@ -440,17 +449,9 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 		targetName, cmdArgs = extractTargetArg(args, registry)
 	}
 
-	// Check mise is installed
-	if err := EnsureMise(true); err != nil {
-		out.ErrorPrefix("%v", err)
-		PrintMiseInstallInstructions()
-		return internalerrors.ExitEnvError
-	}
-
-	// Ensure mise.toml is up-to-date
-	if err := ensureMiseConfig(proj, MiseAutoRegenerate); err != nil {
-		out.ErrorPrefix("%v", err)
-		return internalerrors.ExitRuntimeError
+	// Ensure mise is ready (installed and mise.toml up-to-date)
+	if exitCode := ensureMiseReady(proj); exitCode != 0 {
+		return exitCode
 	}
 
 	return runViaMise(proj, cmd, targetName, cmdArgs, opts, registry)
@@ -473,7 +474,7 @@ func cmdCI(cmd string, args []string, opts *GlobalOptions) int {
 // The target interpretation always wins when ambiguous. This is intentional to
 // support the common case of targeting a specific implementation.
 func extractTargetArg(args []string, registry *target.Registry) (string, []string) {
-	if len(args) == 0 || registry == nil {
+	if registry == nil || len(args) == 0 {
 		return "", args
 	}
 	if _, ok := registry.Get(args[0]); ok {

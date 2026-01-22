@@ -130,7 +130,7 @@ This table is synchronized with `// Deprecated:` comments in Go source code. If 
 - `LoadAllSuites` — Load all suites as map
 - `ListSuites`, `ListTestCases` — Discovery functions
 - `FindProjectRoot`, `FindProjectRootFrom` — Project root detection
-- `NewTestCase`, `NewTestCaseFromJSON`, `NewTestCaseFromJSONWithSuite` — Constructors
+- `NewTestCase`, `NewTestCaseFromJSON`, `NewTestCaseFromJSONWithSuite`, `NewTestCaseWithSuite` — Constructors
 - `SuiteExists`, `SuiteExistsErr`, `TestCaseExists`, `TestCaseExistsErr` — Existence checks
 - `ValidateSuiteName`, `ValidateTestCaseName` — Name validation
 
@@ -158,7 +158,7 @@ This table is synchronized with `// Deprecated:` comments in Go source code. If 
 
 - `Clone`, `DeepClone` — Copy methods
 - `WithName`, `WithSuite`, `WithDescription`, `WithInput`, `WithOutput`, `WithTags`, `WithSkip` — Builder methods
-- `HasSuite`, `TagsContain` — Query methods
+- `ID`, `HasSuite`, `TagsContain` — Query methods
 - `Validate`, `ValidateStrict`, `ValidateDeep` — Validation hierarchy
 
 **CompareOptions Methods:**

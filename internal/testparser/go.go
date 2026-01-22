@@ -93,6 +93,15 @@ func (p *GoParser) extractFailedTests(output string, failMatches [][]string) []F
 // Static regex for matching FAIL lines generically (captures test name).
 var goFailLineRegex = regexp.MustCompile(`^---\s+FAIL:\s+(\S+)\s+`)
 
+// isTestBoundary returns true if the line marks the start of a test run
+// or the result of a different test (PASS/FAIL/SKIP).
+func isTestBoundary(line string) bool {
+	return strings.HasPrefix(line, "=== RUN") ||
+		strings.HasPrefix(line, "--- PASS:") ||
+		strings.HasPrefix(line, "--- FAIL:") ||
+		strings.HasPrefix(line, "--- SKIP:")
+}
+
 // findFailureReason searches for the failure reason for a given test.
 func (p *GoParser) findFailureReason(lines []string, testName string) string {
 	// Find the FAIL line for this test
@@ -119,10 +128,7 @@ func (p *GoParser) findFailureReason(lines []string, testName string) string {
 		trimmed := strings.TrimSpace(line)
 
 		// Stop at RUN line or another test result
-		if strings.HasPrefix(line, "=== RUN") ||
-			strings.HasPrefix(line, "--- PASS:") ||
-			strings.HasPrefix(line, "--- FAIL:") ||
-			strings.HasPrefix(line, "--- SKIP:") {
+		if isTestBoundary(line) {
 			break
 		}
 

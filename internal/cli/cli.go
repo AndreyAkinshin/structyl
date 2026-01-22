@@ -75,8 +75,9 @@ func Run(args []string) int {
 
 	// Deprecated: "new" is now "init". Hidden from help text intentionally.
 	// Emits deprecation warning but still works for backward compatibility.
+	// Scheduled for removal in v1.0.0.
 	case "new":
-		out.WarningSimple("'structyl new' is deprecated, use 'structyl init'")
+		out.WarningSimple("'structyl new' is deprecated and will be removed in v1.0.0; use 'structyl init'")
 		return cmdInit(cmdArgs)
 
 	// Release command

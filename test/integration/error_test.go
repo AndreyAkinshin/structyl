@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/AndreyAkinshin/structyl/internal/project"
@@ -52,5 +53,30 @@ func TestMalformedJSONFixtureError(t *testing.T) {
 	var syntaxErr *json.SyntaxError
 	if !errors.As(err, &syntaxErr) {
 		t.Errorf("expected error chain to contain *json.SyntaxError, got: %v (type: %T)", err, err)
+	}
+}
+
+func TestInvalidToolchainReferenceError(t *testing.T) {
+	t.Parallel()
+	fixtureDir := filepath.Join(fixturesDir(), "invalid", "invalid-toolchain")
+
+	proj, err := project.LoadProjectFrom(fixtureDir)
+	if err != nil {
+		t.Fatalf("LoadProjectFrom: %v", err)
+	}
+
+	// Error occurs during registry creation, not during project loading
+	_, err = target.NewRegistry(proj.Config, proj.Root)
+	if err == nil {
+		t.Fatal("expected error when creating registry with unknown toolchain reference")
+	}
+
+	// Verify error message mentions the unknown toolchain
+	errMsg := err.Error()
+	if !strings.Contains(errMsg, "unknown toolchain") {
+		t.Errorf("expected error to mention 'unknown toolchain', got: %v", errMsg)
+	}
+	if !strings.Contains(errMsg, "nonexistent-toolchain") {
+		t.Errorf("expected error to mention toolchain name 'nonexistent-toolchain', got: %v", errMsg)
 	}
 }

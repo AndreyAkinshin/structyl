@@ -79,6 +79,20 @@
 // See docs/specs/test-system.md for the complete test file specification,
 // including field definitions, comparison options, and special value handling.
 //
+// # Copy Semantics
+//
+// [TestCase] provides two copy methods with different guarantees:
+//
+//   - [TestCase.Clone] creates a shallow copy suitable for most use cases.
+//     It deep-copies [TestCase.Input] (top-level keys only) and [TestCase.Tags],
+//     but [TestCase.Output] remains a shared reference.
+//   - [TestCase.DeepClone] creates a fully independent copy via JSON round-trip.
+//     Use this when you need to mutate Output or nested Input values.
+//
+// All builder methods ([TestCase.WithSuite], [TestCase.WithInput], [TestCase.WithTags],
+// [TestCase.WithSkip], [TestCase.WithOutput], [TestCase.WithDescription]) use Clone
+// internally, so they inherit its shallow copy semantics.
+//
 // Example usage in a Go test:
 //
 //	func TestCalculation(t *testing.T) {
@@ -387,6 +401,16 @@ func (tc TestCase) WithSuite(suite string) TestCase {
 	return clone
 }
 
+// WithDescription returns a copy of the TestCase with the Description field set.
+//
+// Note: This performs a shallow copy like [Clone]; see Clone documentation for
+// details on which fields are deep-copied.
+func (tc TestCase) WithDescription(description string) TestCase {
+	clone := tc.Clone()
+	clone.Description = description
+	return clone
+}
+
 // WithInput returns a copy of the TestCase with the Input field replaced.
 // The provided input map is shallow-copied to prevent external modifications.
 //
@@ -453,6 +477,9 @@ func (tc TestCase) WithOutput(output interface{}) TestCase {
 // (e.g., test case generators) rather than loading from JSON files.
 // Loader functions already validate these requirements, so calling Validate
 // after LoadTestCase or LoadTestSuite is unnecessary.
+//
+// For stricter validation, see [ValidateStrict] (adds Output type checking) and
+// [ValidateDeep] (adds recursive type validation for nested values).
 //
 // Validation rules:
 //   - Name must not be empty

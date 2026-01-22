@@ -429,6 +429,22 @@ All loader and comparison functions in `pkg/testhelper` are safe for concurrent 
 - **Comparison functions** (`Equal`, `Compare`, `FormatComparisonResult`) are pure functions with no shared state.
 - The `TestCase` type is safe to read concurrently, but callers MUST NOT modify a `TestCase` while other goroutines are reading it.
 
+### Copy Semantics Warning
+
+::: warning Shallow Copy Behavior
+`TestCase.Clone()` and all `With*` builder methods perform **shallow copies**. The `Output` field is NOT copied—both original and clone share the same reference. Modifying `Output` on a clone also modifies the original:
+
+```go
+clone := original.Clone()
+clone.Output.(map[string]interface{})["key"] = "changed"
+// Surprise: original.Output["key"] is also changed!
+```
+
+Additionally, while `Input` is shallow-copied at the top level, nested values within `Input` are shared. Modifying nested `Input` values affects the original.
+
+Use `TestCase.DeepClone()` when you need to modify `Output` or nested `Input` values independently.
+:::
+
 ### TestCase Validation Methods
 
 The `TestCase` type provides three validation methods forming a hierarchy of increasing strictness:

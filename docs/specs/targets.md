@@ -380,6 +380,8 @@ At project load time, Structyl validates that each target's directory exists:
 | Directory does not exist     | `target "{name}": directory not found: {path}`     | 2         |
 | Directory is not a directory | `target "{name}": path is not a directory: {path}` | 2         |
 
+> **Note:** `{path}` in directory validation errors is the **resolved** path (relative to project root), not the raw configured value. If `directory` is not specified, `{path}` equals the target key.
+
 ## Default Language Slugs
 
 Structyl recognizes these slugs as language targets during auto-discovery:

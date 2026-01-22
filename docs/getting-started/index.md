@@ -44,6 +44,8 @@ A **target** is a buildable unit in your project. There are two types:
 
 A **toolchain** maps standard commands (build, test, clean) to language-specific tools:
 
+<!-- VitePress component: Renders toolchain overview table in docs site.
+     When viewing raw markdown, see docs/specs/toolchains.md for command mappings. -->
 <ToolchainOverview :toolchains="['cargo', 'go', 'npm', 'uv']" />
 
 ### Commands

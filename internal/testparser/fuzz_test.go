@@ -45,11 +45,16 @@ func assertFailedTestsInvariants(t *testing.T, result TestCounts) {
 			len(result.FailedTests), result.Failed)
 	}
 
-	// FailedTests elements should have non-empty names
+	// FailedTests elements should have non-empty names and unique names
+	seenNames := make(map[string]bool, len(result.FailedTests))
 	for i, ft := range result.FailedTests {
 		if ft.Name == "" {
 			t.Errorf("FailedTests[%d].Name is empty", i)
 		}
+		if seenNames[ft.Name] {
+			t.Errorf("FailedTests[%d].Name %q is duplicate", i, ft.Name)
+		}
+		seenNames[ft.Name] = true
 	}
 }
 

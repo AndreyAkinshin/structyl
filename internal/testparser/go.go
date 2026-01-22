@@ -8,9 +8,13 @@ import (
 // Static regexes for Go test output parsing.
 // Compiled once at package init for performance.
 var (
+	// goPassRegex matches "--- PASS: TestFoo (0.00s)"
 	goPassRegex = regexp.MustCompile(`(?m)^---\s+PASS:\s+`)
+	// goFailRegex matches "--- FAIL: TestBar (0.01s)" and captures test name
 	goFailRegex = regexp.MustCompile(`(?m)^---\s+FAIL:\s+(\S+)`)
+	// goSkipRegex matches "--- SKIP: TestBaz (0.00s)"
 	goSkipRegex = regexp.MustCompile(`(?m)^---\s+SKIP:\s+`)
+	// goErrorLine matches "    file_test.go:15: expected X, got Y"
 	goErrorLine = regexp.MustCompile(`^\s+\S+\.go:\d+:`)
 )
 
@@ -90,7 +94,8 @@ func (p *GoParser) extractFailedTests(output string, failMatches [][]string) []F
 	return failedTests
 }
 
-// Static regex for matching FAIL lines generically (captures test name).
+// goFailLineRegex matches "--- FAIL: TestFoo (0.00s)" and captures test name.
+// Unlike goFailRegex, requires trailing whitespace after test name for exact match.
 var goFailLineRegex = regexp.MustCompile(`^---\s+FAIL:\s+(\S+)\s+`)
 
 // isTestBoundary returns true if the line marks the start of a test run

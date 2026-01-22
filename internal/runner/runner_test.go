@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/AndreyAkinshin/structyl/internal/config"
+	structylerrors "github.com/AndreyAkinshin/structyl/internal/errors"
 	"github.com/AndreyAkinshin/structyl/internal/target"
 	"github.com/AndreyAkinshin/structyl/internal/testing/mocks"
 )
@@ -186,8 +187,17 @@ func TestRun_UnknownTarget_ReturnsError(t *testing.T) {
 	err := r.Run(ctx, "nonexistent", "build", RunOptions{})
 
 	if err == nil {
-		t.Error("Run() expected error for unknown target")
+		t.Fatal("Run() expected error for unknown target")
 	}
+
+	// Verify error type using errors.As
+	var structylErr *structylerrors.StructylError
+	if !errors.As(err, &structylErr) {
+		t.Errorf("error type = %T, want *StructylError", err)
+	} else if structylErr.Kind != structylerrors.KindNotFound {
+		t.Errorf("error kind = %v, want KindNotFound", structylErr.Kind)
+	}
+
 	if !strings.Contains(err.Error(), "not found") {
 		t.Errorf("error = %q, want to contain 'not found'", err.Error())
 	}

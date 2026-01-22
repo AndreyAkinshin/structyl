@@ -92,91 +92,9 @@ func TestNewReleaser(t *testing.T) {
 	}
 }
 
-func TestGetRemote_Default(t *testing.T) {
-	tests := []struct {
-		name   string
-		config *config.Config
-		want   string
-	}{
-		{
-			name:   "nil release config",
-			config: &config.Config{},
-			want:   "origin",
-		},
-		{
-			name: "empty remote",
-			config: &config.Config{
-				Release: &config.ReleaseConfig{},
-			},
-			want: "origin",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			r := NewReleaser("/tmp", tt.config)
-			if got := r.getRemote(); got != tt.want {
-				t.Errorf("getRemote() = %q, want %q", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestGetRemote_Custom(t *testing.T) {
-	cfg := &config.Config{
-		Release: &config.ReleaseConfig{
-			Remote: "upstream",
-		},
-	}
-
-	r := NewReleaser("/tmp", cfg)
-	if got := r.getRemote(); got != "upstream" {
-		t.Errorf("getRemote() = %q, want %q", got, "upstream")
-	}
-}
-
-func TestGetBranch_Default(t *testing.T) {
-	tests := []struct {
-		name   string
-		config *config.Config
-		want   string
-	}{
-		{
-			name:   "nil release config",
-			config: &config.Config{},
-			want:   "main",
-		},
-		{
-			name: "empty branch",
-			config: &config.Config{
-				Release: &config.ReleaseConfig{},
-			},
-			want: "main",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			r := NewReleaser("/tmp", tt.config)
-			if got := r.getBranch(); got != tt.want {
-				t.Errorf("getBranch() = %q, want %q", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestGetBranch_Custom(t *testing.T) {
-	cfg := &config.Config{
-		Release: &config.ReleaseConfig{
-			Branch: "master",
-		},
-	}
-
-	r := NewReleaser("/tmp", cfg)
-	if got := r.getBranch(); got != "master" {
-		t.Errorf("getBranch() = %q, want %q", got, "master")
-	}
-}
+// Note: TestGetRemote_Default, TestGetRemote_Custom, TestGetBranch_Default, and
+// TestGetBranch_Custom have been removed because they duplicate coverage from
+// TestConfigDefaults_TableDriven, which comprehensively tests all config combinations.
 
 func TestGetTags_DefaultFormat(t *testing.T) {
 	cfg := &config.Config{}
@@ -229,6 +147,25 @@ func TestGetTags_ExtraTags(t *testing.T) {
 		if tags[i] != want {
 			t.Errorf("tags[%d] = %q, want %q", i, tags[i], want)
 		}
+	}
+}
+
+func TestGetTags_EmptyExtraTags(t *testing.T) {
+	cfg := &config.Config{
+		Release: &config.ReleaseConfig{
+			TagFormat: "v{version}",
+			ExtraTags: []string{}, // Explicitly empty
+		},
+	}
+
+	r := NewReleaser("/tmp", cfg)
+	tags := r.getTags("1.2.3")
+
+	if len(tags) != 1 {
+		t.Fatalf("len(tags) = %d, want 1", len(tags))
+	}
+	if tags[0] != "v1.2.3" {
+		t.Errorf("tags[0] = %q, want %q", tags[0], "v1.2.3")
 	}
 }
 

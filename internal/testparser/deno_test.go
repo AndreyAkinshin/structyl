@@ -50,6 +50,13 @@ ok | 47 passed | 0 failed (123ms)`,
 			output:   "Check file:///path/to/tests.ts\n",
 			expected: TestCounts{Parsed: false},
 		},
+		{
+			// Deno output without timing information (pipe format).
+			// The parser uses fallback individual pattern matching.
+			name:     "pipe format without timing",
+			output:   "ok | 5 passed | 0 failed",
+			expected: TestCounts{Passed: 5, Failed: 0, Skipped: 0, Total: 5, Parsed: true},
+		},
 	}
 
 	for _, tt := range tests {

@@ -48,6 +48,13 @@ test result: ok. 27 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; fin
 			output:   "   Compiling example v0.1.0\n    Finished test [unoptimized + debuginfo] target(s)\n",
 			expected: TestCounts{Parsed: false},
 		},
+		{
+			name: "zero tests",
+			output: `running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s`,
+			expected: TestCounts{Passed: 0, Failed: 0, Skipped: 0, Total: 0, Parsed: true},
+		},
 	}
 
 	for _, tt := range tests {

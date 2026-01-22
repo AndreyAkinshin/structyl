@@ -51,6 +51,13 @@ test_foo.ts:
 			output:   "Starting tests...\n",
 			expected: TestCounts{Parsed: false},
 		},
+		{
+			// Bun parser uses lowercase matching. PASS/FAIL/SKIP are not recognized.
+			// This documents current behavior—output must be lowercase.
+			name:     "uppercase not matched",
+			output:   "47 PASS\n2 FAIL",
+			expected: TestCounts{Parsed: false},
+		},
 	}
 
 	for _, tt := range tests {

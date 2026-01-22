@@ -48,6 +48,20 @@ tests/test_foo.py::test_baz PASSED
 			output:   "collecting ...\ncollected 0 items\n",
 			expected: TestCounts{Parsed: false},
 		},
+		{
+			// pytest reports "errors" separately from "failed" (e.g., collection errors).
+			// Current parser does not extract errors; they are not counted.
+			name:     "with errors",
+			output:   "======= 10 passed, 2 errors in 0.12s =======",
+			expected: TestCounts{Passed: 10, Failed: 0, Skipped: 0, Total: 10, Parsed: true},
+		},
+		{
+			// pytest reports "deselected" for tests excluded via -k or markers.
+			// Current parser does not extract deselected; they are not counted.
+			name:     "with deselected",
+			output:   "======= 10 passed, 5 deselected in 0.12s =======",
+			expected: TestCounts{Passed: 10, Failed: 0, Skipped: 0, Total: 10, Parsed: true},
+		},
 	}
 
 	for _, tt := range tests {
